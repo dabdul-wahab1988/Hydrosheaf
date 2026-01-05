@@ -1,0 +1,11 @@
+{
+  "edge_id": "A->B",
+  "transport_model": "evap",
+  "gamma": 1.2,
+  "transport_residual_norm": 0.5,
+  "anomaly_norm": 0.0,
+  "objective_score": 0.15,
+  "z": {
+    "halite": 0.5
+  }
+}
