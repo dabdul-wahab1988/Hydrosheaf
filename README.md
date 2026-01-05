@@ -57,7 +57,15 @@ hydrosheaf --help
 
 ## Documentation
 
-For a detailed mathematical description of the algorithms, optimization problems, and theoretical proofs, please refer to the [Technical Document](hydrosheaf_technical_document.pdf).
+**[Technical Document (PDF)](hydrosheaf_technical_document.pdf)**: Comprehensive mathematical theory and proofs.
+
+Detailed guides are available in the `docs/` directory:
+
+- **[User Guide](docs/USER_GUIDE.md)**: Extended usage instructions and workflows.
+- **[Mathematical Reference](docs/math.md)**: Compact math notes aligned with the codebase implementation.
+- **[Technical Reference](docs/TECHNICAL_REFERENCE.md)**: Deep dive into the code architecture and modules.
+- **[PHREEQC Integration](docs/phreeqc.md)**: Setting up thermodynamic constraints.
+- **[Examples](docs/examples.md)**: Walkthroughs of common modeling scenarios.
 
 ## Author
 
