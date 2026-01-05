@@ -67,9 +67,10 @@ Detailed guides are available in the `docs/` directory:
 - **[PHREEQC Integration](docs/phreeqc.md)**: Setting up thermodynamic constraints.
 - **[Examples](docs/examples.md)**: Walkthroughs of common modeling scenarios.
 
-## Author
+## Authors
 
 **Dickson Abdul-Wahab**
+**Ebenezer Aquisman Asare**
 
 ## License
 

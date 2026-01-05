@@ -8,6 +8,10 @@ version = "0.1.0"
 description = "Sheaf-style groundwater hydrogeochemistry modeling."
 readme = "README.md"
 requires-python = ">=3.8"
+authors = [
+  {name = "Dickson Abdul-Wahab"},
+  {name = "Ebenezer Aquisman Asare"},
+]
 dependencies = []
 
 [project.optional-dependencies]
