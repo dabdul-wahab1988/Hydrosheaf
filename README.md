@@ -1,5 +1,7 @@
 # Hydrosheaf
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18157915.svg)](https://doi.org/10.5281/zenodo.18157915)
+
 **Sheaf-Theoretic Methods in Groundwater Hydrogeochemistry: A Mathematical Framework for Inverse Geochemical Modeling**
 
 ## Overview
