@@ -23,6 +23,7 @@ The framework integrates:
 - **Sparsity**: Uses L1 regularization to find the simplest chemical explanation for observed data.
 - **Physical Consistency**: Enforces thermodynamic bounds (e.g., minerals cannot precipitate from undersaturated solutions).
 - **Network Inference**: Infers flow direction probabilities from hydraulic head data with uncertainty.
+- **Nitrate Source Discrimination**: Distinguishes between manure and fertilizer sources using CoDA-based robust statistics and Bayesian evidence accumulation.
 
 ## Installation
 
@@ -71,7 +72,7 @@ Detailed guides are available in the `docs/` directory:
 
 ## Authors
 
-**Dickson Abdul-Wahab** and 
+**Dickson Abdul-Wahab** and
 **Ebenezer Aquisman Asare**
 
 ## License

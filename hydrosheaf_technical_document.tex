@@ -545,6 +545,35 @@ For mixing, we expect $|E_v| \approx |E_u|$ and $d_v \approx d_u$ (no systematic
 
 These penalties are added to the transport optimization \eqref{eq:transport_opt}, biasing model selection toward isotopically consistent hypotheses.
 
+\section{Nitrate Source Discrimination}
+
+\subsection{Compositional Data Analysis (CoDA)}
+To provide robust geochemical context independent of total concentration (TDS) or dilution, we utilize Compositional Data Analysis (CoDA). The 7-ion sub-composition $S^7 = \{\text{Ca, Mg, Na, K, HCO}_3, \text{Cl, SO}_4\}$ is transformed into Euclidean space using Isometric Log-Ratios (ilr) derived from a Sequential Binary Partition (SBP).
+\begin{equation}
+ilr_i = \sqrt{\frac{r s}{r+s}} \ln\left( \frac{g(x_+)}{g(x_-)} \right)
+\end{equation}
+where $g(\cdot)$ is the geometric mean of the respective ion groups.
+
+\subsection{Bayesian Evidence Accumulation}
+We distinguish between Manure and Inorganic Fertilizer sources using a probabilistic classifier. The system calculates a Manure Probability ($P_m$) by accumulating ``evidence'' ($\phi_k$) in log-odds space:
+\begin{equation}
+\text{Logit} = \ln\left(\frac{P_{prior}}{1-P_{prior}}\right) + \sum_{k} w_k \cdot \phi_k
+\end{equation}
+\begin{equation}
+P(\text{Manure}) = \frac{1}{1 + e^{-\text{Logit}}}
+\end{equation}
+
+\subsection{Evidence Terms}
+Features are z-scored using robust statistics (Median / MAD) to handle outliers:
+\begin{itemize}
+    \item \textbf{NO$_3$/Cl Ratio ($\phi_1$)}: High ratios indicate Fertilizer; Low ratios indicate Manure/Sewage.
+    \item \textbf{NO$_3$/K Ratio ($\phi_2$)}: Manure is rich in Potassium. High NO$_3$/K strongly suggests Fertilizer.
+    \item \textbf{Denitrification ($\phi_5$)}: Derived from the LASSO reaction model ($z_{\text{denitrif}}$). Strong denitrification supports Manure (organic carbon donor).
+\end{itemize}
+
+\subsection{Contextual Gating}
+To prevent false positives in high-salinity evaporative environments (where ratios can be distorted), we implement gating logic: if Deuterium Excess is low ($d < 10$) or the transport model is explicitly identified as \textit{evaporation}, the weights of ratio-based evidence are reduced.
+
 \section{Graph-Theoretic Edge Inference}
 
 \subsection{Probabilistic Edge Weights}

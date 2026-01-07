@@ -48,6 +48,11 @@ python -m hydrosheaf.cli \
 * `--auto-lmwl`: Automatically fit the Local Meteoric Water Line from your data.
 * `--iso-consistency-weight`: Weight for the penalty connecting isotope enrichment to Chloride increase. Set to `2.0` for strict physics.
 
+### Nitrate Source Discrimination
+
+* `--nitrate-source-enabled`: Enable the module to distinguish between manure and fertilizer sources of nitrate.
+* Uses geochemical ratios (NO3/Cl, NO3/K) and robust statistics to assign a probability of manure contamination.
+
 ### Interpretation & Output
 
 * `--interpret`: Print a text-based geochemical report after the run finishes.
@@ -73,3 +78,9 @@ The interpretation report provides high-level insights:
 
 * **Oxic**: High Nitrate, Low Iron. Pyrite burns to Sulfate.
 * **Reducing**: Low Nitrate, High Iron. Pyrite is stable; Aerobic oxidation is disabled.
+
+### Nitrate Sources
+
+* **Manure-Dominated (`p_manure > 0.5`)**: High NO3/Cl and NO3/K ratios, often coupled with high denitrification signals.
+* **Fertilizer-Dominated (`p_manure < 0.5`)**: Very high NO3/Cl ratios, low K, lack of organic signals.
+* **Evidence**: The system provides the top reasoning for its classification (e.g., `NO3/K_high_manure`, `denitrif_strong`).

@@ -114,3 +114,37 @@ The Local Meteoric Water Line is auto-calibrated using Orthogonal Distance Regre
 $$
 \delta^2H = a \cdot \delta^{18}O + b
 $$
+
+---
+
+## 6. Nitrate Source Discrimination
+
+This module implements a probabilistic classifier to distinguish between **Manure** and **Inorganic Fertilizer** sources of nitrate.
+
+### 6.1 Methodology (Bayesian Accumulator)
+
+The system calculates a Manure Probability ($P_m$) by accumulating "evidence" ($\phi_k$) in log-odds space:
+
+$$
+\text{Logit} = \ln\left(\frac{P_{prior}}{1-P_{prior}}\right) + \sum_{k} w_k \cdot \phi_k
+$$
+
+$$
+P(\text{Manure}) = \frac{1}{1 + e^{-\text{Logit}}}
+$$
+
+### 6.2 Evidence Terms ($\phi$)
+
+Features are z-scored using robust statistics (Median / MAD) to handle outliers:
+
+1. **NO3/Cl Ratio ($\phi_1$)**: High ratios indicate Fertilizer; Low ratios indicate Manure/Sewage.
+2. **NO3/K Ratio ($\phi_2$)**: Manure is rich in Potassium. High NO3/K strongly suggests Fertilizer.
+3. **Denitrification ($\phi_5$)**: Derived from the LASSO reaction model. Strong denitrification supports Manure (organic carbon donor).
+4. **Alkalinity Coupling ($\phi_6$)**: Correlation between NO3 loss and HCO3 gain indicates organic mineralization (Manure).
+
+### 6.3 Contextual Gating
+
+To prevent false positives in evaporative environments:
+
+* **Evaporation Gate**: If Deuterium Excess ($d < 10$) or Transport Model = `evap`, the weight of ratio-based evidence is reduced by 50%.
+* **CoDA Context**: A 7-ion Compositional Data Analysis (ilr coordinates) is used to validate that samples belong to the fresh/brackish conceptual model.
