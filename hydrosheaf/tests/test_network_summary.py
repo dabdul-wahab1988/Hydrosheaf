@@ -38,7 +38,7 @@ class NetworkSummaryTests(unittest.TestCase):
                 "pH": 7.1,
             },
         ]
-        results = fit_network(samples, [("A", "B")], Config(lambda_sparse=0.0))
+        results = fit_network(samples, [("A", "B")], Config(lambda_sparse=0.0, missing_policy="impute_zero"))
         summary = summarize_network(results)
         self.assertEqual(summary["edge_count"], 1)
         maps = edge_process_maps(results)

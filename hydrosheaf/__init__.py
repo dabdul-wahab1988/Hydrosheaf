@@ -17,6 +17,8 @@ from .models.sheaf import edge_residual
 from .phreeqc.constraints import build_edge_bounds
 from .phreeqc.runner import run_phreeqc
 from .isotopes import compute_d_excess, evaporation_index, fit_lmwl
+from .coda_sbp import ilr_from_sbp, robust_zscore
+from .nitrate_source_v2 import infer_node_posteriors, NitrateSourceResult
 
 __all__ = [
     "Config",
@@ -39,6 +41,10 @@ __all__ = [
     "compute_d_excess",
     "evaporation_index",
     "fit_lmwl",
+    "ilr_from_sbp",
+    "robust_zscore",
+    "infer_node_posteriors",
+    "NitrateSourceResult",
 ]
 
 __version__ = "0.1.0"

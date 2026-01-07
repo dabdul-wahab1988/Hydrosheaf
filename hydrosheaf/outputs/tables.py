@@ -63,6 +63,10 @@ def edge_results_table(results: List[EdgeResult]) -> List[dict]:
                 "gibbs_used": result.gibbs_used,
                 "isotope_consistency_penalty": result.isotope_consistency_penalty,
                 "qc_flags": ",".join(result.qc_flags),
+                "nitrate_source_p_manure": result.nitrate_source_p_manure,
+                "nitrate_source_logit": result.nitrate_source_logit,
+                "nitrate_source_evidence": ",".join(result.nitrate_source_evidence),
+                "nitrate_source_gates": ",".join(result.nitrate_source_gates),
                 **transport_columns,
                 **reaction_columns,
             }

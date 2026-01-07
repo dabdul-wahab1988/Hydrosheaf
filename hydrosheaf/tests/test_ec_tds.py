@@ -39,7 +39,7 @@ class EcTdsTests(unittest.TestCase):
                 "pH": 7.2,
             },
         ]
-        config = Config()
+        config = Config(missing_policy="impute_zero")
         calibrate_ec_tds(samples, config)
         self.assertAlmostEqual(config.ec_model[0], 2.0, places=6)
         self.assertAlmostEqual(config.ec_model[1], 1.0, places=6)
@@ -64,7 +64,7 @@ class EcTdsTests(unittest.TestCase):
                 "pH": 7.0,
             }
         ]
-        config = Config(ec_model=(2.0, 1.0), tds_model=(3.0, 2.0))
+        config = Config(ec_model=(2.0, 1.0), tds_model=(3.0, 2.0), missing_policy="impute_zero")
         rows = predict_node_ec_tds(samples, config)
         self.assertEqual(len(rows), 1)
         self.assertAlmostEqual(rows[0]["ec_pred"], 17.0, places=6)

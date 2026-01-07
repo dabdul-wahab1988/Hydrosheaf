@@ -1,0 +1,24 @@
+# Nitrate Source Discrimination Defaults (v2)
+
+# Weights for evidence aggregation
+weights:
+  w1_no3_cl: 1.2         # NO3/Cl ratio
+  w2_no3_k: 0.4          # NO3/K ratio (weak)
+  w3_po4: 0.3            # PO4 high flag
+  w4_fe: 0.6             # Fe redox context
+  w5_denitrif: 1.5       # Denitrification extent (strong)
+  w6_alk_coupling: 0.8   # Alkalinity/Nitrate coupling
+  w7_coda_salinity: 0.0  # CoDA salinity penalty (uncertainty)
+
+# Prior probability for Manure (0.5 = neutral)
+prior_prob: 0.5
+
+# Numerical stability
+epsilon_conc: 1.0e-12
+
+# Gating
+evap_gate_factor: 0.5    # Multiplier for ratio evidence if evap detected
+
+# Threshold overrides (optional - if omitted, computed from data)
+# d_excess_p25: 8.0
+# po4_p90: 0.5

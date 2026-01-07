@@ -246,6 +246,9 @@ def main() -> None:
     parser.add_argument("--si-threshold", type=float, default=0.2)
     parser.add_argument("--constraints-hard", action="store_true")
     
+    # Nitrate Source Discrim
+    parser.add_argument("--nitrate-source-enabled", action="store_true", help="Enable nitrate source discrimination (manure vs fertilizer).")
+    
     # Mineral Library Options
     parser.add_argument(
         "--minerals",
@@ -321,6 +324,7 @@ def main() -> None:
         isotope_weight=args.isotope_weight,
         isotope_d_excess_weight=args.isotope_d_excess_weight,
         isotope_d18o_key=args.isotope_d18o_key,
+        nitrate_source_enabled=args.nitrate_source_enabled,
     )
     config.isotope_d2h_key = args.isotope_d2h_key
     config.auto_lmwl = args.auto_lmwl

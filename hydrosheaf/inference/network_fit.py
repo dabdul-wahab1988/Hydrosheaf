@@ -12,6 +12,8 @@ from ..phreeqc.runner import run_phreeqc
 from ..models.ec_tds import predict_ec_tds
 from ..models.redox import get_redox_constraints
 from .edge_fit import EdgeResult, fit_edge
+from ..nitrate_source_v2 import infer_node_posteriors
+import pandas as pd
 
 
 def _sample_map(samples: object) -> Dict[str, Mapping[str, float]]:
@@ -103,6 +105,34 @@ def fit_network(
         result.edge_source_tier = edge_attrs.get("source_tier")
         result.edge_flags = edge_attrs.get("flags")
         results.append(result)
+
+    # Nitrate Source Discrimination (v2) Integration
+    if config.nitrate_source_enabled:
+        # 1. Convert samples to DataFrame for bulk stats
+        df = pd.DataFrame(list(sample_map.values()))
+        if "site_id" not in df.columns:
+            df["site_id"] = df.index  # Fallback if needed
+        df.set_index("site_id", drop=False, inplace=True)
+        
+        # 2. Run Inference with Overrides
+        overrides = {
+            "weights": config.nitrate_source_weights,
+            "prior_prob": config.nitrate_source_prior,
+            "evap_gate_factor": config.nitrate_source_evap_gate,
+            "nitrate_source_d_excess_p25": config.nitrate_source_d_excess_p25,
+            "nitrate_source_po4_p90": config.nitrate_source_po4_p90,
+        }
+        node_posteriors = infer_node_posteriors(df, results, overrides)
+
+        # 3. Attach Node Posteriors to Edges (for output)
+        for res in results:
+            if res.v in node_posteriors:
+                nr = node_posteriors[res.v]
+                res.nitrate_source_p_manure = nr.p_manure
+                res.nitrate_source_logit = nr.logit_score
+                res.nitrate_source_evidence = nr.top_evidence
+                res.nitrate_source_gates = nr.gating_flags
+
     return results
 
 

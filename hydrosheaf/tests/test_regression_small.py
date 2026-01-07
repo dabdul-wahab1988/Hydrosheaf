@@ -12,7 +12,7 @@ class RegressionSmallNetworkTests(unittest.TestCase):
         samples = json.loads((fixtures_dir / "small_network_samples.json").read_text())
         expected = json.loads((fixtures_dir / "small_network_expected.json").read_text())
 
-        config = Config(lambda_sparse=0.0)
+        config = Config(lambda_sparse=0.0, missing_policy="impute_zero")
         results = fit_network(samples, [("A", "B")], config)
 
         self.assertEqual(len(results), 1)

@@ -78,7 +78,7 @@ def normalize_sample(
     ion_order: Iterable[str],
     detection_policy: str,
 ) -> dict:
-    numeric_keys = set(ion_order) | {"EC", "TDS", "pH"}
+    numeric_keys = set(ion_order) | {"EC", "TDS", "pH", "K"}
     normalized: dict = {}
     for key, value in sample.items():
         if key in numeric_keys:

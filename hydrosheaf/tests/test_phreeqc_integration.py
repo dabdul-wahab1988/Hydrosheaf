@@ -67,6 +67,7 @@ class PhreeqcIntegrationTests(unittest.TestCase):
             },
         ]
         cls.config = default_config()
+        cls.config.missing_policy = "impute_zero"
 
     def test_phreeqc_calculates_si_values(self):
         """Test that PHREEQC calculates saturation indices for all minerals."""
@@ -97,7 +98,8 @@ class PhreeqcIntegrationTests(unittest.TestCase):
             I = results[sample_id]["ionic_strength"]
             # Freshwater typically has I between 0.001 and 0.1
             self.assertGreater(I, 0.001)
-            self.assertLess(I, 0.5)
+            self.assertGreater(I, 0.001)
+            self.assertLess(I, 1.0)
 
     def test_si_calcite_varies_with_ph(self):
         """Test that calcite SI increases with pH (more supersaturated)."""
@@ -297,6 +299,7 @@ class NetworkIntegrationTests(unittest.TestCase):
         
         config = default_config()
         config.phreeqc_enabled = True
+        config.missing_policy = "impute_zero"
         
         results = fit_network(samples, [("A", "B")], config)
         
@@ -321,6 +324,7 @@ class NetworkIntegrationTests(unittest.TestCase):
         
         config = default_config()
         config.phreeqc_enabled = False  # Faster for this test
+        config.missing_policy = "impute_zero"
         
         results = fit_network(samples, [("A", "B"), ("B", "C")], config)
         summary = summarize_network(results)

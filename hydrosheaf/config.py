@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 DEFAULT_ION_ORDER = ["Ca", "Mg", "Na", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"]
 
@@ -90,6 +90,25 @@ class Config:
     )
     custom_minerals_path: str = ""
 
+    # Nitrate Source V2 settings
+    nitrate_source_enabled: bool = False
+    nitrate_source_prior: float = 0.5
+    nitrate_source_weights: Dict[str, float] = field(
+        default_factory=lambda: {
+            "w1_no3_cl": 1.2,
+            "w2_no3_k": 0.4,
+            "w3_po4": 0.3,
+            "w4_fe": 0.6,
+            "w5_denitrif": 1.5,
+            "w6_alk_coupling": 0.8,
+            "w7_coda_salinity": 0.0,
+        }
+    )
+    nitrate_source_evap_gate: float = 0.5
+    # Threshold overrides (None means auto-detected from data)
+    nitrate_source_d_excess_p25: Optional[float] = None
+    nitrate_source_po4_p90: Optional[float] = None
+
     def validate(self) -> None:
         if len(self.ion_order) != 10:
             raise ValueError("ion_order must have 10 entries.")
@@ -144,6 +163,11 @@ class Config:
         for name, vector in self.mixing_endmembers.items():
             if len(vector) != len(self.ion_order):
                 raise ValueError(f"endmember '{name}' has invalid length.")
+
+        if self.nitrate_source_prior < 0 or self.nitrate_source_prior > 1:
+            raise ValueError("nitrate_source_prior must be between 0 and 1.")
+        if any(w < 0 for w in self.nitrate_source_weights.values()):
+            raise ValueError("nitrate_source_weights must be non-negative.")
 
     def lambda_l1_value(self) -> float:
         return self.lambda_l1 if self.lambda_l1 else self.lambda_sparse

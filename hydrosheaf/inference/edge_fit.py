@@ -53,6 +53,10 @@ class EdgeResult:
     gibbs_used: bool = False
     isotope_consistency_penalty: float = 0.0
     qc_flags: List[str] = field(default_factory=list)
+    nitrate_source_p_manure: Optional[float] = None
+    nitrate_source_logit: Optional[float] = None
+    nitrate_source_evidence: List[str] = field(default_factory=list)
+    nitrate_source_gates: List[str] = field(default_factory=list)
 
 
 def fit_edge(

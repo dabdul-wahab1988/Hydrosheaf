@@ -81,7 +81,7 @@ def _build_solution_composition(
     _add_value(composition, "temp", temp_c)
     _add_value(composition, "pH", sample.get("pH"))
 
-    for key in ("Ca", "Mg", "Na", "Cl", "F", "Fe"):
+    for key in ("Ca", "Mg", "Na", "K", "Cl", "F", "Fe"):
         _add_value(composition, key, sample.get(key))
 
     _add_value(composition, "S(6)", sample.get("SO4"))
@@ -159,7 +159,10 @@ def run_phreeqc(samples: Iterable[Mapping[str, object]], config: Config) -> Dict
                 entry["si_siderite"] = solution.si("Siderite")
                 entry["si_apatite"] = solution.si("Fluorapatite")
                 entry["si_goethite"] = solution.si("Goethite")
-                entry["si_sylvite"] = solution.si("Sylvite")
+                if "K" in composition:
+                    entry["si_sylvite"] = solution.si("Sylvite")
+                else:
+                    entry["si_sylvite"] = None
                 results[sample_id] = entry
             except Exception as exc:
                 reason = "phreeqpython_failed"
