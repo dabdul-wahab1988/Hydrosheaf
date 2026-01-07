@@ -60,7 +60,7 @@ hydrosheaf --help
 
 ## Documentation
 
-**[Technical Document (PDF)](hydrosheaf_technical_document.pdf)**: Comprehensive mathematical theory and proofs.
+**[Technical Document (PDF)](hydrosheaf_technical_document_v3.pdf)**: Comprehensive mathematical theory and proofs.
 
 Detailed guides are available in the `docs/` directory:
 
