@@ -1,0 +1,52 @@
+{
+    "sources": {
+        "Manure": {
+            "d15N": {
+                "mean": 15.0,
+                "std": 5.0
+            },
+            "d18O": {
+                "mean": 5.0,
+                "std": 5.0
+            },
+            "description": "Animal waste and septic effluent. High d15N due to volatilization."
+        },
+        "Fertilizer": {
+            "d15N": {
+                "mean": 0.0,
+                "std": 3.0
+            },
+            "d18O": {
+                "mean": 20.0,
+                "std": 5.0
+            },
+            "description": "Synthetic NH4/NO3 fertilizers. Low d15N. d18O varies by nitrification status (default: atmospheric NO3 dominant)."
+        },
+        "Soil_N": {
+            "d15N": {
+                "mean": 5.0,
+                "std": 2.0
+            },
+            "d18O": {
+                "mean": 5.0,
+                "std": 3.0
+            },
+            "description": "Natural soil organic nitrogen nitrification."
+        },
+        "Precipitation": {
+            "d15N": {
+                "mean": 0.0,
+                "std": 2.0
+            },
+            "d18O": {
+                "mean": 45.0,
+                "std": 10.0
+            },
+            "description": "Atmospheric deposition."
+        }
+    },
+    "metadata": {
+        "reference": "Kendall (1998); Xue et al. (2009)",
+        "notes": "Fertilizer d18O is highly variable. 18-22 permil is for NO3 fertilizer. Nitrified NH4 fertilizer tracks soil water d18O (~ -5 to +5)."
+    }
+}

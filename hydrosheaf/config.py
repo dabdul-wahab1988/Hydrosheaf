@@ -109,6 +109,76 @@ class Config:
     nitrate_source_d_excess_p25: Optional[float] = None
     nitrate_source_po4_p90: Optional[float] = None
     nitrate_source_min_mg_L: float = 10.0
+    nitrate_isotope_n15_col: str = "d15N"
+    nitrate_isotope_o18_col: str = "d18O_NO3"
+    nitrate_isotope_mixing_enabled: bool = True
+
+    # Uncertainty quantification settings
+    uncertainty_method: str = "none"  # none, bootstrap, bayesian, monte_carlo
+    bootstrap_n_resamples: int = 1000
+    bootstrap_ci_method: str = "percentile"  # percentile, bca
+    bayesian_n_samples: int = 5000
+    bayesian_n_chains: int = 4
+    bayesian_target_accept: float = 0.95
+    bayesian_warmup_fraction: float = 0.5
+    monte_carlo_n_samples: int = 1000
+    input_uncertainty_pct: float = 5.0  # default 5% relative uncertainty
+
+    # Prior hyperparameters for Bayesian inference
+    prior_gamma_mu: float = 1.0
+    prior_gamma_sigma: float = 0.5
+    prior_xi_scale: float = 1.0  # Laplace scale parameter
+    prior_sigma_scale: float = 0.1  # observation noise prior
+
+    # Temporal dynamics settings
+    temporal_enabled: bool = False
+    temporal_window_days: int = 365
+    temporal_min_samples: int = 3
+    temporal_interpolation_method: str = "linear"  # linear, spline, nearest
+    temporal_frequency_days: int = 30  # interpolation grid spacing
+    residence_time_method: str = "cross_correlation"  # gradient, cross_correlation, tracer_decay
+    residence_time_tracer: str = "Cl"  # conservative tracer for age estimation
+    residence_time_hydraulic_k: float = 1.0  # m/day, for gradient method
+    residence_time_porosity: float = 0.2  # effective porosity
+
+    # Reactive transport validation settings
+    reactive_transport_validation: bool = False
+    rt_simulator: str = "phreeqc_kinetic"  # phreeqc_kinetic, mt3dms
+    rt_n_time_steps: int = 100
+    rt_consistency_rmse_threshold: float = 1.0  # mmol/L
+    rt_consistency_nse_threshold: float = 0.5
+    rt_default_residence_time: float = 30.0  # days (if not computed)
+
+    # Rate law parameters (can be overridden per-mineral)
+    rt_default_rate_constant: float = 1e-6  # mol/m²/s
+    rt_default_surface_area: float = 0.1  # m²/L
+
+    # Path to custom rate law definitions
+    rt_custom_rates_file: str = ""
+
+    # 3D flow network settings
+    network_3d_enabled: bool = False
+    z_coordinate_key: str = "screen_depth"  # or "z_mASL"
+    z_coordinate_positive_down: bool = True  # True if depth, False if elevation
+
+    # Vertical flow
+    vertical_flow_enabled: bool = True
+    vertical_anisotropy: float = 0.1  # α_v: K_h/K_v indicator
+    vertical_gradient_min: float = 1e-3  # minimum vertical gradient
+    upward_flow_probability: float = 0.5  # regional setting
+
+    # Layer system
+    layer_enabled: bool = False
+    layer_key: str = "aquifer_layer"  # column with layer index
+    layer_names: List[str] = field(default_factory=list)
+    layer_tops: List[float] = field(default_factory=list)
+    layer_bottoms: List[float] = field(default_factory=list)
+    aquitard_leakage_p: float = 0.3
+
+    # Screen interval
+    screen_top_key: str = "screen_top"
+    screen_bottom_key: str = "screen_bottom"
+    screen_overlap_threshold: float = 5.0  # meters
 
     def validate(self) -> None:
         if len(self.ion_order) != 10:
@@ -169,6 +239,82 @@ class Config:
             raise ValueError("nitrate_source_prior must be between 0 and 1.")
         if any(w < 0 for w in self.nitrate_source_weights.values()):
             raise ValueError("nitrate_source_weights must be non-negative.")
+
+        # Uncertainty quantification validation
+        if self.uncertainty_method not in {"none", "bootstrap", "bayesian", "monte_carlo"}:
+            raise ValueError("uncertainty_method must be one of: none, bootstrap, bayesian, monte_carlo.")
+        if self.bootstrap_n_resamples < 1:
+            raise ValueError("bootstrap_n_resamples must be at least 1.")
+        if self.bootstrap_ci_method not in {"percentile", "bca"}:
+            raise ValueError("bootstrap_ci_method must be 'percentile' or 'bca'.")
+        if self.bayesian_n_samples < 1:
+            raise ValueError("bayesian_n_samples must be at least 1.")
+        if self.bayesian_n_chains < 1:
+            raise ValueError("bayesian_n_chains must be at least 1.")
+        if not 0.0 < self.bayesian_target_accept <= 1.0:
+            raise ValueError("bayesian_target_accept must be between 0 and 1.")
+        if not 0.0 < self.bayesian_warmup_fraction < 1.0:
+            raise ValueError("bayesian_warmup_fraction must be between 0 and 1.")
+        if self.monte_carlo_n_samples < 1:
+            raise ValueError("monte_carlo_n_samples must be at least 1.")
+        if self.input_uncertainty_pct < 0:
+            raise ValueError("input_uncertainty_pct must be non-negative.")
+        if self.prior_gamma_sigma <= 0:
+            raise ValueError("prior_gamma_sigma must be positive.")
+        if self.prior_xi_scale <= 0:
+            raise ValueError("prior_xi_scale must be positive.")
+        if self.prior_sigma_scale <= 0:
+            raise ValueError("prior_sigma_scale must be positive.")
+
+        # Temporal dynamics validation
+        if self.temporal_window_days < 1:
+            raise ValueError("temporal_window_days must be at least 1.")
+        if self.temporal_min_samples < 2:
+            raise ValueError("temporal_min_samples must be at least 2.")
+        if self.temporal_interpolation_method not in {"linear", "spline", "nearest"}:
+            raise ValueError("temporal_interpolation_method must be one of: linear, spline, nearest.")
+        if self.temporal_frequency_days < 1:
+            raise ValueError("temporal_frequency_days must be at least 1.")
+        if self.residence_time_method not in {"gradient", "cross_correlation", "tracer_decay"}:
+            raise ValueError("residence_time_method must be one of: gradient, cross_correlation, tracer_decay.")
+        if self.residence_time_hydraulic_k <= 0:
+            raise ValueError("residence_time_hydraulic_k must be positive.")
+        if not 0.0 < self.residence_time_porosity <= 1.0:
+            raise ValueError("residence_time_porosity must be between 0 and 1.")
+
+        # Reactive transport validation
+        if self.rt_simulator not in {"phreeqc_kinetic", "mt3dms"}:
+            raise ValueError("rt_simulator must be 'phreeqc_kinetic' or 'mt3dms'.")
+        if self.rt_n_time_steps < 1:
+            raise ValueError("rt_n_time_steps must be at least 1.")
+        if self.rt_consistency_rmse_threshold < 0:
+            raise ValueError("rt_consistency_rmse_threshold must be non-negative.")
+        if self.rt_consistency_nse_threshold < -1:
+            raise ValueError("rt_consistency_nse_threshold must be >= -1.")
+        if self.rt_default_residence_time <= 0:
+            raise ValueError("rt_default_residence_time must be positive.")
+        if self.rt_default_rate_constant <= 0:
+            raise ValueError("rt_default_rate_constant must be positive.")
+        if self.rt_default_surface_area <= 0:
+            raise ValueError("rt_default_surface_area must be positive.")
+
+        # 3D network validation
+        if self.vertical_anisotropy <= 0:
+            raise ValueError("vertical_anisotropy must be positive.")
+        if self.vertical_gradient_min < 0:
+            raise ValueError("vertical_gradient_min must be non-negative.")
+        if not 0.0 < self.upward_flow_probability < 1.0:
+            raise ValueError("upward_flow_probability must be between 0 and 1.")
+        if not 0.0 <= self.aquitard_leakage_p <= 1.0:
+            raise ValueError("aquitard_leakage_p must be between 0 and 1.")
+        if self.screen_overlap_threshold < 0:
+            raise ValueError("screen_overlap_threshold must be non-negative.")
+        if self.layer_enabled:
+            if len(self.layer_names) != len(self.layer_tops) or len(self.layer_names) != len(self.layer_bottoms):
+                raise ValueError("layer_names, layer_tops, and layer_bottoms must have same length.")
+            for i in range(len(self.layer_tops)):
+                if self.layer_tops[i] >= self.layer_bottoms[i]:
+                    raise ValueError(f"layer_tops[{i}] must be less than layer_bottoms[{i}].")
 
     def lambda_l1_value(self) -> float:
         return self.lambda_l1 if self.lambda_l1 else self.lambda_sparse

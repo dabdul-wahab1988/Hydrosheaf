@@ -23,7 +23,12 @@ The framework integrates:
 - **Sparsity**: Uses L1 regularization to find the simplest chemical explanation for observed data.
 - **Physical Consistency**: Enforces thermodynamic bounds (e.g., minerals cannot precipitate from undersaturated solutions).
 - **Network Inference**: Infers flow direction probabilities from hydraulic head data with uncertainty.
-- **Nitrate Source Discrimination**: Distinguishes between manure and fertilizer sources using CoDA-based robust statistics and Bayesian evidence accumulation.
+- **Nitrate Source Discrimination**: Distinguishes between manure and fertilizer sources using a hybrid approach: Dual Isotope Bayesian Mixing ($\delta^{15}\text{N}, \delta^{18}\text{O}$) prioritized over CoDA-based hydrochemical statistics.
+- **Reactive Transport**: Validates inverse results against kinetic rate laws (Arrhenius) and Damköhler numbers.
+- **3D Flow Networks**: Analyzes layered aquifer systems with vertical anisotropy and topographic Bayesian priors.
+- **Temporal Dynamics**: Resolves time-variant signals with cross-correlation residence times and seasonal decomposition.
+- **Uncertainty Quantification**: Provides rigorous confidence intervals via Bayesian MCMC (NUTS) and Bias-Corrected Bootstrap (BCa).
+- **Verified Documentation**: All mathematical examples in the technical reference are computationally verified by the test suite.
 
 ## Installation
 

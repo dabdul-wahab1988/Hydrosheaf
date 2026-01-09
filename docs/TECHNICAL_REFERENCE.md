@@ -144,7 +144,69 @@ Features are z-scored using robust statistics (Median / MAD) to handle outliers:
 
 ### 6.3 Contextual Gating
 
-To prevent false positives in evaporative environments:
+to prevent false positives in evaporative environments:
 
 * **Evaporation Gate**: If Deuterium Excess ($d < 10$) or Transport Model = `evap`, the weight of ratio-based evidence is reduced by 50%.
 * **CoDA Context**: A 7-ion Compositional Data Analysis (ilr coordinates) is used to validate that samples belong to the fresh/brackish conceptual model.
+
+---
+
+## 7. Advanced Extensions (v0.2.0)
+
+### 7.1 Reactive Transport
+
+Integrates kinetic rate laws to validate the "equilibrium" assumption of inverse models.
+
+* **Reference**: `docs/REACTIVE_TRANSPORT_IMPLEMENTATION.md`
+* **Verification**: `tests/test_accuracy_reactive.py` confirms Arrhenius temperature dependence and Damköhler number logic.
+
+### 7.2 3D Flow Networks
+
+Extends graph inference to layered aquifer systems.
+
+* **Reference**: `docs/3D_FLOW_NETWORKS_IMPLEMENTATION.md`
+* **Features**: Vertical anisotropy ($\alpha_v$), aquitard connectivity, and Bayesian topographic priors.
+* **Verification**: `tests/test_accuracy_3d.py` and `tests/test_constraints.py` (probabilistic fallback).
+
+### 7.3 Temporal Dynamics
+
+Resolves time-variant signals and estimates residence times.
+
+* **Reference**: `docs/TEMPORAL_IMPLEMENTATION.md`
+* **Features**: Time-series interpolation, cross-correlation residence time (Center-of-Mass), and seasonal decomposition.
+* **Verification**: `tests/test_accuracy_temporal.py` confirms retrieval of 10-day lag in synthetic signals.
+
+### 7.4 Uncertainty Quantification
+
+Provides statistical bounds on model outputs.
+
+* **Reference**: `docs/UNCERTAINTY_IMPLEMENTATION.md`
+* **Methods**: Bayesian MCMC (NUTS sampler) for rigorous posteriors; Bias-Corrected Bootstrap (BCa) for confidence intervals.
+* **Verification**: `tests/test_accuracy_uncertainty.py` confirms coverage probabilities for Gaussian benchmarks.
+
+---
+
+## 8. Dual Isotope Nitrate Source Apportionment (v0.3.0)
+
+Version 0.3.0 introduces a rigorous Bayesian mixing model for analyzing $\delta^{15}\text{N}_{\text{NO}_3}$ and $\delta^{18}\text{O}_{\text{NO}_3}$ data. this module works in tandem with the hydrochemical evidence accumulator (Section 6).
+
+### 8.1 Process Logic
+
+The system follows a strict priority hierarchy:
+
+1. **Tier 1 (Isotopes)**: If dual isotope data is present, a 2D Bayesian mixing model calculates source probabilities directly.
+2. **Tier 2 (Hydrochemistry)**: If isotope data is missing, the system falls back to the robust evidence accumulation method (Section 6), using NO3/Cl ratios, Potassium, and Denitrification signals.
+
+### 8.2 Endmembers
+
+Default endmembers are derived from *Kendall (1998)* and *Xue et al. (2009)*:
+
+* **Manure**: High $\delta^{15}\text{N}$ (+8 to +25 permil).
+* **Fertilizer**: Low $\delta^{15}\text{N}$ (-3 to +3 permil).
+* **Soil N**: Intermediate (+3 to +8 permil).
+* **Precipitation**: High $\delta^{18}\text{O}$ (+25 to +70 permil).
+
+### 8.3 Verification
+
+* **Test File**: `tests/test_nitrate_isotopes.py`
+* **Validation**: Confirms that a sample with Manure isotopic signature is correctly identified even if its NO3/Cl ratio suggests Fertilizer, proving the priority of the isotopic signal.

@@ -10,6 +10,7 @@ import pandas as pd
 from .coda_sbp import ilr_from_sbp, robust_zscore
 from .config import Config
 from .data.units import mgL_to_mmolL
+from .models import nitrate_isotopes
 
 # Default config path
 DEFAULT_CONFIG_PATH = Path(__file__).parent / "config" / "nitrate_source_v2.yaml"
@@ -259,6 +260,15 @@ def infer_node_posteriors(
     prior_logit = math.log(prior_p / (1.0 - prior_p))
     evap_gate = file_conf.get("evap_gate_factor", 0.5)
     
+    # Isotope Config
+    iso_enabled = file_conf.get("nitrate_isotope_mixing_enabled", True)
+    n15_col = file_conf.get("nitrate_isotope_n15_col", "d15N")
+    o18_col = file_conf.get("nitrate_isotope_o18_col", "d18O_NO3")
+    
+    iso_sources = []
+    if iso_enabled:
+        iso_sources = nitrate_isotopes.load_isotope_endmembers()
+
     # Threshold for Background
     min_mg_L = float(file_conf.get("nitrate_source_min_mg_L", 10.0))
     # Convert to internal units (likely mol/L if using mgL_to_mmolL)
@@ -302,6 +312,40 @@ def infer_node_posteriors(
                 ilr_valid=ilr_valid,
                 reason_code=f"Low Nitrate (Background < {min_mg_L} mg/L)"
             )
+            continue
+            
+        # --- Dual Isotope Logic (v0.3.0) ---
+        used_isotope_model = False
+        if iso_enabled and iso_sources:
+            try:
+                d15_val = sample.get(n15_col)
+                d18_val = sample.get(o18_col)
+                
+                # Check valid float
+                if (d15_val is not None and not math.isnan(d15_val) and 
+                    d18_val is not None and not math.isnan(d18_val)):
+                    
+                    iso_s = nitrate_isotopes.IsotopeSample(float(d15_val), float(d18_val))
+                    probs = nitrate_isotopes.compute_isotope_prob(iso_s, iso_sources)
+                    
+                    p_man = probs.get("Manure", 0.0)
+                    # p_fert = probs.get("Fertilizer", 0.0) # Could be multiple non-manure sources
+                    
+                    results[node_id] = NitrateSourceResult(
+                        p_manure=p_man,
+                        p_fertilizer=1.0 - p_man,
+                        logit_score=None, # Not applicable for mixing model
+                        top_evidence=[f"d15N={d15_val:.1f}", f"d18O={d18_val:.1f}"],
+                        gating_flags=["dual_isotope_priority"],
+                        ilr_valid=ilr_valid,
+                        reason_code="Dual Isotope Mixing"
+                    )
+                    used_isotope_model = True
+            except Exception:
+                # Fallback on error
+                pass
+                
+        if used_isotope_model:
             continue
         
         # Check Evap Gate
@@ -365,7 +409,7 @@ def infer_node_posteriors(
             top_evidence=list(set(all_evidence)),
             gating_flags=gates,
             ilr_valid=ilr_valid,
-            reason_code=None
+            reason_code="Hydrochemical Ratios (No Isotopes)"
         )
         
     return results

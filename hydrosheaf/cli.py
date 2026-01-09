@@ -249,7 +249,47 @@ def main() -> None:
     # Nitrate Source Discrim
     parser.add_argument("--nitrate-source-enabled", action="store_true", help="Enable nitrate source discrimination (manure vs fertilizer).")
     parser.add_argument("--nitrate-source-min-conc", type=float, help="Minimum nitrate concentration (mg/L) to attempt discrimination (default: 10).")
-    
+
+    # Uncertainty quantification arguments
+    parser.add_argument("--uncertainty", choices=["none", "bootstrap", "bayesian", "monte_carlo"], default="none", help="Uncertainty quantification method")
+    parser.add_argument("--bootstrap-n", type=int, default=1000, help="Bootstrap resamples (default: 1000)")
+    parser.add_argument("--bootstrap-ci", choices=["percentile", "bca"], default="percentile", help="Bootstrap CI method")
+    parser.add_argument("--bayesian-samples", type=int, default=5000, help="MCMC samples per chain (default: 5000)")
+    parser.add_argument("--bayesian-chains", type=int, default=4, help="MCMC chains (default: 4)")
+    parser.add_argument("--bayesian-accept", type=float, default=0.95, help="Target acceptance rate (default: 0.95)")
+    parser.add_argument("--monte-carlo-n", type=int, default=1000, help="Monte Carlo samples (default: 1000)")
+    parser.add_argument("--input-uncertainty", type=float, default=5.0, help="Input uncertainty percentage (default: 5.0)")
+    parser.add_argument("--uncertainty-seed", type=int, help="Random seed for uncertainty quantification")
+
+    # Temporal dynamics arguments
+    parser.add_argument("--temporal-data", type=str, help="Path to time-series CSV")
+    parser.add_argument("--temporal-enabled", action="store_true", help="Enable temporal dynamics analysis")
+    parser.add_argument("--temporal-window", type=int, default=365, help="Analysis window in days (default: 365)")
+    parser.add_argument("--temporal-min-samples", type=int, default=3, help="Minimum samples per node (default: 3)")
+    parser.add_argument("--temporal-interp", choices=["linear", "spline", "nearest"], default="linear", help="Interpolation method")
+    parser.add_argument("--temporal-frequency", type=int, default=30, help="Interpolation grid spacing in days (default: 30)")
+    parser.add_argument("--residence-method", choices=["gradient", "cross_correlation", "tracer_decay"], help="Residence time estimation method")
+    parser.add_argument("--residence-tracer", type=str, default="Cl", help="Conservative tracer for residence time (default: Cl)")
+    parser.add_argument("--residence-k", type=float, default=1.0, help="Hydraulic conductivity m/day for gradient method (default: 1.0)")
+    parser.add_argument("--residence-porosity", type=float, default=0.2, help="Effective porosity for gradient method (default: 0.2)")
+
+    # Reactive transport validation arguments
+    parser.add_argument("--validate-forward", action="store_true", help="Run forward RT validation")
+    parser.add_argument("--rt-simulator", choices=["phreeqc_kinetic", "mt3dms"], default="phreeqc_kinetic", help="Reactive transport simulator")
+    parser.add_argument("--rt-time-steps", type=int, default=100, help="Number of kinetic time steps (default: 100)")
+    parser.add_argument("--rt-rmse-threshold", type=float, default=1.0, help="RMSE threshold for consistency (default: 1.0)")
+    parser.add_argument("--rt-nse-threshold", type=float, default=0.5, help="NSE threshold for consistency (default: 0.5)")
+    parser.add_argument("--rt-residence-time", type=float, help="Default residence time in days (if not computed)")
+    parser.add_argument("--rt-custom-rates", type=str, help="Path to custom rate laws YAML")
+
+    # 3D network arguments
+    parser.add_argument("--3d", action="store_true", dest="network_3d", help="Enable 3D network")
+    parser.add_argument("--z-key", type=str, default="screen_depth", help="Z coordinate column name")
+    parser.add_argument("--anisotropy", type=float, default=0.1, help="Vertical anisotropy factor α_v (default: 0.1)")
+    parser.add_argument("--layer-file", type=str, help="Layer definition YAML file")
+    parser.add_argument("--aquitard-p", type=float, default=0.3, help="Aquitard leakage probability (default: 0.3)")
+    parser.add_argument("--screen-overlap-threshold", type=float, default=5.0, help="Screen overlap threshold in meters (default: 5.0)")
+
     # Mineral Library Options
     parser.add_argument(
         "--minerals",
@@ -326,6 +366,35 @@ def main() -> None:
         isotope_d_excess_weight=args.isotope_d_excess_weight,
         isotope_d18o_key=args.isotope_d18o_key,
         nitrate_source_enabled=args.nitrate_source_enabled,
+        uncertainty_method=args.uncertainty,
+        bootstrap_n_resamples=args.bootstrap_n,
+        bootstrap_ci_method=args.bootstrap_ci,
+        bayesian_n_samples=args.bayesian_samples,
+        bayesian_n_chains=args.bayesian_chains,
+        bayesian_target_accept=args.bayesian_accept,
+        monte_carlo_n_samples=args.monte_carlo_n,
+        input_uncertainty_pct=args.input_uncertainty,
+        temporal_enabled=args.temporal_enabled,
+        temporal_window_days=args.temporal_window,
+        temporal_min_samples=args.temporal_min_samples,
+        temporal_interpolation_method=args.temporal_interp,
+        temporal_frequency_days=args.temporal_frequency,
+        residence_time_method=args.residence_method if args.residence_method else "cross_correlation",
+        residence_time_tracer=args.residence_tracer,
+        residence_time_hydraulic_k=args.residence_k,
+        residence_time_porosity=args.residence_porosity,
+        reactive_transport_validation=args.validate_forward,
+        rt_simulator=args.rt_simulator,
+        rt_n_time_steps=args.rt_time_steps,
+        rt_consistency_rmse_threshold=args.rt_rmse_threshold,
+        rt_consistency_nse_threshold=args.rt_nse_threshold,
+        rt_default_residence_time=args.rt_residence_time if args.rt_residence_time else 30.0,
+        rt_custom_rates_file=args.rt_custom_rates if args.rt_custom_rates else "",
+        network_3d_enabled=args.network_3d,
+        z_coordinate_key=args.z_key,
+        vertical_anisotropy=args.anisotropy,
+        aquitard_leakage_p=args.aquitard_p,
+        screen_overlap_threshold=args.screen_overlap_threshold,
     )
     if args.nitrate_source_min_conc is not None:
         config.nitrate_source_min_mg_L = args.nitrate_source_min_conc

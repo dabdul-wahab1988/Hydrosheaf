@@ -58,6 +58,20 @@ class EdgeResult:
     nitrate_source_evidence: List[str] = field(default_factory=list)
     nitrate_source_gates: List[str] = field(default_factory=list)
 
+    # Uncertainty fields (populated if uncertainty_method != "none")
+    gamma_std: Optional[float] = None
+    gamma_ci_low: Optional[float] = None
+    gamma_ci_high: Optional[float] = None
+    f_std: Optional[float] = None
+    f_ci_low: Optional[float] = None
+    f_ci_high: Optional[float] = None
+    extents_std: List[float] = field(default_factory=list)
+    extents_ci_low: List[float] = field(default_factory=list)
+    extents_ci_high: List[float] = field(default_factory=list)
+    uncertainty_method: Optional[str] = None
+    reaction_fit: Optional[ReactionFit] = None
+    residual_vector: List[float] = field(default_factory=list)
+
 
 def fit_edge(
     x_u: List[float],

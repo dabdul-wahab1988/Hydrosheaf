@@ -93,6 +93,12 @@ class ReactionFit:
     iterations: int
     converged: bool
 
+    # Uncertainty fields (populated if uncertainty_method != "none")
+    extents_std: Optional[List[float]] = None
+    extents_ci_low: Optional[List[float]] = None
+    extents_ci_high: Optional[List[float]] = None
+    uncertainty_result: Optional[object] = None  # UncertaintyResult from uncertainty module
+
 
 def _soft_threshold(value: float, threshold: float) -> float:
     if value > threshold:

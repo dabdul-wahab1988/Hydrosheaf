@@ -391,7 +391,7 @@ class DatabaseCompatibilityTests(unittest.TestCase):
 
     def test_all_databases_work(self):
         """Test that all available databases load and calculate SI."""
-        db_dir = Path(__file__).parent.parent / "databases"
+        db_dir = Path(__file__).parent.parent / "hydrosheaf" / "databases"
         databases = ["phreeqc.dat", "wateq4f.dat", "minteq.dat"]
         
         sample = [{
