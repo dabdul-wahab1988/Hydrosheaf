@@ -108,6 +108,7 @@ class Config:
     # Threshold overrides (None means auto-detected from data)
     nitrate_source_d_excess_p25: Optional[float] = None
     nitrate_source_po4_p90: Optional[float] = None
+    nitrate_source_min_mg_L: float = 10.0
 
     def validate(self) -> None:
         if len(self.ion_order) != 10:

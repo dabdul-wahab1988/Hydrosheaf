@@ -248,6 +248,7 @@ def main() -> None:
     
     # Nitrate Source Discrim
     parser.add_argument("--nitrate-source-enabled", action="store_true", help="Enable nitrate source discrimination (manure vs fertilizer).")
+    parser.add_argument("--nitrate-source-min-conc", type=float, help="Minimum nitrate concentration (mg/L) to attempt discrimination (default: 10).")
     
     # Mineral Library Options
     parser.add_argument(
@@ -326,6 +327,8 @@ def main() -> None:
         isotope_d18o_key=args.isotope_d18o_key,
         nitrate_source_enabled=args.nitrate_source_enabled,
     )
+    if args.nitrate_source_min_conc is not None:
+        config.nitrate_source_min_mg_L = args.nitrate_source_min_conc
     config.isotope_d2h_key = args.isotope_d2h_key
     config.auto_lmwl = args.auto_lmwl
     config.isotope_consistency_weight = args.iso_consistency_weight

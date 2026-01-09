@@ -1,9 +1,3 @@
-"""Nitrate Source Discrimination Module (v2).
-
-Computes posterior probability of Manure vs Fertilizer source
-using log-odds update with geochemical evidence.
-"""
-
 import math
 import yaml
 from dataclasses import dataclass, field
@@ -15,6 +9,7 @@ import pandas as pd
 
 from .coda_sbp import ilr_from_sbp, robust_zscore
 from .config import Config
+from .data.units import mgL_to_mmolL
 
 # Default config path
 DEFAULT_CONFIG_PATH = Path(__file__).parent / "config" / "nitrate_source_v2.yaml"
@@ -23,9 +18,9 @@ DEFAULT_CONFIG_PATH = Path(__file__).parent / "config" / "nitrate_source_v2.yaml
 @dataclass
 class NitrateSourceResult:
     """Result of nitrate source discrimination."""
-    p_manure: float
-    p_fertilizer: float
-    logit_score: float
+    p_manure: Optional[float]
+    p_fertilizer: Optional[float]
+    logit_score: Optional[float]
     top_evidence: List[str]
     gating_flags: List[str]
     ilr_valid: bool
@@ -85,32 +80,41 @@ def fit_robust_stats(
     no3 = get_series("NO3")
     cl = get_series("Cl")
     if not no3.empty and not cl.empty:
-        ratio = np.log((no3 + eps) / (cl + eps))
-        stats.ln_no3_cl_median = ratio.median()
-        stats.ln_no3_cl_mad = (ratio - stats.ln_no3_cl_median).abs().median()
+        # Filter out NaN or negative
+        valid = (no3 > 0) & (cl > 0)
+        if valid.any():
+            ratio = np.log((no3[valid] + eps) / (cl[valid] + eps))
+            stats.ln_no3_cl_median = ratio.median()
+            stats.ln_no3_cl_mad = (ratio - stats.ln_no3_cl_median).abs().median()
 
     # 2. NO3/K
     k_ion = get_series("K")
     if not no3.empty and not k_ion.empty:
-        ratio = np.log((no3 + eps) / (k_ion + eps))
-        stats.ln_no3_k_median = ratio.median()
-        stats.ln_no3_k_mad = (ratio - stats.ln_no3_k_median).abs().median()
+        valid = (no3 > 0) & (k_ion > 0)
+        if valid.any():
+            ratio = np.log((no3[valid] + eps) / (k_ion[valid] + eps))
+            stats.ln_no3_k_median = ratio.median()
+            stats.ln_no3_k_mad = (ratio - stats.ln_no3_k_median).abs().median()
 
     # 3. PO4/Cl and P90
     po4 = get_series("PO4")
     if not po4.empty:
         stats.po4_p90 = po4.quantile(0.9)
         if not cl.empty:
-            ratio = np.log((po4 + eps) / (cl + eps))
-            stats.ln_po4_cl_median = ratio.median()
-            stats.ln_po4_cl_mad = (ratio - stats.ln_po4_cl_median).abs().median()
+            valid = (po4 > 0) & (cl > 0)
+            if valid.any():
+                ratio = np.log((po4[valid] + eps) / (cl[valid] + eps))
+                stats.ln_po4_cl_median = ratio.median()
+                stats.ln_po4_cl_mad = (ratio - stats.ln_po4_cl_median).abs().median()
 
     # 4. Fe
     fe = get_series("Fe")
     if not fe.empty:
-        val = np.log(fe + eps)
-        stats.ln_fe_median = val.median()
-        stats.ln_fe_mad = (val - stats.ln_fe_median).abs().median()
+        valid = fe > 0
+        if valid.any():
+            val = np.log(fe[valid] + eps)
+            stats.ln_fe_median = val.median()
+            stats.ln_fe_mad = (val - stats.ln_fe_median).abs().median()
 
     # 5. d-excess
     # d_excess = d2H - 8 * d18O. Check if computed in df
@@ -124,48 +128,16 @@ def fit_robust_stats(
         
         for e in edge_results:
             # Denitrification extent
-            # Need to identify "denit" reaction index or label
             if hasattr(e, "z_labels") and hasattr(e, "z_extents"):
                 try:
                     idx = e.z_labels.index("denit")
                     z_val = e.z_extents[idx]
-                    # We only care about active denitrification (negative extent usually means consumption, 
-                    # but check stoichiometry: NO3 coefficient is -1, so extent>0 means consumption if formatted as product?
-                    # Wait, reaction is written as: +1*denit -> -1*NO3 + kappa*HCO3
-                    # So POSITIVE extent means Denitrification.
-                    # Let's verify standard: "z_denitrif < 0" in requirements implies NO3 removal? 
-                    # Requirement says: (z_denitrif < 0) (NO3 removed).
-                    # This implies reaction defined as NO3 -> ... 
-                    # But often in fit_reactions it's: x_v = x_u + S*z.
-                    # If S_NO3 = -1 (consumption), then z > 0 consumes NO3.
-                    # If S_NO3 = +1 (production), then z < 0 consumes NO3.
-                    # Checked `reactions.py`: reactions.append(("denit", {"HCO3": kappa, "NO3": -1}, False))
-                    # So S["NO3"] = -1. 
-                    # Thus x_v[NO3] = x_u[NO3] + (-1)*z.
-                    # So POSITIVE z means NO3 consumption (Denitrification).
-                    # Requirement: "z_denitrif < 0 (NO3 removed)" might be assuming S=+1 or latent source.
-                    # Let's align with code: Positive z = Denit.
-                    # I will assume Z > 0 is the signal for current codebase logic. 
-                    # BUT the requirement specifically says: "(z_denitrif < 0) (NO3 removed)".
-                    # I will implement logic checking the sign of NO3 change. 
-                    # Let's assume the user requirement implies "Net Change < 0".
-                    # Actually, let's stick to the code reality: S=-1 means z>0 consumes.
-                    # I will use -z if z>0 to make it negative as per requirement visual, 
-                    # OR just Z itself and adjust logic (Sign flip).
-                    # Let's stick to: Signal is "Reduction of Nitrate".
-                    # Code: Z_denit
                     denit_vals.append(z_val)
                 except ValueError:
                     pass
 
-            # Alk Ratio
-            # Need raw values computed during edge proc
-            pass # calculated on fly
-            
         if denit_vals:
             arr = np.array(denit_vals)
-            # Filter for non-zero to get meaningful stats?
-            # Or just all.
             stats.denit_median = np.median(arr)
             stats.denit_mad = np.median(np.abs(arr - stats.denit_median))
 
@@ -184,7 +156,6 @@ def compute_evidence(
     evidence = []
 
     # w1: NO3/Cl (High -> Fertilizer -> Negative logit)
-    # Requirement: phi1 = - z(ln(NO3/Cl))
     if "NO3" in sample and "Cl" in sample:
         val = _safe_log_ratio(sample["NO3"], sample["Cl"], eps)
         z = robust_zscore(val, stats.ln_no3_cl_median, stats.ln_no3_cl_mad)
@@ -200,24 +171,12 @@ def compute_evidence(
         z = robust_zscore(val, stats.ln_no3_k_median, stats.ln_no3_k_mad)
         term = -1.0 * z * weights.get("w2_no3_k", 0.4) * gate_factor
         logit_add += term
-        # Weak evidence, maybe don't list unless strong
 
     # w3: PO4 High (High -> Fertilizer -> Negative logit)
-    # Binary flag weighted by continuous Z
     if "PO4" in sample and "Cl" in sample:
         po4_high = sample["PO4"] > stats.po4_p90
-        # phi3 = - (2*flag - 1) * z(ln(PO4/Cl))
-        # If High: -(1)*Z. If Low: -(-1)*Z = +Z.
-        # This seems to imply Low PO4 votes Manure? 
-        # Requirement: "push toward fertilizer only when truly high; otherwise near 0"
-        # Let's follow formula:
-        flag_val = 1.0 if po4_high else 0.0 # user said 2*flag-1 -> 1 or -1
-        # Actually user said: - (2*po4_flag - 1) * ...
-        # If flag=0 (low), -( -1 ) = +1. Votes manure.
-        # This might be unintended if we want "near 0". 
-        # But let's implement requested formula.
+        flag_val = 1.0 if po4_high else 0.0
         val = _safe_log_ratio(sample["PO4"], sample["Cl"], eps)
-        # We need stats for PO4/Cl
         z = robust_zscore(val, stats.ln_po4_cl_median, stats.ln_po4_cl_mad)
         
         direction = 2.0 * flag_val - 1.0
@@ -249,14 +208,6 @@ def compute_edge_evidence(
     evidence = []
 
     # w5: Denitrification Extent
-    # Reaction: NO3 + ... -> ... (Consumption)
-    # In reactions.py: S["NO3"] = -1. So positive z_extent = NO3 consumption.
-    # Requirement: "z_denitrif < 0 (NO3 removed)" -> This seems to assume S=+1 model.
-    # But since code uses S=-1, we interpret POSITIVE extent as removal.
-    # I will adapt to: Signal = Extent of Removal.
-    # If S=-1 (code default), Removal = z_extent.
-    # If Removal > 0 -> Manure evidence.
-    
     denit_extent = 0.0
     if hasattr(edge_result, "z_labels") and hasattr(edge_result, "z_extents"):
         try:
@@ -267,14 +218,7 @@ def compute_edge_evidence(
             
     # Logic: if denitrification active (removal > 0)
     if denit_extent > 1e-9: # Positive z = removal
-        # Feature: + z(removal_extent)
-        # Using stats.denit_median (which might be mostly 0)
-        # Use simple scaling if mad is 0
         mad = stats.denit_mad if stats.denit_mad > 1e-9 else 1.0
-        # z score of the extent itself
-        # Note: Requirement says z(-z_denit). 
-        # If z_denit < 0 was removal, -z_denit is positive magnitude.
-        # Since our Denit>0 is removal, we use z(Denit).
         z = (denit_extent - stats.denit_median) / (1.4826 * mad)
         term = 1.0 * z * weights.get("w5_denitrif", 1.5)
         # Only apply if it votes manure (positive)
@@ -283,23 +227,13 @@ def compute_edge_evidence(
             if term > 0.5: evidence.append("denitrif_strong")
             
     # w6: Alkalinity Coupling
-    # R_alk = dHCO3 / (-dNO3). 
-    # dNO3 = v - u. If removal, dNO3 < 0. -dNO3 > 0.
     dn = v_vals.get("NO3", 0.0) - u_vals.get("NO3", 0.0)
     dh = v_vals.get("HCO3", 0.0) - u_vals.get("HCO3", 0.0)
     
     # Check if nitrate removed (dn < 0)
     if dn < -eps:
         r_alk = dh / (-dn)
-        # Cap at 2
         r_alk = min(r_alk, 2.0)
-        # Feature: + z(r_alk). 
-        # We assume baseline r_alk around 0 or stoichiometry? 
-        # Denit stoichiometry is usually 1:1 or similar. 
-        # Let's just use raw value scaled or z-scored if we had stats. 
-        # Requirement: z(min(R, 2)).
-        # We need global stats for R_alk? Or just assume generic.
-        # Using median=0, mad=1 for safety if no stats
         z = r_alk # Simplified if no stats
         term = 1.0 * z * weights.get("w6_alk_coupling", 0.8)
         logit_add += term
@@ -325,10 +259,15 @@ def infer_node_posteriors(
     prior_logit = math.log(prior_p / (1.0 - prior_p))
     evap_gate = file_conf.get("evap_gate_factor", 0.5)
     
+    # Threshold for Background
+    min_mg_L = float(file_conf.get("nitrate_source_min_mg_L", 10.0))
+    # Convert to internal units (likely mol/L if using mgL_to_mmolL)
+    min_conc = mgL_to_mmolL(min_mg_L, "NO3")
+
     # 1. Compute Stats
     stats = fit_robust_stats(nodes_df, edge_results)
     
-    # Apply Config Overrides for Thresholds
+    # Apply Config Overrides
     if file_conf.get("nitrate_source_d_excess_p25") is not None:
         stats.d_excess_p25 = float(file_conf["nitrate_source_d_excess_p25"])
     if file_conf.get("nitrate_source_po4_p90") is not None:
@@ -349,6 +288,21 @@ def infer_node_posteriors(
         
         # Check CoDA validity
         ilr, ilr_valid = ilr_from_sbp(sample)
+        
+        # Check Nitrate Threshold
+        no3_val = sample.get("NO3", 0.0)
+        if no3_val < min_conc:
+            # Skip inference for background
+            results[node_id] = NitrateSourceResult(
+                p_manure=None,
+                p_fertilizer=None,
+                logit_score=None,
+                top_evidence=[],
+                gating_flags=["below_detection_threshold"],
+                ilr_valid=ilr_valid,
+                reason_code=f"Low Nitrate (Background < {min_mg_L} mg/L)"
+            )
+            continue
         
         # Check Evap Gate
         # Flag if d_excess < P25
@@ -383,18 +337,9 @@ def infer_node_posteriors(
         if edges:
             edge_logits = []
             for e in edges:
-                # Need u node values. 
-                # Assuming edge_result doesn't store full u/v vectors, we might need lookup.
-                # But fit_edge usually has access. The EdgeResult struct might vary.
-                # We'll try to use data if available or skip.
-                # For Phase 1 we rely on what's available. 
-                # Hydrosheaf edge result usually just has metadata.
-                # If we can't get Delta, we skip edge evidence or rely on what's stored in EdgeResult.
-                # Let's assume we can look up u from dataframe using e.u
                 u_id = getattr(e, "u", None)
-                if u_id in nodes_df.index: # Assuming index is site_id or we have map
+                if u_id in nodes_df.index: # Assuming index is site_id
                      u_row = nodes_df.loc[u_id].to_dict()
-                     # v_row is sample
                      elogit, eev = compute_edge_evidence(e, u_row, sample, stats, weights)
                      edge_logits.append(elogit)
                      all_evidence.extend(eev)
@@ -407,32 +352,20 @@ def infer_node_posteriors(
                         edge_logits.append(elogit)
                         all_evidence.extend(eev)
             
-            # Aggregate Edge Logits (Mean? Sum?)
-            # Plan says: Mean of incoming edge logits
             if edge_logits:
                 logit += sum(edge_logits) / len(edge_logits)
 
         # Final Sigmoid
         p_manure = _sigmoid(logit)
         
-        # ILR Context Check (Salinity)
-        reason = None
-        if ilr_valid:
-            # Plan: phi7 CoDA salinity caution
-            # if abs(ilr_5) (HCO3 vs ClSO4) is value...
-            # Just placeholder for now
-            pass
-        else:
-            reason = "Missing Ions for CoDA"
-            
         results[node_id] = NitrateSourceResult(
             p_manure=p_manure,
             p_fertilizer=1.0 - p_manure,
             logit_score=logit,
-            top_evidence=list(set(all_evidence)), # Dedup
+            top_evidence=list(set(all_evidence)),
             gating_flags=gates,
             ilr_valid=ilr_valid,
-            reason_code=reason
+            reason_code=None
         )
         
     return results
