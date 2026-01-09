@@ -571,6 +571,16 @@ Features are z-scored using robust statistics (Median / MAD) to handle outliers:
     \item \textbf{Denitrification ($\phi_5$)}: Derived from the LASSO reaction model ($z_{\text{denitrif}}$). Strong denitrification supports Manure (organic carbon donor).
 \end{itemize}
 
+\subsection{Background Threshold}
+To avoid attempting source discrimination on ambient groundwater with naturally low nitrate concentrations, we apply a minimum nitrate threshold $C_{\min}$ (default 10 mg/L). Samples with $[\text{NO}_3] < C_{\min}$ are classified as background and excluded from the discrimination analysis. This ensures that:
+\begin{itemize}
+    \item Evidence ratios (NO$_3$/Cl, NO$_3$/K) are calculated only where nitrate is meaningfully enriched
+    \item Geochemical signals are not dominated by analytical uncertainty near detection limits
+    \item Computational resources focus on impacted zones requiring source identification
+\end{itemize}
+
+The threshold is configurable via the CLI parameter \texttt{--nitrate-source-min-conc} to accommodate site-specific conditions or analytical capabilities.
+
 \subsection{Contextual Gating}
 To prevent false positives in high-salinity evaporative environments (where ratios can be distorted), we implement gating logic: if Deuterium Excess is low ($d < 10$) or the transport model is explicitly identified as \textit{evaporation}, the weights of ratio-based evidence are reduced.
 

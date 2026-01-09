@@ -51,6 +51,7 @@ python -m hydrosheaf.cli \
 ### Nitrate Source Discrimination
 
 * `--nitrate-source-enabled`: Enable the module to distinguish between manure and fertilizer sources of nitrate.
+* `--nitrate-source-min-conc`: Minimum nitrate concentration (mg/L) required to attempt source discrimination (default: 10 mg/L). Samples below this threshold are classified as background and skipped.
 * Uses geochemical ratios (NO3/Cl, NO3/K) and robust statistics to assign a probability of manure contamination.
 
 ### Interpretation & Output
