@@ -9,6 +9,7 @@ from hydrosheaf.temporal.interpolation import (
     _spline_interp
 )
 from hydrosheaf.temporal.temporal_edge_fit import compute_seasonal_decomposition
+from hydrosheaf.temporal.residence_time import estimate_residence_time_with_details
 
 class TestTemporalAccuracy(unittest.TestCase):
     """
@@ -115,4 +116,137 @@ class TestTemporalAccuracy(unittest.TestCase):
         
         # Correlation should be nearly 1.0
         self.assertTrue(corr > 0.95, f"Lagged correlation {corr} should be near 1.0")
+
+    def test_residence_time_ttd_convolution_recovers_mean_lag(self):
+        """
+        Verify TTD+attenuation residence-time estimation recovers the effective mean lag.
+
+        Synthetic model:
+          v(t) = b + (u * h)(t), where h(τ) ∝ w(τ) * exp(-k*τ)
+        """
+        np.random.seed(7)
+        n_days = 220
+        dt = 1.0
+        t = np.arange(n_days, dtype=float) * dt
+
+        # Upstream signal with variability
+        u = np.sin(t / 12.0) + 0.3 * np.cos(t / 6.0) + 0.05 * np.random.randn(n_days)
+
+        # Travel-time distribution w (gamma-like, discretized) and attenuation exp(-k*tau)
+        max_lag = 60
+        lags = np.arange(max_lag + 1, dtype=float) * dt
+        w_raw = (lags ** 2) * np.exp(-lags / 6.0)  # shape ~3, scale ~6, mean ~18 before attenuation
+        w = w_raw / np.sum(w_raw)
+        k_true = 0.01
+        h = w * np.exp(-k_true * lags)
+        h = h / np.sum(h)
+        tau_true = float(np.sum(lags * h))
+
+        # Convolution + intercept
+        b0 = 0.2
+        v = b0 + np.convolve(u, h, mode="full")[:n_days]
+
+        # Build TemporalNodes (single-ion order containing "Cl")
+        t0 = datetime(2020, 1, 1)
+        u_samples = [
+            TimeSeriesSample(sample_id=f"u{i}", node_id="U", timestamp=t0 + timedelta(days=float(i)), concentrations=[float(u[i])])
+            for i in range(n_days)
+        ]
+        v_samples = [
+            TimeSeriesSample(sample_id=f"v{i}", node_id="V", timestamp=t0 + timedelta(days=float(i)), concentrations=[float(v[i])])
+            for i in range(n_days)
+        ]
+        node_u = TemporalNode(node_id="U", samples=u_samples)
+        node_v = TemporalNode(node_id="V", samples=v_samples)
+
+        tau, unc, used, details, flags = estimate_residence_time_with_details(
+            node_u,
+            node_v,
+            method="ttd",
+            tracer_ion="Cl",
+            ion_order=["Cl"],
+            hydraulic_params={
+                "grid_dt_days": 1.0,
+                "max_lag_days": float(max_lag),
+                "smoothness_lambda": 0.01,
+                "ttd_min_r2": 0.5,
+                "attenuation_k_max": 0.02,
+                "attenuation_k_steps": 6,
+            },
+        )
+
+        self.assertTrue("ttd" in used, f"Expected a TTD method, got: {used}")
+        self.assertFalse("ttd_failed" in used, f"TTD should not fail: {used}")
+        self.assertTrue(tau > 0.0 and unc >= 0.0)
+        self.assertTrue("ttd_failed_all_tracers" not in flags)
+        self.assertAlmostEqual(tau, tau_true, delta=3.0)
+
+    def test_residence_time_bayesian_lag_recovers_lag(self):
+        """
+        Verify Bayesian lag estimator returns a sensible posterior mean tau for sparse data,
+        stabilized by a physics-informed prior.
+        """
+        np.random.seed(11)
+        n = 40
+        dt_days = 7.0
+        lag_true = 21.0
+        t = np.arange(n, dtype=float) * dt_days
+        u = np.sin(t / 30.0) + 0.05 * np.random.randn(n)
+        k_true = 0.01
+        a_true = 1.3
+        b_true = -0.2
+        v = np.zeros_like(u)
+        for i, tt in enumerate(t):
+            tt_u = tt - lag_true
+            if tt_u < t[0]:
+                v[i] = b_true
+            else:
+                u_interp = np.interp(tt_u, t, u)
+                v[i] = b_true + a_true * u_interp * np.exp(-k_true * lag_true)
+        v = v + 0.03 * np.random.randn(n)
+
+        t0 = datetime(2020, 1, 1)
+        node_u = TemporalNode(
+            node_id="U",
+            samples=[
+                TimeSeriesSample(sample_id=f"u{i}", node_id="U", timestamp=t0 + timedelta(days=float(t[i])), concentrations=[float(u[i])])
+                for i in range(n)
+            ],
+        )
+        node_v = TemporalNode(
+            node_id="V",
+            samples=[
+                TimeSeriesSample(sample_id=f"v{i}", node_id="V", timestamp=t0 + timedelta(days=float(t[i])), concentrations=[float(v[i])])
+                for i in range(n)
+            ],
+        )
+
+        tau, unc, used, details, flags = estimate_residence_time_with_details(
+            node_u,
+            node_v,
+            method="bayesian_lag",
+            tracer_ion="Cl",
+            ion_order=["Cl"],
+            hydraulic_params={
+                # physics prior roughly near the right scale
+                "distance_m": 1000.0,
+                "K_m_day": 1.0,
+                "gradient": 0.01,
+                "porosity": 0.2,
+                "bayes_lag_grid_dt_days": 3.0,
+                "bayes_lag_max_lag_days": 120.0,
+                "bayes_lag_min_pairs": 6,
+                "bayes_lag_prior_sigma_multiplier": 2.0,
+                "attenuation_k_max": 0.02,
+                "attenuation_k_steps": 6,
+                "ttd_min_r2": 0.1,
+            },
+        )
+
+        self.assertTrue("bayesian_lag" in used)
+        self.assertFalse("bayesian_lag_failed" in used)
+        self.assertTrue(tau > 0.0)
+        self.assertTrue(unc >= 0.0)
+        self.assertTrue("bayes_failed_all_tracers" not in flags)
+        self.assertAlmostEqual(tau, lag_true, delta=6.0)
 

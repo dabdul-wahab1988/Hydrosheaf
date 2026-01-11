@@ -2,13 +2,13 @@
 Temporal edge fitting - fit transport and reaction models across time series.
 """
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 
 from . import TemporalEdgeResult, TemporalNode
 from .interpolation import align_time_series
-from .residence_time import estimate_residence_time
+from .residence_time import estimate_residence_time_with_details
 
 
 def fit_temporal_edge(
@@ -16,6 +16,7 @@ def fit_temporal_edge(
     node_v: TemporalNode,
     config: "Config",  # type: ignore
     edge_id: str = "",
+    hydraulic_params: Optional[Dict[str, float]] = None,
 ) -> TemporalEdgeResult:
     """
     Fit transport and reaction model across all time points.
@@ -63,12 +64,13 @@ def fit_temporal_edge(
     from ..inference.edge_fit import fit_edge
 
     # Estimate residence time
-    tau_days, tau_uncertainty, tau_method = estimate_residence_time(
+    tau_days, tau_uncertainty, tau_method, tau_details, tau_flags = estimate_residence_time_with_details(
         node_u,
         node_v,
         method=getattr(config, "residence_time_method", "cross_correlation"),
         tracer_ion=getattr(config, "residence_time_tracer", "Cl"),
         ion_order=config.ion_order,
+        hydraulic_params=hydraulic_params,
     )
 
     # Align time series with lag
@@ -83,6 +85,8 @@ def fit_temporal_edge(
             residence_time_days=tau_days,
             residence_time_method=tau_method,
             residence_time_uncertainty=tau_uncertainty,
+            residence_time_flags=tau_flags,
+            residence_time_details=tau_details,
             transport_model="none",
         )
 
@@ -129,6 +133,8 @@ def fit_temporal_edge(
         residence_time_days=tau_days,
         residence_time_method=tau_method,
         residence_time_uncertainty=tau_uncertainty,
+        residence_time_flags=tau_flags,
+        residence_time_details=tau_details,
         transport_model="evap" if gamma_series else ("mix" if f_series else "none"),
         timestamps=timestamps,
         reaction_extents_series=extents_series,

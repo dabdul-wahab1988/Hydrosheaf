@@ -1,5 +1,4 @@
 import math
-import yaml
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
@@ -11,6 +10,11 @@ from .coda_sbp import ilr_from_sbp, robust_zscore
 from .config import Config
 from .data.units import mgL_to_mmolL
 from .models import nitrate_isotopes
+
+try:
+    import yaml  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    yaml = None
 
 # Default config path
 DEFAULT_CONFIG_PATH = Path(__file__).parent / "config" / "nitrate_source_v2.yaml"
@@ -51,6 +55,8 @@ class NitrateStats:
 
 def load_nitrate_config(path: Path = DEFAULT_CONFIG_PATH) -> dict:
     if not path.exists():
+        return {}
+    if yaml is None:
         return {}
     with open(path, "r") as f:
         return yaml.safe_load(f)

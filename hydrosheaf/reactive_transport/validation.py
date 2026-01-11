@@ -66,19 +66,21 @@ def validate_edge_forward(
          If ξ_k > 0 (dissolution): require SI_k(0) < τ (was undersaturated)
          If ξ_k < 0 (precip): require SI_k(0) > -τ (was supersaturated)
     """
-    from ..models.transport import evaporation_affine, mixing_affine
-
     # Use residence time if provided, otherwise default
     if residence_time_days is None:
         residence_time_days = getattr(config, "rt_default_residence_time", 30.0)
 
     # Apply transport to get post-transport composition
     if edge_result.transport_model == "evap" and edge_result.gamma is not None:
-        x_transport = evaporation_affine(x_u, edge_result.gamma)
+        x_transport = [edge_result.gamma * float(x) for x in x_u]
     elif edge_result.transport_model == "mix" and edge_result.f is not None:
-        endmember_id = edge_result.endmember_id or list(config.mixing_endmembers.keys())[0]
-        endmember = config.mixing_endmembers[endmember_id]
-        x_transport = mixing_affine(x_u, endmember, edge_result.f)
+        endmember_id = edge_result.endmember_id or (list(config.mixing_endmembers.keys())[0] if config.mixing_endmembers else None)
+        if endmember_id is None:
+            x_transport = list(x_u)
+        else:
+            endmember = config.mixing_endmembers[endmember_id]
+            f = float(edge_result.f)
+            x_transport = [(1.0 - f) * float(u) + f * float(e) for u, e in zip(x_u, endmember)]
     else:
         x_transport = x_u  # No transport
 
@@ -248,6 +250,7 @@ def validate_network_forward(
                 x_v_observed=x_v,
                 config=config,
                 kinetic_params=kinetic_params,
+                residence_time_days=getattr(edge_result, "edge_residence_time_days", None),
             )
 
             validation_results[edge_result.edge_id] = result

@@ -1,10 +1,15 @@
 """Network-level fitting pipeline."""
 
+import math
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence
 
 from ..config import Config
-from ..data.schema import vector_from_sample
+from dataclasses import replace
+
+from ..data.schema import normalize_sample, vector_from_sample
 from ..graph.build import build_edges, infer_edges_from_coordinates, infer_edges_probabilistic
+from ..graph3d.build_3d import build_network_3d
+from ..graph3d.types_3d import Edge3D
 from ..graph.types import Edge
 from ..models.reactions import build_reaction_dictionary
 from ..phreeqc.constraints import build_edge_bounds
@@ -14,6 +19,63 @@ from ..models.redox import get_redox_constraints
 from .edge_fit import EdgeResult, fit_edge
 from ..nitrate_source_v2 import infer_node_posteriors
 import pandas as pd
+from ..uncertainty.bootstrap import bootstrap_edge_fit
+from ..uncertainty.propagation import monte_carlo_propagate
+from ..reactive_transport.validation import validate_network_forward
+
+
+def _safe_float(value: object) -> Optional[float]:
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+
+
+def estimate_edge_residence_time_days(edge_attrs: Mapping[str, object], config: Config) -> Optional[float]:
+    """Estimate residence time from edge geometry and hydraulic gradient.
+
+    Uses Darcy-based travel time approximation:
+      tau = L * porosity / (K * i)
+    where i is hydraulic gradient and L is path length.
+    """
+    # Explicit override (e.g., from MODPATH priors / external physics model).
+    for key in ("edge_residence_time_days", "physics_tau_mean_days", "tau_days", "residence_time_days"):
+        explicit = _safe_float(edge_attrs.get(key))
+        if explicit is not None and explicit > 0:
+            return float(explicit)
+
+    k_m_per_day = float(getattr(config, "residence_time_hydraulic_k", 0.0) or 0.0)
+    porosity = float(getattr(config, "residence_time_porosity", 0.0) or 0.0)
+    if k_m_per_day <= 0 or not (0.0 < porosity <= 1.0):
+        return None
+
+    length_m = _safe_float(edge_attrs.get("distance_3d_m"))
+    if length_m is None:
+        dist_km = _safe_float(edge_attrs.get("distance_km"))
+        if dist_km is not None:
+            length_m = dist_km * 1000.0
+    if length_m is None or length_m <= 0:
+        return None
+
+    delta_h = _safe_float(edge_attrs.get("delta_h"))
+    gradient = None
+    if delta_h is not None:
+        gradient = abs(delta_h) / length_m
+    else:
+        h_grad = _safe_float(edge_attrs.get("horizontal_gradient"))
+        v_grad = _safe_float(edge_attrs.get("vertical_gradient"))
+        if h_grad is not None:
+            gradient = abs(h_grad)
+        elif v_grad is not None:
+            gradient = abs(v_grad)
+
+    if gradient is None or gradient <= 0:
+        return None
+
+    tau_days = (length_m * porosity) / (k_m_per_day * gradient)
+    if tau_days <= 0 or not (tau_days < 1e12):
+        return None
+    return float(tau_days)
 
 
 def _sample_map(samples: object) -> Dict[str, Mapping[str, float]]:
@@ -35,16 +97,13 @@ def fit_network(
     edges: Iterable[object],
     config: Config,
     phreeqc_results: Optional[Mapping[str, Mapping[str, object]]] = None,
+    residence_time_overrides: Optional[Mapping[str, float]] = None,
 ) -> List[EdgeResult]:
     sample_map = _sample_map(samples)
     built_edges = build_edges(edges)
 
-    bounds_by_edge: Dict[str, Dict[str, object]] = {}
-    if config.phreeqc_enabled:
-        if phreeqc_results is None:
-            phreeqc_results = run_phreeqc(sample_map.values(), config)
-        _, labels, mineral_mask = build_reaction_dictionary(config)
-        bounds_by_edge = build_edge_bounds(phreeqc_results, built_edges, labels, mineral_mask, config)
+    if config.phreeqc_enabled and phreeqc_results is None:
+        phreeqc_results = run_phreeqc(sample_map.values(), config)
 
     results: List[EdgeResult] = []
     for edge in built_edges:
@@ -69,16 +128,51 @@ def fit_network(
         if x_v is None:
             continue
 
-        edge_bounds = bounds_by_edge.get(edge.edge_id, {})
+        # Apply layer-specific mineral dictionary if configured (default uses Config.active_minerals).
+        config_edge = config
+        layer_key = getattr(config, "layer_key", "aquifer_layer")
+        layer_value = sample_v.get(layer_key)
+        try:
+            layer_idx = int(layer_value) if layer_value not in (None, "") else None
+        except (TypeError, ValueError):
+            layer_idx = None
+        if layer_idx is not None:
+            minerals_for_layer = getattr(config, "layer_mineral_map", {}).get(layer_idx)
+            if minerals_for_layer:
+                config_edge = replace(config, active_minerals=list(minerals_for_layer))
+
+        reaction_matrix, reaction_labels, mineral_mask = build_reaction_dictionary(config_edge)
+
+        edge_bounds: Dict[str, object] = {}
+        if config_edge.phreeqc_enabled and phreeqc_results is not None:
+            edge_bounds = build_edge_bounds(
+                phreeqc_results,
+                [edge],
+                reaction_labels,
+                mineral_mask,
+                config_edge,
+            ).get(edge.edge_id, {})
+
+        tau_edge = None
+        if residence_time_overrides is not None:
+            tau_override = residence_time_overrides.get(edge.edge_id)
+            try:
+                tau_edge = float(tau_override) if tau_override is not None else None
+            except (TypeError, ValueError):
+                tau_edge = None
+        if tau_edge is None:
+            tau_edge = estimate_edge_residence_time_days(edge.attrs or {}, config_edge)
+
         # Apply redox overrides
-        _, labels, _ = build_reaction_dictionary(config)
-        redox_overrides = get_redox_constraints(sample_v_norm, labels)
+        redox_overrides = get_redox_constraints(sample_v_norm, reaction_labels)
         if redox_overrides:
             # Merge with existing bounds
-            if "lb" not in edge_bounds: edge_bounds["lb"] = [None] * len(labels)
-            if "ub" not in edge_bounds: edge_bounds["ub"] = [None] * len(labels)
+            if "lb" not in edge_bounds:
+                edge_bounds["lb"] = [None] * len(reaction_labels)
+            if "ub" not in edge_bounds:
+                edge_bounds["ub"] = [None] * len(reaction_labels)
             
-            for i, label in enumerate(labels):
+            for i, label in enumerate(reaction_labels):
                 if label in redox_overrides:
                     l, u = redox_overrides[label]
                     edge_bounds["lb"][i] = l
@@ -89,21 +183,108 @@ def fit_network(
         result = fit_edge(
             x_u,
             x_v,
-            config,
+            config_edge,
             edge_id=edge.edge_id,
             u=edge.u,
             v=edge.v,
             obs_v=sample_v_norm,
             bounds=edge_bounds,
             obs_u=sample_u_norm,
+            residence_time_days=tau_edge,
         )
+        result.edge_residence_time_days = tau_edge
+
+        # Optional uncertainty quantification (per-edge)
+        if getattr(config_edge, "uncertainty_method", "none") != "none":
+            method = getattr(config_edge, "uncertainty_method", "none")
+            seed = getattr(config_edge, "uncertainty_seed", None)
+            try:
+                if method == "bootstrap":
+                    uq = bootstrap_edge_fit(
+                        x_u,
+                        x_v,
+                        config_edge,
+                        obs_u=sample_u_norm,
+                        obs_v=sample_v_norm,
+                        bounds=edge_bounds,
+                        n_resamples=getattr(config_edge, "bootstrap_n_resamples", 1000),
+                        random_state=seed,
+                    )
+                elif method == "monte_carlo":
+                    uq = monte_carlo_propagate(
+                        x_u,
+                        x_v,
+                        config_edge,
+                        obs_u=sample_u_norm,
+                        obs_v=sample_v_norm,
+                        bounds=edge_bounds,
+                        input_uncertainty_pct=getattr(config_edge, "input_uncertainty_pct", 5.0),
+                        n_samples=getattr(config_edge, "monte_carlo_n_samples", 1000),
+                        random_state=seed,
+                    )
+                elif method == "bayesian":
+                    # Only implemented for evaporation gamma in bayesian_edge_fit.
+                    from ..uncertainty.bayesian import bayesian_edge_fit
+
+                    if result.transport_model != "evap":
+                        uq = None
+                    else:
+                        bounds_list = None
+                        if edge_bounds and edge_bounds.get("lb") is not None and edge_bounds.get("ub") is not None:
+                            bounds_list = list(zip(edge_bounds["lb"], edge_bounds["ub"]))
+                        uq = bayesian_edge_fit(
+                            x_u,
+                            x_v,
+                            reaction_matrix,
+                            reaction_labels,
+                            config_edge,
+                            n_samples=getattr(config_edge, "bayesian_n_samples", 5000),
+                            n_chains=getattr(config_edge, "bayesian_n_chains", 4),
+                            target_accept=getattr(config_edge, "bayesian_target_accept", 0.95),
+                            bounds=bounds_list,
+                        )
+                else:
+                    uq = None
+
+                if uq is not None:
+                    result.uncertainty_method = uq.method
+                    result.gamma_std = uq.gamma_std
+                    result.gamma_ci_low = uq.gamma_ci_low
+                    result.gamma_ci_high = uq.gamma_ci_high
+                    result.f_std = uq.f_std
+                    result.f_ci_low = uq.f_ci_low
+                    result.f_ci_high = uq.f_ci_high
+                    result.extents_std = uq.extents_std
+                    result.extents_ci_low = uq.extents_ci_low
+                    result.extents_ci_high = uq.extents_ci_high
+                    result.uncertainty_r_hat = uq.r_hat or {}
+                    result.uncertainty_ess = uq.ess or {}
+            except Exception:
+                # Keep baseline result if UQ fails (missing PyMC, numerical issues, etc.)
+                pass
         edge_attrs = edge.attrs or {}
         result.edge_confidence = edge_attrs.get("edge_confidence", edge_attrs.get("p_uv"))
+        result.edge_map_penalty = edge_attrs.get("edge_map_penalty")
+        result.edge_map_score = edge_attrs.get("edge_map_score")
         result.edge_distance_km = edge_attrs.get("distance_km")
         result.edge_delta_h = edge_attrs.get("delta_h")
         result.edge_sigma_delta_h = edge_attrs.get("sigma_delta_h")
         result.edge_source_tier = edge_attrs.get("source_tier")
         result.edge_flags = edge_attrs.get("flags")
+        result.edge_distance_3d_m = edge_attrs.get("distance_3d_m")
+        result.edge_horizontal_distance_m = edge_attrs.get("horizontal_distance_m")
+        result.edge_vertical_distance_m = edge_attrs.get("vertical_distance_m")
+        result.edge_type_3d = edge_attrs.get("edge_type_3d")
+        result.edge_prob_head = edge_attrs.get("prob_head")
+        result.edge_prob_distance = edge_attrs.get("prob_distance")
+        result.edge_prob_layer = edge_attrs.get("prob_layer")
+        result.edge_horizontal_gradient = edge_attrs.get("horizontal_gradient")
+        result.edge_vertical_gradient = edge_attrs.get("vertical_gradient")
+        result.physics_source = edge_attrs.get("physics_source")
+        result.physics_tau_mean_days = edge_attrs.get("physics_tau_mean_days")
+        result.physics_tau_std_days = edge_attrs.get("physics_tau_std_days")
+        result.physics_tau_p10_days = edge_attrs.get("physics_tau_p10_days")
+        result.physics_tau_p90_days = edge_attrs.get("physics_tau_p90_days")
         results.append(result)
 
     # Nitrate Source Discrimination (v2) Integration
@@ -133,6 +314,29 @@ def fit_network(
                 res.nitrate_source_evidence = nr.top_evidence
                 res.nitrate_source_gates = nr.gating_flags
 
+    # Optional forward reactive transport validation (per-edge annotations)
+    if getattr(config, "reactive_transport_validation", False):
+        try:
+            # Ensure numeric samples for validators (CSV inputs may be strings)
+            numeric_samples: Dict[str, Dict[str, float]] = {}
+            for site_id, sample in sample_map.items():
+                numeric_samples[site_id] = normalize_sample(sample, config.ion_order, config.detection_limit_policy)
+            summary = validate_network_forward(results, numeric_samples, config)
+            for res in results:
+                rt = summary.edge_results.get(res.edge_id)
+                if rt is None:
+                    continue
+                res.rt_validated = True
+                res.rt_simulator = rt.simulator
+                res.rt_residence_time_days = rt.inverse_residence_time_days
+                res.rt_rmse = rt.rmse
+                res.rt_nse = rt.nse
+                res.rt_pbias = rt.pbias
+                res.rt_thermodynamic_consistent = rt.thermodynamic_consistent
+        except Exception:
+            # Keep baseline results if validation fails (missing PHREEQC kinetic, etc.)
+            pass
+
     return results
 
 
@@ -153,6 +357,7 @@ def infer_edges(
     elevation_key: str = "elevation",
     method: str = "probabilistic",
     config: Optional[Config] = None,
+    edge_attr_overrides: Optional[Mapping[str, Mapping[str, object]]] = None,
 ) -> List[Edge]:
     if isinstance(samples, Mapping):
         samples_iter = list(samples.values())
@@ -169,24 +374,128 @@ def infer_edges(
             elevation_key=elevation_key,
         )
     config = config or Config()
-    return infer_edges_probabilistic(
-        samples_iter,
-        radius_km=config.edge_radius_km,
-        max_neighbors=config.edge_max_neighbors,
-        p_min=config.edge_p_min,
-        head_key=config.edge_head_key,
-        dtw_key=config.edge_dtw_key,
-        elevation_key=config.edge_elevation_key,
-        aquifer_key=config.edge_aquifer_key,
-        screen_depth_key=config.edge_screen_depth_key,
-        well_depth_key=config.edge_well_depth_key,
-        sigma_meas=config.edge_sigma_meas,
-        sigma_dtw=config.edge_sigma_dtw,
-        sigma_elev=config.edge_sigma_elev,
-        sigma_topo=config.edge_sigma_topo,
-        gradient_min=config.edge_gradient_min,
-        depth_mismatch=config.edge_depth_mismatch,
-    )
+
+    def _apply_overrides(edges: List[Edge]) -> List[Edge]:
+        if not edge_attr_overrides:
+            return edges
+        for edge in edges:
+            override = edge_attr_overrides.get(edge.edge_id)
+            if not override:
+                continue
+            attrs = dict(edge.attrs or {})
+            attrs.update(dict(override))
+            edge.attrs = attrs
+        return edges
+
+    def infer_probabilistic_edges_from_config(config_for_edges: Config) -> List[Edge]:
+        if getattr(config_for_edges, "network_3d_enabled", False):
+            # Infer edges using 3D graph construction; convert Edge3D -> Edge.
+            network = build_network_3d(list(samples_iter), config_for_edges, layer_definition=None, use_haversine=True)
+            edges_3d: List[Edge3D] = network.edges
+            converted: List[Edge] = []
+            for edge3d in edges_3d:
+                attrs = {
+                    "distance_km": edge3d.distance_3d / 1000.0,
+                    "horizontal_distance_m": edge3d.horizontal_distance_m,
+                    "vertical_distance_m": edge3d.vertical_distance_m,
+                    "distance_3d_m": edge3d.distance_3d,
+                    "edge_type_3d": edge3d.edge_type,
+                    "horizontal_gradient": edge3d.horizontal_gradient,
+                    "vertical_gradient": edge3d.vertical_gradient,
+                    "prob_head": edge3d.prob_head,
+                    "prob_distance": edge3d.prob_distance,
+                    "prob_layer": edge3d.prob_layer,
+                    "p_uv": edge3d.prob_combined,
+                    "edge_confidence": edge3d.prob_combined,
+                }
+                converted.append(Edge(edge_id=edge3d.edge_id, u=edge3d.u, v=edge3d.v, attrs=attrs))
+            return _apply_overrides(converted)
+        inferred = infer_edges_probabilistic(
+            samples_iter,
+            radius_km=config_for_edges.edge_radius_km,
+            max_neighbors=config_for_edges.edge_max_neighbors,
+            p_min=config_for_edges.edge_p_min,
+            head_key=config_for_edges.edge_head_key,
+            dtw_key=config_for_edges.edge_dtw_key,
+            elevation_key=config_for_edges.edge_elevation_key,
+            aquifer_key=config_for_edges.edge_aquifer_key,
+            screen_depth_key=config_for_edges.edge_screen_depth_key,
+            well_depth_key=config_for_edges.edge_well_depth_key,
+            sigma_meas=config_for_edges.edge_sigma_meas,
+            sigma_dtw=config_for_edges.edge_sigma_dtw,
+            sigma_elev=config_for_edges.edge_sigma_elev,
+            sigma_topo=config_for_edges.edge_sigma_topo,
+            gradient_min=config_for_edges.edge_gradient_min,
+            depth_mismatch=config_for_edges.edge_depth_mismatch,
+            head_inference=getattr(config_for_edges, "edge_head_inference", "heuristic"),
+            dtw_prior_mu=getattr(config_for_edges, "edge_dtw_prior_mu", 5.0),
+            dtw_prior_sigma=getattr(config_for_edges, "edge_dtw_prior_sigma", 5.0),
+            head_prior_mu=getattr(config_for_edges, "edge_head_prior_mu", 0.0),
+            head_prior_sigma=getattr(config_for_edges, "edge_head_prior_sigma", 1000.0),
+            mcmc_draws=getattr(config_for_edges, "bayesian_n_samples", 1000),
+            mcmc_chains=getattr(config_for_edges, "bayesian_n_chains", 2),
+            mcmc_target_accept=getattr(config_for_edges, "bayesian_target_accept", 0.9),
+            mcmc_warmup_fraction=getattr(config_for_edges, "bayesian_warmup_fraction", 0.5),
+        )
+        return _apply_overrides(inferred)
+
+    if method == "probabilistic_map":
+        config.validate()
+        prior_weight = float(getattr(config, "edge_map_prior_weight", 0.0) or 0.0)
+        if prior_weight <= 0:
+            raise ValueError("--infer-edges-method probabilistic_map requires edge_map_prior_weight > 0.")
+
+        candidate_multiplier = int(getattr(config, "edge_map_candidate_multiplier", 5) or 5)
+        candidate_config = replace(
+            config,
+            edge_p_min=float(getattr(config, "edge_map_p_min", 0.1)),
+            edge_max_neighbors=int(config.edge_max_neighbors) * candidate_multiplier,
+        )
+        candidate_config.validate()
+        candidate_edges = infer_probabilistic_edges_from_config(candidate_config)
+        if not candidate_edges:
+            return []
+
+        # Score candidate edges using chemistry objective, then select top-k per upstream node with MAP weighting.
+        scoring_config = replace(
+            config,
+            uncertainty_method="none",
+            reactive_transport_validation=False,
+            nitrate_source_enabled=False,
+        )
+        scoring_config.validate()
+        candidate_results = fit_network(samples_iter, candidate_edges, scoring_config, phreeqc_results=None)
+        result_by_edge: Dict[str, float] = {res.edge_id: float(res.objective_score) for res in candidate_results}
+
+        eps = 1e-12
+        scored_by_u: Dict[str, List[tuple]] = {}
+        for edge in candidate_edges:
+            if edge.edge_id not in result_by_edge:
+                continue
+            chem_score = result_by_edge[edge.edge_id]
+            attrs = edge.attrs or {}
+            prior_p = attrs.get("edge_confidence", attrs.get("p_uv"))
+            try:
+                p_uv = float(prior_p) if prior_p is not None else 1.0
+            except (TypeError, ValueError):
+                p_uv = 1.0
+            p_uv = min(1.0, max(eps, p_uv))
+            map_penalty = -math.log(p_uv)
+            map_score = chem_score + prior_weight * map_penalty
+            attrs["edge_map_penalty"] = map_penalty
+            attrs["edge_map_score"] = map_score
+            edge.attrs = attrs
+            scored_by_u.setdefault(edge.u, []).append((map_score, edge))
+
+        selected: List[Edge] = []
+        for _, scored in scored_by_u.items():
+            scored.sort(key=lambda item: item[0])
+            for _, edge in scored[: int(config.edge_max_neighbors)]:
+                selected.append(edge)
+        return selected
+
+    # Default probabilistic inference (2D or 3D).
+    return infer_probabilistic_edges_from_config(config)
 
 
 def summarize_network(results: List[EdgeResult]) -> Dict[str, object]:

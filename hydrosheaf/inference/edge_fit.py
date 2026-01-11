@@ -40,11 +40,28 @@ class EdgeResult:
     charge_error: Optional[float] = None
     skipped_reason: Optional[str] = None
     edge_confidence: Optional[float] = None
+    edge_map_penalty: Optional[float] = None
+    edge_map_score: Optional[float] = None
     edge_distance_km: Optional[float] = None
     edge_delta_h: Optional[float] = None
     edge_sigma_delta_h: Optional[float] = None
     edge_source_tier: Optional[str] = None
     edge_flags: Optional[str] = None
+    edge_distance_3d_m: Optional[float] = None
+    edge_horizontal_distance_m: Optional[float] = None
+    edge_vertical_distance_m: Optional[float] = None
+    edge_type_3d: Optional[str] = None
+    edge_prob_head: Optional[float] = None
+    edge_prob_distance: Optional[float] = None
+    edge_prob_layer: Optional[float] = None
+    edge_horizontal_gradient: Optional[float] = None
+    edge_vertical_gradient: Optional[float] = None
+    edge_residence_time_days: Optional[float] = None
+    physics_source: Optional[str] = None
+    physics_tau_mean_days: Optional[float] = None
+    physics_tau_std_days: Optional[float] = None
+    physics_tau_p10_days: Optional[float] = None
+    physics_tau_p90_days: Optional[float] = None
     isotope_penalty: float = 0.0
     isotope_metrics: Dict[str, float] = field(default_factory=dict)
     isotope_used: bool = False
@@ -72,6 +89,35 @@ class EdgeResult:
     reaction_fit: Optional[ReactionFit] = None
     residual_vector: List[float] = field(default_factory=list)
 
+    # Optional forward-validation fields (reactive transport)
+    rt_validated: bool = False
+    rt_simulator: Optional[str] = None
+    rt_residence_time_days: Optional[float] = None
+    rt_rmse: Optional[float] = None
+    rt_nse: Optional[float] = None
+    rt_pbias: Optional[float] = None
+    rt_thermodynamic_consistent: Optional[bool] = None
+
+    # Optional uncertainty diagnostics (Bayesian)
+    uncertainty_r_hat: Dict[str, float] = field(default_factory=dict)
+    uncertainty_ess: Dict[str, float] = field(default_factory=dict)
+
+    # Optional temporal summaries (when temporal-enabled is used)
+    temporal_residence_time_days: Optional[float] = None
+    temporal_residence_time_method: Optional[str] = None
+    temporal_residence_time_uncertainty: Optional[float] = None
+    temporal_transport_model: Optional[str] = None
+    temporal_gamma_mean: Optional[float] = None
+    temporal_gamma_std: Optional[float] = None
+    temporal_f_mean: Optional[float] = None
+    temporal_f_std: Optional[float] = None
+    temporal_reaction_extents_mean: List[float] = field(default_factory=list)
+    temporal_reaction_extents_std: List[float] = field(default_factory=list)
+    temporal_total_residual_norm: Optional[float] = None
+    temporal_n_time_points: Optional[int] = None
+    temporal_residence_time_flags: List[str] = field(default_factory=list)
+    temporal_residence_time_details: Dict[str, object] = field(default_factory=dict)
+
 
 def fit_edge(
     x_u: List[float],
@@ -83,6 +129,7 @@ def fit_edge(
     obs_v: Optional[Mapping[str, float]] = None,
     bounds: Optional[Dict[str, object]] = None,
     obs_u: Optional[Mapping[str, float]] = None,
+    residence_time_days: Optional[float] = None,
 ) -> EdgeResult:
     config.validate()
 
@@ -104,11 +151,17 @@ def fit_edge(
     best_result: Optional[EdgeResult] = None
     candidate_entries: List[Dict[str, object]] = []
     for transport_model, end_id, gamma_value, f_value, residual, transport_norm in candidates:
+        lambda_l1 = config.lambda_l1_value()
+        if getattr(config, "residence_time_coupling_enabled", False) and residence_time_days is not None:
+            tau_ref = float(getattr(config, "residence_time_reference_days", 30.0))
+            tau = max(1e-9, float(residence_time_days))
+            lambda_l1 = lambda_l1 * (tau_ref / tau)
+
         reaction_fit: ReactionFit = fit_reactions(
             residual,
             reaction_matrix,
             weights=config.weights,
-            lambda_l1=config.lambda_l1_value(),
+            lambda_l1=lambda_l1,
             max_iter=config.reaction_max_iter,
             tol=config.reaction_tol,
             signed_mask=signed_mask,
@@ -187,7 +240,7 @@ def fit_edge(
 
         objective = (
             reaction_fit.residual_norm
-            + config.lambda_l1_value() * reaction_fit.l1_norm
+            + lambda_l1 * reaction_fit.l1_norm
             + penalty
             + iso_penalty
             + gibbs_penalty_val
@@ -234,6 +287,8 @@ def fit_edge(
             gibbs_metrics=gibbs_metrics_val,
             gibbs_used=gibbs_used,
             isotope_consistency_penalty=iso_consistency_penalty,
+            reaction_fit=reaction_fit,
+            residual_vector=list(reaction_fit.residual),
         )
         if best_result is None or result.objective_score < best_result.objective_score:
             best_result = result

@@ -11,7 +11,7 @@ def build_solution_block(sample: Mapping[str, object], solution_id: int, temp_de
         f"SOLUTION {solution_id}",
         f"temp      {temp_c}",
         f"pH        {sample.get('pH')}",
-        "units     mg/L",
+        "units     mmol/L",
         f"Ca        {sample.get('Ca')}",
         f"Mg        {sample.get('Mg')}",
         f"Na        {sample.get('Na')}",

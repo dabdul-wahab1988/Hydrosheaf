@@ -60,6 +60,8 @@ class TemporalEdgeResult:
 
     # Optional fields
     residence_time_uncertainty: Optional[float] = None
+    residence_time_flags: List[str] = field(default_factory=list)
+    residence_time_details: Dict[str, object] = field(default_factory=dict)
 
     # Time-averaged transport parameters
     gamma_mean: Optional[float] = None

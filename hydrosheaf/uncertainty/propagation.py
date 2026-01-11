@@ -5,7 +5,7 @@ This module implements Monte Carlo sampling to propagate input measurement
 uncertainty through the transport and reaction inference pipeline.
 """
 
-from typing import List, Optional
+from typing import List, Mapping, Optional
 
 import numpy as np
 
@@ -16,6 +16,9 @@ def monte_carlo_propagate(
     x_u: List[float],
     x_v: List[float],
     config: "Config",  # type: ignore
+    obs_u: Optional[Mapping[str, float]] = None,
+    obs_v: Optional[Mapping[str, float]] = None,
+    bounds: Optional[dict] = None,
     input_uncertainty_pct: float = 5.0,
     n_samples: int = 1000,
     random_state: Optional[int] = None,
@@ -93,7 +96,14 @@ def monte_carlo_propagate(
 
         # Fit model
         try:
-            result = fit_edge(x_u_pert.tolist(), x_v_pert.tolist(), {}, "", config)
+            result = fit_edge(
+                x_u_pert.tolist(),
+                x_v_pert.tolist(),
+                config,
+                obs_u=obs_u,
+                obs_v=obs_v,
+                bounds=bounds,
+            )
 
             # Store parameters
             if result.transport_model == "evap":
@@ -272,7 +282,7 @@ def compute_sensitivity_indices(
     from ..inference.edge_fit import fit_edge
 
     # Baseline fit
-    baseline = fit_edge(x_u, x_v, {}, "", config)
+    baseline = fit_edge(x_u, x_v, config)
 
     n_ions = len(x_u)
     delta = perturbation_pct / 100.0
@@ -288,7 +298,7 @@ def compute_sensitivity_indices(
         x_u_pert[i] *= 1 + delta
 
         try:
-            pert_result = fit_edge(x_u_pert, x_v, {}, "", config)
+            pert_result = fit_edge(x_u_pert, x_v, config)
 
             # Gamma sensitivity
             if baseline.transport_model == "evap":

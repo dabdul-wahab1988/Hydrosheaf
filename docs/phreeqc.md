@@ -19,16 +19,16 @@ Hydrosheaf generates one `SOLUTION` block per sample and a shared `SELECTED_OUTP
 SOLUTION 1
 temp      25.0
 pH        7.0
-units     mg/L
-Ca        40.0
-Mg        24.0
-Na        23.0
-K         39.1
-Cl        35.0
-S(6)      96.0   as SO4
-N(5)      62.0   as NO3
-F         19.0
-Alkalinity 61.0  as HCO3
+units     mmol/L
+Ca        1.0
+Mg        1.0
+Na        1.0
+K         1.0
+Cl        1.0
+S(6)      1.0   as SO4
+N(5)      1.0   as NO3
+F         1.0
+Alkalinity 1.0  as HCO3
 END
 ```
 

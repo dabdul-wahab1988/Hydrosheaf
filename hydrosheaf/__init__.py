@@ -19,6 +19,19 @@ from .phreeqc.runner import run_phreeqc
 from .isotopes import compute_d_excess, evaporation_index, fit_lmwl
 from .coda_sbp import ilr_from_sbp, robust_zscore
 from .nitrate_source_v2 import infer_node_posteriors, NitrateSourceResult
+from .api import (
+    attach_temporal_results,
+    auto_disable_missing_modules,
+    build_vadose_priors,
+    validate_required_inputs,
+    fit_network_pipeline,
+    fit_network_with_priors,
+    fit_temporal_edges,
+)
+from .physics.priors import PhysicsPrior, apply_physics_priors
+from .temporal import TemporalEdgeResult, TemporalNode, TimeSeriesSample
+from .temporal.time_series import load_time_series_csv
+from .vadose.contracts import VadoseForcingSample, VadoseLinksRow, VadoseProfile, VadoseRunConfig
 
 __all__ = [
     "Config",
@@ -45,6 +58,23 @@ __all__ = [
     "robust_zscore",
     "infer_node_posteriors",
     "NitrateSourceResult",
+    "attach_temporal_results",
+    "auto_disable_missing_modules",
+    "build_vadose_priors",
+    "validate_required_inputs",
+    "fit_network_pipeline",
+    "fit_network_with_priors",
+    "fit_temporal_edges",
+    "PhysicsPrior",
+    "apply_physics_priors",
+    "TemporalEdgeResult",
+    "TemporalNode",
+    "TimeSeriesSample",
+    "load_time_series_csv",
+    "VadoseForcingSample",
+    "VadoseLinksRow",
+    "VadoseProfile",
+    "VadoseRunConfig",
 ]
 
 __version__ = "0.1.0"

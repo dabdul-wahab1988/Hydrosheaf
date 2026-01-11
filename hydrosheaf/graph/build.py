@@ -1,9 +1,14 @@
 """Graph construction helpers."""
 
 import math
-from typing import Iterable, List, Mapping, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Mapping, Optional, Tuple, Union
 
 from .types import Edge
+from .head_inference import (
+    infer_head_heuristic,
+    infer_heads_bayesian_linear,
+    infer_heads_bayesian_mcmc,
+)
 
 
 EdgeInput = Union[Tuple[str, str], Tuple[str, str, str], Edge]
@@ -41,27 +46,6 @@ def _normal_cdf(value: float) -> float:
     return 0.5 * (1.0 + math.erf(value / math.sqrt(2.0)))
 
 
-def _head_estimate(
-    sample: Mapping[str, object],
-    head_key: str,
-    dtw_key: str,
-    elevation_key: str,
-    sigma_meas: float,
-    sigma_dtw: float,
-    sigma_elev: float,
-    sigma_topo: float,
-) -> Tuple[Optional[float], Optional[float], str]:
-    if sample.get(head_key) not in (None, ""):
-        return float(sample[head_key]), sigma_meas, "A"
-    if sample.get(dtw_key) not in (None, "") and sample.get(elevation_key) not in (None, ""):
-        head = float(sample[elevation_key]) - float(sample[dtw_key])
-        sigma = math.sqrt(sigma_elev**2 + sigma_dtw**2)
-        return head, sigma, "B"
-    if sample.get(elevation_key) not in (None, ""):
-        return float(sample[elevation_key]), sigma_topo, "C"
-    return None, None, "missing"
-
-
 def infer_edges_probabilistic(
     samples: Iterable[Mapping[str, object]],
     radius_km: float,
@@ -79,44 +63,123 @@ def infer_edges_probabilistic(
     sigma_topo: float = 10.0,
     gradient_min: float = 1e-4,
     depth_mismatch: float = 20.0,
+    head_inference: str = "heuristic",
+    dtw_prior_mu: float = 5.0,
+    dtw_prior_sigma: float = 5.0,
+    head_prior_mu: float = 0.0,
+    head_prior_sigma: float = 1000.0,
+    mcmc_draws: int = 1000,
+    mcmc_chains: int = 2,
+    mcmc_target_accept: float = 0.9,
+    mcmc_warmup_fraction: float = 0.5,
 ) -> List[Edge]:
     samples_list = list(samples)
-    node_rows: List[Tuple[str, float, float, Mapping[str, object], float, float, str]] = []
-    for sample in samples_list:
-        site_id = sample.get("site_id")
-        if site_id is None:
-            continue
-        if sample.get("lat") in (None, "") or sample.get("lon") in (None, ""):
-            continue
-        head, sigma, tier = _head_estimate(
-            sample,
-            head_key,
-            dtw_key,
-            elevation_key,
-            sigma_meas,
-            sigma_dtw,
-            sigma_elev,
-            sigma_topo,
-        )
-        if head is None or sigma is None:
-            continue
-        node_rows.append(
-            (
-                str(site_id),
-                float(sample["lat"]),
-                float(sample["lon"]),
-                sample,
-                float(head),
-                float(sigma),
-                tier,
+    node_rows: List[Tuple[str, float, float, Mapping[str, object], float, float, str, Optional[int]]] = []
+    head_cov = None
+    if head_inference in {"bayesian", "bayesian_mcmc"}:
+        sample_lookup: Dict[str, Mapping[str, object]] = {}
+        for sample in samples_list:
+            site_id = sample.get("site_id")
+            if site_id is None:
+                continue
+            if sample.get("lat") in (None, "") or sample.get("lon") in (None, ""):
+                continue
+            sample_lookup[str(site_id)] = sample
+
+        if head_inference == "bayesian_mcmc":
+            posterior = infer_heads_bayesian_mcmc(
+                list(sample_lookup.values()),
+                node_id_key="site_id",
+                head_key=head_key,
+                dtw_key=dtw_key,
+                elevation_key=elevation_key,
+                sigma_meas=sigma_meas,
+                sigma_dtw=sigma_dtw,
+                sigma_elev=sigma_elev,
+                sigma_topo=sigma_topo,
+                dtw_prior_mu=dtw_prior_mu,
+                dtw_prior_sigma=dtw_prior_sigma,
+                head_prior_mu=head_prior_mu,
+                head_prior_sigma=head_prior_sigma,
+                mcmc_draws=mcmc_draws,
+                mcmc_chains=mcmc_chains,
+                mcmc_target_accept=mcmc_target_accept,
+                mcmc_warmup_fraction=mcmc_warmup_fraction,
             )
-        )
+        else:
+            posterior = infer_heads_bayesian_linear(
+                list(sample_lookup.values()),
+                node_id_key="site_id",
+                head_key=head_key,
+                dtw_key=dtw_key,
+                elevation_key=elevation_key,
+                sigma_meas=sigma_meas,
+                sigma_dtw=sigma_dtw,
+                sigma_elev=sigma_elev,
+                sigma_topo=sigma_topo,
+                dtw_prior_mu=dtw_prior_mu,
+                dtw_prior_sigma=dtw_prior_sigma,
+                head_prior_mu=head_prior_mu,
+                head_prior_sigma=head_prior_sigma,
+            )
+        idx_map = posterior.index()
+        head_cov = posterior.head_cov
+        for node_id in posterior.node_ids:
+            sample = sample_lookup.get(node_id)
+            if sample is None:
+                continue
+            idx = idx_map[node_id]
+            head_mean = float(posterior.head_mean[idx])
+            head_sigma = float(math.sqrt(float(head_cov[idx, idx])) if head_cov is not None else sigma_topo)
+            node_rows.append(
+                (
+                    node_id,
+                    float(sample["lat"]),
+                    float(sample["lon"]),
+                    sample,
+                    head_mean,
+                    head_sigma,
+                    posterior.tiers[idx],
+                    idx,
+                )
+            )
+    else:
+        for sample in samples_list:
+            site_id = sample.get("site_id")
+            if site_id is None:
+                continue
+            if sample.get("lat") in (None, "") or sample.get("lon") in (None, ""):
+                continue
+            head, sigma, tier = infer_head_heuristic(
+                sample,
+                head_key=head_key,
+                dtw_key=dtw_key,
+                elevation_key=elevation_key,
+                sigma_meas=sigma_meas,
+                sigma_dtw=sigma_dtw,
+                sigma_elev=sigma_elev,
+                sigma_topo=sigma_topo,
+            )
+            if head is None or sigma is None:
+                continue
+            node_rows.append(
+                (
+                    str(site_id),
+                    float(sample["lat"]),
+                    float(sample["lon"]),
+                    sample,
+                    float(head),
+                    float(sigma),
+                    tier,
+                    None,
+                )
+            )
 
     edges: List[Edge] = []
     edge_ids = set()
-    for node_id, lat, lon, sample, head, sigma, tier in node_rows:
+    for node_id, lat, lon, sample, head, sigma, tier, node_idx in node_rows:
         candidates: List[Tuple[float, float, str, Mapping[str, object], float, float, str, List[str]]] = []
-        for other_id, o_lat, o_lon, other_sample, other_head, other_sigma, other_tier in node_rows:
+        for other_id, o_lat, o_lon, other_sample, other_head, other_sigma, other_tier, other_idx in node_rows:
             if other_id == node_id:
                 continue
             if aquifer_key and sample.get(aquifer_key) and other_sample.get(aquifer_key):
@@ -129,7 +192,11 @@ def infer_edges_probabilistic(
                 continue
 
             delta_h = head - other_head
-            sigma_delta = math.sqrt(sigma**2 + other_sigma**2)
+            if head_cov is not None and node_idx is not None and other_idx is not None:
+                var_delta = float(head_cov[node_idx, node_idx] + head_cov[other_idx, other_idx] - 2.0 * head_cov[node_idx, other_idx])
+                sigma_delta = math.sqrt(max(var_delta, 0.0))
+            else:
+                sigma_delta = math.sqrt(sigma**2 + other_sigma**2)
             if sigma_delta == 0:
                 p_uv = 0.5 if delta_h == 0 else (1.0 if delta_h > 0 else 0.0)
             else:

@@ -7,7 +7,9 @@ from typing import Dict, List, Optional
 
 from .distance import classify_edge_type, compute_3d_distance, compute_screen_overlap
 from .layers import assign_layers_to_nodes, get_aquitard_probability
+from .constraints import check_hydraulic_feasibility
 from .types_3d import Edge3D, LayeredAquiferSystem, Network3D, Node3D
+from ..graph.head_inference import infer_heads_bayesian_linear, infer_heads_bayesian_mcmc
 
 
 def compute_head_probability(
@@ -252,8 +254,16 @@ def infer_edges_3d_probabilistic(
                 if p_head < p_min:
                     continue
             else:
-                # No head data: assume bidirectional possibility
-                p_head = 0.5
+                # No head data: use topographic Bayesian prior (if possible).
+                is_ok, p_head, _ = check_hydraulic_feasibility(
+                    node_i,
+                    node_j,
+                    min_gradient=getattr(config, "edge_gradient_min", 1e-4),
+                    topo_sigma_depth=getattr(config, "edge_topo_sigma_depth", 5.0),
+                    topo_reject_p=getattr(config, "edge_topo_reject_p", 0.1),
+                )
+                if not is_ok:
+                    continue
 
             # Distance decay
             p_dist = compute_distance_probability(d_3d, radius_km)
@@ -403,13 +413,16 @@ def build_network_3d(
     nodes_dict: Dict[str, Node3D] = {}
 
     for sample in samples:
-        sample_id = str(sample.get("sample_id", ""))
-        if not sample_id:
+        node_id = sample.get("site_id") or sample.get("node_id") or sample.get("sample_id")
+        if node_id in (None, ""):
             continue
+        node_id_str = str(node_id)
 
         # Extract coordinates
-        x = float(sample.get("x", 0.0))
-        y = float(sample.get("y", 0.0))
+        x_raw = sample.get("x", sample.get("lon", 0.0))
+        y_raw = sample.get("y", sample.get("lat", 0.0))
+        x = float(x_raw)  # lon or easting
+        y = float(y_raw)  # lat or northing
         z = float(sample.get(z_key, sample.get("z", 0.0)))
         elevation = float(sample.get(elevation_key, sample.get("elevation", 0.0)))
 
@@ -440,7 +453,7 @@ def build_network_3d(
 
         # Create node
         node = Node3D(
-            node_id=sample_id,
+            node_id=node_id_str,
             x=x,
             y=y,
             z=z,
@@ -448,12 +461,60 @@ def build_network_3d(
             screen_top=screen_top,
             screen_bottom=screen_bottom,
             hydraulic_head=head,
-            head_uncertainty=0.5,
+            head_uncertainty=float(getattr(config, "edge_sigma_meas", 0.5)) if head is not None else float(getattr(config, "edge_sigma_topo", 10.0)),
             aquifer_layer=aquifer_layer,
             concentrations=concentrations,
         )
 
-        nodes_dict[sample_id] = node
+        nodes_dict[node_id_str] = node
+
+    # Optional Bayesian hierarchical head estimation (fills missing heads using elevation/DTW priors).
+    head_inference = getattr(config, "edge_head_inference", "heuristic")
+    if head_inference in {"bayesian", "bayesian_mcmc"}:
+        dtw_key = getattr(config, "edge_dtw_key", "dtw")
+        if head_inference == "bayesian_mcmc":
+            posterior = infer_heads_bayesian_mcmc(
+                samples,
+                node_id_key="sample_id",
+                head_key=head_key,
+                dtw_key=dtw_key,
+                elevation_key=elevation_key,
+                sigma_meas=float(getattr(config, "edge_sigma_meas", 0.5)),
+                sigma_dtw=float(getattr(config, "edge_sigma_dtw", 1.0)),
+                sigma_elev=float(getattr(config, "edge_sigma_elev", 1.0)),
+                sigma_topo=float(getattr(config, "edge_sigma_topo", 10.0)),
+                dtw_prior_mu=float(getattr(config, "edge_dtw_prior_mu", 5.0)),
+                dtw_prior_sigma=float(getattr(config, "edge_dtw_prior_sigma", 5.0)),
+                head_prior_mu=float(getattr(config, "edge_head_prior_mu", 0.0)),
+                head_prior_sigma=float(getattr(config, "edge_head_prior_sigma", 1000.0)),
+                mcmc_draws=int(getattr(config, "bayesian_n_samples", 1000)),
+                mcmc_chains=int(getattr(config, "bayesian_n_chains", 2)),
+                mcmc_target_accept=float(getattr(config, "bayesian_target_accept", 0.9)),
+                mcmc_warmup_fraction=float(getattr(config, "bayesian_warmup_fraction", 0.5)),
+            )
+        else:
+            posterior = infer_heads_bayesian_linear(
+                samples,
+                node_id_key="sample_id",
+                head_key=head_key,
+                dtw_key=dtw_key,
+                elevation_key=elevation_key,
+                sigma_meas=float(getattr(config, "edge_sigma_meas", 0.5)),
+                sigma_dtw=float(getattr(config, "edge_sigma_dtw", 1.0)),
+                sigma_elev=float(getattr(config, "edge_sigma_elev", 1.0)),
+                sigma_topo=float(getattr(config, "edge_sigma_topo", 10.0)),
+                dtw_prior_mu=float(getattr(config, "edge_dtw_prior_mu", 5.0)),
+                dtw_prior_sigma=float(getattr(config, "edge_dtw_prior_sigma", 5.0)),
+                head_prior_mu=float(getattr(config, "edge_head_prior_mu", 0.0)),
+                head_prior_sigma=float(getattr(config, "edge_head_prior_sigma", 1000.0)),
+            )
+        idx_map = posterior.index()
+        for node_id, node in nodes_dict.items():
+            idx = idx_map.get(node_id)
+            if idx is None:
+                continue
+            node.hydraulic_head = float(posterior.head_mean[idx])
+            node.head_uncertainty = float(math.sqrt(float(posterior.head_cov[idx, idx])))
 
     # Create layer system if provided
     layer_system = None

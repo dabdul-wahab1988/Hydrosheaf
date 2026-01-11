@@ -5,7 +5,7 @@ This module implements residual bootstrapping to estimate confidence intervals
 for transport parameters and reaction extents.
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Mapping, Optional, Tuple
 
 import numpy as np
 
@@ -16,6 +16,9 @@ def bootstrap_edge_fit(
     x_u: List[float],
     x_v: List[float],
     config: "Config",  # type: ignore
+    obs_u: Optional[Mapping[str, float]] = None,
+    obs_v: Optional[Mapping[str, float]] = None,
+    bounds: Optional[dict] = None,
     n_resamples: int = 1000,
     random_state: Optional[int] = None,
 ) -> UncertaintyResult:
@@ -67,7 +70,7 @@ def bootstrap_edge_fit(
     x_v_vec = np.array(x_v, dtype=float)
 
     # Fit original model
-    original_result = fit_edge(x_u, x_v, {}, "", config)
+    original_result = fit_edge(x_u, x_v, config, obs_u=obs_u, obs_v=obs_v, bounds=bounds)
 
     # Compute residuals
     residuals = np.array(original_result.residual_vector, dtype=float)
@@ -93,7 +96,14 @@ def bootstrap_edge_fit(
 
         # Refit model
         try:
-            boot_result = fit_edge(x_u, x_v_star.tolist(), {}, "", config)
+            boot_result = fit_edge(
+                x_u,
+                x_v_star.tolist(),
+                config,
+                obs_u=obs_u,
+                obs_v=obs_v,
+                bounds=bounds,
+            )
 
             # Store parameters
             if boot_result.transport_model == "evap":

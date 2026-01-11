@@ -201,7 +201,7 @@ def run_phreeqc_kinetic(
 
     6. Return final state and trajectories
     """
-    from ..phreeqc.runner import build_solution_block
+    from ..phreeqc.templates import build_solution_block
 
     result = {
         "final_composition": [],
@@ -222,19 +222,22 @@ def run_phreeqc_kinetic(
             "Na": initial_solution.get("Na", 0.0),
             "K": initial_solution.get("K", 0.0),
             "Cl": initial_solution.get("Cl", 0.0),
-            "S(6)": initial_solution.get("SO4", 0.0),
-            "N(5)": initial_solution.get("NO3", 0.0),
-            "Alkalinity": initial_solution.get("HCO3", 0.0),
+            "SO4": initial_solution.get("SO4", 0.0),
+            "NO3": initial_solution.get("NO3", 0.0),
+            "HCO3": initial_solution.get("HCO3", 0.0),
             "F": initial_solution.get("F", 0.0),
             "Fe": initial_solution.get("Fe", 0.0),
-            "P": initial_solution.get("PO4", 0.0),
+            "PO4": initial_solution.get("PO4", 0.0),
         }
 
         # Add pH and temp
         solution_dict["pH"] = initial_solution.get("pH", 7.0)
-        solution_dict["temp"] = initial_solution.get("temperature", config.temp_default_c)
+        solution_dict["temp_c"] = initial_solution.get(
+            "temp_c",
+            initial_solution.get("temperature", config.temp_default_c),
+        )
 
-        input_str += build_solution_block(1, solution_dict)
+        input_str += build_solution_block(solution_dict, 1, config.temp_default_c)
         input_str += "\n"
 
         # Add kinetics

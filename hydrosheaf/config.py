@@ -26,6 +26,7 @@ class Config:
     ec_tds_penalty_enabled: bool = False
     missing_policy: str = "skip"
     detection_limit_policy: str = "half"
+    strict_input_validation: bool = False
     eta_ec: float = 0.0
     eta_tds: float = 0.0
     allow_signed_reactions: bool = False
@@ -49,6 +50,16 @@ class Config:
     edge_sigma_dtw: float = 1.0
     edge_sigma_elev: float = 1.0
     edge_sigma_topo: float = 10.0
+    edge_head_inference: str = "heuristic"  # heuristic, bayesian, bayesian_mcmc
+    edge_dtw_prior_mu: float = 5.0
+    edge_dtw_prior_sigma: float = 5.0
+    edge_head_prior_mu: float = 0.0
+    edge_head_prior_sigma: float = 1000.0
+    edge_topo_sigma_depth: float = 5.0
+    edge_topo_reject_p: float = 0.1
+    edge_map_prior_weight: float = 0.0
+    edge_map_candidate_multiplier: int = 5
+    edge_map_p_min: float = 0.1
     edge_gradient_min: float = 1e-4
     edge_head_key: str = "head_meas"
     edge_dtw_key: str = "dtw"
@@ -136,10 +147,29 @@ class Config:
     temporal_min_samples: int = 3
     temporal_interpolation_method: str = "linear"  # linear, spline, nearest
     temporal_frequency_days: int = 30  # interpolation grid spacing
-    residence_time_method: str = "cross_correlation"  # gradient, cross_correlation, tracer_decay
+    residence_time_method: str = "cross_correlation"  # gradient, cross_correlation, bayesian_lag, ttd, tracer_decay
     residence_time_tracer: str = "Cl"  # conservative tracer for age estimation
     residence_time_hydraulic_k: float = 1.0  # m/day, for gradient method
     residence_time_porosity: float = 0.2  # effective porosity
+    tau_agreement_tolerance: float = 0.4  # relative spread threshold for "tau_ambiguous"
+    tau_min_peak_corr: float = 0.2  # minimum correlation peak to accept a tracer
+    tau_max_relative_uncertainty: float = 1.5  # reject if unc/tau exceeds this
+    tau_max_uncertainty_days: float = 180.0  # reject if absolute uncertainty exceeds this
+    tau_physics_blend_threshold: float = 0.5  # blend with physics prior if |tau-phy|/max > threshold
+    ttd_grid_dt_days: float = 30.0  # time-grid step for TTD convolution (days)
+    ttd_max_lag_days: float = 365.0  # maximum lag support for TTD (days)
+    ttd_smoothness_lambda: float = 0.0  # smoothness penalty on TTD weights (0 disables)
+    ttd_min_r2: float = 0.2  # minimum R^2 to accept a tracer TTD fit
+    ttd_attenuation_k_max: float = 0.02  # 1/day, grid search max for exp(-k*tau) attenuation
+    ttd_attenuation_k_steps: int = 6  # number of k grid points (includes 0)
+    bayes_lag_grid_dt_days: float = 5.0  # grid step for Bayesian lag posterior
+    bayes_lag_max_lag_days: float = 365.0  # max tau support for Bayesian lag
+    bayes_lag_prior_sigma_multiplier: float = 1.0  # multiplies physics sigma for prior width
+    bayes_lag_min_pairs: int = 5  # minimum overlapping pairs required
+
+    # Residence-time coupling (static edges)
+    residence_time_coupling_enabled: bool = False
+    residence_time_reference_days: float = 30.0
 
     # Reactive transport validation settings
     reactive_transport_validation: bool = False
@@ -174,6 +204,7 @@ class Config:
     layer_tops: List[float] = field(default_factory=list)
     layer_bottoms: List[float] = field(default_factory=list)
     aquitard_leakage_p: float = 0.3
+    layer_mineral_map: Dict[int, List[str]] = field(default_factory=dict)
 
     # Screen interval
     screen_top_key: str = "screen_top"
@@ -215,6 +246,20 @@ class Config:
             raise ValueError("edge sigma values must be positive.")
         if self.edge_sigma_elev <= 0 or self.edge_sigma_topo <= 0:
             raise ValueError("edge sigma values must be positive.")
+        if self.edge_head_inference not in {"heuristic", "bayesian", "bayesian_mcmc"}:
+            raise ValueError("edge_head_inference must be 'heuristic', 'bayesian', or 'bayesian_mcmc'.")
+        if self.edge_dtw_prior_sigma <= 0 or self.edge_head_prior_sigma <= 0:
+            raise ValueError("edge prior sigmas must be positive.")
+        if self.edge_topo_sigma_depth <= 0:
+            raise ValueError("edge_topo_sigma_depth must be positive.")
+        if not 0.0 < self.edge_topo_reject_p < 1.0:
+            raise ValueError("edge_topo_reject_p must be in (0, 1).")
+        if self.edge_map_prior_weight < 0:
+            raise ValueError("edge_map_prior_weight must be non-negative.")
+        if self.edge_map_candidate_multiplier < 1:
+            raise ValueError("edge_map_candidate_multiplier must be at least 1.")
+        if not 0.0 <= self.edge_map_p_min <= 1.0:
+            raise ValueError("edge_map_p_min must be between 0 and 1.")
         if self.edge_gradient_min < 0:
             raise ValueError("edge_gradient_min must be non-negative.")
         if self.edge_depth_mismatch < 0:
@@ -243,6 +288,38 @@ class Config:
         # Uncertainty quantification validation
         if self.uncertainty_method not in {"none", "bootstrap", "bayesian", "monte_carlo"}:
             raise ValueError("uncertainty_method must be one of: none, bootstrap, bayesian, monte_carlo.")
+        if self.residence_time_method not in {"gradient", "cross_correlation", "bayesian_lag", "ttd", "tracer_decay"}:
+            raise ValueError("residence_time_method must be one of: gradient, cross_correlation, bayesian_lag, ttd, tracer_decay.")
+        if not 0.0 < self.tau_agreement_tolerance <= 1.0:
+            raise ValueError("tau_agreement_tolerance must be in (0, 1].")
+        if not 0.0 <= self.tau_min_peak_corr <= 1.0:
+            raise ValueError("tau_min_peak_corr must be in [0, 1].")
+        if self.tau_max_relative_uncertainty <= 0:
+            raise ValueError("tau_max_relative_uncertainty must be positive.")
+        if self.tau_max_uncertainty_days <= 0:
+            raise ValueError("tau_max_uncertainty_days must be positive.")
+        if self.tau_physics_blend_threshold < 0:
+            raise ValueError("tau_physics_blend_threshold must be non-negative.")
+        if self.ttd_grid_dt_days <= 0:
+            raise ValueError("ttd_grid_dt_days must be positive.")
+        if self.ttd_max_lag_days <= 0:
+            raise ValueError("ttd_max_lag_days must be positive.")
+        if self.ttd_smoothness_lambda < 0:
+            raise ValueError("ttd_smoothness_lambda must be non-negative.")
+        if not 0.0 <= self.ttd_min_r2 <= 1.0:
+            raise ValueError("ttd_min_r2 must be between 0 and 1.")
+        if self.ttd_attenuation_k_max < 0:
+            raise ValueError("ttd_attenuation_k_max must be non-negative.")
+        if self.ttd_attenuation_k_steps < 1:
+            raise ValueError("ttd_attenuation_k_steps must be at least 1.")
+        if self.bayes_lag_grid_dt_days <= 0:
+            raise ValueError("bayes_lag_grid_dt_days must be positive.")
+        if self.bayes_lag_max_lag_days <= 0:
+            raise ValueError("bayes_lag_max_lag_days must be positive.")
+        if self.bayes_lag_prior_sigma_multiplier <= 0:
+            raise ValueError("bayes_lag_prior_sigma_multiplier must be positive.")
+        if self.bayes_lag_min_pairs < 2:
+            raise ValueError("bayes_lag_min_pairs must be at least 2.")
         if self.bootstrap_n_resamples < 1:
             raise ValueError("bootstrap_n_resamples must be at least 1.")
         if self.bootstrap_ci_method not in {"percentile", "bca"}:
@@ -281,6 +358,8 @@ class Config:
             raise ValueError("residence_time_hydraulic_k must be positive.")
         if not 0.0 < self.residence_time_porosity <= 1.0:
             raise ValueError("residence_time_porosity must be between 0 and 1.")
+        if self.residence_time_reference_days <= 0:
+            raise ValueError("residence_time_reference_days must be positive.")
 
         # Reactive transport validation
         if self.rt_simulator not in {"phreeqc_kinetic", "mt3dms"}:

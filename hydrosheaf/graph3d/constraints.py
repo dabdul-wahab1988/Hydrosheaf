@@ -14,7 +14,9 @@ from .types_3d import Node3D
 def check_hydraulic_feasibility(
     node_u: Node3D, 
     node_v: Node3D,
-    min_gradient: float = 1e-4
+    min_gradient: float = 1e-4,
+    topo_sigma_depth: float = 5.0,
+    topo_reject_p: float = 0.1,
 ) -> Tuple[bool, float, float]:
     """
     Check if flow from u -> v is improved by hydraulic head data.
@@ -58,7 +60,7 @@ def check_hydraulic_feasibility(
         # We generally assume mean depths are similar locally, so they cancel out.
         # Variance adds up: Var(diff) = 2 * sigma_depth^2
         
-        sigma_depth = 5.0 # Assumed uncertainty in meters (configurable in future)
+        sigma_depth = float(topo_sigma_depth)
         sigma_diff = sigma_depth * math.sqrt(2)
         
         # Delta Surface Elevation
@@ -79,8 +81,8 @@ def check_hydraulic_feasibility(
         # If probability is low (<0.5), it penalizes flow.
         # We treat the probability *itself* as the feasibility score.
         
-        # Strictness: If P < 0.1 (strong evidence of uphill flow), reject.
-        is_feasible = phi >= 0.1
+        # Strictness: If P < topo_reject_p (strong evidence of uphill flow), reject.
+        is_feasible = phi >= float(topo_reject_p)
         
         return is_feasible, float(phi), 0.0
 
