@@ -77,8 +77,9 @@ Detailed guides are available in the `docs/` directory:
 
 ## Authors
 
-**Dickson Abdul-Wahab** and
-**Ebenezer Aquisman Asare**
+**Dickson Abdul-Wahab**,
+**Ebenezer Aquisman Asare**,
+**Abdul Rashid Dickson**
 
 ## License
 
