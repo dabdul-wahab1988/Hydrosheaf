@@ -179,6 +179,106 @@
 .toggle-label {
     color: var(--text-secondary);
     font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.toggle-warning {
+    font-size: 0.75rem;
+    color: var(--warning);
+    background: rgba(245, 158, 11, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.toggle-group.toggle-disabled {
+    opacity: 0.6;
+}
+
+.toggle-group.toggle-disabled .toggle {
+    cursor: not-allowed;
+}
+
+/* Capabilities Panel */
+.capabilities-loading {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    padding: var(--spacing-md);
+}
+
+.capabilities-panel {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    border: 1px solid var(--border-color);
+}
+
+.capabilities-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.capabilities-header h5 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.sample-count {
+    font-size: 0.75rem;
+    color: var(--primary-light);
+    background: rgba(14, 165, 233, 0.15);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.data-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.field-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    font-size: 0.8rem;
+}
+
+.field-label {
+    color: var(--text-muted);
+    min-width: 60px;
+}
+
+.field-values {
+    color: var(--text-secondary);
+    word-break: break-word;
+}
+
+.capabilities-warnings {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+}
+
+.warning-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    font-size: 0.75rem;
+    color: var(--warning);
+    margin-bottom: var(--spacing-xs);
+}
+
+.warning-icon {
+    flex-shrink: 0;
 }
 
 /* Progress Panel */

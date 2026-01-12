@@ -4,3 +4,13 @@ pydantic>=2.0.0
 python-multipart>=0.0.6
 numpy>=1.24.0
 pandas>=2.0.0
+
+# Install Hydrosheaf core package from parent directory
+# Run: pip install ../../
+# This will install hydrosheaf with all its dependencies:
+# - scipy>=1.7
+# - pymc>=5.0
+# - arviz>=0.15
+# - PyYAML>=6.0
+# Optional: pip install ../../[plot] for matplotlib
+# Optional: pip install ../../[phreeqc] for PHREEQC integration

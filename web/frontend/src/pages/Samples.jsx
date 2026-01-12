@@ -45,6 +45,14 @@ function Samples() {
         const file = e.target.files[0]
         if (!file) return
 
+        // Validate file type
+        const validExtensions = ['.csv', '.json']
+        const fileExt = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
+        if (!validExtensions.includes(fileExt)) {
+            alert('Please upload a CSV or JSON file')
+            return
+        }
+
         setUploading(true)
         const formData = new FormData()
         formData.append('file', file)
@@ -56,8 +64,9 @@ function Samples() {
             })
 
             if (res.ok) {
+                const result = await res.json()
                 await fetchDatasets()
-                alert('Dataset uploaded successfully!')
+                alert(`${result.file_type} file uploaded successfully! ${result.sample_count} samples loaded.`)
             } else {
                 const error = await res.json()
                 alert(`Upload failed: ${error.detail}`)
@@ -67,6 +76,8 @@ function Samples() {
             alert('Upload failed. Please try again.')
         } finally {
             setUploading(false)
+            // Reset file input
+            e.target.value = ''
         }
     }
 
@@ -107,12 +118,12 @@ function Samples() {
                         <label className="btn btn-primary upload-btn">
                             <input
                                 type="file"
-                                accept=".json"
+                                accept=".csv,.json"
                                 onChange={handleFileUpload}
                                 disabled={uploading}
                                 hidden
                             />
-                            {uploading ? '⏳ Uploading...' : '📤 Upload JSON'}
+                            {uploading ? 'Uploading...' : 'Upload File'}
                         </label>
                     </div>
 
@@ -126,7 +137,7 @@ function Samples() {
                             <div className="empty-state">
                                 <span className="empty-icon">📂</span>
                                 <p>No datasets yet</p>
-                                <span className="empty-hint">Upload a JSON file to get started</span>
+                                <span className="empty-hint">Upload a CSV or JSON file to get started</span>
                             </div>
                         ) : (
                             datasets.map((ds) => (

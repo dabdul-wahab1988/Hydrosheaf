@@ -12,6 +12,7 @@ function Projects() {
         selectProject,
         clearProject,
         downloadProjectReport,
+        downloadCompleteProject,
         fetchProjects
     } = useProject()
 
@@ -85,6 +86,9 @@ function Projects() {
                     <div className="project-actions">
                         <button className="btn btn-primary" onClick={handleStartAnalysis}>
                             Run Analysis
+                        </button>
+                        <button className="btn btn-secondary" onClick={downloadCompleteProject}>
+                            📦 Export Project ZIP
                         </button>
                         <button className="btn btn-secondary" onClick={downloadProjectReport}>
                             📥 Download Report

@@ -118,6 +118,27 @@ export function ProjectProvider({ children }) {
         }
     }
 
+    const downloadCompleteProject = async () => {
+        if (!currentProject) return
+
+        try {
+            const res = await fetch(`${API_BASE}/projects/${currentProject.id}/download-complete`)
+            if (res.ok) {
+                const blob = await res.blob()
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `${currentProject.name.replace(/\s+/g, '_')}.zip`
+                document.body.appendChild(a)
+                a.click()
+                window.URL.revokeObjectURL(url)
+                a.remove()
+            }
+        } catch (error) {
+            console.error('Failed to download full project export:', error)
+        }
+    }
+
     const clearProject = () => {
         setCurrentProject(null)
     }
@@ -131,6 +152,7 @@ export function ProjectProvider({ children }) {
         clearProject,
         saveResultToProject,
         downloadProjectReport,
+        downloadCompleteProject,
         fetchProjects,
     }
 

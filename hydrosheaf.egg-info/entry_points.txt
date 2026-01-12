@@ -1,0 +1,2 @@
+[console_scripts]
+hydrosheaf = hydrosheaf.cli:main
