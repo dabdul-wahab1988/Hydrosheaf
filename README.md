@@ -28,7 +28,7 @@ The framework integrates:
 - **3D Flow Networks**: Analyzes layered aquifer systems with vertical anisotropy and topographic Bayesian priors.
 - **Temporal Dynamics**: Resolves time-variant signals with cross-correlation residence times and seasonal decomposition.
 - **Uncertainty Quantification**: Provides rigorous confidence intervals via Bayesian MCMC (NUTS) and Bias-Corrected Bootstrap (BCa).
-- **Web Application**: Full-stack web interface with FastAPI backend and React frontend for interactive analysis.
+- **Web Application**: Full-stack web interface with FastAPI backend and React frontend that supports **Real-time Analysis** monitoring via WebSockets.
 - **Verified Documentation**: All mathematical examples in the technical reference are computationally verified by the test suite.
 
 ## Installation
@@ -95,6 +95,10 @@ npm run dev
 ```
 
 The frontend will be available at `http://localhost:5173`.
+
+#### Development Roadmap
+
+For details on the current integration status, known issues, and future plans for the web interface, please refer to the [Integration Roadmap](web/INTEGRATION_ROADMAP.md).
 
 #### Running Both Services
 
