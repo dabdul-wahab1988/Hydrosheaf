@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts'
+import { API_BASE } from '../config'
+import ResultsGraph from '../components/ResultsGraph'
 import './Results.css'
-
-const API_BASE = 'http://localhost:8000/api'
 
 function Results() {
     const [jobs, setJobs] = useState([])
@@ -202,6 +202,23 @@ function Results() {
                                     }
                                 </div>
                             </div>
+
+                            {/* Edge Network Visualization */}
+                            {results.edge_results && results.edge_results.length > 0 && (
+                                <div className="card mt-lg">
+                                    <div className="card-header">
+                                        <h3 className="card-title">Flow Network</h3>
+                                        <span className="badge badge-primary">
+                                            {results.edge_results.length} Edges
+                                        </span>
+                                    </div>
+                                    <ResultsGraph
+                                        edgeResults={results.edge_results}
+                                        width={700}
+                                        height={400}
+                                    />
+                                </div>
+                            )}
 
                             {/* Reactions Chart */}
                             <div className="card mt-lg">

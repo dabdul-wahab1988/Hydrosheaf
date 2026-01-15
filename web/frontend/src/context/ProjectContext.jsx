@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-
-const API_BASE = 'http://localhost:8000/api'
+import { API_BASE } from '../config'
+import { useToast } from './ToastContext'
 
 const ProjectContext = createContext(null)
 
@@ -8,6 +8,7 @@ export function ProjectProvider({ children }) {
     const [currentProject, setCurrentProject] = useState(null)
     const [projects, setProjects] = useState([])
     const [loading, setLoading] = useState(true)
+    const toast = useToast()
 
     useEffect(() => {
         fetchProjects()
@@ -20,7 +21,7 @@ export function ProjectProvider({ children }) {
                 setProjects(await res.json())
             }
         } catch (error) {
-            console.error('Failed to fetch projects:', error)
+            toast.error('Failed to fetch projects. Check your connection.')
         } finally {
             setLoading(false)
         }
@@ -45,11 +46,12 @@ export function ProjectProvider({ children }) {
                     description: description,
                 }
                 setCurrentProject(newProject)
+                toast.success(`Project "${name}" created successfully`)
                 return newProject
             }
             return null
         } catch (error) {
-            console.error('Failed to create project:', error)
+            toast.error('Failed to create project. Please try again.')
             return null
         }
     }
@@ -68,14 +70,14 @@ export function ProjectProvider({ children }) {
                 return project
             }
         } catch (error) {
-            console.error('Failed to select project:', error)
+            toast.error('Failed to select project')
         }
         return null
     }
 
     const saveResultToProject = async (result) => {
         if (!currentProject) {
-            console.warn('No project selected - results will not be saved')
+            toast.warning('No project selected - results will not be saved')
             return false
         }
 
@@ -89,10 +91,11 @@ export function ProjectProvider({ children }) {
             if (res.ok) {
                 // Refresh project data
                 await selectProject(currentProject.id)
+                toast.success('Result saved to project')
                 return true
             }
         } catch (error) {
-            console.error('Failed to save result:', error)
+            toast.error('Failed to save result to project')
         }
         return false
     }
@@ -112,9 +115,10 @@ export function ProjectProvider({ children }) {
                 a.click()
                 window.URL.revokeObjectURL(url)
                 a.remove()
+                toast.success('Report downloaded')
             }
         } catch (error) {
-            console.error('Failed to download report:', error)
+            toast.error('Failed to download report')
         }
     }
 
@@ -133,9 +137,10 @@ export function ProjectProvider({ children }) {
                 a.click()
                 window.URL.revokeObjectURL(url)
                 a.remove()
+                toast.success('Project exported successfully')
             }
         } catch (error) {
-            console.error('Failed to download full project export:', error)
+            toast.error('Failed to download project export')
         }
     }
 

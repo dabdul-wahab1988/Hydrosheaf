@@ -6,7 +6,13 @@ Now integrated with real Hydrosheaf probabilistic flow inference!
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any
-import sys
+import uuid
+
+from ..logger import network_logger as logger
+from ..database import (
+    create_network as db_create_network, get_network as db_get_network,
+    get_all_networks, update_network, delete_network as db_delete_network
+)
 
 HYDROSHEAF_AVAILABLE = None
 HydrosheafEdge = None
@@ -31,7 +37,7 @@ def _load_hydrosheaf() -> None:
     except Exception as exc:
         HYDROSHEAF_AVAILABLE = False
         HydrosheafEdge = None
-        print(f"WARNING: Hydrosheaf not available in network router: {exc}", file=sys.stderr)
+        logger.warning(f"Hydrosheaf not available in network router: {exc}")
 
 router = APIRouter()
 
@@ -76,45 +82,64 @@ class NetworkInferenceResult(BaseModel):
     probabilities: Dict[str, float]
 
 
-# In-memory storage for networks
-networks: Dict[str, NetworkData] = {}
+@router.get("/health")
+async def network_health_check():
+    """Check if Hydrosheaf network inference is available"""
+    _load_hydrosheaf()
+    return {
+        "hydrosheaf_available": HYDROSHEAF_AVAILABLE,
+        "status": "ready" if HYDROSHEAF_AVAILABLE else "fallback",
+        "message": "Using real Hydrosheaf probabilistic inference" if HYDROSHEAF_AVAILABLE else "Using simple gradient method (install Hydrosheaf for advanced features)",
+    }
 
 
 @router.post("/create")
-async def create_network(network: NetworkData):
+async def create_network_endpoint(network: NetworkData):
     """Create a new flow network"""
-    network_id = network.name.lower().replace(" ", "_")
-    networks[network_id] = network
+    network_id = str(uuid.uuid4())[:8]
+
+    # Convert Pydantic models to dicts
+    nodes = [n.model_dump() for n in network.nodes]
+    edges = [e.model_dump() for e in network.edges]
+
+    db_create_network(
+        network_id=network_id,
+        name=network.name or "Untitled Network",
+        nodes=nodes,
+        edges=edges
+    )
 
     return {
         "network_id": network_id,
-        "nodes_count": len(network.nodes),
-        "edges_count": len(network.edges),
+        "nodes_count": len(nodes),
+        "edges_count": len(edges),
         "message": "Network created successfully",
     }
 
 
 @router.get("/list")
-async def list_networks():
+async def list_networks_endpoint():
     """List all networks"""
+    networks = get_all_networks()
     return [
         {
-            "id": net_id,
-            "name": net.name,
-            "nodes_count": len(net.nodes),
-            "edges_count": len(net.edges),
+            "id": net["id"],
+            "name": net["name"],
+            "nodes_count": len(net.get("nodes", [])),
+            "edges_count": len(net.get("edges", [])),
         }
-        for net_id, net in networks.items()
+        for net in networks
     ]
 
 
 @router.get("/{network_id}")
-async def get_network(network_id: str):
+async def get_network_endpoint(network_id: str):
     """Get a specific network by ID"""
-    if network_id not in networks:
+    network = db_get_network(network_id)
+    if not network:
         raise HTTPException(status_code=404, detail="Network not found")
 
-    return networks[network_id]
+    return network
 
 
 @router.post("/{network_id}/infer-flow")
@@ -123,10 +148,12 @@ async def infer_flow_directions(network_id: str, config: Optional[NetworkInferen
     Infer flow directions using REAL Hydrosheaf probabilistic inference
     (when available) or simple hydraulic head gradient fallback
     """
-    if network_id not in networks:
+    network = db_get_network(network_id)
+    if not network:
         raise HTTPException(status_code=404, detail="Network not found")
 
-    network = networks[network_id]
+    nodes = network.get("nodes", [])
+    edges = network.get("edges", [])
 
     if config is None:
         config = NetworkInferenceConfig()
@@ -138,32 +165,27 @@ async def infer_flow_directions(network_id: str, config: Optional[NetworkInferen
         try:
             # Convert nodes to sample format for Hydrosheaf
             samples = []
-            for node in network.nodes:
+            for node in nodes:
                 sample = {
-                    'site_id': node.id,
+                    'site_id': node.get('id'),
                 }
-                if node.x is not None and node.y is not None:
-                    sample['x'] = node.x
-                    sample['y'] = node.y
-                if node.z is not None:
-                    sample['elevation'] = node.z
-                if node.hydraulic_head is not None:
-                    sample['head_meas'] = node.hydraulic_head
+                if node.get('x') is not None and node.get('y') is not None:
+                    sample['x'] = node['x']
+                    sample['y'] = node['y']
+                if node.get('z') is not None:
+                    sample['elevation'] = node['z']
+                if node.get('hydraulic_head') is not None:
+                    sample['head_meas'] = node['hydraulic_head']
 
                 samples.append(sample)
 
             # Use Hydrosheaf's probabilistic edge inference
-            hydrosheaf_config = Config(
-                edge_radius_km=config.radius_km,
-                edge_max_neighbors=config.max_neighbors,
-                edge_head_inference=config.method,
-            )
-
             inferred_edges = infer_edges_probabilistic(
                 samples,
-                hydrosheaf_config,
                 radius_km=config.radius_km,
                 max_neighbors=config.max_neighbors,
+                p_min=0.75,
+                head_inference=config.method,
             )
 
             # Convert to frontend format
@@ -190,23 +212,25 @@ async def infer_flow_directions(network_id: str, config: Optional[NetworkInferen
             }
 
         except Exception as e:
-            print(f"Hydrosheaf inference failed, falling back to simple method: {e}", file=sys.stderr)
+            logger.warning(f"Hydrosheaf inference failed, falling back to simple method: {e}")
             # Fall through to simple method
 
     # Fallback: Simple flow inference based on hydraulic head differences
     inferred_edges = []
-    for edge in network.edges:
-        source_node = next((n for n in network.nodes if n.id == edge.source), None)
-        target_node = next((n for n in network.nodes if n.id == edge.target), None)
+    for edge in edges:
+        source_node = next((n for n in nodes if n.get('id') == edge.get('source')), None)
+        target_node = next((n for n in nodes if n.get('id') == edge.get('target')), None)
 
         if source_node and target_node:
-            if source_node.hydraulic_head and target_node.hydraulic_head:
-                head_diff = source_node.hydraulic_head - target_node.hydraulic_head
+            source_head = source_node.get('hydraulic_head')
+            target_head = target_node.get('hydraulic_head')
+            if source_head and target_head:
+                head_diff = source_head - target_head
                 # Flow probability based on head gradient
                 probability = min(1.0, max(0.0, 0.5 + head_diff * 0.1))
                 inferred_edges.append({
-                    "source": edge.source,
-                    "target": edge.target,
+                    "source": edge.get('source'),
+                    "target": edge.get('target'),
                     "head_difference": head_diff,
                     "flow_probability": probability,
                     "flow_direction": "forward" if head_diff > 0 else "reverse",
@@ -214,8 +238,8 @@ async def infer_flow_directions(network_id: str, config: Optional[NetworkInferen
                 })
             else:
                 inferred_edges.append({
-                    "source": edge.source,
-                    "target": edge.target,
+                    "source": edge.get('source'),
+                    "target": edge.get('target'),
                     "head_difference": None,
                     "flow_probability": 0.5,
                     "flow_direction": "uncertain",
@@ -232,21 +256,12 @@ async def infer_flow_directions(network_id: str, config: Optional[NetworkInferen
 
 
 @router.delete("/{network_id}")
-async def delete_network(network_id: str):
+async def delete_network_endpoint(network_id: str):
     """Delete a network"""
-    if network_id not in networks:
+    if not db_delete_network(network_id):
         raise HTTPException(status_code=404, detail="Network not found")
 
-    del networks[network_id]
     return {"message": "Network deleted successfully"}
 
 
-@router.get("/health")
-async def network_health_check():
-    """Check if Hydrosheaf network inference is available"""
-    _load_hydrosheaf()
-    return {
-        "hydrosheaf_available": HYDROSHEAF_AVAILABLE,
-        "status": "ready" if HYDROSHEAF_AVAILABLE else "fallback",
-        "message": "Using real Hydrosheaf probabilistic inference" if HYDROSHEAF_AVAILABLE else "Using simple gradient method (install Hydrosheaf for advanced features)",
-    }
+

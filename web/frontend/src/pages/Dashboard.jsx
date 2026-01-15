@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
+import { API_BASE } from '../config'
+import { useToast } from '../context/ToastContext'
+import { StatCardSkeleton, ChartSkeleton } from '../components/Skeleton'
 import './Dashboard.css'
-
-const API_BASE = 'http://localhost:8000/api'
 
 function Dashboard() {
     const [datasets, setDatasets] = useState([])
     const [jobs, setJobs] = useState([])
     const [loading, setLoading] = useState(true)
+    const toast = useToast()
 
     useEffect(() => {
         fetchData()
@@ -28,7 +30,7 @@ function Dashboard() {
                 setJobs(await jobsRes.json())
             }
         } catch (error) {
-            console.error('Failed to fetch data:', error)
+            toast.error('Failed to load dashboard data')
         } finally {
             setLoading(false)
         }
@@ -83,26 +85,37 @@ function Dashboard() {
 
             {/* Stats Grid */}
             <div className="stats-grid">
-                <div className="stat-card animate-fadeIn">
-                    <div className="stat-icon">🧪</div>
-                    <div className="stat-value">{totalSamples}</div>
-                    <div className="stat-label">Water Samples</div>
-                </div>
-                <div className="stat-card animate-fadeIn" style={{ animationDelay: '0.1s' }}>
-                    <div className="stat-icon">📂</div>
-                    <div className="stat-value">{datasets.length}</div>
-                    <div className="stat-label">Datasets</div>
-                </div>
-                <div className="stat-card animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                    <div className="stat-icon">⚗️</div>
-                    <div className="stat-value">{jobs.length}</div>
-                    <div className="stat-label">Analysis Jobs</div>
-                </div>
-                <div className="stat-card animate-fadeIn" style={{ animationDelay: '0.3s' }}>
-                    <div className="stat-icon">✅</div>
-                    <div className="stat-value">{completedJobs}</div>
-                    <div className="stat-label">Completed</div>
-                </div>
+                {loading ? (
+                    <>
+                        <StatCardSkeleton />
+                        <StatCardSkeleton />
+                        <StatCardSkeleton />
+                        <StatCardSkeleton />
+                    </>
+                ) : (
+                    <>
+                        <div className="stat-card animate-fadeIn">
+                            <div className="stat-icon">🧪</div>
+                            <div className="stat-value">{totalSamples}</div>
+                            <div className="stat-label">Water Samples</div>
+                        </div>
+                        <div className="stat-card animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+                            <div className="stat-icon">📂</div>
+                            <div className="stat-value">{datasets.length}</div>
+                            <div className="stat-label">Datasets</div>
+                        </div>
+                        <div className="stat-card animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+                            <div className="stat-icon">⚗️</div>
+                            <div className="stat-value">{jobs.length}</div>
+                            <div className="stat-label">Analysis Jobs</div>
+                        </div>
+                        <div className="stat-card animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+                            <div className="stat-icon">✅</div>
+                            <div className="stat-value">{completedJobs}</div>
+                            <div className="stat-label">Completed</div>
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Charts Grid */}

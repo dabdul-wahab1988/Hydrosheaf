@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.0 (2026-01-15)
+
+### New Features
+
+- **Web Interface**: Launched a full-stack graphical user interface to make Hydrosheaf accessible to a broader audience.
+  - **React Frontend**: Modern "Dark Ocean" themed dashboard with glassmorphism effects for managing groundwater projects.
+  - **FastAPI Backend**: Robust REST API handling project storage, sample data validation, and analysis orchestration.
+  - **Interactive Network Editor**: Visual tools for defining flow networks and observing connections.
+  - **Real-time Analysis**: Asynchronous execution of inverse models with live progress updates via WebSockets.
+
+### Documentation
+
+- **Web Quickstart**: Added instructions for installing and running the web application stack.
+- **Integration Roadmap**: Added `web/INTEGRATION_ROADMAP.md` outlining future frontend/backend synchronization steps.
+
 ## 0.3.0 (2026-01-09)
 
 ### New Features

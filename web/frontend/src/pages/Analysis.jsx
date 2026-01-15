@@ -1,177 +1,383 @@
-import { useState, useEffect } from 'react'
+import { useReducer, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useProject } from '../context/ProjectContext'
+import { useToast } from '../context/ToastContext'
+import { useWebSocket } from '../hooks/useWebSocket'
+import { API_BASE } from '../config'
 import './Analysis.css'
 
-const API_BASE = 'http://localhost:8000/api'
+// Initial configuration defaults
+const initialConfig = {
+    // Core settings
+    lasso_penalty: 0.1,
 
-function Analysis() {
-    const { currentProject, saveResultToProject } = useProject()
-    const [datasets, setDatasets] = useState([])
-    const [capabilities, setCapabilities] = useState(null)
-    const [capabilitiesLoading, setCapabilitiesLoading] = useState(false)
-    const [formData, setFormData] = useState({
+    // Core modules
+    enable_phreeqc: true,  // Always enabled by default - critical for preventing modeling errors
+    enable_isotopes: true,
+    enable_uncertainty: false,
+
+    // Uncertainty settings
+    uncertainty_method: 'bootstrap',
+    bootstrap_iterations: 1000,
+    bayesian_samples: 5000,
+    bayesian_chains: 4,
+
+    // Nitrate source
+    enable_nitrate_source: false,
+    nitrate_isotope_mixing: true,
+
+    // Temporal analysis
+    enable_temporal: false,
+    temporal_window_days: 365,
+    residence_time_method: 'cross_correlation',
+
+    // 3D network
+    enable_3d_network: false,
+    vertical_flow_enabled: true,
+    vertical_anisotropy: 0.1,
+    enable_layer_system: false,
+
+    // Reactive transport
+    enable_reactive_transport: false,
+    rt_simulator: 'phreeqc_kinetic',
+    rt_time_steps: 100,
+
+    // Vadose zone
+    enable_vadose_zone: false,
+
+    // CoDA
+    enable_coda: false,
+
+    // Edge inference
+    edge_radius_km: 10.0,
+    edge_max_neighbors: 3,
+    edge_p_min: 0.75,
+    edge_head_inference: 'heuristic',
+
+    // Gibbs & Exchange
+    enable_gibbs: true,
+    gibbs_weight: 0.5,
+    enable_exchange: true
+}
+
+// Initial state for the reducer
+const initialState = {
+    // Data
+    datasets: [],
+    capabilities: null,
+    capabilitiesLoading: false,
+
+    // Form
+    formData: {
         name: '',
         analysis_type: 'full_pipeline',
         dataset_id: '',
-        config: {
-            // Core settings
-            lasso_penalty: 0.1,
+        config: initialConfig
+    },
 
-            // Core modules
-            enable_phreeqc: false,
-            enable_isotopes: true,
-            enable_uncertainty: false,
+    // Analysis execution
+    running: false,
+    currentJob: null,
+    progress: 0,
+    currentStep: '',
 
-            // Uncertainty settings
-            uncertainty_method: 'bootstrap',
-            bootstrap_iterations: 1000,
-            bayesian_samples: 5000,
-            bayesian_chains: 4,
+    // Validation
+    validationErrors: {}
+}
 
-            // Nitrate source
-            enable_nitrate_source: false,
-            nitrate_isotope_mixing: true,
+// Action types
+const ActionTypes = {
+    SET_DATASETS: 'SET_DATASETS',
+    SET_CAPABILITIES: 'SET_CAPABILITIES',
+    SET_CAPABILITIES_LOADING: 'SET_CAPABILITIES_LOADING',
+    UPDATE_FORM_FIELD: 'UPDATE_FORM_FIELD',
+    UPDATE_CONFIG: 'UPDATE_CONFIG',
+    UPDATE_CONFIG_FROM_CAPABILITIES: 'UPDATE_CONFIG_FROM_CAPABILITIES',
+    START_ANALYSIS: 'START_ANALYSIS',
+    SET_CURRENT_JOB: 'SET_CURRENT_JOB',
+    UPDATE_PROGRESS: 'UPDATE_PROGRESS',
+    ANALYSIS_COMPLETE: 'ANALYSIS_COMPLETE',
+    ANALYSIS_FAILED: 'ANALYSIS_FAILED',
+    SET_VALIDATION_ERRORS: 'SET_VALIDATION_ERRORS',
+    RESET_ANALYSIS: 'RESET_ANALYSIS'
+}
 
-            // Temporal analysis
-            enable_temporal: false,
-            temporal_window_days: 365,
-            residence_time_method: 'cross_correlation',
+// Reducer function
+function analysisReducer(state, action) {
+    switch (action.type) {
+        case ActionTypes.SET_DATASETS:
+            return { ...state, datasets: action.payload }
 
-            // 3D network
-            enable_3d_network: false,
-            vertical_flow_enabled: true,
-            vertical_anisotropy: 0.1,
-            enable_layer_system: false,
+        case ActionTypes.SET_CAPABILITIES:
+            return { ...state, capabilities: action.payload }
 
-            // Reactive transport
-            enable_reactive_transport: false,
-            rt_simulator: 'phreeqc_kinetic',
-            rt_time_steps: 100,
+        case ActionTypes.SET_CAPABILITIES_LOADING:
+            return { ...state, capabilitiesLoading: action.payload }
 
-            // Vadose zone
-            enable_vadose_zone: false,
+        case ActionTypes.UPDATE_FORM_FIELD:
+            return {
+                ...state,
+                formData: { ...state.formData, [action.field]: action.value }
+            }
 
-            // CoDA
-            enable_coda: false,
+        case ActionTypes.UPDATE_CONFIG:
+            return {
+                ...state,
+                formData: {
+                    ...state.formData,
+                    config: { ...state.formData.config, [action.field]: action.value }
+                }
+            }
 
-            // Edge inference
-            edge_radius_km: 10.0,
-            edge_max_neighbors: 3,
-            edge_p_min: 0.75,
-            edge_head_inference: 'heuristic',
-
-            // Gibbs & Exchange
-            enable_gibbs: true,
-            gibbs_weight: 0.5,
-            enable_exchange: true
+        case ActionTypes.UPDATE_CONFIG_FROM_CAPABILITIES: {
+            const caps = action.payload
+            return {
+                ...state,
+                formData: {
+                    ...state.formData,
+                    config: {
+                        ...state.formData.config,
+                        enable_isotopes: caps.available_analyses.isotope_analysis && state.formData.config.enable_isotopes,
+                        // PHREEQC is always kept enabled - it's critical for model accuracy
+                        // Users can manually disable if needed, but we don't auto-disable
+                        enable_nitrate_source: caps.available_analyses.nitrate_source && state.formData.config.enable_nitrate_source,
+                        enable_temporal: caps.available_analyses.temporal && state.formData.config.enable_temporal,
+                        enable_3d_network: caps.available_analyses.network_3d && state.formData.config.enable_3d_network,
+                    }
+                }
+            }
         }
-    })
-    const [running, setRunning] = useState(false)
-    const [currentJob, setCurrentJob] = useState(null)
-    const [progress, setProgress] = useState(0)
 
-    useEffect(() => {
-        fetchDatasets()
+        case ActionTypes.START_ANALYSIS:
+            return { ...state, running: true, progress: 0, currentStep: '' }
+
+        case ActionTypes.SET_CURRENT_JOB:
+            return { ...state, currentJob: action.payload }
+
+        case ActionTypes.UPDATE_PROGRESS:
+            return {
+                ...state,
+                progress: action.progress,
+                currentStep: action.step !== undefined ? action.step : state.currentStep
+            }
+
+        case ActionTypes.ANALYSIS_COMPLETE:
+            return {
+                ...state,
+                running: false,
+                progress: 100,
+                currentJob: { ...state.currentJob, status: 'completed', results: action.results }
+            }
+
+        case ActionTypes.ANALYSIS_FAILED:
+            return {
+                ...state,
+                running: false,
+                currentJob: { ...state.currentJob, status: 'failed', error: action.error }
+            }
+
+        case ActionTypes.SET_VALIDATION_ERRORS:
+            return { ...state, validationErrors: action.payload }
+
+        case ActionTypes.RESET_ANALYSIS:
+            return {
+                ...state,
+                running: false,
+                currentJob: null,
+                progress: 0,
+                currentStep: ''
+            }
+
+        default:
+            return state
+    }
+}
+
+function Analysis() {
+    const { currentProject, saveResultToProject } = useProject()
+    const toast = useToast()
+    const [state, dispatch] = useReducer(analysisReducer, initialState)
+
+    // Destructure state for easier access
+    const {
+        datasets,
+        capabilities,
+        capabilitiesLoading,
+        formData,
+        running,
+        currentJob,
+        progress,
+        currentStep,
+        validationErrors
+    } = state
+
+    // Validation function for config values
+    const validateConfig = useCallback(() => {
+        const errors = {}
+        const config = formData.config
+
+        // Bootstrap iterations: 10-10,000
+        if (config.enable_uncertainty && config.uncertainty_method === 'bootstrap') {
+            if (config.bootstrap_iterations < 10 || config.bootstrap_iterations > 10000) {
+                errors.bootstrap_iterations = 'Must be between 10 and 10,000'
+            }
+        }
+
+        // Bayesian samples: 100-50,000
+        if (config.enable_uncertainty && config.uncertainty_method === 'bayesian') {
+            if (config.bayesian_samples < 100 || config.bayesian_samples > 50000) {
+                errors.bayesian_samples = 'Must be between 100 and 50,000'
+            }
+            if (config.bayesian_chains < 1 || config.bayesian_chains > 8) {
+                errors.bayesian_chains = 'Must be between 1 and 8'
+            }
+        }
+
+        // Edge radius: 0.1-100 km
+        if (config.edge_radius_km < 0.1 || config.edge_radius_km > 100) {
+            errors.edge_radius_km = 'Must be between 0.1 and 100 km'
+        }
+
+        // LASSO penalty: 0-10
+        if (config.lasso_penalty < 0 || config.lasso_penalty > 10) {
+            errors.lasso_penalty = 'Must be between 0 and 10'
+        }
+
+        // p_min: 0-1
+        if (config.edge_p_min < 0 || config.edge_p_min > 1) {
+            errors.edge_p_min = 'Must be between 0 and 1'
+        }
+
+        // Temporal window: 30-3650 days
+        if (config.enable_temporal) {
+            if (config.temporal_window_days < 30 || config.temporal_window_days > 3650) {
+                errors.temporal_window_days = 'Must be between 30 and 3,650 days'
+            }
+        }
+
+        // RT time steps: 10-1000
+        if (config.enable_reactive_transport) {
+            if (config.rt_time_steps < 10 || config.rt_time_steps > 1000) {
+                errors.rt_time_steps = 'Must be between 10 and 1,000'
+            }
+        }
+
+        dispatch({ type: ActionTypes.SET_VALIDATION_ERRORS, payload: errors })
+        return Object.keys(errors).length === 0
+    }, [formData.config])
+
+    // Handle WebSocket progress updates
+    const handleProgress = useCallback((data) => {
+        dispatch({ type: ActionTypes.UPDATE_PROGRESS, progress: data.progress, step: data.step })
     }, [])
 
-    useEffect(() => {
-        let interval
-        if (currentJob && currentJob.status !== 'completed' && currentJob.status !== 'failed') {
-            interval = setInterval(checkJobStatus, 1000)
-        }
-        return () => clearInterval(interval)
-    }, [currentJob])
+    // Handle WebSocket completion
+    const handleComplete = useCallback(async (data) => {
+        dispatch({ type: ActionTypes.UPDATE_PROGRESS, progress: data.progress })
+        if (data.status === 'completed') {
+            // Fetch full results
+            try {
+                const res = await fetch(`${API_BASE}/analysis/results/${currentJob?.job_id}`)
+                if (res.ok) {
+                    const results = await res.json()
+                    dispatch({ type: ActionTypes.ANALYSIS_COMPLETE, results })
 
-    const fetchDatasets = async () => {
+                    // Save results to project if a project is active
+                    if (currentProject && results) {
+                        const resultToSave = {
+                            name: formData.name,
+                            analysis_type: formData.analysis_type,
+                            job_id: currentJob?.job_id,
+                            ...results
+                        }
+                        await saveResultToProject(resultToSave)
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch results:', error)
+            }
+        } else if (data.status === 'failed') {
+            dispatch({ type: ActionTypes.ANALYSIS_FAILED, error: data.error })
+            toast.error(`Analysis failed: ${data.error || 'Unknown error'}`)
+        }
+    }, [currentJob?.job_id, currentProject, formData.name, formData.analysis_type, saveResultToProject, toast])
+
+    // WebSocket connection for real-time progress
+    const { isConnected: wsConnected } = useWebSocket(
+        currentJob?.job_id,
+        {
+            enabled: running && !!currentJob?.job_id,
+            onProgress: handleProgress,
+            onComplete: handleComplete
+        }
+    )
+
+    // Fetch datasets on mount
+    const fetchDatasets = useCallback(async () => {
         try {
             const res = await fetch(`${API_BASE}/samples/datasets`)
             if (res.ok) {
-                setDatasets(await res.json())
+                dispatch({ type: ActionTypes.SET_DATASETS, payload: await res.json() })
             }
         } catch (error) {
             console.error('Failed to fetch datasets:', error)
         }
-    }
+    }, [])
 
-    const fetchCapabilities = async (datasetId) => {
+    useEffect(() => {
+        fetchDatasets()
+    }, [fetchDatasets])
+
+    // Fetch capabilities for selected dataset
+    const fetchCapabilities = useCallback(async (datasetId) => {
         if (!datasetId) {
-            setCapabilities(null)
+            dispatch({ type: ActionTypes.SET_CAPABILITIES, payload: null })
             return
         }
-        setCapabilitiesLoading(true)
+        dispatch({ type: ActionTypes.SET_CAPABILITIES_LOADING, payload: true })
         try {
             const res = await fetch(`${API_BASE}/samples/datasets/${datasetId}/capabilities`)
             if (res.ok) {
                 const caps = await res.json()
-                setCapabilities(caps)
+                dispatch({ type: ActionTypes.SET_CAPABILITIES, payload: caps })
                 // Auto-disable modules that aren't available
-                setFormData(prev => ({
-                    ...prev,
-                    config: {
-                        ...prev.config,
-                        enable_isotopes: caps.available_analyses.isotope_analysis && prev.config.enable_isotopes,
-                        enable_phreeqc: caps.available_analyses.phreeqc && prev.config.enable_phreeqc,
-                        enable_nitrate_source: caps.available_analyses.nitrate_source && prev.config.enable_nitrate_source,
-                        enable_temporal: caps.available_analyses.temporal && prev.config.enable_temporal,
-                        enable_3d_network: caps.available_analyses.network_3d && prev.config.enable_3d_network,
-                    }
-                }))
+                dispatch({ type: ActionTypes.UPDATE_CONFIG_FROM_CAPABILITIES, payload: caps })
             }
         } catch (error) {
             console.error('Failed to fetch capabilities:', error)
         } finally {
-            setCapabilitiesLoading(false)
+            dispatch({ type: ActionTypes.SET_CAPABILITIES_LOADING, payload: false })
         }
-    }
+    }, [])
 
     // Fetch capabilities when dataset changes
     useEffect(() => {
         fetchCapabilities(formData.dataset_id)
-    }, [formData.dataset_id])
+    }, [formData.dataset_id, fetchCapabilities])
 
-    const checkJobStatus = async () => {
-        if (!currentJob) return
+    // Helper functions for form updates
+    const updateFormField = useCallback((field, value) => {
+        dispatch({ type: ActionTypes.UPDATE_FORM_FIELD, field, value })
+    }, [])
 
-        try {
-            const res = await fetch(`${API_BASE}/analysis/status/${currentJob.job_id}`)
-            if (res.ok) {
-                const job = await res.json()
-                setCurrentJob(job)
+    const updateConfig = useCallback((field, value) => {
+        dispatch({ type: ActionTypes.UPDATE_CONFIG, field, value })
+    }, [])
 
-                if (job.status === 'running') {
-                    setProgress(prev => Math.min(prev + 10, 90))
-                } else if (job.status === 'completed') {
-                    setProgress(100)
-                    setRunning(false)
-
-                    // Save results to project if a project is active
-                    if (currentProject && job.results) {
-                        const resultToSave = {
-                            name: formData.name,
-                            analysis_type: formData.analysis_type,
-                            job_id: currentJob.job_id,
-                            ...job.results
-                        }
-                        await saveResultToProject(resultToSave)
-                    }
-                } else if (job.status === 'failed') {
-                    setRunning(false)
-                }
-            }
-        } catch (error) {
-            console.error('Status check error:', error)
-        }
-    }
-
-    const startAnalysis = async () => {
+    // Start analysis
+    const startAnalysis = useCallback(async () => {
         if (!formData.name || !formData.dataset_id) {
-            alert('Please provide an analysis name and select a dataset')
+            toast.warning('Please provide an analysis name and select a dataset')
             return
         }
 
-        setRunning(true)
-        setProgress(0)
+        // Validate config values
+        if (!validateConfig()) {
+            toast.error('Please fix validation errors before running analysis')
+            return
+        }
+
+        dispatch({ type: ActionTypes.START_ANALYSIS })
 
         try {
             const res = await fetch(`${API_BASE}/samples/datasets/${formData.dataset_id}`)
@@ -195,15 +401,15 @@ function Analysis() {
 
             if (analysisRes.ok) {
                 const job = await analysisRes.json()
-                setCurrentJob(job)
-                setProgress(10)
+                dispatch({ type: ActionTypes.SET_CURRENT_JOB, payload: job })
+                dispatch({ type: ActionTypes.UPDATE_PROGRESS, progress: 10 })
             }
         } catch (error) {
             console.error('Analysis error:', error)
-            setRunning(false)
-            alert('Failed to start analysis')
+            dispatch({ type: ActionTypes.RESET_ANALYSIS })
+            toast.error('Failed to start analysis. Please try again.')
         }
-    }
+    }, [formData, currentProject, validateConfig, toast])
 
     return (
         <div className="analysis-page">
@@ -254,7 +460,7 @@ function Analysis() {
                             type="text"
                             className="form-input"
                             value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            onChange={(e) => updateFormField('name', e.target.value)}
                             placeholder="e.g., Site-A Transport Analysis"
                             disabled={running}
                         />
@@ -265,7 +471,7 @@ function Analysis() {
                         <select
                             className="form-select"
                             value={formData.analysis_type}
-                            onChange={(e) => setFormData({ ...formData, analysis_type: e.target.value })}
+                            onChange={(e) => updateFormField('analysis_type', e.target.value)}
                             disabled={running}
                         >
                             <option value="full_pipeline">Full Pipeline (Recommended)</option>
@@ -281,7 +487,7 @@ function Analysis() {
                         <select
                             className="form-select"
                             value={formData.dataset_id}
-                            onChange={(e) => setFormData({ ...formData, dataset_id: e.target.value })}
+                            onChange={(e) => updateFormField('dataset_id', e.target.value)}
                             disabled={running}
                         >
                             <option value="">-- Select a dataset --</option>
@@ -362,10 +568,7 @@ function Analysis() {
                             max="1"
                             step="0.01"
                             value={formData.config.lasso_penalty}
-                            onChange={(e) => setFormData({
-                                ...formData,
-                                config: { ...formData.config, lasso_penalty: parseFloat(e.target.value) }
-                            })}
+                            onChange={(e) => updateConfig('lasso_penalty', parseFloat(e.target.value))}
                             disabled={running}
                         />
                         <span className="range-hint">Higher = more sparse reaction set</span>
@@ -376,10 +579,7 @@ function Analysis() {
                             <input
                                 type="checkbox"
                                 checked={formData.config.enable_isotopes}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    config: { ...formData.config, enable_isotopes: e.target.checked }
-                                })}
+                                onChange={(e) => updateConfig('enable_isotopes', e.target.checked)}
                                 disabled={running || (capabilities && !capabilities.available_analyses.isotope_analysis)}
                             />
                             <span className="toggle-slider"></span>
@@ -392,22 +592,19 @@ function Analysis() {
                         </label>
                     </div>
 
-                    <div className={`toggle-group ${capabilities && !capabilities.available_analyses.phreeqc ? 'toggle-disabled' : ''}`}>
+                    <div className="toggle-group">
                         <label className="toggle">
                             <input
                                 type="checkbox"
                                 checked={formData.config.enable_phreeqc}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    config: { ...formData.config, enable_phreeqc: e.target.checked }
-                                })}
-                                disabled={running || (capabilities && !capabilities.available_analyses.phreeqc)}
+                                onChange={(e) => updateConfig('enable_phreeqc', e.target.checked)}
+                                disabled={running}
                             />
                             <span className="toggle-slider"></span>
                             <span className="toggle-label">
-                                Enable PHREEQC Constraints
+                                Enable PHREEQC Constraints (Recommended)
                                 {capabilities && !capabilities.available_analyses.phreeqc && (
-                                    <span className="toggle-warning" title="Requires pH and temperature fields">⚠️ No pH/temp data</span>
+                                    <span className="toggle-warning" title="Dataset lacks pH/temperature but PHREEQC can still provide valuable constraints">⚠️ No pH/temp data</span>
                                 )}
                             </span>
                         </label>
@@ -418,10 +615,7 @@ function Analysis() {
                             <input
                                 type="checkbox"
                                 checked={formData.config.enable_gibbs}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    config: { ...formData.config, enable_gibbs: e.target.checked }
-                                })}
+                                onChange={(e) => updateConfig('enable_gibbs', e.target.checked)}
                                 disabled={running}
                             />
                             <span className="toggle-slider"></span>
@@ -434,10 +628,7 @@ function Analysis() {
                             <input
                                 type="checkbox"
                                 checked={formData.config.enable_exchange}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    config: { ...formData.config, enable_exchange: e.target.checked }
-                                })}
+                                onChange={(e) => updateConfig('enable_exchange', e.target.checked)}
                                 disabled={running}
                             />
                             <span className="toggle-slider"></span>
@@ -453,10 +644,7 @@ function Analysis() {
                             <input
                                 type="checkbox"
                                 checked={formData.config.enable_uncertainty}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    config: { ...formData.config, enable_uncertainty: e.target.checked }
-                                })}
+                                onChange={(e) => updateConfig('enable_uncertainty', e.target.checked)}
                                 disabled={running}
                             />
                             <span className="toggle-slider"></span>
@@ -471,10 +659,7 @@ function Analysis() {
                                 <select
                                     className="form-select"
                                     value={formData.config.uncertainty_method}
-                                    onChange={(e) => setFormData({
-                                        ...formData,
-                                        config: { ...formData.config, uncertainty_method: e.target.value }
-                                    })}
+                                    onChange={(e) => updateConfig('uncertainty_method', e.target.value)}
                                     disabled={running}
                                 >
                                     <option value="bootstrap">Bootstrap (Recommended)</option>
@@ -488,16 +673,16 @@ function Analysis() {
                                     <label className="form-label">Bootstrap Iterations</label>
                                     <input
                                         type="number"
-                                        className="form-input"
+                                        className={`form-input ${validationErrors.bootstrap_iterations ? 'input-error' : ''}`}
                                         value={formData.config.bootstrap_iterations}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            config: { ...formData.config, bootstrap_iterations: parseInt(e.target.value) }
-                                        })}
-                                        min="100"
+                                        onChange={(e) => updateConfig('bootstrap_iterations', parseInt(e.target.value) || 0)}
+                                        min="10"
                                         max="10000"
                                         disabled={running}
                                     />
+                                    {validationErrors.bootstrap_iterations && (
+                                        <span className="validation-error">{validationErrors.bootstrap_iterations}</span>
+                                    )}
                                 </div>
                             )}
 
@@ -507,31 +692,31 @@ function Analysis() {
                                         <label className="form-label">Bayesian Samples</label>
                                         <input
                                             type="number"
-                                            className="form-input"
+                                            className={`form-input ${validationErrors.bayesian_samples ? 'input-error' : ''}`}
                                             value={formData.config.bayesian_samples}
-                                            onChange={(e) => setFormData({
-                                                ...formData,
-                                                config: { ...formData.config, bayesian_samples: parseInt(e.target.value) }
-                                            })}
-                                            min="1000"
+                                            onChange={(e) => updateConfig('bayesian_samples', parseInt(e.target.value) || 0)}
+                                            min="100"
                                             max="50000"
                                             disabled={running}
                                         />
+                                        {validationErrors.bayesian_samples && (
+                                            <span className="validation-error">{validationErrors.bayesian_samples}</span>
+                                        )}
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">MCMC Chains</label>
                                         <input
                                             type="number"
-                                            className="form-input"
+                                            className={`form-input ${validationErrors.bayesian_chains ? 'input-error' : ''}`}
                                             value={formData.config.bayesian_chains}
-                                            onChange={(e) => setFormData({
-                                                ...formData,
-                                                config: { ...formData.config, bayesian_chains: parseInt(e.target.value) }
-                                            })}
+                                            onChange={(e) => updateConfig('bayesian_chains', parseInt(e.target.value) || 0)}
                                             min="1"
                                             max="8"
                                             disabled={running}
                                         />
+                                        {validationErrors.bayesian_chains && (
+                                            <span className="validation-error">{validationErrors.bayesian_chains}</span>
+                                        )}
                                     </div>
                                 </>
                             )}
@@ -546,10 +731,7 @@ function Analysis() {
                             <input
                                 type="checkbox"
                                 checked={formData.config.enable_nitrate_source}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    config: { ...formData.config, enable_nitrate_source: e.target.checked }
-                                })}
+                                onChange={(e) => updateConfig('enable_nitrate_source', e.target.checked)}
                                 disabled={running || (capabilities && !capabilities.available_analyses.nitrate_source)}
                             />
                             <span className="toggle-slider"></span>
@@ -568,10 +750,7 @@ function Analysis() {
                                 <input
                                     type="checkbox"
                                     checked={formData.config.nitrate_isotope_mixing}
-                                    onChange={(e) => setFormData({
-                                        ...formData,
-                                        config: { ...formData.config, nitrate_isotope_mixing: e.target.checked }
-                                    })}
+                                    onChange={(e) => updateConfig('nitrate_isotope_mixing', e.target.checked)}
                                     disabled={running}
                                 />
                                 <span className="toggle-slider"></span>
@@ -588,10 +767,7 @@ function Analysis() {
                             <input
                                 type="checkbox"
                                 checked={formData.config.enable_temporal}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    config: { ...formData.config, enable_temporal: e.target.checked }
-                                })}
+                                onChange={(e) => updateConfig('enable_temporal', e.target.checked)}
                                 disabled={running || (capabilities && !capabilities.available_analyses.temporal)}
                             />
                             <span className="toggle-slider"></span>
@@ -611,10 +787,7 @@ function Analysis() {
                                 <select
                                     className="form-select"
                                     value={formData.config.residence_time_method}
-                                    onChange={(e) => setFormData({
-                                        ...formData,
-                                        config: { ...formData.config, residence_time_method: e.target.value }
-                                    })}
+                                    onChange={(e) => updateConfig('residence_time_method', e.target.value)}
                                     disabled={running}
                                 >
                                     <option value="cross_correlation">Cross-Correlation (Recommended)</option>
@@ -630,10 +803,7 @@ function Analysis() {
                                     type="number"
                                     className="form-input"
                                     value={formData.config.temporal_window_days}
-                                    onChange={(e) => setFormData({
-                                        ...formData,
-                                        config: { ...formData.config, temporal_window_days: parseInt(e.target.value) }
-                                    })}
+                                    onChange={(e) => updateConfig('temporal_window_days', parseInt(e.target.value))}
                                     min="30"
                                     max="3650"
                                     disabled={running}
@@ -650,10 +820,7 @@ function Analysis() {
                             <input
                                 type="checkbox"
                                 checked={formData.config.enable_3d_network}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    config: { ...formData.config, enable_3d_network: e.target.checked }
-                                })}
+                                onChange={(e) => updateConfig('enable_3d_network', e.target.checked)}
                                 disabled={running || (capabilities && !capabilities.available_analyses.network_3d)}
                             />
                             <span className="toggle-slider"></span>
@@ -673,10 +840,7 @@ function Analysis() {
                                     <input
                                         type="checkbox"
                                         checked={formData.config.vertical_flow_enabled}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            config: { ...formData.config, vertical_flow_enabled: e.target.checked }
-                                        })}
+                                        onChange={(e) => updateConfig('vertical_flow_enabled', e.target.checked)}
                                         disabled={running}
                                     />
                                     <span className="toggle-slider"></span>
@@ -694,10 +858,7 @@ function Analysis() {
                                     max="1"
                                     step="0.01"
                                     value={formData.config.vertical_anisotropy}
-                                    onChange={(e) => setFormData({
-                                        ...formData,
-                                        config: { ...formData.config, vertical_anisotropy: parseFloat(e.target.value) }
-                                    })}
+                                    onChange={(e) => updateConfig('vertical_anisotropy', parseFloat(e.target.value))}
                                     disabled={running}
                                 />
                             </div>
@@ -706,10 +867,7 @@ function Analysis() {
                                     <input
                                         type="checkbox"
                                         checked={formData.config.enable_layer_system}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            config: { ...formData.config, enable_layer_system: e.target.checked }
-                                        })}
+                                        onChange={(e) => updateConfig('enable_layer_system', e.target.checked)}
                                         disabled={running}
                                     />
                                     <span className="toggle-slider"></span>
@@ -727,10 +885,7 @@ function Analysis() {
                             <input
                                 type="checkbox"
                                 checked={formData.config.enable_reactive_transport}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    config: { ...formData.config, enable_reactive_transport: e.target.checked }
-                                })}
+                                onChange={(e) => updateConfig('enable_reactive_transport', e.target.checked)}
                                 disabled={running}
                             />
                             <span className="toggle-slider"></span>
@@ -745,10 +900,7 @@ function Analysis() {
                                 <select
                                     className="form-select"
                                     value={formData.config.rt_simulator}
-                                    onChange={(e) => setFormData({
-                                        ...formData,
-                                        config: { ...formData.config, rt_simulator: e.target.value }
-                                    })}
+                                    onChange={(e) => updateConfig('rt_simulator', e.target.value)}
                                     disabled={running}
                                 >
                                     <option value="phreeqc_kinetic">PHREEQC Kinetic</option>
@@ -761,10 +913,7 @@ function Analysis() {
                                     type="number"
                                     className="form-input"
                                     value={formData.config.rt_time_steps}
-                                    onChange={(e) => setFormData({
-                                        ...formData,
-                                        config: { ...formData.config, rt_time_steps: parseInt(e.target.value) }
-                                    })}
+                                    onChange={(e) => updateConfig('rt_time_steps', parseInt(e.target.value))}
                                     min="10"
                                     max="1000"
                                     disabled={running}
@@ -781,10 +930,7 @@ function Analysis() {
                             <input
                                 type="checkbox"
                                 checked={formData.config.enable_vadose_zone}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    config: { ...formData.config, enable_vadose_zone: e.target.checked }
-                                })}
+                                onChange={(e) => updateConfig('enable_vadose_zone', e.target.checked)}
                                 disabled={running}
                             />
                             <span className="toggle-slider"></span>
@@ -797,10 +943,7 @@ function Analysis() {
                             <input
                                 type="checkbox"
                                 checked={formData.config.enable_coda}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    config: { ...formData.config, enable_coda: e.target.checked }
-                                })}
+                                onChange={(e) => updateConfig('enable_coda', e.target.checked)}
                                 disabled={running}
                             />
                             <span className="toggle-slider"></span>
@@ -816,10 +959,7 @@ function Analysis() {
                         <select
                             className="form-select"
                             value={formData.config.edge_head_inference}
-                            onChange={(e) => setFormData({
-                                ...formData,
-                                config: { ...formData.config, edge_head_inference: e.target.value }
-                            })}
+                            onChange={(e) => updateConfig('edge_head_inference', e.target.value)}
                             disabled={running}
                         >
                             <option value="heuristic">Heuristic (Fast)</option>
@@ -839,10 +979,7 @@ function Analysis() {
                             max="50"
                             step="0.5"
                             value={formData.config.edge_radius_km}
-                            onChange={(e) => setFormData({
-                                ...formData,
-                                config: { ...formData.config, edge_radius_km: parseFloat(e.target.value) }
-                            })}
+                            onChange={(e) => updateConfig('edge_radius_km', parseFloat(e.target.value))}
                             disabled={running}
                         />
                     </div>
@@ -856,10 +993,7 @@ function Analysis() {
                             max="10"
                             step="1"
                             value={formData.config.edge_max_neighbors}
-                            onChange={(e) => setFormData({
-                                ...formData,
-                                config: { ...formData.config, edge_max_neighbors: parseInt(e.target.value) }
-                            })}
+                            onChange={(e) => updateConfig('edge_max_neighbors', parseInt(e.target.value))}
                             disabled={running}
                         />
                     </div>
@@ -875,10 +1009,7 @@ function Analysis() {
                             max="1"
                             step="0.05"
                             value={formData.config.edge_p_min}
-                            onChange={(e) => setFormData({
-                                ...formData,
-                                config: { ...formData.config, edge_p_min: parseFloat(e.target.value) }
-                            })}
+                            onChange={(e) => updateConfig('edge_p_min', parseFloat(e.target.value))}
                             disabled={running}
                         />
                     </div>
@@ -936,24 +1067,32 @@ function Analysis() {
                                     <span className="progress-text">{progress}%</span>
                                 </div>
 
+                                {currentStep && (
+                                    <div className="current-step-display">
+                                        <span className="step-indicator">Current Step:</span>
+                                        <span className="step-name">{currentStep}</span>
+                                        {wsConnected && <span className="ws-indicator" title="Real-time updates">Live</span>}
+                                    </div>
+                                )}
+
                                 <div className="progress-steps">
-                                    <div className={`step ${progress >= 10 ? 'completed' : progress > 0 ? 'active' : ''}`}>
+                                    <div className={`step ${progress >= 20 ? 'completed' : progress >= 10 ? 'active' : ''}`}>
                                         <span className="step-icon">📥</span>
-                                        <span className="step-label">Loading Data</span>
+                                        <span className="step-label">Initializing</span>
                                     </div>
-                                    <div className={`step ${progress >= 30 ? 'completed' : progress > 20 ? 'active' : ''}`}>
+                                    <div className={`step ${progress >= 40 ? 'completed' : progress >= 30 ? 'active' : ''}`}>
                                         <span className="step-icon">🔄</span>
-                                        <span className="step-label">Transport Modeling</span>
+                                        <span className="step-label">Converting Samples</span>
                                     </div>
-                                    <div className={`step ${progress >= 50 ? 'completed' : progress > 40 ? 'active' : ''}`}>
+                                    <div className={`step ${progress >= 60 ? 'completed' : progress >= 50 ? 'active' : ''}`}>
+                                        <span className="step-icon">🔗</span>
+                                        <span className="step-label">Building Network</span>
+                                    </div>
+                                    <div className={`step ${progress >= 80 ? 'completed' : progress >= 70 ? 'active' : ''}`}>
                                         <span className="step-icon">⚛️</span>
-                                        <span className="step-label">Reaction Fitting</span>
+                                        <span className="step-label">Running Pipeline</span>
                                     </div>
-                                    <div className={`step ${progress >= 70 ? 'completed' : progress > 60 ? 'active' : ''}`}>
-                                        <span className="step-icon">📊</span>
-                                        <span className="step-label">Uncertainty Analysis</span>
-                                    </div>
-                                    <div className={`step ${progress >= 100 ? 'completed' : progress > 90 ? 'active' : ''}`}>
+                                    <div className={`step ${progress >= 100 ? 'completed' : progress >= 90 ? 'active' : ''}`}>
                                         <span className="step-icon">✅</span>
                                         <span className="step-label">Complete</span>
                                     </div>

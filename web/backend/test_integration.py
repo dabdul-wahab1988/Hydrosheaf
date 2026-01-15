@@ -282,7 +282,7 @@ def run_network_inference():
 
         print(f"\n     Inferred edges:")
         for edge in inference['inferred_edges']:
-            print(f"       {edge['source']} → {edge['target']}: "
+            print(f"       {edge['source']} -> {edge['target']}: "
                   f"P={edge.get('flow_probability', 'N/A'):.2f} "
                   f"({edge.get('flow_direction', 'unknown')})")
 
@@ -324,7 +324,7 @@ def main():
     print("  cd web/backend")
     print("  uvicorn app.main:app --reload")
 
-    input("\nPress Enter to start tests...")
+    # input("\nPress Enter to start tests...")
 
     # Run tests
     results = []

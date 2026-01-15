@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
 import { useProject } from '../context/ProjectContext'
 import './Layout.css'
 
@@ -13,11 +14,46 @@ const navItems = [
 
 function Layout({ children }) {
     const { currentProject } = useProject()
+    const [sidebarOpen, setSidebarOpen] = useState(false)
+    const location = useLocation()
+
+    // Close sidebar on route change (mobile)
+    useEffect(() => {
+        setSidebarOpen(false)
+    }, [location.pathname])
+
+    // Close sidebar on Escape key
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') setSidebarOpen(false)
+        }
+        window.addEventListener('keydown', handleEscape)
+        return () => window.removeEventListener('keydown', handleEscape)
+    }, [])
 
     return (
         <div className="layout">
+            {/* Mobile hamburger button */}
+            <button
+                className="sidebar-toggle"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={sidebarOpen}
+            >
+                <span className={`hamburger-icon ${sidebarOpen ? 'open' : ''}`} />
+            </button>
+
+            {/* Mobile overlay */}
+            {sidebarOpen && (
+                <div
+                    className="sidebar-overlay"
+                    onClick={() => setSidebarOpen(false)}
+                    aria-hidden="true"
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="sidebar">
+            <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
                     <div className="logo">
                         <span className="logo-icon">💧</span>

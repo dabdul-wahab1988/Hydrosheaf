@@ -2,6 +2,7 @@
 Samples Router - Handles water sample data endpoints
 """
 
+import os
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any
@@ -10,10 +11,15 @@ import json
 import csv
 import io
 
+from ..database import (
+    create_dataset, get_dataset as db_get_dataset, get_all_datasets, delete_dataset as db_delete_dataset
+)
+
 router = APIRouter()
 
-# In-memory storage for sample datasets
-sample_datasets: Dict[str, Dict] = {}
+# Maximum file size for uploads (default 50MB)
+MAX_FILE_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "50"))
+MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 
 class WaterSample(BaseModel):
@@ -58,15 +64,14 @@ class SampleDataset(BaseModel):
 async def upload_samples(dataset: SampleDataset):
     """Upload a new sample dataset"""
     dataset_id = str(uuid.uuid4())[:8]
-    
-    sample_datasets[dataset_id] = {
-        "id": dataset_id,
-        "name": dataset.name,
-        "description": dataset.description,
-        "samples": [s.model_dump() for s in dataset.samples],
-        "sample_count": len(dataset.samples),
-    }
-    
+
+    create_dataset(
+        dataset_id=dataset_id,
+        name=dataset.name,
+        samples=[s.model_dump() for s in dataset.samples],
+        description=dataset.description
+    )
+
     return {
         "dataset_id": dataset_id,
         "name": dataset.name,
@@ -163,6 +168,14 @@ def parse_csv_samples(content: bytes, filename: str) -> List[Dict]:
 async def upload_samples_file(file: UploadFile = File(...)):
     """Upload samples from a JSON or CSV file"""
     content = await file.read()
+
+    # Check file size
+    if len(content) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Maximum size is {MAX_FILE_SIZE_MB}MB. Your file is {len(content) / (1024 * 1024):.1f}MB."
+        )
+
     filename = file.filename or "uploaded_file"
     file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
 
@@ -218,13 +231,12 @@ async def upload_samples_file(file: UploadFile = File(...)):
     if not samples:
         raise HTTPException(status_code=400, detail="No samples found in the file. Please check the file format.")
 
-    sample_datasets[dataset_id] = {
-        "id": dataset_id,
-        "name": name,
-        "description": f"Uploaded from {filename} ({file_type})",
-        "samples": samples,
-        "sample_count": len(samples),
-    }
+    create_dataset(
+        dataset_id=dataset_id,
+        name=name,
+        samples=samples,
+        description=f"Uploaded from {filename} ({file_type})"
+    )
 
     return {
         "dataset_id": dataset_id,
@@ -238,32 +250,33 @@ async def upload_samples_file(file: UploadFile = File(...)):
 @router.get("/datasets")
 async def list_datasets():
     """List all sample datasets"""
+    datasets = get_all_datasets()
     return [
         {
             "id": ds["id"],
             "name": ds["name"],
             "sample_count": ds["sample_count"],
         }
-        for ds in sample_datasets.values()
+        for ds in datasets
     ]
 
 
 @router.get("/datasets/{dataset_id}")
-async def get_dataset(dataset_id: str):
+async def get_dataset_endpoint(dataset_id: str):
     """Get a specific dataset"""
-    if dataset_id not in sample_datasets:
+    dataset = db_get_dataset(dataset_id)
+    if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
-    
-    return sample_datasets[dataset_id]
+
+    return dataset
 
 
 @router.get("/datasets/{dataset_id}/summary")
 async def get_dataset_summary(dataset_id: str):
     """Get statistical summary of a dataset"""
-    if dataset_id not in sample_datasets:
+    dataset = db_get_dataset(dataset_id)
+    if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
-    
-    dataset = sample_datasets[dataset_id]
     samples = dataset["samples"]
     
     # Calculate summary statistics
@@ -294,10 +307,9 @@ async def get_dataset_capabilities(dataset_id: str):
     Analyze dataset and return available analysis capabilities.
     This helps the frontend show only relevant analysis options.
     """
-    if dataset_id not in sample_datasets:
+    dataset = db_get_dataset(dataset_id)
+    if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
-
-    dataset = sample_datasets[dataset_id]
     samples = dataset["samples"]
 
     # Define field categories
@@ -402,87 +414,237 @@ async def get_dataset_capabilities(dataset_id: str):
     }
 
 
+class ValidationResult(BaseModel):
+    """Validation result for a single sample"""
+    sample_id: str
+    is_valid: bool
+    charge_balance_error: Optional[float] = None
+    flags: List[str] = []
+    warnings: List[str] = []
+
+
+class DatasetValidationResponse(BaseModel):
+    """Response for dataset validation"""
+    dataset_id: str
+    total_samples: int
+    valid_samples: int
+    invalid_samples: int
+    results: List[ValidationResult]
+    summary: Dict[str, Any]
+
+
+@router.get("/datasets/{dataset_id}/validate", response_model=DatasetValidationResponse)
+async def validate_dataset(dataset_id: str, charge_balance_limit: float = 0.1):
+    """
+    Validate water chemistry data quality.
+
+    Performs:
+    - Charge balance calculation (cations vs anions in meq/L)
+    - Non-negative concentration check
+    - Missing required ions detection
+
+    Args:
+        dataset_id: The dataset to validate
+        charge_balance_limit: Maximum acceptable charge balance error (default 10%)
+
+    Returns:
+        Validation results with pass rate and individual sample flags
+    """
+    dataset = db_get_dataset(dataset_id)
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    samples = dataset["samples"]
+    results = []
+    valid_count = 0
+
+    # Molecular weights for conversion to mmol/L
+    mw = {
+        'ca': 40.08, 'mg': 24.31, 'na': 22.99, 'k': 39.10,
+        'hco3': 61.02, 'so4': 96.06, 'cl': 35.45, 'no3': 62.00,
+        'f': 19.00, 'fe': 55.85, 'po4': 94.97
+    }
+
+    # Valence for charge balance
+    valence = {
+        'ca': 2, 'mg': 2, 'na': 1, 'k': 1, 'fe': 2,  # Cations
+        'hco3': -1, 'so4': -2, 'cl': -1, 'no3': -1, 'f': -1, 'po4': -3  # Anions
+    }
+
+    required_ions = ['ca', 'mg', 'na', 'hco3', 'cl', 'so4']
+
+    for sample in samples:
+        sample_id = sample.get('sample_id', 'unknown')
+        flags = []
+        warnings = []
+
+        # Check for negative values
+        for ion in mw.keys():
+            val = sample.get(ion)
+            if val is not None and val < 0:
+                flags.append(f"negative_{ion}")
+
+        # Check for missing required ions
+        missing = [ion for ion in required_ions if sample.get(ion) is None]
+        if missing:
+            warnings.append(f"Missing ions: {', '.join(missing)}")
+
+        # Calculate charge balance if major ions are present
+        cbe = None
+        if len(missing) <= 2:  # Allow up to 2 missing ions
+            try:
+                # Calculate meq/L for cations and anions
+                cations_meq = 0
+                anions_meq = 0
+
+                for ion, v in valence.items():
+                    conc_mgl = sample.get(ion)
+                    if conc_mgl is not None and conc_mgl > 0:
+                        mmol_l = conc_mgl / mw.get(ion, 1)
+                        meq_l = mmol_l * abs(v)
+                        if v > 0:
+                            cations_meq += meq_l
+                        else:
+                            anions_meq += meq_l
+
+                # Calculate charge balance error
+                if cations_meq + anions_meq > 0:
+                    cbe = (cations_meq - anions_meq) / (cations_meq + anions_meq)
+
+                    if abs(cbe) > charge_balance_limit:
+                        flags.append(f"charge_balance_error ({cbe*100:.1f}%)")
+            except Exception:
+                warnings.append("Could not calculate charge balance")
+
+        # Check pH range
+        ph = sample.get('ph')
+        if ph is not None:
+            if ph < 0 or ph > 14:
+                flags.append(f"invalid_ph ({ph})")
+            elif ph < 4 or ph > 10:
+                warnings.append(f"Unusual pH value ({ph})")
+
+        # Check EC range
+        ec = sample.get('ec')
+        if ec is not None and ec < 0:
+            flags.append("negative_ec")
+
+        is_valid = len(flags) == 0
+        if is_valid:
+            valid_count += 1
+
+        results.append(ValidationResult(
+            sample_id=sample_id,
+            is_valid=is_valid,
+            charge_balance_error=cbe,
+            flags=flags,
+            warnings=warnings
+        ))
+
+    # Summarize issues
+    issue_counts = {}
+    for r in results:
+        for flag in r.flags:
+            issue_type = flag.split(' ')[0].split('(')[0]  # Get base issue type
+            issue_counts[issue_type] = issue_counts.get(issue_type, 0) + 1
+
+    return DatasetValidationResponse(
+        dataset_id=dataset_id,
+        total_samples=len(samples),
+        valid_samples=valid_count,
+        invalid_samples=len(samples) - valid_count,
+        results=results,
+        summary={
+            "pass_rate": valid_count / len(samples) if samples else 0,
+            "common_issues": issue_counts,
+            "charge_balance_limit": charge_balance_limit,
+        }
+    )
+
+
 @router.delete("/datasets/{dataset_id}")
-async def delete_dataset(dataset_id: str):
+async def delete_dataset_endpoint(dataset_id: str):
     """Delete a dataset"""
-    if dataset_id not in sample_datasets:
+    if not db_delete_dataset(dataset_id):
         raise HTTPException(status_code=404, detail="Dataset not found")
 
-    del sample_datasets[dataset_id]
     return {"message": "Dataset deleted successfully"}
 
 
-# Preload demo data with complete fields including coordinates
-demo_samples = [
-    {
-        "sample_id": "S001",
-        "location_id": "Well_A",
-        "date": "2024-01-15",
-        "ca": 85.2,
-        "mg": 32.1,
-        "na": 45.6,
-        "k": 5.2,
-        "hco3": 245.0,
-        "so4": 78.3,
-        "cl": 52.1,
-        "no3": 12.5,
-        "d18o": -5.2,
-        "d2h": -35.1,
-        "ph": 7.4,
-        "ec": 620,
-        "temperature": 22.5,
-        "tds": 450,
-        "x": 0.0,
-        "y": 0.0,
-    },
-    {
-        "sample_id": "S002",
-        "location_id": "Well_B",
-        "date": "2024-01-15",
-        "ca": 92.1,
-        "mg": 28.5,
-        "na": 52.3,
-        "k": 4.8,
-        "hco3": 268.0,
-        "so4": 85.2,
-        "cl": 61.8,
-        "no3": 18.2,
-        "d18o": -4.8,
-        "d2h": -32.5,
-        "ph": 7.2,
-        "ec": 685,
-        "temperature": 23.1,
-        "tds": 512,
-        "x": 2.5,
-        "y": 1.2,
-    },
-    {
-        "sample_id": "S003",
-        "location_id": "Well_C",
-        "date": "2024-01-16",
-        "ca": 78.5,
-        "mg": 35.8,
-        "na": 41.2,
-        "k": 6.1,
-        "hco3": 232.0,
-        "so4": 72.1,
-        "cl": 48.5,
-        "no3": 8.7,
-        "d18o": -5.5,
-        "d2h": -37.2,
-        "ph": 7.5,
-        "ec": 598,
-        "temperature": 21.8,
-        "tds": 425,
-        "x": 5.0,
-        "y": 3.5,
-    },
-]
+def init_demo_data():
+    """Initialize demo data in database if not exists."""
+    # Check if demo dataset already exists
+    if db_get_dataset("demo"):
+        return
 
-sample_datasets["demo"] = {
-    "id": "demo",
-    "name": "Demo Groundwater Samples",
-    "description": "Example dataset for demonstration purposes",
-    "samples": demo_samples,
-    "sample_count": len(demo_samples),
-}
+    demo_samples = [
+        {
+            "sample_id": "S001",
+            "location_id": "Well_A",
+            "date": "2024-01-15",
+            "ca": 85.2,
+            "mg": 32.1,
+            "na": 45.6,
+            "k": 5.2,
+            "hco3": 245.0,
+            "so4": 78.3,
+            "cl": 52.1,
+            "no3": 12.5,
+            "d18o": -5.2,
+            "d2h": -35.1,
+            "ph": 7.4,
+            "ec": 620,
+            "temperature": 22.5,
+            "tds": 450,
+            "x": 0.0,
+            "y": 0.0,
+        },
+        {
+            "sample_id": "S002",
+            "location_id": "Well_B",
+            "date": "2024-01-15",
+            "ca": 92.1,
+            "mg": 28.5,
+            "na": 52.3,
+            "k": 4.8,
+            "hco3": 268.0,
+            "so4": 85.2,
+            "cl": 61.8,
+            "no3": 18.2,
+            "d18o": -4.8,
+            "d2h": -32.5,
+            "ph": 7.2,
+            "ec": 685,
+            "temperature": 23.1,
+            "tds": 512,
+            "x": 2.5,
+            "y": 1.2,
+        },
+        {
+            "sample_id": "S003",
+            "location_id": "Well_C",
+            "date": "2024-01-16",
+            "ca": 78.5,
+            "mg": 35.8,
+            "na": 41.2,
+            "k": 6.1,
+            "hco3": 232.0,
+            "so4": 72.1,
+            "cl": 48.5,
+            "no3": 8.7,
+            "d18o": -5.5,
+            "d2h": -37.2,
+            "ph": 7.5,
+            "ec": 598,
+            "temperature": 21.8,
+            "tds": 425,
+            "x": 5.0,
+            "y": 3.5,
+        },
+    ]
+
+    create_dataset(
+        dataset_id="demo",
+        name="Demo Groundwater Samples",
+        samples=demo_samples,
+        description="Example dataset for demonstration purposes"
+    )

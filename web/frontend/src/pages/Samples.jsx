@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
+import { API_BASE } from '../config'
+import { useToast } from '../context/ToastContext'
 import './Samples.css'
 
-const API_BASE = 'http://localhost:8000/api'
-
 function Samples() {
+    const toast = useToast()
     const [datasets, setDatasets] = useState([])
     const [selectedDataset, setSelectedDataset] = useState(null)
     const [loading, setLoading] = useState(true)
     const [uploading, setUploading] = useState(false)
+    const [validating, setValidating] = useState(false)
+    const [validationResult, setValidationResult] = useState(null)
     const [formData, setFormData] = useState({
         name: '',
         samples: []
@@ -35,9 +38,37 @@ function Samples() {
             const res = await fetch(`${API_BASE}/samples/datasets/${id}`)
             if (res.ok) {
                 setSelectedDataset(await res.json())
+                setValidationResult(null) // Clear validation when switching datasets
             }
         } catch (error) {
             console.error('Failed to fetch dataset:', error)
+        }
+    }
+
+    const validateDataset = async () => {
+        if (!selectedDataset) return
+
+        setValidating(true)
+        try {
+            const res = await fetch(`${API_BASE}/samples/datasets/${selectedDataset.id}/validate`)
+            if (res.ok) {
+                const result = await res.json()
+                setValidationResult(result)
+                if (result.pass_rate >= 0.9) {
+                    toast.success(`Data quality check passed: ${(result.pass_rate * 100).toFixed(0)}% valid`)
+                } else if (result.pass_rate >= 0.7) {
+                    toast.warning(`Data quality issues found: ${(result.pass_rate * 100).toFixed(0)}% valid`)
+                } else {
+                    toast.error(`Significant data quality issues: ${(result.pass_rate * 100).toFixed(0)}% valid`)
+                }
+            } else {
+                toast.error('Failed to validate dataset')
+            }
+        } catch (error) {
+            console.error('Validation error:', error)
+            toast.error('Failed to validate dataset')
+        } finally {
+            setValidating(false)
         }
     }
 
@@ -49,7 +80,7 @@ function Samples() {
         const validExtensions = ['.csv', '.json']
         const fileExt = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
         if (!validExtensions.includes(fileExt)) {
-            alert('Please upload a CSV or JSON file')
+            toast.warning('Please upload a CSV or JSON file')
             return
         }
 
@@ -66,14 +97,14 @@ function Samples() {
             if (res.ok) {
                 const result = await res.json()
                 await fetchDatasets()
-                alert(`${result.file_type} file uploaded successfully! ${result.sample_count} samples loaded.`)
+                toast.success(`${result.file_type} file uploaded successfully! ${result.sample_count} samples loaded.`)
             } else {
                 const error = await res.json()
-                alert(`Upload failed: ${error.detail}`)
+                toast.error(`Upload failed: ${error.detail}`)
             }
         } catch (error) {
             console.error('Upload error:', error)
-            alert('Upload failed. Please try again.')
+            toast.error('Upload failed. Please try again.')
         } finally {
             setUploading(false)
             // Reset file input
@@ -223,6 +254,96 @@ function Samples() {
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+
+                            {/* Data Quality Check */}
+                            <div className="card mt-lg">
+                                <div className="card-header">
+                                    <h3 className="card-title">Data Quality Check</h3>
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={validateDataset}
+                                        disabled={validating}
+                                    >
+                                        {validating ? 'Validating...' : 'Run QC Check'}
+                                    </button>
+                                </div>
+
+                                {validationResult ? (
+                                    <div className="validation-results">
+                                        <div className="validation-summary">
+                                            <div className={`pass-rate ${
+                                                validationResult.summary.pass_rate >= 0.9 ? 'pass-rate-good' :
+                                                validationResult.summary.pass_rate >= 0.7 ? 'pass-rate-warning' : 'pass-rate-error'
+                                            }`}>
+                                                <span className="rate-value">
+                                                    {(validationResult.summary.pass_rate * 100).toFixed(0)}%
+                                                </span>
+                                                <span className="rate-label">Pass Rate</span>
+                                            </div>
+                                            <div className="validation-stats">
+                                                <div className="stat-item">
+                                                    <span className="stat-value">{validationResult.valid_samples}</span>
+                                                    <span className="stat-label">Valid</span>
+                                                </div>
+                                                <div className="stat-item">
+                                                    <span className="stat-value">{validationResult.invalid_samples}</span>
+                                                    <span className="stat-label">Invalid</span>
+                                                </div>
+                                                <div className="stat-item">
+                                                    <span className="stat-value">{validationResult.total_samples}</span>
+                                                    <span className="stat-label">Total</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Common Issues */}
+                                        {Object.keys(validationResult.summary.common_issues || {}).length > 0 && (
+                                            <div className="common-issues">
+                                                <h4>Common Issues</h4>
+                                                <div className="issues-list">
+                                                    {Object.entries(validationResult.summary.common_issues).map(([issue, count]) => (
+                                                        <div key={issue} className="issue-item">
+                                                            <span className="issue-name">{issue.replace(/_/g, ' ')}</span>
+                                                            <span className="issue-count">{count} samples</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Invalid Samples */}
+                                        {validationResult.results.filter(r => !r.is_valid).length > 0 && (
+                                            <div className="invalid-samples">
+                                                <h4>Invalid Samples</h4>
+                                                <div className="invalid-list">
+                                                    {validationResult.results
+                                                        .filter(r => !r.is_valid)
+                                                        .slice(0, 10)
+                                                        .map((r, idx) => (
+                                                            <div key={idx} className="invalid-item">
+                                                                <span className="sample-id">{r.sample_id}</span>
+                                                                <span className="sample-flags">
+                                                                    {r.flags.join(', ')}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    {validationResult.results.filter(r => !r.is_valid).length > 10 && (
+                                                        <div className="more-samples">
+                                                            ...and {validationResult.results.filter(r => !r.is_valid).length - 10} more
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="validation-empty">
+                                        <span className="empty-icon">🔍</span>
+                                        <p>Run a quality check to validate your data</p>
+                                        <span className="empty-hint">Checks charge balance, negative values, and required fields</span>
+                                    </div>
+                                )}
                             </div>
                         </>
                     ) : (
