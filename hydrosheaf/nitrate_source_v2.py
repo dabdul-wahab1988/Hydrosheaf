@@ -10,6 +10,11 @@ from .coda_sbp import ilr_from_sbp, robust_zscore
 from .config import Config
 from .data.units import mgL_to_mmolL
 from .models import nitrate_isotopes
+from .models.nitrate_isotopes_mcmc import (
+    MCMCMixingResult,
+    check_pymc_available,
+    run_mcmc_mixing,
+)
 
 try:
     import yaml  # type: ignore
@@ -30,6 +35,11 @@ class NitrateSourceResult:
     gating_flags: List[str]
     ilr_valid: bool
     reason_code: Optional[str] = None
+    # MCMC-specific fields
+    mcmc_result: Optional[MCMCMixingResult] = None
+    source_fractions: Optional[Dict[str, float]] = None
+    ci_lower: Optional[Dict[str, float]] = None
+    ci_upper: Optional[Dict[str, float]] = None
 
 
 @dataclass
@@ -253,24 +263,56 @@ def infer_node_posteriors(
     nodes_df: pd.DataFrame,
     edge_results: List[Any],
     config_overrides: Optional[dict] = None,
+    config: Optional[Config] = None,
 ) -> Dict[str, NitrateSourceResult]:
-    """Main inference function."""
-    
+    """Main inference function.
+
+    Parameters
+    ----------
+    nodes_df : pd.DataFrame
+        DataFrame with sample data indexed by site_id
+    edge_results : List[Any]
+        List of edge fitting results
+    config_overrides : dict, optional
+        Override config values from YAML
+    config : Config, optional
+        Hydrosheaf Config object for MCMC settings
+
+    Returns
+    -------
+    Dict[str, NitrateSourceResult]
+        Results keyed by node/site ID
+    """
+
     # 0. Load Config
     file_conf = load_nitrate_config()
     if config_overrides:
         file_conf.update(config_overrides)
-        
+
     weights = file_conf.get("weights", {})
     prior_p = file_conf.get("prior_prob", 0.5)
     prior_logit = math.log(prior_p / (1.0 - prior_p))
     evap_gate = file_conf.get("evap_gate_factor", 0.5)
-    
+
     # Isotope Config
     iso_enabled = file_conf.get("nitrate_isotope_mixing_enabled", True)
     n15_col = file_conf.get("nitrate_isotope_n15_col", "d15N")
     o18_col = file_conf.get("nitrate_isotope_o18_col", "d18O_NO3")
-    
+
+    # MCMC Config
+    mcmc_enabled = False
+    mcmc_n_samples = 2000
+    mcmc_n_chains = 4
+    mcmc_target_accept = 0.9
+    mcmc_warmup = 1000
+
+    if config is not None:
+        mcmc_enabled = config.isotope_mcmc_enabled and check_pymc_available()
+        mcmc_n_samples = config.isotope_mcmc_n_samples
+        mcmc_n_chains = config.isotope_mcmc_n_chains
+        mcmc_target_accept = config.isotope_mcmc_target_accept
+        mcmc_warmup = config.isotope_mcmc_warmup
+
     iso_sources = []
     if iso_enabled:
         iso_sources = nitrate_isotopes.load_isotope_endmembers()
@@ -326,31 +368,65 @@ def infer_node_posteriors(
             try:
                 d15_val = sample.get(n15_col)
                 d18_val = sample.get(o18_col)
-                
+
                 # Check valid float
-                if (d15_val is not None and not math.isnan(d15_val) and 
+                if (d15_val is not None and not math.isnan(d15_val) and
                     d18_val is not None and not math.isnan(d18_val)):
-                    
+
                     iso_s = nitrate_isotopes.IsotopeSample(float(d15_val), float(d18_val))
-                    probs = nitrate_isotopes.compute_isotope_prob(iso_s, iso_sources)
-                    
-                    p_man = probs.get("Manure", 0.0)
-                    # p_fert = probs.get("Fertilizer", 0.0) # Could be multiple non-manure sources
-                    
-                    results[node_id] = NitrateSourceResult(
-                        p_manure=p_man,
-                        p_fertilizer=1.0 - p_man,
-                        logit_score=None, # Not applicable for mixing model
-                        top_evidence=[f"d15N={d15_val:.1f}", f"d18O={d18_val:.1f}"],
-                        gating_flags=["dual_isotope_priority"],
-                        ilr_valid=ilr_valid,
-                        reason_code="Dual Isotope Mixing"
-                    )
-                    used_isotope_model = True
+
+                    # Use MCMC if enabled, otherwise use analytical method
+                    if mcmc_enabled:
+                        # Run MCMC Bayesian mixing
+                        mcmc_result = run_mcmc_mixing(
+                            sample=iso_s,
+                            sources=iso_sources,
+                            n_samples=mcmc_n_samples,
+                            n_chains=mcmc_n_chains,
+                            target_accept=mcmc_target_accept,
+                            warmup=mcmc_warmup,
+                        )
+
+                        p_man = mcmc_result.source_fractions.get("Manure", 0.0)
+                        evidence_list = [f"d15N={d15_val:.1f}", f"d18O={d18_val:.1f}"]
+                        if mcmc_result.warnings:
+                            evidence_list.extend(mcmc_result.warnings[:2])
+
+                        results[node_id] = NitrateSourceResult(
+                            p_manure=p_man,
+                            p_fertilizer=mcmc_result.source_fractions.get("Fertilizer", 1.0 - p_man),
+                            logit_score=None,
+                            top_evidence=evidence_list,
+                            gating_flags=["mcmc_isotope_mixing"],
+                            ilr_valid=ilr_valid,
+                            reason_code="MCMC Bayesian Isotope Mixing",
+                            mcmc_result=mcmc_result,
+                            source_fractions=mcmc_result.source_fractions,
+                            ci_lower=mcmc_result.ci_lower,
+                            ci_upper=mcmc_result.ci_upper,
+                        )
+                        used_isotope_model = True
+                    else:
+                        # Analytical mixing model
+                        probs = nitrate_isotopes.compute_isotope_prob(iso_s, iso_sources)
+
+                        p_man = probs.get("Manure", 0.0)
+
+                        results[node_id] = NitrateSourceResult(
+                            p_manure=p_man,
+                            p_fertilizer=1.0 - p_man,
+                            logit_score=None,
+                            top_evidence=[f"d15N={d15_val:.1f}", f"d18O={d18_val:.1f}"],
+                            gating_flags=["dual_isotope_priority"],
+                            ilr_valid=ilr_valid,
+                            reason_code="Dual Isotope Mixing",
+                            source_fractions=probs,
+                        )
+                        used_isotope_model = True
             except Exception:
                 # Fallback on error
                 pass
-                
+
         if used_isotope_model:
             continue
         

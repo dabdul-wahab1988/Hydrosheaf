@@ -124,6 +124,27 @@ class Config:
     nitrate_isotope_o18_col: str = "d18O_NO3"
     nitrate_isotope_mixing_enabled: bool = True
 
+    # MCMC Bayesian Isotope Mixing settings
+    isotope_mcmc_enabled: bool = False
+    isotope_mcmc_n_samples: int = 2000
+    isotope_mcmc_n_chains: int = 4
+    isotope_mcmc_target_accept: float = 0.9
+    isotope_mcmc_warmup: int = 1000
+    isotope_mcmc_sources: List[str] = field(
+        default_factory=lambda: ["Manure", "Fertilizer", "Soil_N", "Precipitation"]
+    )
+
+    # FloPy 1D Saturated Transport settings
+    flopy_transport_enabled: bool = False
+    aquifer_thickness_m: float = 10.0
+    aquifer_porosity: float = 0.25
+    aquifer_hydraulic_k_m_day: float = 1.0
+    dispersivity_m: float = 1.0
+    denitrification_k_1_day: float = 0.001
+    transport_n_cells: int = 50
+    transport_n_stress_periods: int = 10
+    transport_perlen_days: float = 365.0
+
     # Uncertainty quantification settings
     uncertainty_method: str = "none"  # none, bootstrap, bayesian, monte_carlo
     bootstrap_n_resamples: int = 1000
@@ -284,6 +305,34 @@ class Config:
             raise ValueError("nitrate_source_prior must be between 0 and 1.")
         if any(w < 0 for w in self.nitrate_source_weights.values()):
             raise ValueError("nitrate_source_weights must be non-negative.")
+
+        # MCMC Isotope Mixing validation
+        if self.isotope_mcmc_n_samples < 100:
+            raise ValueError("isotope_mcmc_n_samples must be at least 100.")
+        if self.isotope_mcmc_n_chains < 1:
+            raise ValueError("isotope_mcmc_n_chains must be at least 1.")
+        if not 0.5 <= self.isotope_mcmc_target_accept <= 0.99:
+            raise ValueError("isotope_mcmc_target_accept must be between 0.5 and 0.99.")
+        if self.isotope_mcmc_warmup < 100:
+            raise ValueError("isotope_mcmc_warmup must be at least 100.")
+
+        # FloPy Transport validation
+        if self.aquifer_thickness_m <= 0:
+            raise ValueError("aquifer_thickness_m must be positive.")
+        if not 0.0 < self.aquifer_porosity <= 1.0:
+            raise ValueError("aquifer_porosity must be between 0 and 1.")
+        if self.aquifer_hydraulic_k_m_day <= 0:
+            raise ValueError("aquifer_hydraulic_k_m_day must be positive.")
+        if self.dispersivity_m < 0:
+            raise ValueError("dispersivity_m must be non-negative.")
+        if self.denitrification_k_1_day < 0:
+            raise ValueError("denitrification_k_1_day must be non-negative.")
+        if self.transport_n_cells < 2:
+            raise ValueError("transport_n_cells must be at least 2.")
+        if self.transport_n_stress_periods < 1:
+            raise ValueError("transport_n_stress_periods must be at least 1.")
+        if self.transport_perlen_days <= 0:
+            raise ValueError("transport_perlen_days must be positive.")
 
         # Uncertainty quantification validation
         if self.uncertainty_method not in {"none", "bootstrap", "bayesian", "monte_carlo"}:

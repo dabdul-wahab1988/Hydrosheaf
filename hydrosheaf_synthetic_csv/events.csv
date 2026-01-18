@@ -1,0 +1,8 @@
+event_code,event_label,event_date,season,rain_7d_mm,rain_30d_mm
+E1,E1-DRY,2024-02-10,dry,0.4,10.4
+E2,E2,2024-05-25,wet,64.0,170.1
+E3,E3-POST1,2024-08-20,wet,35.0,219.5
+E4,E4-POST2,2024-11-15,transition,29.0,58.8
+E5,E5,2025-02-05,dry,8.4,11.3
+E6,E6-LATE,2025-06-10,wet,35.2,154.6
+E7,E7-END,2025-09-15,wet,50.4,158.3

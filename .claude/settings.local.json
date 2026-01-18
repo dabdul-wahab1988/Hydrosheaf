@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(dir:*)",
+      "Bash(npm run build:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(python -m hydrosheaf.cli:*)"
+    ]
+  }
+}

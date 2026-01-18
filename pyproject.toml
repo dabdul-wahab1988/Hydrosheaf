@@ -26,9 +26,16 @@ dependencies = [
 plot = ["matplotlib>=3.7"]
 # Optional extras:
 # - phreeqc: Python PHREEQC bindings (or use external PHREEQC executable)
-# - modpath: FloPy for MODPATH endpoint parsing
+# - transport: FloPy for 1D transport modeling and MODPATH endpoint parsing
+# - mcmc: Full MCMC isotope mixing (already included in base dependencies)
 phreeqc = ["phreeqpython", "phreeqpy"]
-modpath = ["flopy>=3.3"]
+transport = ["flopy>=3.3"]
+all = [
+    "matplotlib>=3.7",
+    "phreeqpython",
+    "phreeqpy",
+    "flopy>=3.3",
+]
 
 [project.scripts]
 hydrosheaf = "hydrosheaf.cli:main"

@@ -1,0 +1,11 @@
+cluster_code,season,application_date,fertiliser_product,rate_kg_product_ha,rate_kgN_ha,method,irrigated,notes,nearest_event_code
+CLUSTER_A,2024_wet,2024-05-05,NPK_15-15-15,500,75.0,basal_broadcast,0,basal at planting,E2
+CLUSTER_A,2024_wet,2024-07-15,Urea_46N,350,161.0,topdress_banding,0,topdress split,E3
+CLUSTER_A,2024_wet,2024-08-12,Urea_46N,120,55.0,topdress_banding,0,late split,E3
+CLUSTER_A,2025_wet,2025-05-01,NPK_15-15-15,500,75.0,basal_broadcast,0,basal at planting,E6
+CLUSTER_A,2025_wet,2025-07-10,Urea_46N,350,161.0,topdress_banding,0,topdress split,E6
+CLUSTER_A,2025_wet,2025-08-07,Urea_46N,120,55.0,topdress_banding,0,late split,E7
+CLUSTER_B,2024_wet,2024-05-10,NPK_15-15-15,350,52.5,basal_broadcast,0,basal at planting,E2
+CLUSTER_B,2024_wet,2024-07-20,Urea_46N,170,78.0,topdress_banding,0,topdress split,E3
+CLUSTER_B,2025_wet,2025-05-07,NPK_15-15-15,350,52.5,basal_broadcast,0,basal at planting,E6
+CLUSTER_B,2025_wet,2025-07-15,Urea_46N,170,78.0,topdress_banding,0,topdress split,E6
