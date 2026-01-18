@@ -4,3 +4,17 @@ __pycache__/
 *.aux
 *.log
 *.out
+.claude/
+.venv/
+env/
+venv/
+.env
+bin/
+build/
+dist/
+*.egg-info/
+hydrosheaf_data.db
+pymc_cache/
+output.txt
+model_validation_report.txt
+nul

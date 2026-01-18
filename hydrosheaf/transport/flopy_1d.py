@@ -17,7 +17,7 @@ import numpy as np
 # Try to import FloPy
 try:
     import flopy
-    from flopy.modflow import Modflow, ModflowDis, ModflowBas, ModflowLpf, ModflowWel, ModflowOc, ModflowPcg
+    from flopy.modflow import Modflow, ModflowDis, ModflowBas, ModflowLpf, ModflowWel, ModflowOc, ModflowPcg, ModflowLmt
     from flopy.mt3d import Mt3dms, Mt3dBtn, Mt3dAdv, Mt3dDsp, Mt3dSsm, Mt3dGcg, Mt3dRct
     FLOPY_AVAILABLE = True
 except ImportError:
@@ -207,6 +207,9 @@ def build_1d_transport_model(
     # PCG solver
     pcg = ModflowPcg(mf)
 
+    # LMT package (Link-MT3DMS)
+    lmt = ModflowLmt(mf)
+
     # --- Build MT3DMS model ---
     mt = Mt3dms(
         modelname=model_name,
@@ -245,7 +248,7 @@ def build_1d_transport_model(
         # Constant concentration source
         ssm_data[0] = [[0, 0, source_cell, source_concentration, 15]]  # Type 15 = RCH
 
-    ssm = Mt3dSsm(mt, stress_period_data=ssm_data)
+    ssm = Mt3dSsm(mt, stress_period_data=ssm_data, mxss=100)
 
     # RCT - Reaction (first-order decay for denitrification)
     if decay_rate_1_day > 0:
@@ -254,6 +257,7 @@ def build_1d_transport_model(
             isothm=0,  # No sorption
             ireact=1,  # First-order kinetic reaction
             rc1=decay_rate_1_day,  # Decay rate
+            igetsc=0,
         )
 
     # GCG - Solver
@@ -327,20 +331,17 @@ def run_1d_transport(
 
         # Write and run MT3DMS
         mt.write_input()
-        success_mt, buff_mt = mt.run_model(silent=True)
+        success_mt, buff_mt = mt.run_model(silent=True, normal_msg='Normal termination')
 
         if not success_mt:
-            warnings_list.append("MT3DMS run failed")
-            return TransportResult(
-                times=np.array([0.0]),
-                concentrations=np.array([0.0]),
-                success=False,
-                warnings=warnings_list,
-                workspace=workspace,
-            )
+            # Only warn, don't fail immediately, check for output files
+            warnings_list.append("MT3DMS reported failure (check output)")
 
         # Read concentration output
         ucn_file = Path(workspace) / f"{mt.name}.ucn"
+        if not ucn_file.exists():
+            ucn_file = Path(workspace) / "MT3D001.UCN"
+
         if ucn_file.exists():
             ucn = flopy.utils.UcnFile(str(ucn_file))
             times = ucn.get_times()
@@ -357,6 +358,11 @@ def run_1d_transport(
             concentrations = np.array(concentrations)
         else:
             warnings_list.append("UCN file not found")
+            try:
+                files = [f.name for f in Path(workspace).glob("*")]
+                warnings_list.append(f"Files in {workspace}: {files}")
+            except Exception:
+                pass
             times = np.array([0.0])
             concentrations = np.array([0.0])
 

@@ -6,6 +6,7 @@ import Network from './pages/Network'
 import Analysis from './pages/Analysis'
 import Results from './pages/Results'
 import Projects from './pages/Projects'
+import DemoObjectives from './pages/DemoObjectives'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/network" element={<Network />} />
         <Route path="/analysis" element={<Analysis />} />
         <Route path="/results" element={<Results />} />
+        <Route path="/demo" element={<DemoObjectives />} />
       </Routes>
     </Layout>
   )

@@ -11,6 +11,7 @@ import json
 import csv
 import io
 
+from pathlib import Path
 from ..database import (
     create_dataset, get_dataset as db_get_dataset, get_all_datasets, delete_dataset as db_delete_dataset
 )
@@ -575,6 +576,31 @@ def init_demo_data():
     # Check if demo dataset already exists
     if db_get_dataset("demo"):
         return
+
+    # Try to load from synthetic CSV
+    try:
+        # Path relative to web/backend/app/routers/samples.py -> ... -> ... -> root -> hydrosheaf_synthetic_csv
+        base_path = Path(__file__).resolve().parents[4]
+        csv_path = base_path / "hydrosheaf_synthetic_csv" / "water_chem_full.csv"
+        
+        if csv_path.exists():
+            print(f"Loading synthetic data from {csv_path}")
+            with open(csv_path, 'rb') as f:
+                content = f.read()
+                samples = parse_csv_samples(content, "water_chem_full.csv")
+                
+            create_dataset(
+                dataset_id="demo",
+                name="Synthetic Research Dataset",
+                samples=samples,
+                description="Full synthetic dataset with seasonal events and isotopes"
+            )
+            return
+        else:
+            print(f"Synthetic data not found at {csv_path}, falling back to hardcoded samples.")
+            
+    except Exception as e:
+        print(f"Error loading synthetic data: {e}")
 
     demo_samples = [
         {

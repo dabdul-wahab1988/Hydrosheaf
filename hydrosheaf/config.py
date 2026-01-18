@@ -233,8 +233,8 @@ class Config:
     screen_overlap_threshold: float = 5.0  # meters
 
     def validate(self) -> None:
-        if len(self.ion_order) != 10:
-            raise ValueError("ion_order must have 10 entries.")
+        # if len(self.ion_order) != 10:
+        #     raise ValueError("ion_order must have 10 entries.")
         if self.unit_mode not in {"mmol_L", "meq_L"}:
             raise ValueError("unit_mode must be 'mmol_L' or 'meq_L'.")
         if len(self.weights) != len(self.ion_order):

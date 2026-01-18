@@ -194,11 +194,19 @@ def couple_vadose_saturated(
             )
 
             saturated_result = run_1d_transport(mf, mt, params, cleanup=True)
+
+            # Check if FloPy run actually succeeded (executables might be missing)
+            if not saturated_result.success or len(saturated_result.concentrations) <= 1:
+                raise RuntimeError(
+                    f"FloPy model failed: {saturated_result.warnings}. "
+                    "MODFLOW/MT3DMS executables may not be installed."
+                )
+
             combined_concentration = saturated_result.concentrations
             output_times = saturated_result.times
 
         except Exception as e:
-            warnings_list.append(f"FloPy error: {str(e)}")
+            warnings_list.append(f"FloPy error: {str(e)}. Falling back to analytical solution.")
             # Fallback to analytical
             combined_concentration = _convolve_transport(
                 input_times=vadose_times,

@@ -14,6 +14,7 @@ Research Objectives:
 """
 
 import sys
+import os
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -21,6 +22,11 @@ from datetime import datetime
 
 # Add hydrosheaf to path if running from examples directory
 sys.path.insert(0, str(Path(__file__).parents[1]))
+
+# Add bin directory to PATH for FloPy executables
+bin_path = Path(__file__).parents[1] / "bin"
+if bin_path.exists():
+    os.environ["PATH"] += os.pathsep + str(bin_path)
 
 from hydrosheaf.config import Config
 from hydrosheaf.data.units import mgL_to_mmolL
@@ -172,8 +178,8 @@ def objective_2_isotope_source_id():
     sources = load_isotope_endmembers()
     print(f"\nEndmember sources loaded: {[s.name for s in sources]}")
     for src in sources:
-        print(f"  {src.name}: δ¹⁵N = {src.d15N_mean:.1f}±{src.d15N_std:.1f}, "
-              f"δ¹⁸O = {src.d18O_mean:.1f}±{src.d18O_std:.1f}")
+        print(f"  {src.name}: d15N = {src.d15N_mean:.1f}+/-{src.d15N_std:.1f}, "
+              f"d18O = {src.d18O_mean:.1f}+/-{src.d18O_std:.1f}")
     
     # Analyze each station
     print("\n--- Source Probabilities by Station (Analytical Method) ---")
@@ -190,7 +196,7 @@ def objective_2_isotope_source_id():
             sample = IsotopeSample(d15N=d15n, d18O=d18o)
             probs = compute_isotope_prob(sample, sources)
             
-            print(f"\n{station}: δ¹⁵N={d15n:.1f}‰, δ¹⁸O={d18o:.1f}‰")
+            print(f"\n{station}: d15N={d15n:.1f} permil, d18O={d18o:.1f} permil")
             for name, prob in sorted(probs.items(), key=lambda x: -x[1]):
                 print(f"  P({name}) = {prob:.3f}")
             
@@ -215,9 +221,10 @@ def objective_2_isotope_source_id():
                 mcmc_result = run_mcmc_mixing(
                     sample=sample,
                     sources=sources,
-                    n_samples=500,  # Reduced for demo
+                    n_samples=2000,
                     n_chains=2,
-                    warmup=200,
+                    warmup=1000,
+                    target_accept=0.99,
                 )
                 
                 print(f"\nMCMC Results for {sample_data['station']}:")
@@ -265,7 +272,7 @@ def objective_3_recharge_tracing():
         
         if pd.notna(d18o) and pd.notna(d2h):
             d_excess = compute_d_excess(d2h, d18o)
-            evap_idx = evaporation_index(d18o, d2h, lmwl_slope=8.66, lmwl_intercept=7.22)
+            evap_idx = evaporation_index(d18o, d2h, a=7.22, b=8.66)
             
             isotope_results.append({
                 "station": row["station_code"],
@@ -293,15 +300,15 @@ def objective_3_recharge_tracing():
     lysimeter_means = isotope_df[isotope_df["station_type"] == "lysimeter"][["d18O", "d2H"]].mean()
     borehole_means = isotope_df[isotope_df["station_type"] == "borehole"][["d18O", "d2H"]].mean()
     
-    print(f"Lysimeter mean: δ¹⁸O = {lysimeter_means['d18O']:.2f}‰, δ²H = {lysimeter_means['d2H']:.2f}‰")
-    print(f"Borehole mean:  δ¹⁸O = {borehole_means['d18O']:.2f}‰, δ²H = {borehole_means['d2H']:.2f}‰")
+    print(f"Lysimeter mean: d18O = {lysimeter_means['d18O']:.2f} permil, d2H = {lysimeter_means['d2H']:.2f} permil")
+    print(f"Borehole mean:  d18O = {borehole_means['d18O']:.2f} permil, d2H = {borehole_means['d2H']:.2f} permil")
     
     # Isotopic shift indicates recharge source
     delta_o18 = borehole_means["d18O"] - lysimeter_means["d18O"]
     if delta_o18 > 0:
-        print(f"Enrichment of +{delta_o18:.2f}‰ suggests evaporative enrichment during recharge")
+        print(f"Enrichment of +{delta_o18:.2f} permil suggests evaporative enrichment during recharge")
     else:
-        print(f"Depletion of {delta_o18:.2f}‰ suggests mixing with precipitation or deeper water")
+        print(f"Depletion of {delta_o18:.2f} permil suggests mixing with precipitation or deeper water")
     
     return isotope_df
 
@@ -362,6 +369,7 @@ def objective_4_transport_modeling():
             dispersivity_m=10.0,
             denitrification_k_1_day=0.005,
             head_gradient=0.01,
+            use_analytical=False,  # Try numerical FloPy first, falls back to analytical
         )
         
         print(f"\nCoupling Results:")
@@ -419,14 +427,14 @@ def main():
     print("="*80)
     
     print("""
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ Objective                                          │ Status    │ Components │
-├──────────────────────────────────────────────────────────────────────────────┤
-│ 1. Vadose zone NO3 dynamics                        │ ✅ DONE   │ vadose/*   │
-│ 2. Dual isotope source discrimination              │ ✅ DONE   │ nitrate_*  │
-│ 3. Groundwater recharge pathways                   │ ✅ DONE   │ isotopes   │
-│ 4. FloPy transport modeling                        │ ✅ DONE   │ transport/ │
-└──────────────────────────────────────────────────────────────────────────────┘
++------------------------------------------------------------------------------+
+| Objective                                          | Status    | Components |
++------------------------------------------------------------------------------+
+| 1. Vadose zone NO3 dynamics                        | [X] DONE  | vadose/*   |
+| 2. Dual isotope source discrimination              | [X] DONE  | nitrate_*  |
+| 3. Groundwater recharge pathways                   | [X] DONE  | isotopes   |
+| 4. FloPy transport modeling                        | [X] DONE  | transport/ |
++------------------------------------------------------------------------------+
     """)
     
     print("\nAll research objectives can be achieved with Hydrosheaf!")

@@ -22,7 +22,7 @@ try:
 except ImportError:
     RATE_LIMITING_AVAILABLE = False
 
-from .routers import analysis, network, samples, projects
+from .routers import analysis, network, samples, projects, demo
 from .routers.samples import init_demo_data
 from .database import init_db
 from .websocket_manager import manager as ws_manager
@@ -130,6 +130,7 @@ app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
 app.include_router(network.router, prefix="/api/network", tags=["Network"])
 app.include_router(samples.router, prefix="/api/samples", tags=["Samples"])
 app.include_router(projects.router, prefix="/api/projects", tags=["Projects"])
+app.include_router(demo.router, prefix="/api/demo", tags=["Demo Objectives"])
 
 
 @app.get("/api/health")

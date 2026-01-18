@@ -160,7 +160,7 @@ async def infer_flow_directions(network_id: str, config: Optional[NetworkInferen
 
     _load_hydrosheaf()
 
-    # Try to use real Hydrosheaf inference if available
+            # Try to use real Hydrosheaf inference if available
     if HYDROSHEAF_AVAILABLE:
         try:
             # Convert nodes to sample format for Hydrosheaf
@@ -169,9 +169,24 @@ async def infer_flow_directions(network_id: str, config: Optional[NetworkInferen
                 sample = {
                     'site_id': node.get('id'),
                 }
-                if node.get('x') is not None and node.get('y') is not None:
+                
+                # Check for explicit lat/lon first
+                if node.get('lat') is not None and node.get('lon') is not None:
+                    sample['lat'] = node['lat']
+                    sample['lon'] = node['lon']
+                # Fallback: Map UI X/Y (pixels) to Lat/Lon for demo purposes
+                # Assuming 1 pixel = 1 meter (approx)
+                # 1 degree lat ~ 111km = 111,000m
+                # So 1 pixel ~ 9e-6 degrees
+                elif node.get('x') is not None and node.get('y') is not None:
+                    scale_factor = 9e-6  # Convert "meters" (pixels) to degrees
+                    sample['lon'] = float(node['x']) * scale_factor
+                    sample['lat'] = float(node['y']) * scale_factor
+                    
+                    # Also keep x/y if needed
                     sample['x'] = node['x']
                     sample['y'] = node['y']
+                
                 if node.get('z') is not None:
                     sample['elevation'] = node['z']
                 if node.get('hydraulic_head') is not None:

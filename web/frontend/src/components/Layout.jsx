@@ -10,6 +10,7 @@ const navItems = [
     { path: '/network', label: 'Network', icon: '🔗' },
     { path: '/analysis', label: 'Analysis', icon: '⚗️' },
     { path: '/results', label: 'Results', icon: '📈' },
+    { path: '/demo', label: 'Research Demo', icon: '🎓' },
 ]
 
 function Layout({ children }) {
