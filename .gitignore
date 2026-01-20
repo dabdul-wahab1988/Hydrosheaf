@@ -20,3 +20,5 @@ nul
 .mypy_cache
 .ruff_cache
 analysis_results_complete
+bin/
+test_temporal.temporal.json
