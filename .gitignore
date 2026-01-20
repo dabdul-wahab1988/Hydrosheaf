@@ -9,7 +9,6 @@ __pycache__/
 env/
 venv/
 .env
-bin/
 build/
 dist/
 *.egg-info/
@@ -18,3 +17,6 @@ pymc_cache/
 output.txt
 model_validation_report.txt
 nul
+.mypy_cache
+.ruff_cache
+analysis_results_complete

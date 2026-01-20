@@ -5,10 +5,12 @@ This document expands the proposal mathematics in a compact, implementation-alig
 ## Notation
 
 - Graph: $G = (V, E)$ with directed edges $e = (u \to v)$.
-- Ion state at node $v$: $x_v \in \mathbb{R}^8$ in fixed order $(\mathrm{Ca}, \mathrm{Mg}, \mathrm{Na}, \mathrm{HCO_3}, \mathrm{Cl}, \mathrm{SO_4}, \mathrm{NO_3}, \mathrm{F})$.
+- Ion state at node $v$: $x_v \in \mathbb{R}^{10}$ in fixed order $(\mathrm{Ca}, \mathrm{Mg}, \mathrm{Na}, \mathrm{HCO_3}, \mathrm{Cl}, \mathrm{SO_4}, \mathrm{NO_3}, \mathrm{F}, \mathrm{Fe}, \mathrm{PO_4})$.
+
 - Auxiliary observations: $y_v = (\mathrm{EC}, \mathrm{TDS}, \mathrm{pH}, \ldots)$.
-- Reaction dictionary: $S \in \mathbb{R}^{8 \times m}$ and extents $z \in \mathbb{R}^m$.
-- Weights: $W = \mathrm{diag}(w_1, \ldots, w_8)$.
+- Reaction dictionary: $S \in \mathbb{R}^{10 \times m}$ and extents $z \in \mathbb{R}^m$.
+- Weights: $W = \mathrm{diag}(w_1, \ldots, w_{10})$.
+
 
 ## Units and Conversions
 
@@ -16,6 +18,9 @@ For ion $i$ with molar mass $M_i$ in g/mol:
 $$x_i\ (\mathrm{mmol/L}) = \frac{C_i\ (\mathrm{mg/L})}{M_i}$$
 Charge equivalents:
 $$x_i\ (\mathrm{meq/L}) = |q_i| \cdot x_i\ (\mathrm{mmol/L})$$
+
+The CLI accepts `mg/L` or `meq/L` and converts to mmol/L; the web frontend sends `mg/L` and converts in the backend adapter.
+
 
 ## Transport + Reaction Residual
 

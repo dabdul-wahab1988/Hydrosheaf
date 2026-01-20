@@ -44,7 +44,7 @@ A Mathematical Framework for Inverse Geochemical Modeling}
 \maketitle
 
 \begin{abstract}
-We present a comprehensive mathematical framework for solving inverse problems in groundwater hydrogeochemistry using sheaf-theoretic principles. The method determines optimal transport processes (evaporation, mixing) and geochemical reactions that explain observed chemical evolution along flow paths in aquifer networks. The framework combines weighted least squares optimization, sparse LASSO regression with coordinate descent, thermodynamic constraints from PHREEQC, and isotope hydrogeology to produce parsimonious, physically consistent models. We establish theoretical results on the optimality of transport models, convergence properties of the coordinate descent algorithm, and probabilistic methods for inferring flow network topology from incomplete hydraulic head data. The framework integrates linear algebra, convex optimization, graph theory, and geochemical thermodynamics into a unified computational approach suitable for practical groundwater management applications. Similar to other open-source projects, the implementation is available at \url{https://github.com/dabdul-wahab1988/Hydrosheaf}.
+	We present a comprehensive mathematical framework for solving inverse problems in groundwater hydrogeochemistry using sheaf-theoretic principles. The method determines optimal transport processes (evaporation, mixing) and geochemical reactions that explain observed chemical evolution along flow paths in aquifer networks. The framework combines weighted least squares optimization, sparse LASSO regression with coordinate descent, thermodynamic constraints from PHREEQC, and isotope hydrogeology to produce parsimonious, physically consistent models. We establish theoretical results on the optimality of transport models, convergence properties of the coordinate descent algorithm, and probabilistic methods for inferring flow network topology from incomplete hydraulic head data. The framework integrates linear algebra, convex optimization, graph theory, and geochemical thermodynamics into a unified computational approach suitable for practical groundwater management applications. Similar to other open-source projects, the implementation is available at \url{https://github.com/dabdul-wahab1988/Hydrosheaf}.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -59,46 +59,52 @@ Consider a groundwater flow network represented as a directed graph $G = (V, E)$
 
 The framework takes as input:
 \begin{itemize}
-    \item A samples CSV containing observed ion concentrations $\{\mathbf{x}_v\}_{v \in V}$ (mmol/L) at each node, with nodes identified by \texttt{site\_id} and \texttt{sample\_id}. The default ion vector uses $n=10$ columns (\texttt{Ca, Mg, Na, HCO3, Cl, SO4, NO3, F, Fe, PO4}) as defined in \texttt{hydrosheaf/config.py} and validated by the CLI schema in \texttt{hydrosheaf/cli.py}. The order can be overridden with \texttt{--ion-order} (must provide exactly 10 comma-separated ion names).
-    \item Supporting bulk water fields used for diagnostics and penalties: \texttt{EC}, \texttt{TDS}, and \texttt{pH} (\textit{required by the current CLI schema in} \texttt{hydrosheaf/cli.py}).
-    \item Optional isotope data for process discrimination, including water isotopes ($\delta^{18}$O, $\delta^2$H; default columns \texttt{18O}, \texttt{2H}, configurable via \texttt{--isotope-d18o-key}, \texttt{--isotope-d2h-key}) and nitrate isotopes ($\delta^{15}$N--NO$_3$, $\delta^{18}$O--NO$_3$; default columns \texttt{d15N}, \texttt{d18O\_NO3} in \texttt{hydrosheaf/config.py}).
-    \item Hydraulic head measurements or topographic elevations for network inference (e.g., \texttt{head\_meas}, \texttt{dtw}, \texttt{elevation}; configured by \texttt{--edge-*-key} flags). Optional coordinates (\texttt{x,y} or \texttt{lon,lat}) and depth/screen metadata support 3D inference.
-    \item A dictionary of candidate mineral reactions with stoichiometric coefficients
-    \item Endmember compositions (e.g., rainfall, river water) for mixing hypotheses
-    \item Optional temporal time-series CSV when \texttt{--temporal-enabled} is used. The temporal contract is a single long-form CSV (\texttt{hydrosheaf/temporal/time\_series.py}) with a node id column (\texttt{site\_id} preferred; \texttt{node\_id} and \texttt{sample\_id} are attempted as fallbacks), a \texttt{timestamp} column (default parseable formats include \texttt{YYYY-MM-DD}), and any subset of ion/tracer columns used for temporal fitting (e.g., \texttt{Cl}, \texttt{18O}, \texttt{2H}).
-    \item Optional physics priors when mesh-based flow/particle tracking outputs are available:
-    \begin{itemize}
-        \item (i) a CSV/JSON file of $(u,v)$ edges with optional \texttt{p\_uv} and travel-time summaries (recommended columns: \texttt{tt\_mean\_days}, \texttt{tt\_std\_days}, \texttt{tt\_p10\_days}, \texttt{tt\_p90\_days}; see \nolinkurl{hydrosheaf/physics/priors.py})
-        \item (ii) a MODPATH endpoints file ingested via FloPy (see \nolinkurl{hydrosheaf/physics/modpath.py})
-    \end{itemize}
-    In both cases, $u$ and $v$ must match node identifiers in the samples.
+	\item A samples CSV containing observed ion concentrations $\{\mathbf{x}_v\}_{v \in V}$ (mmol/L) at each node, with nodes identified by \texttt{site\_id} and \texttt{sample\_id}. The default ion vector uses $n=10$ columns (\texttt{Ca, Mg, Na, HCO3, Cl, SO4, NO3, F, Fe, PO4}) as defined in \texttt{hydrosheaf/config.py} and validated by the CLI schema in \texttt{hydrosheaf/cli.py}. The order can be overridden with \texttt{--ion-order} (must provide exactly 10 comma-separated ion names). The CLI can also convert \texttt{mg/L} or \texttt{meq/L} to mmol/L.
+	\item Supporting bulk water fields used for diagnostics and penalties: \texttt{EC}, \texttt{TDS}, and \texttt{pH} (\textit{required by the current CLI schema in} \texttt{hydrosheaf/cli.py}).
+
+	\item Optional isotope data for process discrimination, including water isotopes ($\delta^{18}$O, $\delta^2$H; default columns \texttt{18O}, \texttt{2H}, configurable via \texttt{--isotope-d18o-key}, \texttt{--isotope-d2h-key}) and nitrate isotopes ($\delta^{15}$N--NO$_3$, $\delta^{18}$O--NO$_3$; default columns \texttt{d15N}, \texttt{d18O\_NO3} in \texttt{hydrosheaf/config.py}). Bayesian mixing requires PyMC; otherwise analytical likelihood scoring is used.
+
+	\item Hydraulic head measurements or topographic elevations for network inference (e.g., \texttt{head\_meas}, \texttt{dtw}, \texttt{elevation}; configured by \texttt{--edge-*-key} flags). Optional coordinates (\texttt{x,y} or \texttt{lon,lat}) and depth/screen metadata support 3D inference. Use \texttt{--3d} with \texttt{--z-key} and optional \texttt{--layer-file} for layered aquifers.
+
+	\item A dictionary of candidate mineral reactions with stoichiometric coefficients
+	\item Endmember compositions (e.g., rainfall, river water) for mixing hypotheses
+	\item Optional temporal time-series CSV when \texttt{--temporal-enabled} is used. The temporal contract is a single long-form CSV (\texttt{hydrosheaf/temporal/time\_series.py}) with a node id column (\texttt{site\_id} preferred; \texttt{node\_id} and \texttt{sample\_id} are attempted as fallbacks), a \texttt{timestamp} column (default parseable formats include \texttt{YYYY-MM-DD}), and any subset of ion/tracer columns used for temporal fitting (e.g., \texttt{Cl}, \texttt{18O}, \texttt{2H}).
+	\item Optional physics priors when mesh-based flow/particle tracking outputs are available (FloPy and MODFLOW/MODPATH executables required for MODPATH ingestion):
+
+	      \begin{itemize}
+		      \item (i) a CSV/JSON file of $(u,v)$ edges with optional \texttt{p\_uv} and travel-time summaries (recommended columns: \texttt{tt\_mean\_days}, \texttt{tt\_std\_days}, \texttt{tt\_p10\_days}, \texttt{tt\_p90\_days}; see \nolinkurl{hydrosheaf/physics/priors.py})
+		      \item (ii) a MODPATH endpoints file ingested via FloPy (see \nolinkurl{hydrosheaf/physics/modpath.py})
+	      \end{itemize}
+	      In both cases, $u$ and $v$ must match node identifiers in the samples.
 \end{itemize}
 
 The framework produces as output:
 \begin{itemize}
-    \item For each edge $(u,v) \in E$: the optimal transport model (evaporation factor $\gamma$ or mixing fraction $f$)
-    \item A sparse set of active reactions with quantified extents $\mathbf{z}$ (positive = dissolution, negative = precipitation)
-    \item Model fit quality metrics ($R^2$, residual norms, Boltzmann probabilities)
-    \item Diagnostic flags (charge balance errors, thermodynamic violations, isotope consistency)
+	\item For each edge $(u,v) \in E$: the optimal transport model (evaporation factor $\gamma$ or mixing fraction $f$)
+	\item A sparse set of active reactions with quantified extents $\mathbf{z}$ (positive = dissolution, negative = precipitation)
+	\item Model fit quality metrics ($R^2$, residual norms, Boltzmann probabilities)
+	\item Diagnostic flags (charge balance errors, thermodynamic violations, isotope consistency)
+	\item Optional temporal summaries, uncertainty intervals, and reactive-transport validation metrics when enabled
 \end{itemize}
+
 
 \subsubsection{Problem Difficulty}
 
 For each directed edge $(u,v) \in E$, we seek to determine:
 
 \begin{enumerate}
-    \item The dominant transport process (evaporation or mixing with an endmember)
-    \item The extent of mineral reactions that explain residual chemical changes
-    \item The consistency of this explanation with thermodynamic, isotopic, and mass balance constraints
+	\item The dominant transport process (evaporation or mixing with an endmember)
+	\item The extent of mineral reactions that explain residual chemical changes
+	\item The consistency of this explanation with thermodynamic, isotopic, and mass balance constraints
 \end{enumerate}
 
 This inverse problem is fundamentally ill-posed due to several factors:
 
 \begin{itemize}
-    \item \textbf{Non-uniqueness}: Multiple combinations of transport and reactions can produce similar chemical evolution. For example, an increase in Ca and SO$_4$ could be explained by gypsum dissolution, evaporation, or mixing with saline water---or some combination thereof.
-    \item \textbf{Underdetermination}: With typically 8--10 major-ion constraints per sample (default $n=10$ in the implementation) and 20--30 candidate reactions, the system is underdetermined ($m \gg n$). Infinitely many reaction combinations satisfy the mass balance equations.
-    \item \textbf{Measurement uncertainty}: Ion concentrations have analytical uncertainties (typically 2-5\%), and hydraulic head measurements are noisy, leading to uncertain flow network topology.
-    \item \textbf{Scale mismatch}: Laboratory-derived thermodynamic and kinetic parameters may not accurately represent field-scale heterogeneous aquifer conditions.
+	\item \textbf{Non-uniqueness}: Multiple combinations of transport and reactions can produce similar chemical evolution. For example, an increase in Ca and SO$_4$ could be explained by gypsum dissolution, evaporation, or mixing with saline water---or some combination thereof.
+	\item \textbf{Underdetermination}: With typically 8--10 major-ion constraints per sample (default $n=10$ in the implementation) and 20--30 candidate reactions, the system is underdetermined ($m \gg n$). Infinitely many reaction combinations satisfy the mass balance equations.
+	\item \textbf{Measurement uncertainty}: Ion concentrations have analytical uncertainties (typically 2-5\%), and hydraulic head measurements are noisy, leading to uncertain flow network topology.
+	\item \textbf{Scale mismatch}: Laboratory-derived thermodynamic and kinetic parameters may not accurately represent field-scale heterogeneous aquifer conditions.
 \end{itemize}
 
 \subsubsection{Limitations of Existing Methods}
@@ -106,10 +112,10 @@ This inverse problem is fundamentally ill-posed due to several factors:
 Traditional geochemical modeling tools approach this problem differently:
 
 \begin{itemize}
-    \item \textbf{Inverse geochemical mass-balance (PHREEQC, NETPATH)} can generate multiple admissible inverse models (sets of phase/reaction transfers) for the same pair of waters, and users typically add additional constraints to reduce the solution set \cite{parkhurst2013, plummer1994}. When many candidate phases are allowed, the number of feasible combinations can grow combinatorially (e.g., $2^{30} \approx 10^9$ subsets for 30 independent candidates), making manual screening and expert judgment a practical bottleneck.
-    \item \textbf{Forward modeling emphasis (GWB)}: many workflows focus on forward reaction-path or speciation modeling, where reactions/processes are specified a priori and simulations are compared to observations, rather than solving an automated inverse fitting problem \cite{gwb}.
-    \item \textbf{Thermodynamic guidance and non-uniqueness}: classic mass-balance tools such as NETPATH are primarily designed for net-reaction stoichiometry along a user-defined flow path, with more limited thermodynamic feasibility screening than equilibrium-based inverse approaches \cite{plummer1994}. PHREEQC extends inverse modeling with uncertainty handling and stronger equilibrium constraints \cite{parkhurst2013}, but inverse solutions can still be non-unique and neither tool provides built-in sparsity/parsimony-based model selection (e.g., L1-regularized selection) to automatically prefer the simplest adequate explanation.
-    \item \textbf{Flow-path/network specification}: the analyst must define the flow path or network topology externally (choice of upstream/downstream connections, candidate endmembers, and sampling pairing) \cite{plummer1994}. This is a major limitation in regional settings with sparse head data and uncertain connectivity.
+	\item \textbf{Inverse geochemical mass-balance (PHREEQC, NETPATH)} can generate multiple admissible inverse models (sets of phase/reaction transfers) for the same pair of waters, and users typically add additional constraints to reduce the solution set \cite{parkhurst2013, plummer1994}. When many candidate phases are allowed, the number of feasible combinations can grow combinatorially (e.g., $2^{30} \approx 10^9$ subsets for 30 independent candidates), making manual screening and expert judgment a practical bottleneck.
+	\item \textbf{Forward modeling emphasis (GWB)}: many workflows focus on forward reaction-path or speciation modeling, where reactions/processes are specified a priori and simulations are compared to observations, rather than solving an automated inverse fitting problem \cite{gwb}.
+	\item \textbf{Thermodynamic guidance and non-uniqueness}: classic mass-balance tools such as NETPATH are primarily designed for net-reaction stoichiometry along a user-defined flow path, with more limited thermodynamic feasibility screening than equilibrium-based inverse approaches \cite{plummer1994}. PHREEQC extends inverse modeling with uncertainty handling and stronger equilibrium constraints \cite{parkhurst2013}, but inverse solutions can still be non-unique and neither tool provides built-in sparsity/parsimony-based model selection (e.g., L1-regularized selection) to automatically prefer the simplest adequate explanation.
+	\item \textbf{Flow-path/network specification}: the analyst must define the flow path or network topology externally (choice of upstream/downstream connections, candidate endmembers, and sampling pairing) \cite{plummer1994}. This is a major limitation in regional settings with sparse head data and uncertain connectivity.
 \end{itemize}
 
 None of these tools provide automated model selection with explicit parsimony principles, probabilistic network inference, or integrated nitrate source discrimination using $\delta^{15}$N--NO$_3$ and $\delta^{18}$O--NO$_3$ constraints. While regularization and machine-learning-assisted inverse modeling are active research directions, they are not part of classic packaged toolchains and remain largely bespoke workflows in the literature \cite{wang2025, gholami2024}.
@@ -119,9 +125,9 @@ None of these tools provide automated model selection with explicit parsimony pr
 To obtain meaningful, physically plausible solutions, we employ three complementary strategies:
 
 \begin{itemize}
-    \item \textbf{Sparsity regularization}: Prefer explanations involving fewer reactions (Occam's razor). The L1 penalty in LASSO regression automatically selects a sparse subset of reactions from the candidate dictionary.
-    \item \textbf{Thermodynamic constraints}: Enforce mineral equilibrium bounds via saturation indices computed by PHREEQC. This eliminates geochemically impossible solutions (e.g., precipitation in undersaturated conditions).
-    \item \textbf{Multi-physics integration}: Incorporate isotope data ($\delta^{18}$O, $\delta^2$H) and electrical conductivity to discriminate between processes that produce similar ion signatures. Evaporation and mixing, for example, have distinct isotopic fingerprints.
+	\item \textbf{Sparsity regularization}: Prefer explanations involving fewer reactions (Occam's razor). The L1 penalty in LASSO regression automatically selects a sparse subset of reactions from the candidate dictionary.
+	\item \textbf{Thermodynamic constraints}: Enforce mineral equilibrium bounds via saturation indices computed by PHREEQC. This eliminates geochemically impossible solutions (e.g., precipitation in undersaturated conditions).
+	\item \textbf{Multi-physics integration}: Incorporate isotope data ($\delta^{18}$O, $\delta^2$H) and electrical conductivity to discriminate between processes that produce similar ion signatures. Evaporation and mixing, for example, have distinct isotopic fingerprints.
 \end{itemize}
 
 These strategies transform the ill-posed inverse problem into a well-regularized optimization problem with unique, interpretable solutions.
@@ -140,38 +146,38 @@ The remainder of this document is organized as follows: Section \ref{sec:math_fr
 The following table summarizes the principal mathematical symbols used throughout this document.
 
 \begin{table}[htbp]
-    \centering
-    \caption{Principal Mathematical Notation}
-    \label{tab:notation}
-    \begin{tabularx}{\textwidth}{@{} l X @{}}
-        \toprule
-        \textbf{Symbol} & \textbf{Description} \\
-        \midrule
-        $G = (V, E)$ & Directed graph representing flow network (vertices = wells, edges = flow paths) \\
-        $\mathbf{x}_v \in \mathbb{R}^n$ & Ion concentration vector at node $v$ (implementation default $n=10$: Ca, Mg, Na, HCO$_3$, Cl, SO$_4$, NO$_3$, F, Fe, PO$_4$) \\
-        $\boldsymbol{\theta}$ & Transport model parameters ($\gamma$ for evaporation, $f$ for mixing) \\
-        $\gamma \geq 1$ & Evaporation concentration factor \\
-        $f \in [0,1]$ & Mixing fraction with endmember $\mathbf{x}_{\text{end}}$ \\
-        $S \in \mathbb{R}^{n \times m}$ & Stoichiometric matrix ($m$ reactions, $n$ ions) \\
-        $\mathbf{z} \in \mathbb{R}^m$ & Reaction extent vector (positive = dissolution, negative = precipitation) \\
-        $\mathbf{W} = \diag(w_1, \ldots, w_n)$ & Diagonal weight matrix (typically inverse variance) \\
-        $\lambda > 0$ & L1 regularization parameter (controls sparsity) \\
-        $\boldsymbol{\ell}, \mathbf{u} \in \mathbb{R}^m$ & Lower and upper bounds on reaction extents (from saturation indices) \\
-        $A(\boldsymbol{\theta}), \mathbf{b}(\boldsymbol{\theta})$ & Affine transformation representing transport process \\
-        $\mathbf{r} \in \mathbb{R}^n$ & Residual vector after transport ($\mathbf{x}_v - A\mathbf{x}_u - \mathbf{b}$) \\
-        $\mathcal{P}_*$ & Penalty functions (isotope, EC/TDS, charge balance, thermodynamic) \\
-        $\text{SI}$ & Saturation index $= \log_{10}(\text{IAP}/K_{sp})$ \\
-        $h_i, h_j$ & Hydraulic heads at nodes $i, j$ \\
-        $p(i \to j)$ & Probability of flow from node $i$ to $j$ \\
-        $\delta^{18}\text{O}, \delta^2\text{H}$ & Stable water isotope ratios (permil relative to VSMOW) \\
-        $d = \delta^2\text{H} - 8 \cdot \delta^{18}\text{O}$ & Deuterium excess (permil) \\
-        $\mathcal{S}(\alpha, \tau)$ & Soft-thresholding operator for LASSO \\
-        $T$ & Number of coordinate descent iterations to convergence \\
-        $|\mathcal{C}|$ & Number of candidate transport models \\
-        $\mathcal{A} = \{j : z_j^* \neq 0\}$ & Active set of reactions (non-zero extents) \\
-        $R^2$ & Coefficient of determination (fit quality metric) \\
-        \bottomrule
-    \end{tabularx}
+	\centering
+	\caption{Principal Mathematical Notation}
+	\label{tab:notation}
+	\begin{tabularx}{\textwidth}{@{} l X @{}}
+		\toprule
+		\textbf{Symbol}                                           & \textbf{Description}                                                                                                         \\
+		\midrule
+		$G = (V, E)$                                              & Directed graph representing flow network (vertices = wells, edges = flow paths)                                              \\
+		$\mathbf{x}_v \in \mathbb{R}^n$                           & Ion concentration vector at node $v$ (implementation default $n=10$: Ca, Mg, Na, HCO$_3$, Cl, SO$_4$, NO$_3$, F, Fe, PO$_4$) \\
+		$\boldsymbol{\theta}$                                     & Transport model parameters ($\gamma$ for evaporation, $f$ for mixing)                                                        \\
+		$\gamma \geq 1$                                           & Evaporation concentration factor                                                                                             \\
+		$f \in [0,1]$                                             & Mixing fraction with endmember $\mathbf{x}_{\text{end}}$                                                                     \\
+		$S \in \mathbb{R}^{n \times m}$                           & Stoichiometric matrix ($m$ reactions, $n$ ions)                                                                              \\
+		$\mathbf{z} \in \mathbb{R}^m$                             & Reaction extent vector (positive = dissolution, negative = precipitation)                                                    \\
+		$\mathbf{W} = \diag(w_1, \ldots, w_n)$                    & Diagonal weight matrix (typically inverse variance)                                                                          \\
+		$\lambda > 0$                                             & L1 regularization parameter (controls sparsity)                                                                              \\
+		$\boldsymbol{\ell}, \mathbf{u} \in \mathbb{R}^m$          & Lower and upper bounds on reaction extents (from saturation indices)                                                         \\
+		$A(\boldsymbol{\theta}), \mathbf{b}(\boldsymbol{\theta})$ & Affine transformation representing transport process                                                                         \\
+		$\mathbf{r} \in \mathbb{R}^n$                             & Residual vector after transport ($\mathbf{x}_v - A\mathbf{x}_u - \mathbf{b}$)                                                \\
+		$\mathcal{P}_*$                                           & Penalty functions (isotope, EC/TDS, charge balance, thermodynamic)                                                           \\
+		$\text{SI}$                                               & Saturation index $= \log_{10}(\text{IAP}/K_{sp})$                                                                            \\
+		$h_i, h_j$                                                & Hydraulic heads at nodes $i, j$                                                                                              \\
+		$p(i \to j)$                                              & Probability of flow from node $i$ to $j$                                                                                     \\
+		$\delta^{18}\text{O}, \delta^2\text{H}$                   & Stable water isotope ratios (permil relative to VSMOW)                                                                       \\
+		$d = \delta^2\text{H} - 8 \cdot \delta^{18}\text{O}$      & Deuterium excess (permil)                                                                                                    \\
+		$\mathcal{S}(\alpha, \tau)$                               & Soft-thresholding operator for LASSO                                                                                         \\
+		$T$                                                       & Number of coordinate descent iterations to convergence                                                                       \\
+		$|\mathcal{C}|$                                           & Number of candidate transport models                                                                                         \\
+		$\mathcal{A} = \{j : z_j^* \neq 0\}$                      & Active set of reactions (non-zero extents)                                                                                   \\
+		$R^2$                                                     & Coefficient of determination (fit quality metric)                                                                            \\
+		\bottomrule
+	\end{tabularx}
 \end{table}
 
 Throughout the document, vectors are denoted in boldface (e.g., $\mathbf{x}, \mathbf{z}$), scalars in italic (e.g., $\gamma, \lambda$), and matrices in boldface uppercase (e.g., $\mathbf{W}, S$). All concentration units are mmol/L unless otherwise specified.
@@ -185,42 +191,42 @@ Throughout the document, vectors are denoted in boldface (e.g., $\mathbf{x}, \ma
 For each edge $(u,v) \in E$, we solve the following constrained optimization problem:
 
 \begin{equation}\label{eq:master_problem}
-\begin{aligned}
-\min_{\boldsymbol{\theta}, \mathbf{z}} \quad & \mathcal{L}(\boldsymbol{\theta}, \mathbf{z}) = \frac{1}{2} \|\mathbf{x}_v - \mathbf{x}_{\text{pred}}\|_{\mathbf{W}}^2 + \lambda \|\mathbf{z}\|_1 \\
-& \quad + \mathcal{P}_{\text{EC/TDS}}(\boldsymbol{\theta}, \mathbf{z}) + \mathcal{P}_{\text{iso}}(\boldsymbol{\theta}) + \mathcal{P}_{\text{Gibbs}}(\boldsymbol{\theta}) + \mathcal{P}_{\text{cons}}(\mathbf{z}) \\
-\text{subject to} \quad & \boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}, \quad \boldsymbol{\theta} \in \Theta
-\end{aligned}
+	\begin{aligned}
+		\min_{\boldsymbol{\theta}, \mathbf{z}} \quad & \mathcal{L}(\boldsymbol{\theta}, \mathbf{z}) = \frac{1}{2} \|\mathbf{x}_v - \mathbf{x}_{\text{pred}}\|_{\mathbf{W}}^2 + \lambda \|\mathbf{z}\|_1                                                               \\
+		                                             & \quad + \mathcal{P}_{\text{EC/TDS}}(\boldsymbol{\theta}, \mathbf{z}) + \mathcal{P}_{\text{iso}}(\boldsymbol{\theta}) + \mathcal{P}_{\text{Gibbs}}(\boldsymbol{\theta}) + \mathcal{P}_{\text{cons}}(\mathbf{z}) \\
+		\text{subject to} \quad                      & \boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}, \quad \boldsymbol{\theta} \in \Theta
+	\end{aligned}
 \end{equation}
 
 where:
 
 \begin{itemize}
-    \item $\mathbf{x}_v \in \mathbb{R}^n$: observed ion concentration vector at downstream node $v$
-    \item $\mathbf{x}_{\text{pred}} = A(\boldsymbol{\theta}) \mathbf{x}_u + \mathbf{b}(\boldsymbol{\theta}) + S \mathbf{z}$: predicted concentration
-    \item $\boldsymbol{\theta}$: transport model parameters (evaporation factor or mixing fraction)
-    \item $A(\boldsymbol{\theta}), \mathbf{b}(\boldsymbol{\theta})$: affine transformation representing transport
-    \item $S \in \mathbb{R}^{n \times m}$: stoichiometric matrix ($m$ reactions)
-    \item $\mathbf{z} \in \mathbb{R}^m$: reaction extent vector (positive = dissolution, negative = precipitation)
-    \item $\mathbf{W} = \diag(w_1, \ldots, w_n)$: weight matrix (typically inverse variance or ion importance)
-    \item $\lambda > 0$: L1 regularization parameter promoting sparsity
-    \item $\mathcal{P}_*$: penalty functions enforcing physical constraints
-    \item $\boldsymbol{\ell}, \mathbf{u} \in \mathbb{R}^m$: thermodynamically-derived bounds on reaction extents
+	\item $\mathbf{x}_v \in \mathbb{R}^n$: observed ion concentration vector at downstream node $v$
+	\item $\mathbf{x}_{\text{pred}} = A(\boldsymbol{\theta}) \mathbf{x}_u + \mathbf{b}(\boldsymbol{\theta}) + S \mathbf{z}$: predicted concentration
+	\item $\boldsymbol{\theta}$: transport model parameters (evaporation factor or mixing fraction)
+	\item $A(\boldsymbol{\theta}), \mathbf{b}(\boldsymbol{\theta})$: affine transformation representing transport
+	\item $S \in \mathbb{R}^{n \times m}$: stoichiometric matrix ($m$ reactions)
+	\item $\mathbf{z} \in \mathbb{R}^m$: reaction extent vector (positive = dissolution, negative = precipitation)
+	\item $\mathbf{W} = \diag(w_1, \ldots, w_n)$: weight matrix (typically inverse variance or ion importance)
+	\item $\lambda > 0$: L1 regularization parameter promoting sparsity
+	\item $\mathcal{P}_*$: penalty functions enforcing physical constraints
+	\item $\boldsymbol{\ell}, \mathbf{u} \in \mathbb{R}^m$: thermodynamically-derived bounds on reaction extents
 \end{itemize}
 
 The penalty terms are defined as follows:
 \begin{align}
-    \mathcal{P}_{\text{EC/TDS}}(\mathbf{z}) &= \eta_1 \|\text{EC}_{\text{pred}}(\mathbf{z}) - \text{EC}_{\text{obs}}\|^2 + \eta_2 \|\text{TDS}_{\text{pred}}(\mathbf{z}) - \text{TDS}_{\text{obs}}\|^2 \\
-    \mathcal{P}_{\text{Gibbs}}(\boldsymbol{\theta}) &= \begin{cases} 0 & \text{if } \boldsymbol{\theta} \in \Theta_{\text{phys}} \\ \infty & \text{otherwise} \end{cases} \\
-    \mathcal{P}_{\text{cons}}(\mathbf{z}) &= \eta_3 (\text{ChargeBalance}(\mathbf{x}_{\text{pred}}))^2
+	\mathcal{P}_{\text{EC/TDS}}(\mathbf{z})         & = \eta_1 \|\text{EC}_{\text{pred}}(\mathbf{z}) - \text{EC}_{\text{obs}}\|^2 + \eta_2 \|\text{TDS}_{\text{pred}}(\mathbf{z}) - \text{TDS}_{\text{obs}}\|^2 \\
+	\mathcal{P}_{\text{Gibbs}}(\boldsymbol{\theta}) & = \begin{cases} 0 & \text{if } \boldsymbol{\theta} \in \Theta_{\text{phys}} \\ \infty & \text{otherwise} \end{cases}                      \\
+	\mathcal{P}_{\text{cons}}(\mathbf{z})           & = \eta_3 (\text{ChargeBalance}(\mathbf{x}_{\text{pred}}))^2
 \end{align}
 where $\Theta_{\text{phys}}$ represents the physically valid parameter space (e.g., $\gamma \ge 1, f \in [0,1]$).
 
 \begin{definition}[Weighted Norm]
-For a positive definite diagonal matrix $\mathbf{W} = \diag(w_1, \ldots, w_n)$ with $w_i > 0$, the weighted Euclidean norm is:
-\begin{equation}
-\|\mathbf{r}\|_{\mathbf{W}}^2 = \mathbf{r}^\top \mathbf{W} \mathbf{r} = \sum_{i=1}^n w_i r_i^2
-\end{equation}
-This norm emphasizes ions with larger weights, typically chosen as $w_i = 1/\sigma_i^2$ for measurement uncertainty $\sigma_i$, or based on geochemical significance.
+	For a positive definite diagonal matrix $\mathbf{W} = \diag(w_1, \ldots, w_n)$ with $w_i > 0$, the weighted Euclidean norm is:
+	\begin{equation}
+		\|\mathbf{r}\|_{\mathbf{W}}^2 = \mathbf{r}^\top \mathbf{W} \mathbf{r} = \sum_{i=1}^n w_i r_i^2
+	\end{equation}
+	This norm emphasizes ions with larger weights, typically chosen as $w_i = 1/\sigma_i^2$ for measurement uncertainty $\sigma_i$, or based on geochemical significance.
 \end{definition}
 
 \subsection{Two-Stage Optimization Strategy}
@@ -228,21 +234,21 @@ This norm emphasizes ions with larger weights, typically chosen as $w_i = 1/\sig
 Problem \eqref{eq:master_problem} is solved in two stages:
 
 \begin{enumerate}
-    \item \textbf{Transport Optimization}: Fix $\mathbf{z} = \mathbf{0}$ and optimize over $\boldsymbol{\theta}$ to find the best transport model:
-    \begin{equation}\label{eq:transport_opt}
-    \boldsymbol{\theta}^* = \argmin_{\boldsymbol{\theta} \in \Theta} \|\mathbf{x}_v - A(\boldsymbol{\theta})\mathbf{x}_u - \mathbf{b}(\boldsymbol{\theta})\|_{\mathbf{W}}^2 + \mathcal{P}_{\text{iso}}(\boldsymbol{\theta}) + \mathcal{P}_{\text{Gibbs}}(\boldsymbol{\theta})
-    \end{equation}
+	\item \textbf{Transport Optimization}: Fix $\mathbf{z} = \mathbf{0}$ and optimize over $\boldsymbol{\theta}$ to find the best transport model:
+	      \begin{equation}\label{eq:transport_opt}
+		      \boldsymbol{\theta}^* = \argmin_{\boldsymbol{\theta} \in \Theta} \|\mathbf{x}_v - A(\boldsymbol{\theta})\mathbf{x}_u - \mathbf{b}(\boldsymbol{\theta})\|_{\mathbf{W}}^2 + \mathcal{P}_{\text{iso}}(\boldsymbol{\theta}) + \mathcal{P}_{\text{Gibbs}}(\boldsymbol{\theta})
+	      \end{equation}
 
-    \item \textbf{Reaction Optimization}: Fix $\boldsymbol{\theta} = \boldsymbol{\theta}^*$, compute residual $\mathbf{r} = \mathbf{x}_v - A(\boldsymbol{\theta}^*)\mathbf{x}_u - \mathbf{b}(\boldsymbol{\theta}^*)$, and solve:
-    \begin{equation}\label{eq:reaction_opt}
-    \mathbf{z}^* = \argmin_{\mathbf{z}} \frac{1}{2} \|\mathbf{r} - S\mathbf{z}\|_{\mathbf{W}}^2 + \lambda \|\mathbf{z}\|_1 + \mathcal{P}_{\text{EC/TDS}}(\mathbf{z}) + \mathcal{P}_{\text{cons}}(\mathbf{z}) \quad \text{s.t.} \quad \boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}
-    \end{equation}
+	\item \textbf{Reaction Optimization}: Fix $\boldsymbol{\theta} = \boldsymbol{\theta}^*$, compute residual $\mathbf{r} = \mathbf{x}_v - A(\boldsymbol{\theta}^*)\mathbf{x}_u - \mathbf{b}(\boldsymbol{\theta}^*)$, and solve:
+	      \begin{equation}\label{eq:reaction_opt}
+		      \mathbf{z}^* = \argmin_{\mathbf{z}} \frac{1}{2} \|\mathbf{r} - S\mathbf{z}\|_{\mathbf{W}}^2 + \lambda \|\mathbf{z}\|_1 + \mathcal{P}_{\text{EC/TDS}}(\mathbf{z}) + \mathcal{P}_{\text{cons}}(\mathbf{z}) \quad \text{s.t.} \quad \boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}
+	      \end{equation}
 \end{enumerate}
 
 This decomposition exploits the structure of the problem: transport models have few parameters (1-2) amenable to exhaustive search or analytic solution, while reaction fitting is high-dimensional but sparse.
 
 \begin{remark}[Computational Efficiency]
-The two-stage strategy reduces computational cost dramatically. If we jointly optimized over $(\boldsymbol{\theta}, \mathbf{z})$, we would face a non-convex mixed continuous-discrete problem with $O(|\mathcal{C}| \cdot 2^m)$ potential model combinations (since each reaction can be active or inactive). By decoupling, we reduce this to $O(|\mathcal{C}|)$ transport evaluations plus one convex optimization in $\mathbb{R}^m$.
+	The two-stage strategy reduces computational cost dramatically. If we jointly optimized over $(\boldsymbol{\theta}, \mathbf{z})$, we would face a non-convex mixed continuous-discrete problem with $O(|\mathcal{C}| \cdot 2^m)$ potential model combinations (since each reaction can be active or inactive). By decoupling, we reduce this to $O(|\mathcal{C}|)$ transport evaluations plus one convex optimization in $\mathbb{R}^m$.
 \end{remark}
 \newpage
 \section{Graph-Theoretic Edge Inference}\label{sec:graph}
@@ -255,13 +261,13 @@ In groundwater networks, flow directions are inferred from hydraulic head measur
 
 Given hydraulic heads $h_i, h_j$ with uncertainties $\sigma_i, \sigma_j$ at nodes $i, j$ separated by distance $d_{ij}$, the head difference is:
 \begin{equation}
-\Delta h_{ij} = h_i - h_j \sim \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)
+	\Delta h_{ij} = h_i - h_j \sim \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)
 \end{equation}
 where $\mu_{ij} = \hat{h}_i - \hat{h}_j$ and $\sigma_{ij} = \sqrt{\sigma_i^2 + \sigma_j^2}$ (assuming independence).
 
 The probability of flow from $i$ to $j$ is:
 \begin{equation}\label{eq:edge_probability}
-p(i \to j) = \Phi(\mu_{ij} / \sigma_{ij}) \quad (\textit{Verified in} \texttt{tests/test\_graph\_probabilistic.py})
+	p(i \to j) = \Phi(\mu_{ij} / \sigma_{ij}) \quad (\textit{Verified in} \texttt{tests/test\_graph\_probabilistic.py})
 \end{equation}
 where $\Phi$ is the standard normal cumulative distribution function.
 
@@ -269,12 +275,12 @@ where $\Phi$ is the standard normal cumulative distribution function.
 
 To avoid spurious connections over large distances with small head differences (unrealistically flat gradients), we apply a gradient threshold. The hydraulic gradient is:
 \begin{equation}
-g_{ij} = \frac{|\Delta h_{ij}|}{d_{ij}}
+	g_{ij} = \frac{|\Delta h_{ij}|}{d_{ij}}
 \end{equation}
 
 If $g_{ij} < g_{\min}$ (e.g., $g_{\min} = 0.001$ or 1 m per 1000 m), we attenuate the edge probability:
 \begin{equation}\label{eq:gradient_guard}
-p(i \to j) \leftarrow 0.5 + (p(i \to j) - 0.5) \cdot \frac{g_{ij}}{g_{\min}}
+	p(i \to j) \leftarrow 0.5 + (p(i \to j) - 0.5) \cdot \frac{g_{ij}}{g_{\min}}
 \end{equation}
 
 This pulls probabilities toward 0.5 (maximum uncertainty) when gradients are implausibly small.
@@ -286,9 +292,9 @@ When direct head measurements are unavailable, we estimate head using secondary 
 \subsubsection{Tiered Data Model}
 
 \begin{enumerate}
-    \item \textbf{Tier A (Direct)}: Measured head $h$ with uncertainty $\sigma = 0.5$ m
-    \item \textbf{Tier B (Depth to Water)}: $h = h_{\text{surface}} - d_{\text{water}}$ with $\sigma = \sqrt{\sigma_{\text{surface}}^2 + \sigma_{\text{water}}^2}$
-    \item \textbf{Tier C (Topography)}: $h \approx h_{\text{surface}}$ with large uncertainty $\sigma = 10$ m
+	\item \textbf{Tier A (Direct)}: Measured head $h$ with uncertainty $\sigma = 0.5$ m
+	\item \textbf{Tier B (Depth to Water)}: $h = h_{\text{surface}} - d_{\text{water}}$ with $\sigma = \sqrt{\sigma_{\text{surface}}^2 + \sigma_{\text{water}}^2}$
+	\item \textbf{Tier C (Topography)}: $h \approx h_{\text{surface}}$ with large uncertainty $\sigma = 10$ m
 \end{enumerate}
 
 This hierarchical approach maximizes network coverage while appropriately propagating uncertainty.
@@ -297,15 +303,16 @@ This hierarchical approach maximizes network coverage while appropriately propag
 
 Let $h_i$ denote the latent hydraulic head at node $i$ and let $\mu_{dtw}$ be a shared mean depth-to-water parameter. With elevation $z_i$ available, we use a soft topographic prior:
 \begin{equation}
-h_i + \mu_{dtw} \approx z_i \quad \text{with} \quad \sigma_{\text{topo}}
+	h_i + \mu_{dtw} \approx z_i \quad \text{with} \quad \sigma_{\text{topo}}
 \end{equation}
-and incorporate observations of head (Tier A) and elevation-minus-depth-to-water (Tier B) as independent Gaussian measurements. The resulting posterior is multivariate normal and can be computed in closed form by assembling a precision matrix and solving linear systems (no MCMC required). When \texttt{--edge-head-inference bayesian\_mcmc} is selected and PyMC is available, a sampling-based posterior may be used; otherwise the implementation falls back to the exact linear solve.
+and incorporate observations of head (Tier A) and elevation-minus-depth-to-water (Tier B) as independent Gaussian measurements. The resulting posterior is multivariate normal and can be computed in closed form by assembling a precision matrix and solving linear systems (no MCMC required). When \texttt{--edge-head-inference bayesian\_mcmc} is selected and PyMC is available, a sampling-based posterior may be used; otherwise the implementation falls back to the exact linear solve (no additional dependency).
+
 
 \subsection{MAP-Weighted Edge Selection}
 
 When multiple candidate downstream neighbors are plausible for a node, Hydrosheaf supports MAP-style selection that combines chemistry fit quality with probabilistic edge priors. Given a candidate edge $(u\to v)$ with inferred probability $p_{uv}$ and geochemical objective $J_{uv}$ (the same \texttt{objective\_score} used for transport+reaction fitting), we define:
 \begin{equation}
-J^{MAP}_{uv} = J_{uv} + w \cdot \left(-\log(p_{uv} + \varepsilon)\right),
+	J^{MAP}_{uv} = J_{uv} + w \cdot \left(-\log(p_{uv} + \varepsilon)\right),
 \end{equation}
 and keep the top-$k$ edges per upstream node minimizing $J^{MAP}_{uv}$. This is selected with \nolinkurl{--infer-edges-method probabilistic_map} and parameters \nolinkurl{--edge-map-weight}, \nolinkurl{--edge-map-candidate-multiplier}, \nolinkurl{--edge-map-p-min} (see \nolinkurl{hydrosheaf/inference/network_fit.py}).
 
@@ -313,10 +320,11 @@ and keep the top-$k$ edges per upstream node minimizing $J^{MAP}_{uv}$. This is 
 
 When mesh-based flow/particle tracking outputs exist (e.g., MODFLOW/MODPATH), they can be imported as priors on $(u\to v)$ edges:
 \begin{itemize}
-    \item \textbf{Connectivity}: set $p_{uv}$ from particle connectivity fractions
-    \item \textbf{Travel time}: set $\tau_{uv}$ (mean and quantiles) to override or inform residence time estimation
+	\item \textbf{Connectivity}: set $p_{uv}$ from particle connectivity fractions
+	\item \textbf{Travel time}: set $\tau_{uv}$ (mean and quantiles) to override or inform residence time estimation
 \end{itemize}
-Hydrosheaf supports a file-based contract (\texttt{--physics-priors}) and a FloPy-based MODPATH endpoints reader (\texttt{--modpath-endpoints}) implemented in \texttt{hydrosheaf/physics/priors.py} and \texttt{hydrosheaf/physics/modpath.py}. MODFLOW/MODPATH and FloPy are standard tools in groundwater modeling workflows \cite{harbaugh2005, pollock2016, bakker2016}.
+Hydrosheaf supports a file-based contract (\texttt{--physics-priors}) and a FloPy-based MODPATH endpoints reader (\texttt{--modpath-endpoints}) implemented in \texttt{hydrosheaf/physics/priors.py} and \texttt{hydrosheaf/physics/modpath.py}. MODFLOW/MODPATH executables must be available on \texttt{PATH} for endpoint extraction. MODFLOW/MODPATH and FloPy are standard tools in groundwater modeling workflows \cite{harbaugh2005, pollock2016, bakker2016}.
+
 
 With the network topology established, we now proceed to model the geochemical processes occurring along each edge.
 \newpage
@@ -327,44 +335,44 @@ With the network topology established, we now proceed to model the geochemical p
 The evaporation model assumes conservative scaling of all solute concentrations:
 
 \begin{equation}\label{eq:evaporation}
-\mathbf{x}' = \gamma \mathbf{x}_u, \quad \gamma \geq 1
+	\mathbf{x}' = \gamma \mathbf{x}_u, \quad \gamma \geq 1
 \end{equation}
 
 where $\gamma$ is the concentration factor. Physically, $\gamma$ represents the fraction of water lost to evapotranspiration: if $\gamma = 2$, half the water volume was lost.
 
 \begin{theorem}[Optimal Evaporation Factor]\label{thm:evap_optimal}
-For the weighted least squares problem:
-\begin{equation}
-\min_{\gamma \geq 1} \|\mathbf{x}_v - \gamma \mathbf{x}_u\|_{\mathbf{W}}^2
-\end{equation}
-the optimal solution is:
-\begin{equation}\label{eq:gamma_optimal}
-\gamma^* = \max\left\{1, \frac{\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_v}{\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u}\right\}
-\end{equation}
+	For the weighted least squares problem:
+	\begin{equation}
+		\min_{\gamma \geq 1} \|\mathbf{x}_v - \gamma \mathbf{x}_u\|_{\mathbf{W}}^2
+	\end{equation}
+	the optimal solution is:
+	\begin{equation}\label{eq:gamma_optimal}
+		\gamma^* = \max\left\{1, \frac{\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_v}{\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u}\right\}
+	\end{equation}
 \end{theorem}
 
 \begin{proof}
-Expanding the objective function:
-\begin{align}
-f(\gamma) &= \|\mathbf{x}_v - \gamma \mathbf{x}_u\|_{\mathbf{W}}^2 = (\mathbf{x}_v - \gamma \mathbf{x}_u)^\top \mathbf{W} (\mathbf{x}_v - \gamma \mathbf{x}_u) \\
-&= \mathbf{x}_v^\top \mathbf{W} \mathbf{x}_v - 2\gamma \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_v + \gamma^2 \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u
-\end{align}
-This is a quadratic function in $\gamma$. Taking the derivative:
-\begin{equation}
-\frac{df}{d\gamma} = -2 \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_v + 2\gamma \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u
-\end{equation}
-Setting to zero yields:
-\begin{equation}
-\gamma_{\text{unconstrained}} = \frac{\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_v}{\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u}
-\end{equation}
-Since $\mathbf{W}$ is positive definite, $\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u > 0$. The second derivative:
-\begin{equation}
-\frac{d^2f}{d\gamma^2} = 2 \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u > 0
-\end{equation}
-confirms this is a minimum. Enforcing the constraint $\gamma \geq 1$ (evaporation cannot dilute):
-\begin{equation}
-\gamma^* = \max\{1, \gamma_{\text{unconstrained}}\}
-\end{equation}
+	Expanding the objective function:
+	\begin{align}
+		f(\gamma) & = \|\mathbf{x}_v - \gamma \mathbf{x}_u\|_{\mathbf{W}}^2 = (\mathbf{x}_v - \gamma \mathbf{x}_u)^\top \mathbf{W} (\mathbf{x}_v - \gamma \mathbf{x}_u)  \\
+		          & = \mathbf{x}_v^\top \mathbf{W} \mathbf{x}_v - 2\gamma \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_v + \gamma^2 \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u
+	\end{align}
+	This is a quadratic function in $\gamma$. Taking the derivative:
+	\begin{equation}
+		\frac{df}{d\gamma} = -2 \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_v + 2\gamma \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u
+	\end{equation}
+	Setting to zero yields:
+	\begin{equation}
+		\gamma_{\text{unconstrained}} = \frac{\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_v}{\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u}
+	\end{equation}
+	Since $\mathbf{W}$ is positive definite, $\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u > 0$. The second derivative:
+	\begin{equation}
+		\frac{d^2f}{d\gamma^2} = 2 \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u > 0
+	\end{equation}
+	confirms this is a minimum. Enforcing the constraint $\gamma \geq 1$ (evaporation cannot dilute):
+	\begin{equation}
+		\gamma^* = \max\{1, \gamma_{\text{unconstrained}}\}
+	\end{equation}
 \end{proof}
 
 \subsection{Single-Endmember Mixing Model}
@@ -372,50 +380,50 @@ confirms this is a minimum. Enforcing the constraint $\gamma \geq 1$ (evaporatio
 The mixing model represents dilution or mixing with a distinct water type (e.g., rainfall, river water):
 
 \begin{equation}\label{eq:mixing}
-\mathbf{x}' = (1-f) \mathbf{x}_u + f \mathbf{x}_{\text{end}}, \quad f \in [0, 1]
+	\mathbf{x}' = (1-f) \mathbf{x}_u + f \mathbf{x}_{\text{end}}, \quad f \in [0, 1]
 \end{equation}
 
 where $\mathbf{x}_{\text{end}} \in \mathbb{R}^n$ is the endmember composition and $f$ is the mixing fraction.
 
 \begin{theorem}[Optimal Mixing Fraction]\label{thm:mixing_optimal}
-For the weighted least squares problem:
-\begin{equation}
-\min_{f \in [0,1]} \|\mathbf{x}_v - (1-f)\mathbf{x}_u - f\mathbf{x}_{\text{end}}\|_{\mathbf{W}}^2
-\end{equation}
-the optimal solution is:
-\begin{equation}\label{eq:f_optimal}
-f^* = \max\left\{0, \min\left\{1, \frac{\mathbf{d}^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u)}{\mathbf{d}^\top \mathbf{W} \mathbf{d}}\right\}\right\}
-\end{equation}
-where $\mathbf{d} = \mathbf{x}_{\text{end}} - \mathbf{x}_u$.
+	For the weighted least squares problem:
+	\begin{equation}
+		\min_{f \in [0,1]} \|\mathbf{x}_v - (1-f)\mathbf{x}_u - f\mathbf{x}_{\text{end}}\|_{\mathbf{W}}^2
+	\end{equation}
+	the optimal solution is:
+	\begin{equation}\label{eq:f_optimal}
+		f^* = \max\left\{0, \min\left\{1, \frac{\mathbf{d}^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u)}{\mathbf{d}^\top \mathbf{W} \mathbf{d}}\right\}\right\}
+	\end{equation}
+	where $\mathbf{d} = \mathbf{x}_{\text{end}} - \mathbf{x}_u$.
 \end{theorem}
 
 \begin{proof}
-Let $\mathbf{d} = \mathbf{x}_{\text{end}} - \mathbf{x}_u$. Then:
-\begin{equation}
-\mathbf{x}' = \mathbf{x}_u + f \mathbf{d}
-\end{equation}
-The objective becomes:
-\begin{align}
-g(f) &= \|\mathbf{x}_v - \mathbf{x}_u - f\mathbf{d}\|_{\mathbf{W}}^2 \\
-&= (\mathbf{x}_v - \mathbf{x}_u)^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u) - 2f \mathbf{d}^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u) + f^2 \mathbf{d}^\top \mathbf{W} \mathbf{d}
-\end{align}
-Taking the derivative with respect to $f$:
-\begin{equation}
-\frac{dg}{df} = -2 \mathbf{d}^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u) + 2f \mathbf{d}^\top \mathbf{W} \mathbf{d}
-\end{equation}
-Setting to zero:
-\begin{equation}
-f_{\text{unconstrained}} = \frac{\mathbf{d}^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u)}{\mathbf{d}^\top \mathbf{W} \mathbf{d}}
-\end{equation}
-The second derivative $\frac{d^2g}{df^2} = 2\mathbf{d}^\top \mathbf{W} \mathbf{d} > 0$ confirms this is a minimum. Projecting onto $[0,1]$:
-\begin{equation}
-f^* = \begin{cases}
-0 & \text{if } f_{\text{unconstrained}} < 0 \\
-f_{\text{unconstrained}} & \text{if } f_{\text{unconstrained}} \in [0,1] \\
-1 & \text{if } f_{\text{unconstrained}} > 1
-\end{cases}
-\end{equation}
-which is equivalent to \eqref{eq:f_optimal}.
+	Let $\mathbf{d} = \mathbf{x}_{\text{end}} - \mathbf{x}_u$. Then:
+	\begin{equation}
+		\mathbf{x}' = \mathbf{x}_u + f \mathbf{d}
+	\end{equation}
+	The objective becomes:
+	\begin{align}
+		g(f) & = \|\mathbf{x}_v - \mathbf{x}_u - f\mathbf{d}\|_{\mathbf{W}}^2                                                                                                                          \\
+		     & = (\mathbf{x}_v - \mathbf{x}_u)^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u) - 2f \mathbf{d}^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u) + f^2 \mathbf{d}^\top \mathbf{W} \mathbf{d}
+	\end{align}
+	Taking the derivative with respect to $f$:
+	\begin{equation}
+		\frac{dg}{df} = -2 \mathbf{d}^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u) + 2f \mathbf{d}^\top \mathbf{W} \mathbf{d}
+	\end{equation}
+	Setting to zero:
+	\begin{equation}
+		f_{\text{unconstrained}} = \frac{\mathbf{d}^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u)}{\mathbf{d}^\top \mathbf{W} \mathbf{d}}
+	\end{equation}
+	The second derivative $\frac{d^2g}{df^2} = 2\mathbf{d}^\top \mathbf{W} \mathbf{d} > 0$ confirms this is a minimum. Projecting onto $[0,1]$:
+	\begin{equation}
+		f^* = \begin{cases}
+			0                        & \text{if } f_{\text{unconstrained}} < 0       \\
+			f_{\text{unconstrained}} & \text{if } f_{\text{unconstrained}} \in [0,1] \\
+			1                        & \text{if } f_{\text{unconstrained}} > 1
+		\end{cases}
+	\end{equation}
+	which is equivalent to \eqref{eq:f_optimal}.
 \end{proof}
 
 \subsection{Transport Model Selection}
@@ -423,45 +431,45 @@ which is equivalent to \eqref{eq:f_optimal}.
 In practice, we evaluate multiple transport hypotheses (evaporation, mixing with various endmembers, or no transport) and select the best-fitting model. Let $\mathcal{C}$ be the set of candidate models indexed by $c$, each with optimal parameter $\boldsymbol{\theta}_c^*$ and objective value $J_c$. Model selection uses Boltzmann-weighted probabilities:
 
 \begin{equation}\label{eq:boltzmann_weights}
-w_c = \exp(-(J_c - J_{\min})), \quad p_c = \frac{w_c}{\sum_{c' \in \mathcal{C}} w_{c'}}
+	w_c = \exp(-(J_c - J_{\min})), \quad p_c = \frac{w_c}{\sum_{c' \in \mathcal{C}} w_{c'}}
 \end{equation}
 
 where $J_{\min} = \min_{c \in \mathcal{C}} J_c$. This provides a soft model selection that accounts for model uncertainty.
 
 \begin{example}[Evaporation vs. Mixing Discrimination]\label{ex:evap_mix}
 
-\textit{This example is computationally verified in} \texttt{tests/test\_doc\_examples.py} (\texttt{test\_example\_4\_4\_transport\_selection}).
+	\textit{This example is computationally verified in} \texttt{tests/test\_doc\_examples.py} (\texttt{test\_example\_4\_4\_transport\_selection}).
 
-Consider two nodes with concentrations (in mmol/L):
-\begin{align*}
-\mathbf{x}_u &= [2.0, 1.0, 3.0, 5.0, 1.5, 2.0, 0.5, 0.1]^\top \quad \text{(Ca, Mg, Na, HCO$_3$, Cl, SO$_4$, NO$_3$, F)} \\
-\mathbf{x}_v &= [4.1, 2.0, 6.2, 10.1, 3.1, 4.0, 1.0, 0.2]^\top
-\end{align*}
-and isotope data $(\delta^{18}\text{O}_u, \delta^2\text{H}_u) = (-5.0, -30.0)$ permil, $(\delta^{18}\text{O}_v, \delta^2\text{H}_v) = (-2.5, -22.0)$ permil.
+	Consider two nodes with concentrations (in mmol/L):
+	\begin{align*}
+		\mathbf{x}_u & = [2.0, 1.0, 3.0, 5.0, 1.5, 2.0, 0.5, 0.1]^\top \quad \text{(Ca, Mg, Na, HCO$_3$, Cl, SO$_4$, NO$_3$, F)} \\
+		\mathbf{x}_v & = [4.1, 2.0, 6.2, 10.1, 3.1, 4.0, 1.0, 0.2]^\top
+	\end{align*}
+	and isotope data $(\delta^{18}\text{O}_u, \delta^2\text{H}_u) = (-5.0, -30.0)$ permil, $(\delta^{18}\text{O}_v, \delta^2\text{H}_v) = (-2.5, -22.0)$ permil.
 
-\textbf{Evaporation hypothesis:} Using Theorem \ref{thm:evap_optimal} with $\mathbf{W} = I$:
-\begin{equation}
-\gamma^* = \frac{\mathbf{x}_u^\top \mathbf{x}_v}{\mathbf{x}_u^\top \mathbf{x}_u} = \frac{2.0(4.1) + \cdots + 0.1(0.2)}{2.0^2 + \cdots + 0.1^2} = \frac{92.47}{45.51} \approx 2.03
-\end{equation}
-This predicts $\mathbf{x}_{\text{pred}} = 2.03 \mathbf{x}_u$, with squared error $\|\mathbf{x}_v - \mathbf{x}_{\text{pred}}\|^2 \approx 0.024$.
+	\textbf{Evaporation hypothesis:} Using Theorem \ref{thm:evap_optimal} with $\mathbf{W} = I$:
+	\begin{equation}
+		\gamma^* = \frac{\mathbf{x}_u^\top \mathbf{x}_v}{\mathbf{x}_u^\top \mathbf{x}_u} = \frac{2.0(4.1) + \cdots + 0.1(0.2)}{2.0^2 + \cdots + 0.1^2} = \frac{92.47}{45.51} \approx 2.03
+	\end{equation}
+	This predicts $\mathbf{x}_{\text{pred}} = 2.03 \mathbf{x}_u$, with squared error $\|\mathbf{x}_v - \mathbf{x}_{\text{pred}}\|^2 \approx 0.024$.
 
-For isotopes, the deuterium excess changes from $d_u = -30.0 - 8(-5.0) = 10.0$ to $d_v = -22.0 - 8(-2.5) = -2.0$, a decrease of 12 permil, consistent with evaporation. The isotope penalty is small.
+	For isotopes, the deuterium excess changes from $d_u = -30.0 - 8(-5.0) = 10.0$ to $d_v = -22.0 - 8(-2.5) = -2.0$, a decrease of 12 permil, consistent with evaporation. The isotope penalty is small.
 
-\textbf{Mixing hypothesis:} If a rainfall endmember has $\mathbf{x}_{\text{rain}} = [0.2, 0.1, 1.0, 2.0, 0.5, 0.1, 0.0, 0.0]^\top$, then $\mathbf{d} = \mathbf{x}_{\text{rain}} - \mathbf{x}_u$. Using Theorem \ref{thm:mixing_optimal}:
-\begin{equation}
-f^* = \frac{\mathbf{d}^\top (\mathbf{x}_v - \mathbf{x}_u)}{\mathbf{d}^\top \mathbf{d}} \approx \frac{-32.04}{21.92} \approx -1.46
-\end{equation}
-Since $f^* < 0$, projection gives $f^* = 0$ (no mixing), and the fit degenerates to $\mathbf{x}_{\text{pred}} = \mathbf{x}_u$ with large error $\|\mathbf{x}_v - \mathbf{x}_u\|^2 \approx 48.48$.
+	\textbf{Mixing hypothesis:} If a rainfall endmember has $\mathbf{x}_{\text{rain}} = [0.2, 0.1, 1.0, 2.0, 0.5, 0.1, 0.0, 0.0]^\top$, then $\mathbf{d} = \mathbf{x}_{\text{rain}} - \mathbf{x}_u$. Using Theorem \ref{thm:mixing_optimal}:
+	\begin{equation}
+		f^* = \frac{\mathbf{d}^\top (\mathbf{x}_v - \mathbf{x}_u)}{\mathbf{d}^\top \mathbf{d}} \approx \frac{-32.04}{21.92} \approx -1.46
+	\end{equation}
+	Since $f^* < 0$, projection gives $f^* = 0$ (no mixing), and the fit degenerates to $\mathbf{x}_{\text{pred}} = \mathbf{x}_u$ with large error $\|\mathbf{x}_v - \mathbf{x}_u\|^2 \approx 48.48$.
 
-\textbf{Conclusion:} Evaporation is strongly preferred ($J_{\text{evap}} \ll J_{\text{mix}}$), correctly identifying the dominant process.
+	\textbf{Conclusion:} Evaporation is strongly preferred ($J_{\text{evap}} \ll J_{\text{mix}}$), correctly identifying the dominant process.
 \end{example}
 
 \begin{corollary}[Transport Model Uniqueness]\label{cor:transport_unique}
-For evaporation, if $\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_v > \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u > 0$, the optimal evaporation factor $\gamma^*$ is unique and $\gamma^* > 1$. For mixing, if $\mathbf{d}^\top \mathbf{W} \mathbf{d} > 0$, the optimal mixing fraction $f^*$ is unique (after projection to $[0,1]$).
+	For evaporation, if $\mathbf{x}_u^\top \mathbf{W} \mathbf{x}_v > \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u > 0$, the optimal evaporation factor $\gamma^*$ is unique and $\gamma^* > 1$. For mixing, if $\mathbf{d}^\top \mathbf{W} \mathbf{d} > 0$, the optimal mixing fraction $f^*$ is unique (after projection to $[0,1]$).
 \end{corollary}
 
 \begin{proof}
-Both objective functions are strictly convex quadratics (Theorems \ref{thm:evap_optimal}, \ref{thm:mixing_optimal}), ensuring unique unconstrained minimizers. Projection onto convex constraint sets preserves uniqueness for strictly convex functions.
+	Both objective functions are strictly convex quadratics (Theorems \ref{thm:evap_optimal}, \ref{thm:mixing_optimal}), ensuring unique unconstrained minimizers. Projection onto convex constraint sets preserves uniqueness for strictly convex functions.
 \end{proof}
 \newpage
 \section{Sparse Reaction Fitting}\label{sec:reaction}
@@ -470,18 +478,18 @@ Both objective functions are strictly convex quadratics (Theorems \ref{thm:evap_
 
 After transport, the residual mass:
 \begin{equation}
-\mathbf{r} = \mathbf{x}_v - A(\boldsymbol{\theta}^*)\mathbf{x}_u - \mathbf{b}(\boldsymbol{\theta}^*)
+	\mathbf{r} = \mathbf{x}_v - A(\boldsymbol{\theta}^*)\mathbf{x}_u - \mathbf{b}(\boldsymbol{\theta}^*)
 \end{equation}
 is explained by mineral reactions. The stoichiometric matrix $S \in \mathbb{R}^{n \times m}$ encodes the chemical changes from $m$ possible reactions. Column $\mathbf{s}_j$ gives the change in ion concentrations per mole of reaction $j$. For example, calcite dissolution:
 \begin{equation}
-\text{CaCO}_3 \to \text{Ca}^{2+} + \text{CO}_3^{2-}
+	\text{CaCO}_3 \to \text{Ca}^{2+} + \text{CO}_3^{2-}
 \end{equation}
 contributes $\mathbf{s}_{\text{calcite}} = [+1, 0, 0, \ldots, +1, 0, \ldots]^\top$ (in appropriate units).
 
 The LASSO problem seeks sparse reaction extents $\mathbf{z} \in \mathbb{R}^m$:
 
 \begin{equation}\label{eq:lasso}
-\min_{\mathbf{z}} \|\mathbf{r} - S\mathbf{z}\|_{\mathbf{W}}^2 + \lambda \|\mathbf{z}\|_1 \quad \text{subject to} \quad \boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}
+	\min_{\mathbf{z}} \|\mathbf{r} - S\mathbf{z}\|_{\mathbf{W}}^2 + \lambda \|\mathbf{z}\|_1 \quad \text{subject to} \quad \boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}
 \end{equation}
 
 The L1 penalty $\|\mathbf{z}\|_1 = \sum_{j=1}^m |z_j|$ promotes sparsity: many components of $\mathbf{z}^*$ are exactly zero, yielding a parsimonious explanation involving few reactions.
@@ -490,47 +498,47 @@ The L1 penalty $\|\mathbf{z}\|_1 = \sum_{j=1}^m |z_j|$ promotes sparsity: many c
 
 When an edge residence time estimate $\tau_{uv}$ is available (from physics priors, Darcy-based geometry, or temporal inference), Hydrosheaf can couple sparsity strength to travel time by scaling the L1 penalty:
 \begin{equation}
-\lambda_{uv} = \lambda_0 \cdot \frac{\tau_{\mathrm{ref}}}{\tau_{uv} + \epsilon},
+	\lambda_{uv} = \lambda_0 \cdot \frac{\tau_{\mathrm{ref}}}{\tau_{uv} + \epsilon},
 \end{equation}
 so that short travel times enforce stronger sparsity (discouraging large reaction extents over small $\tau$), while long travel times relax sparsity (allowing cumulative reaction progress). This is implemented in \texttt{hydrosheaf/inference/edge\_fit.py} and controlled by \texttt{--residence-coupling} and \texttt{--residence-ref-days}.
 
 \begin{proposition}[Sparsity-Inducing Property of L1]\label{prop:l1_sparsity}
-For the LASSO problem \eqref{eq:lasso}, as $\lambda \to \infty$, the solution approaches $\mathbf{z}^* \to \mathbf{0}$. For sufficiently large $\lambda$, $\mathbf{z}^* = \mathbf{0}$ exactly. Conversely, as $\lambda \to 0^+$, the solution approaches the unconstrained weighted least squares solution (subject to bounds $\boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}$).
+	For the LASSO problem \eqref{eq:lasso}, as $\lambda \to \infty$, the solution approaches $\mathbf{z}^* \to \mathbf{0}$. For sufficiently large $\lambda$, $\mathbf{z}^* = \mathbf{0}$ exactly. Conversely, as $\lambda \to 0^+$, the solution approaches the unconstrained weighted least squares solution (subject to bounds $\boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}$).
 \end{proposition}
 
 \begin{proof}
-The objective is continuous in $\lambda$. For $\lambda = 0$, the problem reduces to weighted least squares. As $\lambda$ increases, the penalty term $\lambda \|\mathbf{z}\|_1$ dominates, favoring smaller $|\mathbf{z}|$. There exists a threshold $\lambda_{\max}$ such that for $\lambda \geq \lambda_{\max}$, the origin $\mathbf{z} = \mathbf{0}$ (if feasible) minimizes the objective, since any non-zero $z_j$ incurs penalty $\lambda |z_j|$ exceeding potential reduction in the squared error term. Specifically, the threshold at which the first reaction enters the active set is $\lambda_{\max} = \max_j |\mathbf{s}_j^\top \mathbf{W} \mathbf{r}|$.
+	The objective is continuous in $\lambda$. For $\lambda = 0$, the problem reduces to weighted least squares. As $\lambda$ increases, the penalty term $\lambda \|\mathbf{z}\|_1$ dominates, favoring smaller $|\mathbf{z}|$. There exists a threshold $\lambda_{\max}$ such that for $\lambda \geq \lambda_{\max}$, the origin $\mathbf{z} = \mathbf{0}$ (if feasible) minimizes the objective, since any non-zero $z_j$ incurs penalty $\lambda |z_j|$ exceeding potential reduction in the squared error term. Specifically, the threshold at which the first reaction enters the active set is $\lambda_{\max} = \max_j |\mathbf{s}_j^\top \mathbf{W} \mathbf{r}|$.
 \end{proof}
 
 \begin{example}[Reaction Fitting for Calcite-Gypsum System]\label{ex:reaction_fit}
-\textit{This example is computationally verified in} \texttt{tests/test\_doc\_examples.py} (\texttt{test\_example\_5\_4\_reaction\_fitting}).
+	\textit{This example is computationally verified in} \texttt{tests/test\_doc\_examples.py} (\texttt{test\_example\_5\_4\_reaction\_fitting}).
 
-Consider residual $\mathbf{r} = [1.5, 0.2, 0.0, 1.5, 0.0, 1.0, 0.0, 0.0]^\top$ mmol/L (Ca, Mg, Na, HCO$_3$, Cl, SO$_4$, NO$_3$, F) after transport. The stoichiometric matrix includes calcite and gypsum:
-\begin{equation}
-S = \begin{bmatrix}
-1 & 1 \\
-0 & 0 \\
-0 & 0 \\
-1 & 0 \\
-0 & 0 \\
-0 & 1 \\
-0 & 0 \\
-0 & 0
-\end{bmatrix}, \quad
-\begin{matrix}
-\text{Calcite: CaCO}_3 \to \text{Ca}^{2+} + \text{HCO}_3^- \\
-\text{Gypsum: CaSO}_4 \to \text{Ca}^{2+} + \text{SO}_4^{2-}
-\end{matrix}
-\end{equation}
-(simplified stoichiometry). With $\mathbf{W} = I$ and $\lambda = 0.1$, we solve:
-\begin{equation}
-\min_{\mathbf{z}} \frac{1}{2} \|\mathbf{r} - S\mathbf{z}\|^2 + 0.1 (|z_1| + |z_2|)
-\end{equation}
-The unconstrained least squares solution is $\mathbf{z}_{\text{LS}} = (S^\top S)^{-1} S^\top \mathbf{r}$. Computing:
-\begin{equation}
-S^\top S = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}, \quad S^\top \mathbf{r} = \begin{bmatrix} 3.0 \\ 2.5 \end{bmatrix}, \quad \mathbf{z}_{\text{LS}} = \begin{bmatrix} 1.17 \\ 0.67 \end{bmatrix}
-\end{equation}
-Applying coordinate descent with soft-thresholding (Algorithm \ref{alg:coord_descent}), the LASSO solution is $\mathbf{z}^* = [1.15, 0.65]^\top$ (both reactions active), explaining Ca via mixed calcite-gypsum dissolution. If $\lambda$ were larger (e.g., $\lambda = 1.0$), one reaction might be suppressed entirely, yielding a sparser solution.
+	Consider residual $\mathbf{r} = [1.5, 0.2, 0.0, 1.5, 0.0, 1.0, 0.0, 0.0]^\top$ mmol/L (Ca, Mg, Na, HCO$_3$, Cl, SO$_4$, NO$_3$, F) after transport. The stoichiometric matrix includes calcite and gypsum:
+	\begin{equation}
+		S = \begin{bmatrix}
+			1 & 1 \\
+			0 & 0 \\
+			0 & 0 \\
+			1 & 0 \\
+			0 & 0 \\
+			0 & 1 \\
+			0 & 0 \\
+			0 & 0
+		\end{bmatrix}, \quad
+		\begin{matrix}
+			\text{Calcite: CaCO}_3 \to \text{Ca}^{2+} + \text{HCO}_3^- \\
+			\text{Gypsum: CaSO}_4 \to \text{Ca}^{2+} + \text{SO}_4^{2-}
+		\end{matrix}
+	\end{equation}
+	(simplified stoichiometry). With $\mathbf{W} = I$ and $\lambda = 0.1$, we solve:
+	\begin{equation}
+		\min_{\mathbf{z}} \frac{1}{2} \|\mathbf{r} - S\mathbf{z}\|^2 + 0.1 (|z_1| + |z_2|)
+	\end{equation}
+	The unconstrained least squares solution is $\mathbf{z}_{\text{LS}} = (S^\top S)^{-1} S^\top \mathbf{r}$. Computing:
+	\begin{equation}
+		S^\top S = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}, \quad S^\top \mathbf{r} = \begin{bmatrix} 3.0 \\ 2.5 \end{bmatrix}, \quad \mathbf{z}_{\text{LS}} = \begin{bmatrix} 1.17 \\ 0.67 \end{bmatrix}
+	\end{equation}
+	Applying coordinate descent with soft-thresholding (Algorithm \ref{alg:coord_descent}), the LASSO solution is $\mathbf{z}^* = [1.15, 0.65]^\top$ (both reactions active), explaining Ca via mixed calcite-gypsum dissolution. If $\lambda$ were larger (e.g., $\lambda = 1.0$), one reaction might be suppressed entirely, yielding a sparser solution.
 \end{example}
 
 \subsection{Coordinate Descent Algorithm}
@@ -538,94 +546,94 @@ Applying coordinate descent with soft-thresholding (Algorithm \ref{alg:coord_des
 Problem \eqref{eq:lasso} is solved via coordinate descent, which iteratively optimizes one component of $\mathbf{z}$ while holding others fixed.
 
 \begin{algorithm}
-\caption{Coordinate Descent for Bounded LASSO}\label{alg:coord_descent}
-\begin{algorithmic}[1]
-\State \textbf{Input:} Residual $\mathbf{r}$, stoichiometric matrix $S$, weights $\mathbf{W}$, penalty $\lambda$, bounds $\boldsymbol{\ell}, \mathbf{u}$
-\State \textbf{Initialize:} $\mathbf{z}^{(0)} = \mathbf{0}$, $k=0$
-\Repeat
-    \For{$j = 1$ to $m$}
-        \State Compute partial residual: $\rho_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{r} - \sum_{k \neq j} (\mathbf{s}_j^\top \mathbf{W} \mathbf{s}_k) z_k$
-        \State Compute normalization: $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j$
-        \State Apply soft-thresholding with projection:
-        \State $\tilde{z}_j \leftarrow \mathcal{S}(\rho_j / \nu_j, \lambda / \nu_j)$
-        \State $z_j \leftarrow \max\{\ell_j, \min\{\tilde{z}_j, u_j\}\}$
-    \EndFor
-    \State $k \leftarrow k+1$
-\Until{convergence (e.g., $\|\mathbf{z}^{(k)} - \mathbf{z}^{(k-1)}\|_\infty < \epsilon$)}
-\State \textbf{Return:} $\mathbf{z}^{(k)}$
-\end{algorithmic}
+	\caption{Coordinate Descent for Bounded LASSO}\label{alg:coord_descent}
+	\begin{algorithmic}[1]
+		\State \textbf{Input:} Residual $\mathbf{r}$, stoichiometric matrix $S$, weights $\mathbf{W}$, penalty $\lambda$, bounds $\boldsymbol{\ell}, \mathbf{u}$
+		\State \textbf{Initialize:} $\mathbf{z}^{(0)} = \mathbf{0}$, $k=0$
+		\Repeat
+		\For{$j = 1$ to $m$}
+		\State Compute partial residual: $\rho_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{r} - \sum_{k \neq j} (\mathbf{s}_j^\top \mathbf{W} \mathbf{s}_k) z_k$
+		\State Compute normalization: $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j$
+		\State Apply soft-thresholding with projection:
+		\State $\tilde{z}_j \leftarrow \mathcal{S}(\rho_j / \nu_j, \lambda / \nu_j)$
+		\State $z_j \leftarrow \max\{\ell_j, \min\{\tilde{z}_j, u_j\}\}$
+		\EndFor
+		\State $k \leftarrow k+1$
+		\Until{convergence (e.g., $\|\mathbf{z}^{(k)} - \mathbf{z}^{(k-1)}\|_\infty < \epsilon$)}
+		\State \textbf{Return:} $\mathbf{z}^{(k)}$
+	\end{algorithmic}
 \end{algorithm}
 
 \begin{definition}[Soft-Thresholding Operator]
-The soft-thresholding operator $\mathcal{S}: \mathbb{R} \times \mathbb{R}_+ \to \mathbb{R}$ is defined as:
-\begin{equation}\label{eq:soft_threshold}
-\mathcal{S}(\alpha, \tau) = \sign(\alpha) \max\{|\alpha| - \tau, 0\} = \begin{cases}
-\alpha - \tau & \text{if } \alpha > \tau \\
-0 & \text{if } |\alpha| \leq \tau \\
-\alpha + \tau & \text{if } \alpha < -\tau
-\end{cases}
-\end{equation}
-This operator shrinks $\alpha$ toward zero by amount $\tau$, setting it exactly to zero if $|\alpha| \leq \tau$.
+	The soft-thresholding operator $\mathcal{S}: \mathbb{R} \times \mathbb{R}_+ \to \mathbb{R}$ is defined as:
+	\begin{equation}\label{eq:soft_threshold}
+		\mathcal{S}(\alpha, \tau) = \sign(\alpha) \max\{|\alpha| - \tau, 0\} = \begin{cases}
+			\alpha - \tau & \text{if } \alpha > \tau      \\
+			0             & \text{if } |\alpha| \leq \tau \\
+			\alpha + \tau & \text{if } \alpha < -\tau
+		\end{cases}
+	\end{equation}
+	This operator shrinks $\alpha$ toward zero by amount $\tau$, setting it exactly to zero if $|\alpha| \leq \tau$.
 \end{definition}
 
 \begin{lemma}[Coordinate Update]\label{lem:coord_update}
-For fixed $z_k$ ($k \neq j$), the optimal update for $z_j$ minimizes the 1D subproblem (derived by completing the square and dividing by $2\nu_j$):
-\begin{equation}
-\min_{z_j} \frac{1}{2} (z_j - \rho_j/\nu_j)^2 + \frac{\lambda}{\nu_j} |z_j|
-\end{equation}
-where $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j$ and $\rho_j = \mathbf{s}_j^\top \mathbf{W} (\mathbf{r} - S_{-j}\mathbf{z}_{-j})$. The solution is:
-\begin{equation}
-z_j^* = \mathcal{S}(\rho_j/\nu_j, \lambda/\nu_j)
-\end{equation}
+	For fixed $z_k$ ($k \neq j$), the optimal update for $z_j$ minimizes the 1D subproblem (derived by completing the square and dividing by $2\nu_j$):
+	\begin{equation}
+		\min_{z_j} \frac{1}{2} (z_j - \rho_j/\nu_j)^2 + \frac{\lambda}{\nu_j} |z_j|
+	\end{equation}
+	where $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j$ and $\rho_j = \mathbf{s}_j^\top \mathbf{W} (\mathbf{r} - S_{-j}\mathbf{z}_{-j})$. The solution is:
+	\begin{equation}
+		z_j^* = \mathcal{S}(\rho_j/\nu_j, \lambda/\nu_j)
+	\end{equation}
 \end{lemma}
 
 \begin{proof}
-The subproblem for $z_j$ is:
-\begin{equation}
-\min_{z_j} \frac{1}{2} \|\mathbf{r} - \sum_{k=1}^m \mathbf{s}_k z_k\|_{\mathbf{W}}^2 + \lambda |z_j|
-\end{equation}
-Isolating $z_j$:
-\begin{equation}
-\min_{z_j} \frac{1}{2} \left\|\mathbf{r} - \mathbf{s}_j z_j - \sum_{k \neq j} \mathbf{s}_k z_k\right\|_{\mathbf{W}}^2 + \lambda |z_j|
-\end{equation}
-Let $\mathbf{r}_j = \mathbf{r} - \sum_{k \neq j} \mathbf{s}_k z_k$ be the partial residual. Expanding:
-\begin{align}
-h(z_j) &= \frac{1}{2} (\mathbf{r}_j - \mathbf{s}_j z_j)^\top \mathbf{W} (\mathbf{r}_j - \mathbf{s}_j z_j) + \lambda |z_j| \\
-&= \frac{1}{2} \mathbf{r}_j^\top \mathbf{W} \mathbf{r}_j - z_j \mathbf{s}_j^\top \mathbf{W} \mathbf{r}_j + \frac{1}{2} z_j^2 \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j + \lambda |z_j| \\
-&= \frac{\nu_j}{2} z_j^2 - \rho_j z_j + \lambda |z_j| + \text{const}
-\end{align}
-where $\rho_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{r}_j$ and $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j$. Rescaling by $\nu_j$:
-\begin{equation}
-\tilde{h}(z_j) = \frac{1}{2} z_j^2 - \frac{\rho_j}{\nu_j} z_j + \frac{\lambda}{\nu_j} |z_j| = \frac{1}{2}(z_j - \rho_j/\nu_j)^2 + \frac{\lambda}{\nu_j}|z_j| + \text{const}
-\end{equation}
-This is the standard LASSO subproblem with closed-form solution:
-\begin{equation}
-z_j^* = \mathcal{S}(\rho_j/\nu_j, \lambda/\nu_j)
-\end{equation}
-Note: In our formulation, the scaling remains consistent with the $\frac{1}{2}\|\cdot\|^2$ convention, leading to the update $\mathcal{S}(\rho_j/\nu_j, \lambda/\nu_j)$.
+	The subproblem for $z_j$ is:
+	\begin{equation}
+		\min_{z_j} \frac{1}{2} \|\mathbf{r} - \sum_{k=1}^m \mathbf{s}_k z_k\|_{\mathbf{W}}^2 + \lambda |z_j|
+	\end{equation}
+	Isolating $z_j$:
+	\begin{equation}
+		\min_{z_j} \frac{1}{2} \left\|\mathbf{r} - \mathbf{s}_j z_j - \sum_{k \neq j} \mathbf{s}_k z_k\right\|_{\mathbf{W}}^2 + \lambda |z_j|
+	\end{equation}
+	Let $\mathbf{r}_j = \mathbf{r} - \sum_{k \neq j} \mathbf{s}_k z_k$ be the partial residual. Expanding:
+	\begin{align}
+		h(z_j) & = \frac{1}{2} (\mathbf{r}_j - \mathbf{s}_j z_j)^\top \mathbf{W} (\mathbf{r}_j - \mathbf{s}_j z_j) + \lambda |z_j|                                                                     \\
+		       & = \frac{1}{2} \mathbf{r}_j^\top \mathbf{W} \mathbf{r}_j - z_j \mathbf{s}_j^\top \mathbf{W} \mathbf{r}_j + \frac{1}{2} z_j^2 \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j + \lambda |z_j| \\
+		       & = \frac{\nu_j}{2} z_j^2 - \rho_j z_j + \lambda |z_j| + \text{const}
+	\end{align}
+	where $\rho_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{r}_j$ and $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j$. Rescaling by $\nu_j$:
+	\begin{equation}
+		\tilde{h}(z_j) = \frac{1}{2} z_j^2 - \frac{\rho_j}{\nu_j} z_j + \frac{\lambda}{\nu_j} |z_j| = \frac{1}{2}(z_j - \rho_j/\nu_j)^2 + \frac{\lambda}{\nu_j}|z_j| + \text{const}
+	\end{equation}
+	This is the standard LASSO subproblem with closed-form solution:
+	\begin{equation}
+		z_j^* = \mathcal{S}(\rho_j/\nu_j, \lambda/\nu_j)
+	\end{equation}
+	Note: In our formulation, the scaling remains consistent with the $\frac{1}{2}\|\cdot\|^2$ convention, leading to the update $\mathcal{S}(\rho_j/\nu_j, \lambda/\nu_j)$.
 \end{proof}
 
 \subsection{Convergence Properties}
 
 \begin{theorem}[Coordinate Descent Convergence]\label{thm:cd_convergence}
-Let $\{z^{(k)}\}$ be the sequence generated by Algorithm \ref{alg:coord_descent}. Then:
-\begin{enumerate}
-    \item The objective function $\mathcal{L}(\mathbf{z})$ is non-increasing: $\mathcal{L}(\mathbf{z}^{(k+1)}) \leq \mathcal{L}(\mathbf{z}^{(k)})$
-    \item Every accumulation point of $\{\mathbf{z}^{(k)}\}$ is a stationary point of \eqref{eq:lasso}
-    \item If $S^\top \mathbf{W} S$ has full column rank, the sequence converges to the unique minimizer
-\end{enumerate}
+	Let $\{z^{(k)}\}$ be the sequence generated by Algorithm \ref{alg:coord_descent}. Then:
+	\begin{enumerate}
+		\item The objective function $\mathcal{L}(\mathbf{z})$ is non-increasing: $\mathcal{L}(\mathbf{z}^{(k+1)}) \leq \mathcal{L}(\mathbf{z}^{(k)})$
+		\item Every accumulation point of $\{\mathbf{z}^{(k)}\}$ is a stationary point of \eqref{eq:lasso}
+		\item If $S^\top \mathbf{W} S$ has full column rank, the sequence converges to the unique minimizer
+	\end{enumerate}
 \end{theorem}
 
 \begin{proof}[Proof Sketch]
-The coordinate descent update is the exact minimizer of a strongly convex subproblem (by Lemma \ref{lem:coord_update}), ensuring sufficient decrease. Since the objective is coercive and the feasible set is compact (due to bounds $\boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}$), the sequence has accumulation points. The sufficient decrease property and continuity of the objective imply accumulation points satisfy the KKT conditions. Full rank of $S^\top \mathbf{W} S$ ensures strict convexity, guaranteeing uniqueness. See Tseng (2001) for detailed convergence theory of coordinate descent.
+	The coordinate descent update is the exact minimizer of a strongly convex subproblem (by Lemma \ref{lem:coord_update}), ensuring sufficient decrease. Since the objective is coercive and the feasible set is compact (due to bounds $\boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}$), the sequence has accumulation points. The sufficient decrease property and continuity of the objective imply accumulation points satisfy the KKT conditions. Full rank of $S^\top \mathbf{W} S$ ensures strict convexity, guaranteeing uniqueness. See Tseng (2001) for detailed convergence theory of coordinate descent.
 \end{proof}
 
 \begin{proposition}[Linear Convergence Rate]\label{prop:linear_convergence}
-If $S^\top \mathbf{W} S$ has full rank and eigenvalues $0 < \lambda_{\min} \leq \cdots \leq \lambda_{\max}$, the coordinate descent algorithm converges linearly with rate bounded by $\rho < 1 - \lambda_{\min}/\lambda_{\max}$ (related to the condition number).
+	If $S^\top \mathbf{W} S$ has full rank and eigenvalues $0 < \lambda_{\min} \leq \cdots \leq \lambda_{\max}$, the coordinate descent algorithm converges linearly with rate bounded by $\rho < 1 - \lambda_{\min}/\lambda_{\max}$ (related to the condition number).
 \end{proposition}
 
 \begin{proof}[Proof Sketch]
-For quadratic objectives, coordinate descent is equivalent to Gauss-Seidel iteration on the normal equations. The convergence rate depends on the spectral properties of the iteration matrix $M = I - D^{-1}(S^\top \mathbf{W} S)$, where $D = \diag(S^\top \mathbf{W} S)$. For well-conditioned systems ($\lambda_{\max}/\lambda_{\min} \approx 1$), convergence is rapid. For ill-conditioned systems (highly correlated reactions), convergence slows. Empirically, 50-200 iterations suffice for most groundwater problems.
+	For quadratic objectives, coordinate descent is equivalent to Gauss-Seidel iteration on the normal equations. The convergence rate depends on the spectral properties of the iteration matrix $M = I - D^{-1}(S^\top \mathbf{W} S)$, where $D = \diag(S^\top \mathbf{W} S)$. For well-conditioned systems ($\lambda_{\max}/\lambda_{\min} \approx 1$), convergence is rapid. For ill-conditioned systems (highly correlated reactions), convergence slows. Empirically, 50-200 iterations suffice for most groundwater problems.
 \end{proof}
 
 \subsection{Active Set Interpretation}
@@ -633,7 +641,7 @@ For quadratic objectives, coordinate descent is equivalent to Gauss-Seidel itera
 Define the active set $\mathcal{A} = \{j : z_j^* \neq 0\}$, the subset of reactions with non-zero extent. The LASSO solution typically has $|\mathcal{A}| \ll m$ (e.g., 2-5 active reactions from 20-30 candidates). This sparse active set admits geochemical interpretation: these are the reactions "supported by the data."
 
 \begin{remark}[Degrees of Freedom]
-The effective degrees of freedom of the LASSO solution is approximately $|\mathcal{A}|$, not $m$. This reduces overfitting: even though we include many candidate reactions, the regularization prevents fitting noise. The sparsity level is controlled by $\lambda$, typically chosen via cross-validation or expert knowledge (e.g., geochemists may prefer solutions with $\leq 3$ reactions for interpretability).
+	The effective degrees of freedom of the LASSO solution is approximately $|\mathcal{A}|$, not $m$. This reduces overfitting: even though we include many candidate reactions, the regularization prevents fitting noise. The sparsity level is controlled by $\lambda$, typically chosen via cross-validation or expert knowledge (e.g., geochemists may prefer solutions with $\leq 3$ reactions for interpretability).
 \end{remark}
 \newpage
 \section{Thermodynamic Constraints}\label{sec:thermo}
@@ -642,18 +650,18 @@ The effective degrees of freedom of the LASSO solution is approximately $|\mathc
 
 For a mineral $M$ with dissolution reaction:
 \begin{equation}
-M \rightleftharpoons \sum_i \nu_i A_i
+	M \rightleftharpoons \sum_i \nu_i A_i
 \end{equation}
 where $A_i$ are aqueous species with stoichiometric coefficients $\nu_i$, the saturation index (SI) is:
 \begin{equation}\label{eq:saturation_index}
-\text{SI} = \log_{10}\left(\frac{\text{IAP}}{K_{sp}}\right) = \log_{10}\left(\frac{\prod_i a_i^{\nu_i}}{K_{sp}}\right)
+	\text{SI} = \log_{10}\left(\frac{\text{IAP}}{K_{sp}}\right) = \log_{10}\left(\frac{\prod_i a_i^{\nu_i}}{K_{sp}}\right)
 \end{equation}
 where $a_i$ is the activity of species $i$ and $K_{sp}$ is the solubility product. The saturation state determines thermodynamically feasible reactions:
 
 \begin{itemize}
-    \item $\text{SI} < 0$: Undersaturated, dissolution favored
-    \item $\text{SI} = 0$: Saturated, equilibrium
-    \item $\text{SI} > 0$: Supersaturated, precipitation favored
+	\item $\text{SI} < 0$: Undersaturated, dissolution favored
+	\item $\text{SI} = 0$: Saturated, equilibrium
+	\item $\text{SI} > 0$: Supersaturated, precipitation favored
 \end{itemize}
 
 \subsection{Constraint Construction}
@@ -661,46 +669,47 @@ where $a_i$ is the activity of species $i$ and $K_{sp}$ is the solubility produc
 For each reaction $j$, we compute SI at both upstream ($u$) and downstream ($v$) nodes using PHREEQC, a thermodynamic equilibrium code. With tolerance $\tau$ (typically 0.1-0.5), we impose bounds on $z_j$:
 
 \begin{equation}\label{eq:si_bounds}
-(\ell_j, u_j) = \begin{cases}
-(0, +\infty) & \text{if } \text{SI}_u < -\tau \text{ and } \text{SI}_v < -\tau \quad \text{(dissolution only)} \\
-(-\infty, 0) & \text{if } \text{SI}_u > \tau \text{ and } \text{SI}_v > \tau \quad \text{(precipitation only)} \\
-(-\infty, +\infty) & \text{otherwise} \quad \text{(free)}
-\end{cases}
+	(\ell_j, u_j) = \begin{cases}
+		(0, +\infty)       & \text{if } \text{SI}_u < -\tau \text{ and } \text{SI}_v < -\tau \quad \text{(dissolution only)} \\
+		(-\infty, 0)       & \text{if } \text{SI}_u > \tau \text{ and } \text{SI}_v > \tau \quad \text{(precipitation only)} \\
+		(-\infty, +\infty) & \text{otherwise} \quad \text{(free)}
+	\end{cases}
 \end{equation}
 
 In practice, we use finite bounds (e.g., $\pm 100$ mmol/L) for numerical stability.
 
 \begin{remark}
-These constraints encode the principle that minerals cannot precipitate in undersaturated solutions or dissolve excessively in supersaturated solutions. However, kinetic limitations may prevent reactions from reaching equilibrium; the L1 penalty compensates by shrinking $z_j$ toward zero when reactions are not strongly supported by the data.
+	These constraints encode the principle that minerals cannot precipitate in undersaturated solutions or dissolve excessively in supersaturated solutions. However, kinetic limitations may prevent reactions from reaching equilibrium; the L1 penalty compensates by shrinking $z_j$ toward zero when reactions are not strongly supported by the data.
 \end{remark}
 
 \begin{example}[Saturation Index Constraints]\label{ex:si_constraints}
-\textit{This logic is computationally verified in} \texttt{tests/test\_constraints\_phreeqc.py} (\texttt{test\_si\_bounds\_mapping}).
+	\textit{This logic is computationally verified in} \texttt{tests/test\_constraints\_phreeqc.py} (\texttt{test\_si\_bounds\_mapping}).
 
-Consider a groundwater sample with pH 7.2, Ca = 3.0 mmol/L, $HCO_3$ = 5.0 mmol/L. Using PHREEQC with the WATEQ4F database, we compute the saturation index for calcite:
-\begin{equation}
-\text{SI}_{\text{calcite}} = \log_{10}\left(\frac{a_{\text{Ca}^{2+}} a_{\text{CO}_3^{2-}}}{K_{sp}}\right) \approx 0.45
-\end{equation}
-Since SI $>$ 0.1, the solution is supersaturated, and calcite dissolution is thermodynamically disfavored. We impose $z_{\text{calcite}} \leq 0$ (precipitation only). If downstream SI drops to $-0.2$ (undersaturated), dissolution becomes feasible, and the bound is relaxed to $z_{\text{calcite}} \in \mathbb{R}$ or $z_{\text{calcite}} \geq 0$ depending on the upstream state.
+	Consider a groundwater sample with pH 7.2, Ca = 3.0 mmol/L, $HCO_3$ = 5.0 mmol/L. Using PHREEQC with the WATEQ4F database, we compute the saturation index for calcite:
+	\begin{equation}
+		\text{SI}_{\text{calcite}} = \log_{10}\left(\frac{a_{\text{Ca}^{2+}} a_{\text{CO}_3^{2-}}}{K_{sp}}\right) \approx 0.45
+	\end{equation}
+	Since SI $>$ 0.1, the solution is supersaturated, and calcite dissolution is thermodynamically disfavored. We impose $z_{\text{calcite}} \leq 0$ (precipitation only). If downstream SI drops to $-0.2$ (undersaturated), dissolution becomes feasible, and the bound is relaxed to $z_{\text{calcite}} \in \mathbb{R}$ or $z_{\text{calcite}} \geq 0$ depending on the upstream state.
 
-For gypsum with SI $= -1.2 < -0.1$ at both nodes, dissolution is thermodynamically favored: $z_{\text{gypsum}} \geq 0$. The LASSO solver respects these bounds via the projection step in Algorithm \ref{alg:coord_descent}, ensuring physically plausible solutions.
+	For gypsum with SI $= -1.2 < -0.1$ at both nodes, dissolution is thermodynamically favored: $z_{\text{gypsum}} \geq 0$. The LASSO solver respects these bounds via the projection step in Algorithm \ref{alg:coord_descent}, ensuring physically plausible solutions.
 \end{example}
 
 \subsection{Integration with PHREEQC}
 
 PHREEQC (pH-REdox-EQuilibrium-C) is a geochemical code solving aqueous speciation and equilibrium problems. For each node $(u, v)$, we:
 \begin{enumerate}
-    \item Input observed concentrations, temperature, pH to PHREEQC
-    \item Retrieve saturation indices for all minerals in the reaction dictionary
-    \item Construct bounds $(\ell_j, u_j)$ via \eqref{eq:si_bounds}
-    \item Pass bounds to the LASSO solver
+	\item Input observed concentrations, temperature, pH to PHREEQC
+	\item Retrieve saturation indices for all minerals in the reaction dictionary
+	\item Construct bounds $(\ell_j, u_j)$ via \eqref{eq:si_bounds}
+	\item Pass bounds to the LASSO solver
 \end{enumerate}
 
 This ensures thermodynamic consistency without explicitly solving equilibrium equations within the optimization loop. PHREEQC's extensive thermodynamic database (including activity corrections, temperature dependence, and complex ion pairs) provides reliable saturation indices.
 
 \subsubsection{Layer-Specific Mineral Libraries}
 
-In layered aquifer systems, mineral availability can vary by depth or hydrostratigraphic unit. Hydrosheaf supports edge-wise mineral dictionaries by selecting the active mineral set as a function of the downstream node's layer index (default column \texttt{aquifer\_layer}). For an edge $(u\to v)$ with layer label $\ell(v)$, the solver uses a layer-specific set $\mathcal{M}_{\ell(v)}$ when provided, otherwise the global mineral list $\mathcal{M}$. This changes both the stoichiometric dictionary and the PHREEQC-derived bounds, ensuring that thermodynamic feasibility is assessed against the appropriate mineral assemblage (\texttt{hydrosheaf/inference/network\_fit.py}, CLI: \texttt{--layer-minerals}).
+In layered aquifer systems, mineral availability can vary by depth or hydrostratigraphic unit. Hydrosheaf supports edge-wise mineral dictionaries by selecting the active mineral set as a function of the downstream node's layer index (default column \texttt{aquifer\_layer}). For an edge $(u\to v)$ with layer label $\ell(v)$, the solver uses a layer-specific set $\mathcal{M}_{\ell(v)}$ when provided, otherwise the global mineral list $\mathcal{M}$. This changes both the stoichiometric dictionary and the PHREEQC-derived bounds, ensuring that thermodynamic feasibility is assessed against the appropriate mineral assemblage (\texttt{hydrosheaf/inference/network\_fit.py}, CLI: \texttt{--layer-minerals}). For full 3D inference, enable \texttt{--3d} and supply \texttt{--z-key} plus optional layer definitions.
+
 \newpage
 \section{Isotope Hydrogeology}\label{sec:isotope}
 
@@ -708,11 +717,11 @@ In layered aquifer systems, mineral availability can vary by depth or hydrostrat
 
 Stable water isotopes ($\delta^{18}$O, $\delta^2$H) provide independent constraints on transport processes. The Global Meteoric Water Line (GMWL):
 \begin{equation}
-\delta^2\text{H} = 8 \cdot \delta^{18}\text{O} + 10
+	\delta^2\text{H} = 8 \cdot \delta^{18}\text{O} + 10
 \end{equation}
 describes the isotopic composition of precipitation. Local variations are captured by the Local Meteoric Water Line (LMWL):
 \begin{equation}\label{eq:lmwl}
-\delta^2\text{H} = a + b \cdot \delta^{18}\text{O}
+	\delta^2\text{H} = a + b \cdot \delta^{18}\text{O}
 \end{equation}
 fitted to regional precipitation data (typically $b \approx 8$, $a \approx 10$).
 
@@ -720,7 +729,7 @@ fitted to regional precipitation data (typically $b \approx 8$, $a \approx 10$).
 
 Deuterium excess quantifies deviation from the LMWL:
 \begin{equation}\label{eq:d_excess}
-d = \delta^2\text{H} - 8 \cdot \delta^{18}\text{O}
+	d = \delta^2\text{H} - 8 \cdot \delta^{18}\text{O}
 \end{equation}
 Evaporation causes enrichment in heavy isotopes along a slope $\approx 4-6$ (less than 8), reducing $d$. Mixing preserves $d$ (linear combination).
 
@@ -728,23 +737,23 @@ Evaporation causes enrichment in heavy isotopes along a slope $\approx 4-6$ (les
 
 Define the LMWL residual:
 \begin{equation}
-E = \delta^2\text{H} - (a + b \cdot \delta^{18}\text{O})
+	E = \delta^2\text{H} - (a + b \cdot \delta^{18}\text{O})
 \end{equation}
 
 For the evaporation hypothesis, we expect:
 \begin{itemize}
-    \item $|E_v| > |E_u|$: Downstream deviates more from LMWL
-    \item $d_v < d_u$: Deuterium excess decreases
+	\item $|E_v| > |E_u|$: Downstream deviates more from LMWL
+	\item $d_v < d_u$: Deuterium excess decreases
 \end{itemize}
 
 The evaporation penalty is:
 \begin{equation}\label{eq:iso_penalty_evap}
-\mathcal{P}_{\text{iso}}^{\text{evap}} = \eta_E \max(0, |E_u| - |E_v|)^2 + \eta_d \max(0, d_v - d_u)^2
+	\mathcal{P}_{\text{iso}}^{\text{evap}} = \eta_E \max(0, |E_u| - |E_v|)^2 + \eta_d \max(0, d_v - d_u)^2
 \end{equation}
 
 For mixing, we expect $|E_v| \approx |E_u|$ and $d_v \approx d_u$ (no systematic change). The mixing penalty is:
 \begin{equation}\label{eq:iso_penalty_mix}
-\mathcal{P}_{\text{iso}}^{\text{mix}} = \eta_E \max(0, |E_v| - |E_u|)^2
+	\mathcal{P}_{\text{iso}}^{\text{mix}} = \eta_E \max(0, |E_v| - |E_u|)^2
 \end{equation}
 
 These penalties are added to the transport optimization \eqref{eq:transport_opt}, biasing model selection toward isotopically consistent hypotheses.
@@ -756,8 +765,8 @@ While the core framework (Sections \ref{sec:transport}--\ref{sec:isotope}) appli
 The framework presented in previous sections quantifies nitrate transformations (primarily denitrification via the sparse reaction fitting in Section \ref{sec:reaction}), but does not identify the original source. This section extends the methodology with two complementary approaches for probabilistic source classification:
 
 \begin{enumerate}
-    \item \textbf{Method 1: Dual Isotope Mixing} -- Uses nitrogen ($\delta^{15}$N) and oxygen ($\delta^{18}$O) isotopes of nitrate to discriminate sources via Bayesian mixing models with literature endmembers.
-    \item \textbf{Method 2: Hydrochemical Ratios} -- Integrates hydrochemical ratios (NO$_3$/Cl, NO$_3$/K), reaction-derived indicators (denitrification extent), and compositional data analysis for source attribution when isotope data are unavailable.
+	\item \textbf{Method 1: Dual Isotope Mixing} -- Uses nitrogen ($\delta^{15}$N) and oxygen ($\delta^{18}$O) isotopes of nitrate to discriminate sources via Bayesian mixing models with literature endmembers.
+	\item \textbf{Method 2: Hydrochemical Ratios} -- Integrates hydrochemical ratios (NO$_3$/Cl, NO$_3$/K), reaction-derived indicators (denitrification extent), and compositional data analysis for source attribution when isotope data are unavailable.
 \end{enumerate}
 
 These methods provide source attribution essential for contamination forensics, complementing the transport-reaction analysis.
@@ -767,46 +776,46 @@ These methods provide source attribution essential for contamination forensics, 
 Nitrogen and oxygen isotope ratios in nitrate ($\delta^{15}$N and $\delta^{18}$O) provide direct fingerprints of nitrate sources. Different sources exhibit characteristic isotopic signatures:
 
 \begin{itemize}
-    \item \textbf{Manure/Sewage}: $\delta^{15}$N = 10--25\textperthousand, $\delta^{18}$O = 0--10\textperthousand
-    \item \textbf{Inorganic Fertilizer}: $\delta^{15}$N = $-5$ to $+5$\textperthousand, $\delta^{18}$O = 15--25\textperthousand
-    \item \textbf{Soil Nitrogen}: $\delta^{15}$N = 0--10\textperthousand, $\delta^{18}$O = 0--10\textperthousand
-    \item \textbf{Atmospheric Deposition}: $\delta^{15}$N = $-5$ to $+5$\textperthousand, $\delta^{18}$O = 40--70\textperthousand
+	\item \textbf{Manure/Sewage}: $\delta^{15}$N = 10--25\textperthousand, $\delta^{18}$O = 0--10\textperthousand
+	\item \textbf{Inorganic Fertilizer}: $\delta^{15}$N = $-5$ to $+5$\textperthousand, $\delta^{18}$O = 15--25\textperthousand
+	\item \textbf{Soil Nitrogen}: $\delta^{15}$N = 0--10\textperthousand, $\delta^{18}$O = 0--10\textperthousand
+	\item \textbf{Atmospheric Deposition}: $\delta^{15}$N = $-5$ to $+5$\textperthousand, $\delta^{18}$O = 40--70\textperthousand
 \end{itemize}
 
 We use a Bayesian classification approach with multivariate normal likelihoods. For each source $s$ with known isotopic mean $(\mu_{15N,s}, \mu_{18O,s})$ and covariance $\boldsymbol{\Sigma}_s$, the likelihood of observing sample isotopes $\mathbf{x} = (\delta^{15}\text{N}, \delta^{18}\text{O})$ is:
 
 \begin{equation}
-P(\mathbf{x} | s) = \frac{1}{2\pi |\boldsymbol{\Sigma}_s|^{1/2}} \exp\left( -\frac{1}{2} (\mathbf{x} - \boldsymbol{\mu}_s)^\top \boldsymbol{\Sigma}_s^{-1} (\mathbf{x} - \boldsymbol{\mu}_s) \right)
+	P(\mathbf{x} | s) = \frac{1}{2\pi |\boldsymbol{\Sigma}_s|^{1/2}} \exp\left( -\frac{1}{2} (\mathbf{x} - \boldsymbol{\mu}_s)^\top \boldsymbol{\Sigma}_s^{-1} (\mathbf{x} - \boldsymbol{\mu}_s) \right)
 \end{equation}
 
 Applying Bayes' theorem with uniform priors, the posterior probability for source $s$ is:
 
 \begin{equation}
-P(s | \mathbf{x}) = \frac{P(\mathbf{x} | s)}{\sum_{s'} P(\mathbf{x} | s')}
+	P(s | \mathbf{x}) = \frac{P(\mathbf{x} | s)}{\sum_{s'} P(\mathbf{x} | s')}
 \end{equation}
 
 \begin{example}[Dual Isotope Source Discrimination]\label{ex:nitrate_isotope}
-\textit{This example is computationally verified in} \texttt{tests/test\_nitrate\_isotopes.py}.
+	\textit{This example is computationally verified in} \texttt{tests/test\_nitrate\_isotopes.py}.
 
-Consider a groundwater sample with nitrate isotopes $\delta^{15}$N = 15.0\textperthousand, $\delta^{18}$O = 5.0\textperthousand. Using the endmember database in \texttt{hydrosheaf/databases/nitrate\_endmembers.json}, the Bayesian classifier yields:
+	Consider a groundwater sample with nitrate isotopes $\delta^{15}$N = 15.0\textperthousand, $\delta^{18}$O = 5.0\textperthousand. Using the endmember database in \texttt{hydrosheaf/databases/nitrate\_endmembers.json}, the Bayesian classifier yields:
 
-\begin{align*}
-P(\text{Manure} | \mathbf{x}) &= 1.0000 \\
-P(\text{Fertilizer} | \mathbf{x}) &< 0.0001 \\
-P(\text{Soil\_N} | \mathbf{x}) &< 0.0001 \\
-P(\text{Precipitation} | \mathbf{x}) &< 0.0001
-\end{align*}
+	\begin{align*}
+		P(\text{Manure} | \mathbf{x})        & = 1.0000 \\
+		P(\text{Fertilizer} | \mathbf{x})    & < 0.0001 \\
+		P(\text{Soil\_N} | \mathbf{x})       & < 0.0001 \\
+		P(\text{Precipitation} | \mathbf{x}) & < 0.0001
+	\end{align*}
 
-The sample is conclusively identified as \textbf{Manure} origin. For a contrasting case with $\delta^{15}$N = 0.0\textperthousand, $\delta^{18}$O = 20.0\textperthousand:
+	The sample is conclusively identified as \textbf{Manure} origin. For a contrasting case with $\delta^{15}$N = 0.0\textperthousand, $\delta^{18}$O = 20.0\textperthousand:
 
-\begin{align*}
-P(\text{Manure} | \mathbf{x}) &= 0.0001 \\
-P(\text{Fertilizer} | \mathbf{x}) &= 0.9680 \\
-P(\text{Soil\_N} | \mathbf{x}) &< 0.0001 \\
-P(\text{Precipitation} | \mathbf{x}) &= 0.0319
-\end{align*}
+	\begin{align*}
+		P(\text{Manure} | \mathbf{x})        & = 0.0001 \\
+		P(\text{Fertilizer} | \mathbf{x})    & = 0.9680 \\
+		P(\text{Soil\_N} | \mathbf{x})       & < 0.0001 \\
+		P(\text{Precipitation} | \mathbf{x}) & = 0.0319
+	\end{align*}
 
-This sample is classified as \textbf{Fertilizer} (96.8\% probability). Method 1 takes priority when isotope data are available and nitrate concentrations exceed the minimum threshold (default 10 mg/L, configurable via \texttt{--nitrate-source-min-conc}).
+	This sample is classified as \textbf{Fertilizer} (96.8\% probability). Method 1 takes priority when isotope data are available and nitrate concentrations exceed the minimum threshold (default 10 mg/L, configurable via \texttt{--nitrate-source-min-conc}).
 \end{example}
 
 \subsection{Method 2: Hydrochemical Ratios}
@@ -816,33 +825,33 @@ When isotope data are unavailable or inconclusive, Method 2 uses hydrochemical e
 \subsubsection{Compositional Data Analysis (CoDA)}
 To provide robust geochemical context independent of total concentration (TDS) or dilution, we utilize Compositional Data Analysis (CoDA). The 7-ion sub-composition $S^7 = \{\text{Ca, Mg, Na, K, HCO}_3, \text{Cl, SO}_4\}$ is transformed into Euclidean space using Isometric Log-Ratios (ilr) derived from a Sequential Binary Partition (SBP).
 \begin{equation}
-ilr_i = \sqrt{\frac{r s}{r+s}} \ln\left( \frac{g(x_+)}{g(x_-)} \right)
+	ilr_i = \sqrt{\frac{r s}{r+s}} \ln\left( \frac{g(x_+)}{g(x_-)} \right)
 \end{equation}
 where $g(\cdot)$ is the geometric mean of the respective ion groups.
 
 \subsubsection{Bayesian Evidence Accumulation}
 We distinguish between Manure and Inorganic Fertilizer sources using a probabilistic classifier. The system calculates a Manure Probability ($P_m$) by accumulating ``evidence'' ($\phi_k$) in log-odds space:
 \begin{equation}
-\text{Logit} = \ln\left(\frac{P_{prior}}{1-P_{prior}}\right) + \sum_{k} w_k \cdot \phi_k
+	\text{Logit} = \ln\left(\frac{P_{prior}}{1-P_{prior}}\right) + \sum_{k} w_k \cdot \phi_k
 \end{equation}
 \begin{equation}
-P(\text{Manure}) = \frac{1}{1 + e^{-\text{Logit}}}
+	P(\text{Manure}) = \frac{1}{1 + e^{-\text{Logit}}}
 \end{equation}
 
 \subsubsection{Evidence Terms}
 Features are z-scored using robust statistics (Median / MAD) to handle outliers:
 \begin{itemize}
-    \item \textbf{NO$_3$/Cl Ratio ($\phi_1$)}: High ratios indicate Fertilizer; Low ratios indicate Manure/Sewage.
-    \item \textbf{NO$_3$/K Ratio ($\phi_2$)}: Manure is rich in Potassium. High NO$_3$/K strongly suggests Fertilizer.
-    \item \textbf{Denitrification ($\phi_5$)}: Derived from the LASSO reaction model ($z_{\text{denitrif}}$). Strong denitrification supports Manure (organic carbon donor).
+	\item \textbf{NO$_3$/Cl Ratio ($\phi_1$)}: High ratios indicate Fertilizer; Low ratios indicate Manure/Sewage.
+	\item \textbf{NO$_3$/K Ratio ($\phi_2$)}: Manure is rich in Potassium. High NO$_3$/K strongly suggests Fertilizer.
+	\item \textbf{Denitrification ($\phi_5$)}: Derived from the LASSO reaction model ($z_{\text{denitrif}}$). Strong denitrification supports Manure (organic carbon donor).
 \end{itemize}
 
 \subsubsection{Background Threshold}
 To avoid attempting source discrimination on ambient groundwater with naturally low nitrate concentrations, we apply a minimum nitrate threshold $C_{\min}$ (default 10 mg/L). Samples with $[\text{NO}_3] < C_{\min}$ are classified as background and excluded from the discrimination analysis. This ensures that:
 \begin{itemize}
-    \item Evidence ratios ($NO_3$/Cl, $NO_3$/K) are calculated only where nitrate is meaningfully enriched
-    \item Geochemical signals are not dominated by analytical uncertainty near detection limits
-    \item Computational resources focus on impacted zones requiring source identification
+	\item Evidence ratios ($NO_3$/Cl, $NO_3$/K) are calculated only where nitrate is meaningfully enriched
+	\item Geochemical signals are not dominated by analytical uncertainty near detection limits
+	\item Computational resources focus on impacted zones requiring source identification
 \end{itemize}
 
 The threshold is configurable via the CLI parameter \texttt{--nitrate-source-min-conc} to accommodate site-specific conditions or analytical capabilities.
@@ -855,62 +864,64 @@ To prevent false positives in high-salinity evaporative environments (where rati
 \subsection{Overall Algorithm}
 
 \begin{algorithm}
-\caption{Network-Level Geochemical Inversion}\label{alg:network_fit}
-\begin{algorithmic}[1]
-\State \textbf{Input:} Graph $G=(V,E)$, concentrations $\{\mathbf{x}_v\}_{v \in V}$, isotopes, endmembers, reactions
-\For{each edge $(u,v) \in E$}
-    \State \textbf{Transport Stage:}
-    \For{each transport model $c \in \mathcal{C}$}
-        \State Compute $\boldsymbol{\theta}_c^*$ via Theorems \ref{thm:evap_optimal} or \ref{thm:mixing_optimal}
-        \State Evaluate $J_c = \|\mathbf{x}_v - A(\boldsymbol{\theta}_c^*)\mathbf{x}_u - \mathbf{b}(\boldsymbol{\theta}_c^*)\|_{\mathbf{W}}^2 + \mathcal{P}_{\text{iso}}(\boldsymbol{\theta}_c^*) + \mathcal{P}_{\text{Gibbs}}(\boldsymbol{\theta}_c^*)$
-    \EndFor
-    \State Select best model: $c^* = \argmin_c J_c$, set $\boldsymbol{\theta}^* = \boldsymbol{\theta}_{c^*}^*$
-    \State Compute residual: $\mathbf{r} = \mathbf{x}_v - A(\boldsymbol{\theta}^*)\mathbf{x}_u - \mathbf{b}(\boldsymbol{\theta}^*)$
-    \State \textbf{Reaction Stage:}
-    \State Construct stoichiometric matrix $S$ and bounds $\boldsymbol{\ell}, \mathbf{u}$ via PHREEQC (Section \ref{sec:thermo})
-    \State Solve LASSO problem \eqref{eq:lasso} via Algorithm \ref{alg:coord_descent}
-    \State Store results: $(\boldsymbol{\theta}^*, \mathbf{z}^*, J_{c^*}, p_c)$
-\EndFor
-\State \textbf{Output:} Per-edge transport models, reaction extents, fit quality
-\end{algorithmic}
+	\caption{Network-Level Geochemical Inversion}\label{alg:network_fit}
+	\begin{algorithmic}[1]
+		\State \textbf{Input:} Graph $G=(V,E)$, concentrations $\{\mathbf{x}_v\}_{v \in V}$, isotopes, endmembers, reactions
+		\For{each edge $(u,v) \in E$}
+		\State \textbf{Transport Stage:}
+		\For{each transport model $c \in \mathcal{C}$}
+		\State Compute $\boldsymbol{\theta}_c^*$ via Theorems \ref{thm:evap_optimal} or \ref{thm:mixing_optimal}
+		\State Evaluate $J_c = \|\mathbf{x}_v - A(\boldsymbol{\theta}_c^*)\mathbf{x}_u - \mathbf{b}(\boldsymbol{\theta}_c^*)\|_{\mathbf{W}}^2 + \mathcal{P}_{\text{iso}}(\boldsymbol{\theta}_c^*) + \mathcal{P}_{\text{Gibbs}}(\boldsymbol{\theta}_c^*)$
+		\EndFor
+		\State Select best model: $c^* = \argmin_c J_c$, set $\boldsymbol{\theta}^* = \boldsymbol{\theta}_{c^*}^*$
+		\State Compute residual: $\mathbf{r} = \mathbf{x}_v - A(\boldsymbol{\theta}^*)\mathbf{x}_u - \mathbf{b}(\boldsymbol{\theta}^*)$
+		\State \textbf{Reaction Stage:}
+		\State Construct stoichiometric matrix $S$ and bounds $\boldsymbol{\ell}, \mathbf{u}$ via PHREEQC (Section \ref{sec:thermo})
+		\State Solve LASSO problem \eqref{eq:lasso} via Algorithm \ref{alg:coord_descent}
+		\State Store results: $(\boldsymbol{\theta}^*, \mathbf{z}^*, J_{c^*}, p_c)$
+		\EndFor
+		\State \textbf{Output:} Per-edge transport models, reaction extents, fit quality
+	\end{algorithmic}
 \end{algorithm}
 
 \subsection{Implementation Map and CLI Reference}
 
-The Hydrosheaf implementation is organized as a modular pipeline. Table \ref{tab:impl_map} maps major mathematical components to the corresponding source-code modules and user-facing CLI switches.
+The Hydrosheaf implementation is organized as a modular pipeline. Table \ref{tab:impl_map} maps major mathematical components to the corresponding source-code modules and user-facing CLI switches. Optional modules (PyMC, PHREEQC, FloPy) should be installed only when needed; otherwise the pipeline degrades gracefully.
+
 
 \begin{table}[htbp]
-    \centering
-    \caption{Implementation Map (Mathematics $\rightarrow$ Code $\rightarrow$ CLI)}
-    \label{tab:impl_map}
-    \begin{tabular}{p{0.30\textwidth} p{0.44\textwidth} p{0.22\textwidth}}
-        \toprule
-        \textbf{Component} & \textbf{Primary code entry points} & \textbf{Key CLI flags} \\
-        \midrule
-        Input schema \& normalization & \texttt{hydrosheaf/cli.py}, \texttt{hydrosheaf/data/schema.py} & \texttt{--samples}, \texttt{--ion-order}, \texttt{--unit} \\
-        Edge inference (2D) & \texttt{hydrosheaf/graph/build.py} (\texttt{infer\_edges\_probabilistic}) & \texttt{--infer-edges}, \texttt{--infer-edges-method probabilistic} \\
-        Head inference (Bayesian) & \texttt{hydrosheaf/graph/head\_inference.py} & \texttt{--edge-head-inference bayesian/bayesian\_mcmc} \\
-        Edge inference (3D) & \texttt{hydrosheaf/graph3d/build\_3d.py} & \texttt{--3d}, \texttt{--z-key}, \texttt{--anisotropy} \\
-        MAP edge selection & \texttt{hydrosheaf/inference/network\_fit.py} (\texttt{infer\_edges}, \texttt{fit\_network}) & \texttt{--infer-edges-method probabilistic\_map}, \texttt{--edge-map-*} \\
-        Physics priors (file) & \texttt{hydrosheaf/physics/priors.py} & \texttt{--physics-priors}, \texttt{--physics-priors-mode} \\
-        Physics priors (MODPATH) & \texttt{hydrosheaf/physics/modpath.py} (FloPy) & \texttt{--modpath-endpoints}, \texttt{--modpath-*} \\
-        Vadose travel-time priors (Richards) & \nolinkurl{hydrosheaf/vadose/*} & \nolinkurl{--vadose-enabled}, \nolinkurl{--vadose-*} \\
-        Transport fitting & \texttt{hydrosheaf/models/transport.py}, \texttt{hydrosheaf/inference/edge\_fit.py} & \texttt{--endmember*} \\
-        Sparse reaction fitting (LASSO) & \texttt{hydrosheaf/models/reactions.py}, \texttt{hydrosheaf/inference/edge\_fit.py} & \texttt{--lambda-l1}, \texttt{--reaction-max-iter} \\
-        Thermodynamic constraints (PHREEQC) & \texttt{hydrosheaf/phreeqc/runner.py}, \texttt{hydrosheaf/phreeqc/constraints.py} & \texttt{--phreeqc-enabled}, \texttt{--phreeqc-mode} \\
-        Residence-time coupling & \texttt{hydrosheaf/inference/edge\_fit.py} & \texttt{--residence-coupling}, \texttt{--residence-ref-days} \\
-        Layer-specific minerals & \texttt{hydrosheaf/inference/network\_fit.py} & \texttt{--layer-minerals} \\
-        Temporal dynamics & \texttt{hydrosheaf/temporal/temporal\_edge\_fit.py}, \texttt{hydrosheaf/temporal/residence\_time.py} & \texttt{--temporal-enabled}, \texttt{--temporal-data}, \texttt{--residence-method} \\
-        Uncertainty quantification & \texttt{hydrosheaf/uncertainty/*} & \texttt{--uncertainty bootstrap/bayesian/monte\_carlo} \\
-        Reactive transport validation & \texttt{hydrosheaf/reactive\_transport/validation.py} & \texttt{--validate-forward} \\
-        Output export & \texttt{hydrosheaf/outputs/export.py}, \texttt{hydrosheaf/outputs/tables.py} & \texttt{--output}, \texttt{--format json/csv} \\
-        \bottomrule
-    \end{tabular}
+	\centering
+	\caption{Implementation Map (Mathematics $\rightarrow$ Code $\rightarrow$ CLI)}
+	\label{tab:impl_map}
+	\begin{tabular}{p{0.30\textwidth} p{0.44\textwidth} p{0.22\textwidth}}
+		\toprule
+		\textbf{Component}                   & \textbf{Primary code entry points}                                                                   & \textbf{Key CLI flags}                                                             \\
+		\midrule
+		Input schema \& normalization        & \texttt{hydrosheaf/cli.py}, \texttt{hydrosheaf/data/schema.py}                                       & \texttt{--samples}, \texttt{--ion-order}, \texttt{--unit}                          \\
+		Edge inference (2D)                  & \texttt{hydrosheaf/graph/build.py} (\texttt{infer\_edges\_probabilistic})                            & \texttt{--infer-edges}, \texttt{--infer-edges-method probabilistic}                \\
+		Head inference (Bayesian)            & \texttt{hydrosheaf/graph/head\_inference.py}                                                         & \texttt{--edge-head-inference bayesian/bayesian\_mcmc}                             \\
+		Edge inference (3D)                  & \texttt{hydrosheaf/graph3d/build\_3d.py}                                                             & \texttt{--3d}, \texttt{--z-key}, \texttt{--anisotropy}                             \\
+		MAP edge selection                   & \texttt{hydrosheaf/inference/network\_fit.py} (\texttt{infer\_edges}, \texttt{fit\_network})         & \texttt{--infer-edges-method probabilistic\_map}, \texttt{--edge-map-*}            \\
+		Physics priors (file)                & \texttt{hydrosheaf/physics/priors.py}                                                                & \texttt{--physics-priors}, \texttt{--physics-priors-mode}                          \\
+		Physics priors (MODPATH)             & \texttt{hydrosheaf/physics/modpath.py} (FloPy)                                                       & \texttt{--modpath-endpoints}, \texttt{--modpath-*}                                 \\
+		Vadose travel-time priors (Richards) & \nolinkurl{hydrosheaf/vadose/*}                                                                      & \nolinkurl{--vadose-enabled}, \nolinkurl{--vadose-*}                               \\
+		Transport fitting                    & \texttt{hydrosheaf/models/transport.py}, \texttt{hydrosheaf/inference/edge\_fit.py}                  & \texttt{--endmember*}                                                              \\
+		Sparse reaction fitting (LASSO)      & \texttt{hydrosheaf/models/reactions.py}, \texttt{hydrosheaf/inference/edge\_fit.py}                  & \texttt{--lambda-l1}, \texttt{--reaction-max-iter}                                 \\
+		Thermodynamic constraints (PHREEQC)  & \texttt{hydrosheaf/phreeqc/runner.py}, \texttt{hydrosheaf/phreeqc/constraints.py}                    & \texttt{--phreeqc-enabled}, \texttt{--phreeqc-mode}                                \\
+		Residence-time coupling              & \texttt{hydrosheaf/inference/edge\_fit.py}                                                           & \texttt{--residence-coupling}, \texttt{--residence-ref-days}                       \\
+		Layer-specific minerals              & \texttt{hydrosheaf/inference/network\_fit.py}                                                        & \texttt{--layer-minerals}                                                          \\
+		Temporal dynamics                    & \texttt{hydrosheaf/temporal/temporal\_edge\_fit.py}, \texttt{hydrosheaf/temporal/residence\_time.py} & \texttt{--temporal-enabled}, \texttt{--temporal-data}, \texttt{--residence-method} \\
+		Uncertainty quantification           & \texttt{hydrosheaf/uncertainty/*}                                                                    & \texttt{--uncertainty bootstrap/bayesian/monte\_carlo}                             \\
+		Reactive transport validation        & \texttt{hydrosheaf/reactive\_transport/validation.py}                                                & \texttt{--validate-forward}                                                        \\
+		Output export                        & \texttt{hydrosheaf/outputs/export.py}, \texttt{hydrosheaf/outputs/tables.py}                         & \texttt{--output}, \texttt{--format json/csv}                                      \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 \subsection{Programmatic API}
 
-In addition to the CLI entry point (\texttt{hydrosheaf.cli:main}), the pipeline can be called from Python for integration into notebooks, workflow engines, or custom UIs. The two primary functions are \texttt{infer\_edges} and \texttt{fit\_network} in \texttt{hydrosheaf/inference/network\_fit.py}. Inputs can be a list of row dictionaries (as produced by \texttt{csv.DictReader}) or a Pandas DataFrame, as supported by \texttt{hydrosheaf/data/schema.py}.
+In addition to the CLI entry point (\texttt{hydrosheaf.cli:main}), the pipeline can be called from Python for integration into notebooks, workflow engines, or custom UIs. The two primary functions are \texttt{infer\_edges} and \texttt{fit\_network} in \texttt{hydrosheaf/inference/network\_fit.py}. Inputs can be a list of row dictionaries (as produced by \texttt{csv.DictReader}) or a Pandas DataFrame, as supported by \texttt{hydrosheaf/data/schema.py}. Web adapters (FastAPI) convert frontend mg/L payloads to mmol/L before invoking the same core functions.
+
 
 \begin{verbatim}
 from hydrosheaf.config import Config
@@ -925,15 +936,47 @@ rows = edge_results_table(results)  # list[dict] schema used by JSON/CSV export
 
 Temporal residence time overrides can be supplied via \verb|fit_network(..., residence_time_overrides={edge_id: tau_days})|, and physics priors can be applied to inferred edges via \verb|infer_edges(..., edge_attr_overrides={edge_id: attrs})| (see \texttt{hydrosheaf/physics/priors.py}).
 
+\subsection{Example Scripts and Demo Data}
+
+The repository includes runnable scripts for demonstration and QA:
+\begin{itemize}
+	\item \texttt{hydrosheaf/examples/demo\_small\_network.py}: minimal end-to-end inference on an in-memory dataset.
+	\item \texttt{examples/demo\_research\_objectives.py}: research objectives demo using \texttt{hydrosheaf\_synthetic\_csv/} at the repo root. Optional PyMC (Bayesian mixing) and FloPy/MODFLOW\,/MT3DMS (transport coupling) steps are executed when available.
+\end{itemize}
+
+\subsubsection{CLI Examples}
+
+\begin{verbatim}
+# Core CLI run
+hydrosheaf --samples hydrosheaf/examples/sample_data.csv \
+  --edges hydrosheaf/examples/edges.csv \
+  --output results.json --format json
+
+# Probabilistic edge inference
+hydrosheaf --samples samples.csv --infer-edges \
+  --infer-edges-method probabilistic --edge-p-min 0.75 \
+  --edge-radius-km 5 --edge-max-neighbors 3 --output results.json
+
+# Temporal inference
+hydrosheaf --samples samples.csv --edges edges.csv \
+  --temporal-data timeseries.csv --temporal-enabled \
+  --residence-method cross_correlation --output results.json
+\end{verbatim}
+
+The web demo endpoints (FastAPI + React) reuse the same synthetic CSVs and expose objective-specific outputs under \texttt{/api/demo}.
+
+
 \subsection{Computational Complexity}
+
 
 For an edge with $n$ ions, $m$ reactions, and $|\mathcal{C}|$ transport candidates:
 \begin{itemize}
-    \item \textbf{Transport optimization}: $O(|\mathcal{C}| \cdot n)$ (closed-form solutions)
-    \item \textbf{Reaction optimization}: $O(T \cdot m \cdot n)$ where $T$ is iterations to convergence
+	\item \textbf{Transport optimization}: $O(|\mathcal{C}| \cdot n)$ (closed-form solutions)
+	\item \textbf{Reaction optimization}: $O(T \cdot m \cdot n)$ where $T$ is iterations to convergence
 \end{itemize}
 
-Typically $n=10$ (default), $m=20-30$, $|\mathcal{C}|=5-10$, and $T=50-200$. For a network with $|E|$ edges, total complexity is $O(|E| \cdot (|\mathcal{C}| \cdot n + T \cdot m \cdot n))$, dominated by the LASSO solves. Optional temporal estimation adds per-edge overhead: cross-correlation is $O(N\cdot L)$ for $N$ time points and $L$ lags; the TTD estimator solves a small nonnegative least squares problem on a lag grid; Bayesian lag evaluates a 1D posterior on a $\tau$ grid with a physics-informed prior.
+Typically $n=10$ (default), $m=20-30$, $|\mathcal{C}|=5-10$, and $T=50-200$. For a network with $|E|$ edges, total complexity is $O(|E| \cdot (|\mathcal{C}| \cdot n + T \cdot m \cdot n))$, dominated by the LASSO solves. Optional temporal estimation adds per-edge overhead: cross-correlation is $O(N\cdot L)$ for $N$ time points and $L$ lags; the TTD estimator solves a small nonnegative least squares problem on a lag grid; Bayesian lag evaluates a 1D posterior on a $\tau$ grid with a physics-informed prior. Bayesian MCMC (uncertainty and nitrate isotopes) and reactive transport validation can take minutes per edge depending on chain length and kinetic time steps.
+
 \newpage
 \section{Applications and Results}\label{sec:results}
 
@@ -944,26 +987,26 @@ This section presents the validation methodology, representative case studies, a
 Rigorous validation ensures physical and chemical plausibility of model outputs:
 
 \begin{enumerate}
-    \item \textbf{Charge balance}: Predicted concentrations must satisfy electroneutrality:
-    \begin{equation}
-    \text{CBE} = \frac{\sum z_i c_i^+ - \sum |z_j| c_j^-}{\sum z_i c_i^+ + \sum |z_j| c_j^-} \times 100\%
-    \end{equation}
-    where $z_i$ are ionic charges and $c_i$ are concentrations. Acceptable CBE $< 5\%$.
+	\item \textbf{Charge balance}: Predicted concentrations must satisfy electroneutrality:
+	      \begin{equation}
+		      \text{CBE} = \frac{\sum z_i c_i^+ - \sum |z_j| c_j^-}{\sum z_i c_i^+ + \sum |z_j| c_j^-} \times 100\%
+	      \end{equation}
+	      where $z_i$ are ionic charges and $c_i$ are concentrations. Acceptable CBE $< 5\%$.
 
-    \item \textbf{EC/TDS consistency}: Electrical conductivity (EC) and total dissolved solids (TDS) are predicted via linear models:
-    \begin{align}
-    \text{EC}_{\text{pred}} &= \alpha_{\text{EC}} \sum_i c_i + \beta_{\text{EC}} \\
-    \text{TDS}_{\text{pred}} &= \alpha_{\text{TDS}} \sum_i M_i c_i + \beta_{\text{TDS}}
-    \end{align}
-    where $M_i$ are molar masses. Deviations $>10\%$ flag potential issues.
+	\item \textbf{EC/TDS consistency}: Electrical conductivity (EC) and total dissolved solids (TDS) are predicted via linear models:
+	      \begin{align}
+		      \text{EC}_{\text{pred}}  & = \alpha_{\text{EC}} \sum_i c_i + \beta_{\text{EC}}       \\
+		      \text{TDS}_{\text{pred}} & = \alpha_{\text{TDS}} \sum_i M_i c_i + \beta_{\text{TDS}}
+	      \end{align}
+	      where $M_i$ are molar masses. Deviations $>10\%$ flag potential issues.
 
-    \item \textbf{Cross-validation}: Leave-one-well-out tests: fit the network excluding well $k$, predict its chemistry using fitted parameters from adjacent edges, compute prediction error. Median $R^2 \approx 0.85-0.92$ indicates good generalization.
+	\item \textbf{Cross-validation}: Leave-one-well-out tests: fit the network excluding well $k$, predict its chemistry using fitted parameters from adjacent edges, compute prediction error. Median $R^2 \approx 0.85-0.92$ indicates good generalization.
 
-    \item \textbf{Expert review}: Geochemists verify selected reactions align with regional geology (e.g., gypsum dissolution in evaporite-bearing formations, silicate weathering in granitic terrain).
+	\item \textbf{Expert review}: Geochemists verify selected reactions align with regional geology (e.g., gypsum dissolution in evaporite-bearing formations, silicate weathering in granitic terrain).
 
-    \item \textbf{Thermodynamic consistency}: All predicted saturation indices must respect directionality constraints (Section \ref{sec:thermo}). Dissolution reactions occur only in undersaturated conditions, precipitation only in supersaturated conditions.
+	\item \textbf{Thermodynamic consistency}: All predicted saturation indices must respect directionality constraints (Section \ref{sec:thermo}). Dissolution reactions occur only in undersaturated conditions, precipitation only in supersaturated conditions.
 
-    \item \textbf{Isotope coherence}: Transport model selection (evaporation vs. mixing) must be consistent with isotopic evolution (Section \ref{sec:isotope}). Discrepancies trigger diagnostic warnings.
+	\item \textbf{Isotope coherence}: Transport model selection (evaporation vs. mixing) must be consistent with isotopic evolution (Section \ref{sec:isotope}). Discrepancies trigger diagnostic warnings.
 \end{enumerate}
 
 These validation criteria are automatically checked during model fitting, with diagnostic flags raised when violations occur.
@@ -976,35 +1019,35 @@ The framework has been applied to diverse hydrogeochemical settings, demonstrati
 
 In semi-arid regions with intensive irrigation, groundwater salinization results from evapotranspiration (concentrating all solutes) or halite dissolution (increasing Na and Cl selectively). The framework discriminates these processes by:
 \begin{enumerate}
-    \item Testing evaporation hypothesis: If $\gamma \approx 2-3$ fits well and isotopes show enrichment ($\delta^{18}$O shift toward heavier values), evaporation is identified.
-    \item Testing halite dissolution: If residual after transport shows high Na and Cl with stoichiometric ratio $\approx 1:1$, halite dissolution $z_{\text{halite}} > 0$ is invoked.
-    \item Combined processes: Often both occur sequentially---evaporation concentrates salts, then halite precipitates and redissolves seasonally.
+	\item Testing evaporation hypothesis: If $\gamma \approx 2-3$ fits well and isotopes show enrichment ($\delta^{18}$O shift toward heavier values), evaporation is identified.
+	\item Testing halite dissolution: If residual after transport shows high Na and Cl with stoichiometric ratio $\approx 1:1$, halite dissolution $z_{\text{halite}} > 0$ is invoked.
+	\item Combined processes: Often both occur sequentially---evaporation concentrates salts, then halite precipitates and redissolves seasonally.
 \end{enumerate}
 
 \begin{example}[Salinization Case Study]
-\textit{This is an illustrative example demonstrating typical methodology application.}
+	\textit{This is an illustrative example demonstrating typical methodology application.}
 
-An aquifer network with 15 wells shows TDS increasing from 500 mg/L (upgradient) to 2500 mg/L (downgradient). Fitting reveals:
-\begin{itemize}
-    \item Edge 1 $\to$ 2: Evaporation $\gamma^* = 2.3$, deuterium excess drop of 8 permil, no reactions
-    \item Edge 2 $\to$ 3: Evaporation $\gamma^* = 1.8$, plus halite dissolution $z_{\text{halite}} = 5.2$ mmol/L
-    \item Edge 3 $\to$ 4: Mixing with irrigation return flow ($f = 0.1$), plus gypsum dissolution $z_{\text{gypsum}} = 2.6$ mmol/L
-\end{itemize}
-This sequential model explains 96\% of variance in major ion concentrations across the network.
+	An aquifer network with 15 wells shows TDS increasing from 500 mg/L (upgradient) to 2500 mg/L (downgradient). Fitting reveals:
+	\begin{itemize}
+		\item Edge 1 $\to$ 2: Evaporation $\gamma^* = 2.3$, deuterium excess drop of 8 permil, no reactions
+		\item Edge 2 $\to$ 3: Evaporation $\gamma^* = 1.8$, plus halite dissolution $z_{\text{halite}} = 5.2$ mmol/L
+		\item Edge 3 $\to$ 4: Mixing with irrigation return flow ($f = 0.1$), plus gypsum dissolution $z_{\text{gypsum}} = 2.6$ mmol/L
+	\end{itemize}
+	This sequential model explains 96\% of variance in major ion concentrations across the network.
 \end{example}
 
 \subsubsection{Nitrate Contamination and Denitrification}
 
 Nitrate (NO$_3$) in groundwater originates from fertilizers, septic systems, or atmospheric deposition. Denitrification (microbial reduction of NO$_3$ to N$_2$ gas) removes nitrate, often coupled to organic carbon oxidation or pyrite oxidation. The stoichiometric reaction is:
 \begin{equation}
-\text{5 CH}_2\text{O} + \text{4 NO}_3^- \to \text{2 N}_2 + \text{4 HCO}_3^- + \text{CO}_2 + \text{3 H}_2\text{O}
+	\text{5 CH}_2\text{O} + \text{4 NO}_3^- \to \text{2 N}_2 + \text{4 HCO}_3^- + \text{CO}_2 + \text{3 H}_2\text{O}
 \end{equation}
 The framework detects denitrification by identifying negative $z_{\text{denitrif}} < 0$ ($NO_3$ consumption) coupled with positive $HCO_3$ production ($\approx 1:1$ ratio).
 
 \begin{example}[Denitrification Quantification]
-\textit{This is an illustrative example demonstrating coupled reaction analysis.}
+	\textit{This is an illustrative example demonstrating coupled reaction analysis.}
 
-Along a flow path, $NO_3$ drops from 8.0 to 2.5 mmol/L while $HCO_3$ increases from 4.0 to 9.2 mmol/L. After accounting for calcite dissolution ($z_{\text{calcite}} = 1.3$ mmol/L contributing 1.3 mmol/L $HCO_3$), the residual $HCO_3$ gain is $9.2 - 4.0 - 1.3 = 3.9$ mmol/L. The LASSO solution yields $z_{\text{denitrif}} = -5.5$ mmol/L (consuming 5.5 mmol $NO_3$, producing $\approx 5.5$ mmol $HCO_3$). The discrepancy between predicted $HCO_3$ production ($5.5$ mmol/L) and residual observed gain ($3.9$ mmol/L) is attributed to $CO_2$ degassing or secondary mineral sinks, common in open-system groundwater. The HCO$_3$ recovery efficiency is $3.9/5.5 \approx 71$\%, indicating that approximately 71\% of the alkalinity produced by denitrification is retained in solution, with the remainder lost to CO$_2$ degassing.
+	Along a flow path, $NO_3$ drops from 8.0 to 2.5 mmol/L while $HCO_3$ increases from 4.0 to 9.2 mmol/L. After accounting for calcite dissolution ($z_{\text{calcite}} = 1.3$ mmol/L contributing 1.3 mmol/L $HCO_3$), the residual $HCO_3$ gain is $9.2 - 4.0 - 1.3 = 3.9$ mmol/L. The LASSO solution yields $z_{\text{denitrif}} = -5.5$ mmol/L (consuming 5.5 mmol $NO_3$, producing $\approx 5.5$ mmol $HCO_3$). The discrepancy between predicted $HCO_3$ production ($5.5$ mmol/L) and residual observed gain ($3.9$ mmol/L) is attributed to $CO_2$ degassing or secondary mineral sinks, common in open-system groundwater. The HCO$_3$ recovery efficiency is $3.9/5.5 \approx 71$\%, indicating that approximately 71\% of the alkalinity produced by denitrification is retained in solution, with the remainder lost to CO$_2$ degassing.
 \end{example}
 
 \subsubsection{Aquifer Mixing Analysis}
@@ -1015,7 +1058,7 @@ Multi-source aquifers (e.g., mountain-front recharge plus valley-fill alluvium) 
 
 In mountain watersheds, weathering of silicate minerals (feldspars, micas) vs. carbonate minerals (calcite, dolomite) produces distinct Na/Ca and Mg/Ca signatures. Silicate weathering reactions like:
 \begin{equation}
-\text{2 NaAlSi}_3\text{O}_8 + \text{2 CO}_2 + \text{11 H}_2\text{O} \to \text{Al}_2\text{Si}_2\text{O}_5(\text{OH})_4 + \text{2 Na}^+ + \text{2 HCO}_3^- + \text{4 H}_4\text{SiO}_4
+	\text{2 NaAlSi}_3\text{O}_8 + \text{2 CO}_2 + \text{11 H}_2\text{O} \to \text{Al}_2\text{Si}_2\text{O}_5(\text{OH})_4 + \text{2 Na}^+ + \text{2 HCO}_3^- + \text{4 H}_4\text{SiO}_4
 \end{equation}
 contribute Na and HCO$_3$ without Ca. The framework resolves mixed weathering by fitting both silicate and carbonate reactions, with thermodynamic constraints ensuring realistic mineral assemblages.
 
@@ -1028,17 +1071,18 @@ This subsection quantifies the computational efficiency, output format, and mode
 Hydrosheaf provides a command-line interface (\texttt{hydrosheaf}) that writes per-edge results as a flat table in either \textbf{JSON} (a list of row objects) or \textbf{CSV} (the same columns with a header row). Each row corresponds to one directed edge $(u \to v)$ and includes:
 
 \begin{itemize}
-    \item \textbf{Identifiers and topology}: \texttt{edge\_id}, \texttt{u}, \texttt{v}, plus optional inferred-edge attributes (\texttt{edge\_confidence}, \texttt{edge\_distance\_km}, \texttt{edge\_delta\_h}, \texttt{edge\_sigma\_delta\_h}, \texttt{edge\_source\_tier}, \texttt{edge\_flags}).
-    \item \textbf{Transport selection}: \texttt{transport\_model} in \{\texttt{evap}, \texttt{mix}\} with parameter \texttt{gamma} (evaporation) or \texttt{f} and \texttt{endmember\_id} (mixing), and soft model probabilities of the form \texttt{transport\_prob\_\{model\}} (e.g., \texttt{transport\_prob\_evap}, \texttt{transport\_prob\_mix}).
-    \item \textbf{Reaction extents}: one column per candidate reaction of the form \texttt{reaction\_\{label\}} (mmol/L). The set of reaction columns depends on the active reaction dictionary; positive extents indicate net release/dissolution and negative extents indicate net uptake/precipitation when signed extents are enabled. Solver diagnostics include \texttt{reaction\_iterations} and \texttt{reaction\_converged}.
-    \item \textbf{Objective and penalties}: \texttt{transport\_residual\_norm} (weighted SSE after transport), \texttt{anomaly\_norm} (reaction residual norm after fitting), \texttt{l1\_norm}, \texttt{objective\_score} (full objective), and optional penalties such as \texttt{ec\_tds\_penalty}, \texttt{isotope\_penalty}, \texttt{gibbs\_penalty}, and \texttt{isotope\_consistency\_penalty}.
-    \item \textbf{Quality-control and constraints}: \texttt{qc\_flags} (comma-separated), thermodynamic fields (\texttt{phreeqc\_ok}, \texttt{charge\_error}, \texttt{skipped\_reason}), and constraint summaries (\texttt{constraints\_active}, \texttt{si\_u}, \texttt{si\_v}).
-    \item \textbf{Optional nitrate source outputs}: \texttt{nitrate\_source\_p\_manure}, \texttt{nitrate\_source\_logit}, \texttt{nitrate\_source\_evidence}, \texttt{nitrate\_source\_gates}.
-    \item \textbf{3D/priors and MAP selection (optional)}: 3D geometry (\texttt{edge\_distance\_3d\_m}, \texttt{edge\_horizontal\_distance\_m}, \texttt{edge\_vertical\_distance\_m}, \texttt{edge\_type\_3d}, \texttt{edge\_horizontal\_gradient}, \texttt{edge\_vertical\_gradient}), probabilistic factors (\texttt{edge\_prob\_head}, \texttt{edge\_prob\_distance}, \texttt{edge\_prob\_layer}), and MAP-weighted edge selection diagnostics (\texttt{edge\_map\_penalty}, \texttt{edge\_map\_score}) when \texttt{--infer-edges-method probabilistic\_map} is used.
-    \item \textbf{Residence time (optional)}: \texttt{edge\_residence\_time\_days} (used to couple kinetics/regularization when enabled).
-    \item \textbf{Physics priors (optional)}: \texttt{physics\_source} and travel-time summaries (\texttt{physics\_tau\_mean\_days}, \texttt{physics\_tau\_std\_days}, \texttt{physics\_tau\_p10\_days}, \texttt{physics\_tau\_p90\_days}) when provided via \texttt{--physics-priors} or \texttt{--modpath-endpoints}.
-    \item \textbf{Temporal summaries (optional)}: temporal residence time and diagnostics (\texttt{temporal\_residence\_time\_days}, \texttt{temporal\_residence\_time\_method}, \texttt{temporal\_residence\_time\_uncertainty}, \texttt{temporal\_residence\_time\_flags}, \texttt{temporal\_residence\_time\_details}) and temporal fit summaries (\texttt{temporal\_gamma\_mean/std}, \texttt{temporal\_f\_mean/std}, \texttt{temporal\_reaction\_extents\_mean/std}, \texttt{temporal\_n\_time\_points}, \texttt{temporal\_total\_residual\_norm}).
-    \item \textbf{Uncertainty and validation (optional)}: \texttt{uncertainty\_method} with intervals/standard deviations (\texttt{gamma\_std}, \texttt{gamma\_ci\_low}, \texttt{gamma\_ci\_high}, \texttt{f\_std}, \texttt{f\_ci\_low}, \texttt{f\_ci\_high}, \texttt{extents\_std}, \texttt{extents\_ci\_low}, \texttt{extents\_ci\_high}) and diagnostics (\texttt{uncertainty\_r\_hat}, \texttt{uncertainty\_ess}); forward-validation annotations (\texttt{rt\_validated}, \texttt{rt\_simulator}, \texttt{rt\_residence\_time\_days}, \texttt{rt\_rmse}, \texttt{rt\_nse}, \texttt{rt\_pbias}, \texttt{rt\_thermodynamic\_consistent}).
+	\item \textbf{Identifiers and topology}: \texttt{edge\_id}, \texttt{u}, \texttt{v}, plus optional inferred-edge attributes (\texttt{edge\_confidence}, \texttt{edge\_distance\_km}, \texttt{edge\_delta\_h}, \texttt{edge\_sigma\_delta\_h}, \texttt{edge\_source\_tier}, \texttt{edge\_flags}).
+	\item \textbf{Transport selection}: \texttt{transport\_model} in \{\texttt{evap}, \texttt{mix}\} with parameter \texttt{gamma} (evaporation) or \texttt{f} and \texttt{endmember\_id} (mixing), and soft model probabilities of the form \texttt{transport\_prob\_\{model\}} (e.g., \texttt{transport\_prob\_evap}, \texttt{transport\_prob\_mix}).
+	\item \textbf{Reaction extents}: one column per candidate reaction of the form \texttt{reaction\_\{label\}} (mmol/L). The set of reaction columns depends on the active reaction dictionary; positive extents indicate net release/dissolution and negative extents indicate net uptake/precipitation when signed extents are enabled. Solver diagnostics include \texttt{reaction\_iterations} and \texttt{reaction\_converged}.
+	\item \textbf{Objective and penalties}: \texttt{transport\_residual\_norm} (weighted SSE after transport), \texttt{anomaly\_norm} (reaction residual norm after fitting), \texttt{l1\_norm}, \texttt{objective\_score} (full objective), and optional penalties such as \texttt{ec\_tds\_penalty}, \texttt{isotope\_penalty}, \texttt{gibbs\_penalty}, and \texttt{isotope\_consistency\_penalty}.
+	\item \textbf{Quality-control and constraints}: \texttt{qc\_flags} (comma-separated), thermodynamic fields (\texttt{phreeqc\_ok}, \texttt{charge\_error}, \texttt{skipped\_reason}), and constraint summaries (\texttt{constraints\_active}, \texttt{si\_u}, \texttt{si\_v}).
+	\item \textbf{Optional nitrate source outputs}: \texttt{nitrate\_source\_p\_manure}, \texttt{nitrate\_source\_logit}, \texttt{nitrate\_source\_evidence}, \texttt{nitrate\_source\_gates}.
+	\item \textbf{3D/priors and MAP selection (optional)}: 3D geometry (\texttt{edge\_distance\_3d\_m}, \texttt{edge\_horizontal\_distance\_m}, \texttt{edge\_vertical\_distance\_m}, \texttt{edge\_type\_3d}, \texttt{edge\_horizontal\_gradient}, \texttt{edge\_vertical\_gradient}), probabilistic factors (\texttt{edge\_prob\_head}, \texttt{edge\_prob\_distance}, \texttt{edge\_prob\_layer}), and MAP-weighted edge selection diagnostics (\texttt{edge\_map\_penalty}, \texttt{edge\_map\_score}) when \texttt{--infer-edges-method probabilistic\_map} is used.
+	\item \textbf{Residence time (optional)}: \texttt{edge\_residence\_time\_days} (used to couple kinetics/regularization when enabled).
+	\item \textbf{Physics priors (optional)}: \texttt{physics\_source} and travel-time summaries (\texttt{physics\_tau\_mean\_days}, \texttt{physics\_tau\_std\_days}, \texttt{physics\_tau\_p10\_days}, \texttt{physics\_tau\_p90\_days}) when provided via \texttt{--physics-priors} or \texttt{--modpath-endpoints}.
+	\item \textbf{Temporal summaries (optional)}: temporal residence time and diagnostics (\texttt{temporal\_residence\_time\_days}, \texttt{temporal\_residence\_time\_method}, \texttt{temporal\_residence\_time\_uncertainty}, \texttt{temporal\_residence\_time\_flags}, \texttt{temporal\_residence\_time\_details}) and temporal fit summaries (\texttt{temporal\_gamma\_mean/std}, \texttt{temporal\_f\_mean/std}, \texttt{temporal\_reaction\_extents\_mean/std}, \texttt{temporal\_n\_time\_points}, \texttt{temporal\_total\_residual\_norm}).
+	\item \textbf{Uncertainty and validation (optional)}: \texttt{uncertainty\_method} with intervals/standard deviations (\texttt{gamma\_std}, \texttt{gamma\_ci\_low}, \texttt{gamma\_ci\_high}, \texttt{f\_std}, \texttt{f\_ci\_low}, \texttt{f\_ci\_high}, \texttt{extents\_std}, \texttt{extents\_ci\_low}, \texttt{extents\_ci\_high}) and diagnostics (\texttt{uncertainty\_r\_hat}, \texttt{uncertainty\_ess}); forward-validation annotations (\texttt{rt\_validated}, \texttt{rt\_simulator}, \texttt{rt\_residence\_time\_days}, \texttt{rt\_rmse}, \texttt{rt\_nse}, \texttt{rt\_pbias}, \texttt{rt\_thermodynamic\_consistent}). Bayesian intervals require PyMC; otherwise \texttt{uncertainty\_method} remains \texttt{none}.
+
 \end{itemize}
 
 The exported schema is generated by \texttt{hydrosheaf/outputs/tables.py} (\texttt{edge\_results\_table}), which adds dynamic columns \texttt{transport\_prob\_*} (based on the evaluated transport hypotheses) and \texttt{reaction\_*} (one per reaction label used across edges). For compatibility with CSV export, several structured fields are stored as JSON-encoded strings (even in the JSON output file): \texttt{constraints\_active}, \texttt{si\_u}, \texttt{si\_v}, \texttt{isotope\_metrics}, \texttt{gibbs\_metrics}, \texttt{uncertainty\_r\_hat}, \texttt{uncertainty\_ess}, the CI/extents lists, and the temporal summary/detail fields (including TTD diagnostics). The optional \texttt{--interpret} flag prints a human-readable report to stdout; it is not part of the exported file. When temporal mode is enabled, Hydrosheaf also writes a separate time-series sidecar file (default suffix \texttt{.temporal.json}, produced by \texttt{hydrosheaf/outputs/temporal.py}) containing per-edge temporal fit summaries; the main per-edge output additionally includes temporal summary columns prefixed with \texttt{temporal\_}. If a temporal residence time is available for an edge, it is used as that edge's \texttt{edge\_residence\_time\_days} for residence-time coupling and kinetic forward validation.
@@ -1048,26 +1092,26 @@ The exported schema is generated by \texttt{hydrosheaf/outputs/tables.py} (\text
 Performance tests on representative aquifer networks:
 
 \begin{table}[htbp]
-    \centering
-    \caption{Computational Performance on Benchmark Networks}
-    \label{tab:performance_benchmarks}
-    \begin{tabular}{lcccc}
-        \toprule
-        \textbf{Network Size} & \textbf{Edges} & \textbf{Reactions/Edge} & \textbf{Total Time} & \textbf{Time/Edge} \\
-        \midrule
-        Small (10 wells) & 18 & 25 & 2.1 min & 7.0 s \\
-        Medium (50 wells) & 120 & 25 & 15.3 min & 7.7 s \\
-        Large (200 wells) & 520 & 30 & 68.5 min & 7.9 s \\
-        \bottomrule
-    \end{tabular}
+	\centering
+	\caption{Computational Performance on Benchmark Networks}
+	\label{tab:performance_benchmarks}
+	\begin{tabular}{lcccc}
+		\toprule
+		\textbf{Network Size} & \textbf{Edges} & \textbf{Reactions/Edge} & \textbf{Total Time} & \textbf{Time/Edge} \\
+		\midrule
+		Small (10 wells)      & 18             & 25                      & 2.1 min             & 7.0 s              \\
+		Medium (50 wells)     & 120            & 25                      & 15.3 min            & 7.7 s              \\
+		Large (200 wells)     & 520            & 30                      & 68.5 min            & 7.9 s              \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 Timing breakdown per edge (medium network, 8-core laptop):
 \begin{itemize}
-    \item Transport hypothesis evaluation: $\approx 0.8$ s (5-10 candidate models)
-    \item PHREEQC saturation index queries: $\approx 0.3$ s (2 nodes $\times$ 25 minerals)
-    \item LASSO coordinate descent: $\approx 6.2$ s (100-150 iterations to convergence)
-    \item Validation checks and output formatting: $\approx 0.4$ s
+	\item Transport hypothesis evaluation: $\approx 0.8$ s (5-10 candidate models)
+	\item PHREEQC saturation index queries: $\approx 0.3$ s (2 nodes $\times$ 25 minerals)
+	\item LASSO coordinate descent: $\approx 6.2$ s (100-150 iterations to convergence)
+	\item Validation checks and output formatting: $\approx 0.4$ s
 \end{itemize}
 
 The LASSO solver dominates computational cost, but benefits from warm-start initialization and early stopping. Parallelization across edges yields near-linear speedup (efficiency $>$ 90\% on 8 cores). Memory footprint is modest: $\approx 50$ MB for a 100-well network including stoichiometric matrices and intermediate results.
@@ -1077,21 +1121,21 @@ The LASSO solver dominates computational cost, but benefits from warm-start init
 Hydrosheaf introduces a distinct paradigm in hydrogeochemical modeling by integrating statistical learning and graph theory with classical thermodynamics. While tools like PHREEQC (USGS), NETPATH, and Geochemist's Workbench (GWB) remain standards for equilibrium speciation and 1D transport, Hydrosheaf addresses several critical gaps in network-scale inverse modeling.
 
 \begin{table}[htbp]
-    \centering
-    \caption{Comparison of Inverse Modeling Capabilities and Features}
-    \label{tab:software_comparison}
-    \begin{tabularx}{\textwidth}{@{} l C C C C @{}}
-        \toprule
-        \textbf{Feature} & \textbf{Hydrosheaf} & \textbf{PHREEQC} & \textbf{NETPATH} & \textbf{GWB} \\
-        \midrule
-        \textbf{Algorithm} & \textit{Sparse L1 Optimization} & Combinatorial Search & Mass Balance & Mass Balance \\ \addlinespace
-        \textbf{Network Inference} & \textit{Probabilistic Graph} & User-Defined 1D Path & User-Defined & User-Defined \\ \addlinespace
-        \textbf{Transport Logic} & \textit{Hypothesis Comp. (AIC)} & Fixed Assumption & Fixed Mixing & Fixed \\ \addlinespace
-        \textbf{Isotopes} & \textit{Dual-Isotope Mixing} & Basic Fractionation & Rayleigh & Basic \\ \addlinespace
-        \textbf{Uncertainty} & \textit{Bayesian MCMC / Bootstrap} & Sensitivity Analysis & None & Monte Carlo (React) \\ \addlinespace
-        \textbf{Nitrate Source} & \textit{CoDA + Bayesian Gating} & None & None & None \\
-        \bottomrule
-    \end{tabularx}
+	\centering
+	\caption{Comparison of Inverse Modeling Capabilities and Features}
+	\label{tab:software_comparison}
+	\begin{tabularx}{\textwidth}{@{} l C C C C @{}}
+		\toprule
+		\textbf{Feature}           & \textbf{Hydrosheaf}                & \textbf{PHREEQC}     & \textbf{NETPATH} & \textbf{GWB}        \\
+		\midrule
+		\textbf{Algorithm}         & \textit{Sparse L1 Optimization}    & Combinatorial Search & Mass Balance     & Mass Balance        \\ \addlinespace
+		\textbf{Network Inference} & \textit{Probabilistic Graph}       & User-Defined 1D Path & User-Defined     & User-Defined        \\ \addlinespace
+		\textbf{Transport Logic}   & \textit{Hypothesis Comp. (AIC)}    & Fixed Assumption     & Fixed Mixing     & Fixed               \\ \addlinespace
+		\textbf{Isotopes}          & \textit{Dual-Isotope Mixing}       & Basic Fractionation  & Rayleigh         & Basic               \\ \addlinespace
+		\textbf{Uncertainty}       & \textit{Bayesian MCMC / Bootstrap} & Sensitivity Analysis & None             & Monte Carlo (React) \\ \addlinespace
+		\textbf{Nitrate Source}    & \textit{CoDA + Bayesian Gating}    & None                 & None             & None                \\
+		\bottomrule
+	\end{tabularx}
 \end{table}
 
 \subsection{Key Differentiators}
@@ -1099,9 +1143,9 @@ Hydrosheaf introduces a distinct paradigm in hydrogeochemical modeling by integr
 The framework presented in this document differs from existing tools in several important ways:
 
 \begin{itemize}
-    \item \textbf{Global Parsimony (Occam's Razor)}: Unlike PHREEQC's combinatorial approach which yields all mathematically possible models (often hundreds), Hydrosheaf uses L1 regularization (LASSO) to automatically select the simplest, most physically plausible reaction set.
-    \item \textbf{Automated Topology}: Existing codes require the user to explicitly define "Flow Path A to B." Hydrosheaf infers the flow network structure probabilistically from hydraulic heads and topography, making it suitable for regional-scale studies where flow paths are uncertain.
-    \item \textbf{Dual-Tier Source Apportionment}: Hydrosheaf is uniquely designed for contaminant forensics, integrating a specialized Bayesian engine for nitrate source discrimination that seamlessly blends hydrochemistry with isotope data.
+	\item \textbf{Global Parsimony (Occam's Razor)}: Unlike PHREEQC's combinatorial approach which yields all mathematically possible models (often hundreds), Hydrosheaf uses L1 regularization (LASSO) to automatically select the simplest, most physically plausible reaction set.
+	\item \textbf{Automated Topology}: Existing codes require the user to explicitly define "Flow Path A to B." Hydrosheaf infers the flow network structure probabilistically from hydraulic heads and topography, making it suitable for regional-scale studies where flow paths are uncertain.
+	\item \textbf{Dual-Tier Source Apportionment}: Hydrosheaf is uniquely designed for contaminant forensics, integrating a specialized Bayesian engine for nitrate source discrimination that seamlessly blends hydrochemistry with isotope data.
 \end{itemize}
 
 These capabilities complement rather than replace existing tools. PHREEQC remains essential for thermodynamic calculations, while Hydrosheaf provides a network-scale inverse modeling layer that leverages PHREEQC's saturation index computations.
@@ -1118,7 +1162,7 @@ To bridge the gap between inverse modeling and kinetic reality, we verify if the
 
 For a reaction $j$ with inverse-derived extent $\Delta \xi_j$ (mol/L) and residence time $\tau$ (days), the average rate is $R_{avg} = \Delta \xi_j / \tau$. We compare this to the theoretical transition state theory (TST) rate:
 \begin{equation}
-R_{TST} = k(T) \cdot \frac{A_0}{V} \cdot \left( 1 - \left( \frac{IAP}{K_{sp}} \right)^n \right)
+	R_{TST} = k(T) \cdot \frac{A_0}{V} \cdot \left( 1 - \left( \frac{IAP}{K_{sp}} \right)^n \right)
 \end{equation}
 where $k(T)$ is the temperature-dependent rate constant (Arrhenius: $k = A e^{-E_a/RT}$), $A_0/V$ is the specific surface area, and the term in brackets is the thermodynamic affinity.
 
@@ -1126,7 +1170,7 @@ where $k(T)$ is the temperature-dependent rate constant (Arrhenius: $k = A e^{-E
 
 We compute the Damköhler number ($Da$) to assess equilibrium validity:
 \begin{equation}
-Da_j = \frac{R_{TST} \cdot \tau}{C_{eq}}
+	Da_j = \frac{R_{TST} \cdot \tau}{C_{eq}}
 \end{equation}
 If $Da \gg 1$, the reaction is fast relative to transport (equilibrium assumption holds). If $Da \ll 1$, the reaction is kinetically limited, and inverse results assuming equilibrium may be invalid.
 
@@ -1136,7 +1180,7 @@ If $Da \gg 1$, the reaction is fast relative to transport (equilibrium assumptio
 
 Consider the dissolution of Albite ($NaAlSi_3O_8$) estimated at $\Delta \xi = 0.5$ mmol/L over a residence time of $\tau = 3650$ days. The Arrhenius correction is applied to the standard rate constant ($k_{25} \approx 10^{-12} \text{mol/m}^2\text{/s}$):
 \begin{equation}
-k(T) = k_{25} \exp\left[-\frac{E_a}{R}\left(\frac{1}{T} - \frac{1}{T_{ref}}\right)\right]
+	k(T) = k_{25} \exp\left[-\frac{E_a}{R}\left(\frac{1}{T} - \frac{1}{T_{ref}}\right)\right]
 \end{equation}
 As verified in the test suite, setting $E_a=0$ confirms $k(T)=k_{ref}$, while $E_a=50$ kJ/mol at 35$^\circ$C yields the precise theoretical increase. A computed Damköhler number $Da > 100$ confirms the reaction is equilibrium-controlled, validating the inverse result.
 
@@ -1148,7 +1192,7 @@ We extend the graph inference to 3D layered systems, accounting for vertical ani
 
 The effective hydrological distance $d_{3D}$ between nodes $(x_1, y_1, z_1)$ and $(x_2, y_2, z_2)$ is defined using a vertical anisotropy factor $\alpha_v \approx \sqrt{K_v/K_h}$ (typically 0.01-0.1):
 \begin{equation}
-d_{3D} = \sqrt{(x_1-x_2)^2 + (y_1-y_2)^2 + \frac{(z_1-z_2)^2}{\alpha_v^2}}
+	d_{3D} = \sqrt{(x_1-x_2)^2 + (y_1-y_2)^2 + \frac{(z_1-z_2)^2}{\alpha_v^2}}
 \end{equation}
 This penalizes vertical flow paths, reflecting the natural barriers of stratified aquifers.
 
@@ -1156,7 +1200,7 @@ This penalizes vertical flow paths, reflecting the natural barriers of stratifie
 
 When hydraulic head data is missing, we infer flow direction probabilities from surface topography. Assuming the depth to water $d_{wt} \sim \mathcal{N}(\mu, \sigma^2)$, the probability that node $u$ flows to node $v$ is:
 \begin{equation}
-P(h_u > h_v) = \frac{1}{2} \left[ 1 + \text{erf}\left( \frac{z_{surf,u} - z_{surf,v}}{\sigma \sqrt{2}} \right) \right]
+	P(h_u > h_v) = \frac{1}{2} \left[ 1 + \text{erf}\left( \frac{z_{surf,u} - z_{surf,v}}{\sigma \sqrt{2}} \right) \right]
 \end{equation}
 where $\text{erf}$ is the error function. This provides a robust probabilistic fallback for data-sparse regions. As verified in \texttt{tests/test\_constraints.py}, the algorithm correctly computes flow probabilities ranging from $P \approx 1.0$ for mountain-to-valley flow to $P \approx 0.0$ for impossible uphill flow.
 
@@ -1164,8 +1208,8 @@ where $\text{erf}$ is the error function. This provides a robust probabilistic f
 
 Hydrosheaf's 3D graph inference is mesh-free: it constructs a probabilistic edge set using point observations (wells) and simple 3D constraints. When a calibrated mesh-based flow model is available, its outputs can be imported as \textit{optional physics priors} to improve topology and travel-time realism without replacing the inverse geochemical solver. In particular, MODPATH particle tracking can supply:
 \begin{itemize}
-    \item \textbf{Connectivity priors}: $p_{uv}$ proportional to the fraction of particles released near $u$ that terminate near $v$
-    \item \textbf{Travel-time priors}: mean/quantiles of particle travel time $\tau_{uv}$ for use as \texttt{edge\_residence\_time\_days} (and as the prior for Bayesian lag estimation in temporal mode)
+	\item \textbf{Connectivity priors}: $p_{uv}$ proportional to the fraction of particles released near $u$ that terminate near $v$
+	\item \textbf{Travel-time priors}: mean/quantiles of particle travel time $\tau_{uv}$ for use as \texttt{edge\_residence\_time\_days} (and as the prior for Bayesian lag estimation in temporal mode)
 \end{itemize}
 These priors can be provided via a file-based contract (CSV/JSON with \texttt{u}, \texttt{v}, \texttt{p\_uv}, \texttt{tt\_mean\_days}, \texttt{tt\_p10\_days}, \texttt{tt\_p90\_days}) or derived programmatically through Python tooling (e.g., FloPy reading MODPATH endpoints), and can be applied as overrides, merged edges, or used as the sole topology \cite{harbaugh2005, pollock2016, bakker2016}.
 
@@ -1177,19 +1221,19 @@ Many field settings (including tropical agricultural systems) require linking va
 
 We recommend a tiered approach that matches typical data availability:
 \begin{itemize}
-    \item \textbf{Tier 1 (minimum)}: rainfall $P(t)$, an estimate of potential ET (ET$_0(t)$), basic soil layering and texture class, and a groundwater boundary proxy (e.g., water-table depth). Conservative tracers such as Cl and bulk EC can be used to validate inferred lag times when isotopes are unavailable.
-    \item \textbf{Tier 2 (recommended)}: soil moisture $\theta(z,t)$ (and/or matric potential $\psi(z,t)$) at a few depths for calibration, measured $K_s$ and retention curves for van Genuchten parameters, and water isotopes ($\delta^{18}$O, $\delta^2$H) in rainfall/soil water/groundwater for recharge-pathway verification.
+	\item \textbf{Tier 1 (minimum)}: rainfall $P(t)$, an estimate of potential ET (ET$_0(t)$), basic soil layering and texture class, and a groundwater boundary proxy (e.g., water-table depth). Conservative tracers such as Cl and bulk EC can be used to validate inferred lag times when isotopes are unavailable.
+	\item \textbf{Tier 2 (recommended)}: soil moisture $\theta(z,t)$ (and/or matric potential $\psi(z,t)$) at a few depths for calibration, measured $K_s$ and retention curves for van Genuchten parameters, and water isotopes ($\delta^{18}$O, $\delta^2$H) in rainfall/soil water/groundwater for recharge-pathway verification.
 \end{itemize}
 
 \subsubsection{Richards Equation with ET Sink}
 
 Let $z$ denote depth (positive downward). The 1D mixed-form Richards equation for pressure head $\psi(z,t)$ is \cite{richards1931}:
 \begin{equation}
-\frac{\partial \theta(\psi)}{\partial t} = -\frac{\partial q}{\partial z} - S(\psi,z,t),
+	\frac{\partial \theta(\psi)}{\partial t} = -\frac{\partial q}{\partial z} - S(\psi,z,t),
 \end{equation}
 with Darcy flux (positive downward)
 \begin{equation}
-q(\psi) = K(\psi)\left(1 - \frac{\partial \psi}{\partial z}\right),
+	q(\psi) = K(\psi)\left(1 - \frac{\partial \psi}{\partial z}\right),
 \end{equation}
 where $\theta(\psi)$ and $K(\psi)$ are given by van Genuchten--Mualem constitutive relations \cite{vangenuchten1980, mualem1976}. Transpiration is represented by a root-zone sink term $S$ modulated by a Feddes-style stress response $\alpha(\psi)\in[0,1]$ \cite{feddes1978}. Surface evaporation is treated as part of the atmospheric top boundary flux.
 
@@ -1197,7 +1241,7 @@ where $\theta(\psi)$ and $K(\psi)$ are given by van Genuchten--Mualem constituti
 
 Given simulated $\theta(z,t)$ and $q(z,t)$ profiles, an effective advective travel time from a vadose observation depth $z_0$ (e.g., lysimeter depth) to the column bottom $z=L$ is approximated by:
 \begin{equation}
-\tau(t; z_0) \approx \int_{z_0}^{L} \frac{\theta(z,t)}{q(z,t)}\, dz.
+	\tau(t; z_0) \approx \int_{z_0}^{L} \frac{\theta(z,t)}{q(z,t)}\, dz.
 \end{equation}
 Hydrosheaf converts the time series $\tau(t;z_0)$ into travel-time summaries (mean, standard deviation, and quantiles) using recharge-weighting, and constructs an optional travel-time distribution $g(\tau)$ via a gamma-mixture approximation for use as a physics prior in temporal TTD inference.
 
@@ -1205,34 +1249,34 @@ Hydrosheaf converts the time series $\tau(t;z_0)$ into travel-time summaries (me
 
 To translate surface nitrate loading into a groundwater signal, Hydrosheaf uses a travel-time distribution (TTD) convolution with optional first-order attenuation:
 \begin{equation}
-C_{\text{wt}}(t) = \int_{0}^{\infty} C_{\text{in}}(t-\tau)\, g(\tau)\, e^{-k\tau}\, d\tau,
+	C_{\text{wt}}(t) = \int_{0}^{\infty} C_{\text{in}}(t-\tau)\, g(\tau)\, e^{-k\tau}\, d\tau,
 \end{equation}
 where $C_{\text{in}}$ is the infiltrating NO$_3$ concentration at the surface/root zone, $g(\tau)$ is the vadose TTD kernel (normalized to unit mass), and $k$ is a first-order decay rate (day$^{-1}$). The associated nitrate mass flux to the water table is computed as:
 \begin{equation}
-F(t) = R(t)\, C_{\text{wt}}(t)\, 1000,
+	F(t) = R(t)\, C_{\text{wt}}(t)\, 1000,
 \end{equation}
 where $R(t)$ is recharge (m/day) and the factor 1000 converts mg/L to mg/m$^3$.
 
 \begin{example}[Vadose NO$_3$ Breakthrough]\label{ex:vadose_no3}
-\textit{This is an illustrative example demonstrating the TTD convolution.}
+	\textit{This is an illustrative example demonstrating the TTD convolution.}
 
-Assume constant surface loading $C_{\text{in}} = 20$ mg/L, an attenuation rate $k = 0.02$ day$^{-1}$, and a discrete TTD kernel with two travel times: $\tau=5$ days with weight 0.7 and $\tau=25$ days with weight 0.3 (weights sum to 1). The steady breakthrough concentration is:
-\begin{equation}
-C_{\text{wt}} \approx 20\,[0.7 e^{-0.02\cdot 5} + 0.3 e^{-0.02\cdot 25}] \approx 16.3~\text{mg/L}.
-\end{equation}
-If recharge is $R = 0.004$ m/day, the nitrate mass flux to the water table is
-\begin{equation}
-F \approx 0.004 \cdot 16.3 \cdot 1000 \approx 65~\text{mg/m}^2/\text{day}.
-\end{equation}
+	Assume constant surface loading $C_{\text{in}} = 20$ mg/L, an attenuation rate $k = 0.02$ day$^{-1}$, and a discrete TTD kernel with two travel times: $\tau=5$ days with weight 0.7 and $\tau=25$ days with weight 0.3 (weights sum to 1). The steady breakthrough concentration is:
+	\begin{equation}
+		C_{\text{wt}} \approx 20\,[0.7 e^{-0.02\cdot 5} + 0.3 e^{-0.02\cdot 25}] \approx 16.3~\text{mg/L}.
+	\end{equation}
+	If recharge is $R = 0.004$ m/day, the nitrate mass flux to the water table is
+	\begin{equation}
+		F \approx 0.004 \cdot 16.3 \cdot 1000 \approx 65~\text{mg/m}^2/\text{day}.
+	\end{equation}
 \end{example}
 
 \subsubsection{CLI and File Contracts}
 
 The vadose module is enabled with \nolinkurl{--vadose-enabled} and expects:
 \begin{itemize}
-    \item Forcing CSV: \nolinkurl{timestamp,P_mm_day,ET0_mm_day[,I_mm_day]} (\nolinkurl{--vadose-forcing})
-    \item Profile JSON/YAML: \nolinkurl{depth_m} and \nolinkurl{layers} with either texture labels (e.g., \nolinkurl{sandy_loam}) or explicit hydraulic parameters (\nolinkurl{--vadose-profile})
-    \item Links CSV: \nolinkurl{u,v,u_depth_m[,p_uv]} mapping vadose node ids to groundwater node ids (\nolinkurl{--vadose-links})
+	\item Forcing CSV: \nolinkurl{timestamp,P_mm_day,ET0_mm_day[,I_mm_day]} (\nolinkurl{--vadose-forcing})
+	\item Profile JSON/YAML: \nolinkurl{depth_m} and \nolinkurl{layers} with either texture labels (e.g., \nolinkurl{sandy_loam}) or explicit hydraulic parameters (\nolinkurl{--vadose-profile})
+	\item Links CSV: \nolinkurl{u,v,u_depth_m[,p_uv]} mapping vadose node ids to groundwater node ids (\nolinkurl{--vadose-links})
 \end{itemize}
 The module emits a priors CSV compatible with \nolinkurl{--physics-priors} via \nolinkurl{--vadose-priors-output}, and optional detailed diagnostics (including TTD kernels and solver mass-balance errors) via \nolinkurl{--vadose-details-output}. When Tier 2 soil-moisture observations are available, a minimal calibration mode fits a global $K_s$ multiplier and crop coefficient $K_c$ against observed $\theta(z,t)$ (\nolinkurl{--vadose-calibrate}, \nolinkurl{--vadose-observations}, \nolinkurl{--vadose-calibrate-output}). The generated priors attach travel-time summaries to edges (keys \texttt{tt\_mean\_days}, \texttt{tt\_std\_days}, \texttt{tt\_p10\_days}, \texttt{tt\_p90\_days}), which are consumed by the main pipeline as \texttt{physics\_tau\_*} and \texttt{edge\_residence\_time\_days}. Finally, Hydrosheaf can generate an optional nitrate breakthrough curve to the water table using the simulated TTD kernel and a user-provided NO$_3$ loading time series (\nolinkurl{--vadose-no3-loading}, \nolinkurl{--vadose-no3-k}, \nolinkurl{--vadose-no3-output}, \nolinkurl{--vadose-no3-summary-output}; see \nolinkurl{hydrosheaf/vadose/nitrate.py}).
 
@@ -1254,7 +1298,7 @@ This assumption reflects that aquifer connectivity is largely governed by struct
 
 The residence time $\tau$ between nodes $u$ and $v$ is estimated via the Center of Mass of the cross-correlation function $R_{uv}(\tau)$ of conservative tracers (e.g., Cl):
 \begin{equation}
-\tau^* = \frac{\int \tau R_{uv}(\tau) d\tau}{\int R_{uv}(\tau) d\tau}
+	\tau^* = \frac{\int \tau R_{uv}(\tau) d\tau}{\int R_{uv}(\tau) d\tau}
 \end{equation}
 This method is robust against dispersive smearing, unlike simple peak-finding ($\text{argmax } R_{uv}$), providing a physically meaningful mean travel time.
 
@@ -1262,11 +1306,11 @@ This method is robust against dispersive smearing, unlike simple peak-finding ($
 
 In settings with dispersion, mixing, or partial signal loss (e.g., pumping capture, leakage), a single-lag model can be unstable. Hydrosheaf therefore supports a travel-time distribution (TTD) formulation in which the downstream tracer signal is modeled as a convolution of the upstream signal with a nonnegative lag kernel:
 \begin{equation}
-C_v(t) \approx b + a \int_{0}^{\tau_{\max}} C_u(t-\tau)\, g(\tau)\, e^{-k\tau}\, d\tau,
+	C_v(t) \approx b + a \int_{0}^{\tau_{\max}} C_u(t-\tau)\, g(\tau)\, e^{-k\tau}\, d\tau,
 \end{equation}
 where $g(\tau)\ge 0$ is a probability density on $[0,\tau_{\max}]$ (discretized on a time grid), $a\ge 0$ is a scaling factor, $b$ is an offset, and $k\ge 0$ is an optional first-order attenuation rate representing effective signal loss along the path. The kernel weights are estimated via nonnegative least squares (with optional smoothness regularization). The residence time used by the pipeline is the mean and spread of the inferred kernel:
 \begin{equation}
-\tau = \mathbb{E}_g[\tau], \qquad \sigma_\tau^2 = \mathbb{V}_g[\tau],
+	\tau = \mathbb{E}_g[\tau], \qquad \sigma_\tau^2 = \mathbb{V}_g[\tau],
 \end{equation}
 with confidence bounds reported from the empirical TTD quantiles. This yields a sink-robust \textit{effective} travel time and naturally widens uncertainty when multiple pathways contribute.
 In the implementation, this option is selected with \texttt{--residence-method ttd} and can be combined with multi-tracer inputs (e.g., \texttt{--residence-tracer Cl,18O,2H}).
@@ -1275,7 +1319,7 @@ In the implementation, this option is selected with \texttt{--residence-method t
 
 When time-series coverage is sparse (few samples, weak tracer variance), a full TTD can be underdetermined. As a robust alternative, Hydrosheaf provides a physics-informed Bayesian single-lag estimator that models:
 \begin{equation}
-C_v(t) \approx b + a\, C_u(t-\tau)\, e^{-k\tau} + \epsilon(t), \qquad \epsilon \sim \mathcal{N}(0,\sigma^2),
+	C_v(t) \approx b + a\, C_u(t-\tau)\, e^{-k\tau} + \epsilon(t), \qquad \epsilon \sim \mathcal{N}(0,\sigma^2),
 \end{equation}
 and combines a likelihood over $\tau$ (obtained by fitting $a$ and $b$ for each candidate $\tau$) with a prior $\tau \sim \mathcal{N}(\tau_{\text{phys}}, \sigma_{\text{phys}}^2)$ derived from Darcy/3D travel-time estimates when available. The output is a posterior mean $\mathbb{E}[\tau]$ with credible intervals and diagnostic flags. This option is selected with \texttt{--residence-method bayesian\_lag}.
 
@@ -1283,7 +1327,7 @@ and combines a likelihood over $\tau$ (obtained by fitting $a$ and $b$ for each 
 
 Concentration time series are decomposed into trend, seasonal, and residual components:
 \begin{equation}
-C(t) = (\alpha + \beta t) + \sum_{k=1}^K A_k \sin(\omega_k t + \phi_k) + \epsilon(t)
+	C(t) = (\alpha + \beta t) + \sum_{k=1}^K A_k \sin(\omega_k t + \phi_k) + \epsilon(t)
 \end{equation}
 allowing the isolation of anthropogenic trends ($\beta$) from natural seasonal cycles. As verified in \texttt{tests/test\_accuracy\_temporal.py}, the cross-correlation method correctly recovers precise travel times (e.g., 10.0 days with $\rho > 0.95$) from sinusoidal tracer signals.
 
@@ -1299,10 +1343,10 @@ We implement rigorous statistical methods to bound model confidence.
 
 We estimate the posterior distribution of reaction extents $P(\mathbf{z}|\mathbf{x})$ using the No-U-Turn Sampler (NUTS). The likelihood is Gaussian, and priors are conditioned by thermodynamic feasibility:
 \begin{equation}
-\mathbf{z} \sim \text{Laplace}(0, b) \quad \text{(Sparsity prior)}
+	\mathbf{z} \sim \text{Laplace}(0, b) \quad \text{(Sparsity prior)}
 \end{equation}
 \begin{equation}
-\text{Likelihood: } \mathbf{x}_{obs} \sim \mathcal{N}(A\mathbf{x}_{up} + S\mathbf{z}, \sigma^2)
+	\text{Likelihood: } \mathbf{x}_{obs} \sim \mathcal{N}(A\mathbf{x}_{up} + S\mathbf{z}, \sigma^2)
 \end{equation}
 
 \subsubsection{Bootstrap Confidence Intervals}
@@ -1313,12 +1357,12 @@ For non-parametric uncertainty, we employ the Bias-Corrected Accelerated (BCa) b
 
 We have developed a comprehensive mathematical framework for inverse geochemical modeling in groundwater networks, integrating:
 \begin{itemize}
-    \item Weighted least squares optimization with analytic solutions for transport models
-    \item Sparse LASSO regression with coordinate descent for parsimonious reaction fitting
-    \item Thermodynamic constraints from saturation index calculations
-    \item Isotope-based penalties for process discrimination
-    \item Probabilistic graph inference from uncertain hydraulic head data
-    \item Nitrate source discrimination using CoDA and Bayesian evidence
+	\item Weighted least squares optimization with analytic solutions for transport models
+	\item Sparse LASSO regression with coordinate descent for parsimonious reaction fitting
+	\item Thermodynamic constraints from saturation index calculations
+	\item Isotope-based penalties for process discrimination
+	\item Probabilistic graph inference from uncertain hydraulic head data
+	\item Nitrate source discrimination using CoDA and Bayesian evidence
 \end{itemize}
 
 The theoretical results (Theorems \ref{thm:evap_optimal}, \ref{thm:mixing_optimal}, \ref{thm:cd_convergence}) establish the optimality and convergence properties of the computational methods. The framework produces interpretable, physically consistent models suitable for groundwater resource management and contamination assessment. Several advanced extensions (Section \ref{sec:extensions}) expand the applicability to time-varying systems, 3D subsurface structures, kinetic validation, and rigorous uncertainty quantification, demonstrating the framework's flexibility and extensibility.
@@ -1327,20 +1371,20 @@ The theoretical results (Theorems \ref{thm:evap_optimal}, \ref{thm:mixing_optima
 This work synthesizes methods from convex optimization, geochemistry, and hydrogeology. The PHREEQC software (USGS) provides essential thermodynamic data. The coordinate descent algorithm follows techniques from Friedman et al. \cite{friedman2007, friedman2010} in statistical learning. Key extensions (Reactive Transport, 3D Networks, Temporal, Uncertainty) rely on NumPy, SciPy, and PyMC libraries.
 
 \begin{thebibliography}{99}
-\bibitem{lasaga1998}
-Lasaga, A. C. (1998). \textit{Kinetic Theory in the Earth Sciences}. Princeton University Press.
+	\bibitem{lasaga1998}
+	Lasaga, A. C. (1998). \textit{Kinetic Theory in the Earth Sciences}. Princeton University Press.
 
-\bibitem{gelman2013}
-Gelman, A., et al. (2013). \textit{Bayesian Data Analysis} (3rd ed.). CRC Press.
+	\bibitem{gelman2013}
+	Gelman, A., et al. (2013). \textit{Bayesian Data Analysis} (3rd ed.). CRC Press.
 
-\bibitem{efron1987}
-Efron, B. (1987). Better Bootstrap Confidence Intervals. \textit{Journal of the American Statistical Association}, 82(397), 171-185.
+	\bibitem{efron1987}
+	Efron, B. (1987). Better Bootstrap Confidence Intervals. \textit{Journal of the American Statistical Association}, 82(397), 171-185.
 
-\bibitem{friedman2007}
-Friedman, J., Hastie, T., Höfling, H., \& Tibshirani, R. (2007). Pathwise coordinate optimization. \textit{The Annals of Applied Statistics}, 1(2), 302-332.
+	\bibitem{friedman2007}
+	Friedman, J., Hastie, T., Höfling, H., \& Tibshirani, R. (2007). Pathwise coordinate optimization. \textit{The Annals of Applied Statistics}, 1(2), 302-332.
 
-\bibitem{friedman2010}
-Friedman, J., Hastie, T., \& Tibshirani, R. (2010). Regularization paths for generalized linear models via coordinate descent. \textit{Journal of Statistical Software}, 33(1), 1-22.
+	\bibitem{friedman2010}
+	Friedman, J., Hastie, T., \& Tibshirani, R. (2010). Regularization paths for generalized linear models via coordinate descent. \textit{Journal of Statistical Software}, 33(1), 1-22.
 
 	\bibitem{parkhurst2013}
 	Parkhurst, D. L., \& Appelo, C. A. J. (2013). Description of input and examples for PHREEQC version 3---A computer program for speciation, batch-reaction, one-dimensional transport, and inverse geochemical calculations. \textit{US Geological Survey Techniques and Methods}, 6(A43), 497.
@@ -1351,50 +1395,57 @@ Friedman, J., Hastie, T., \& Tibshirani, R. (2010). Regularization paths for gen
 	\bibitem{gwb}
 	Aqueous Solutions LLC. (n.d.). \textit{The Geochemist's Workbench}. Retrieved 2026-01-10 from \url{https://www.gwb.com/}.
 
-\bibitem{wang2025}
-Wang, Y., et al. (2025). Enhancing inverse modeling in groundwater systems through machine learning: A comprehensive comparative study. \textit{Hydrology and Earth System Sciences}, 29, 4251--4270. \url{https://hess.copernicus.org/articles/29/4251/2025/}.
+	\bibitem{wang2025}
+	Wang, Y., et al. (2025). Enhancing inverse modeling in groundwater systems through machine learning: A comprehensive comparative study. \textit{Hydrology and Earth System Sciences}, 29, 4251--4270. \url{https://hess.copernicus.org/articles/29/4251/2025/}.
 
-\bibitem{gholami2024}
-Gholami, R., et al. (2024). Geochemistry and machine learning: methods and benchmarking. \textit{Environmental Earth Sciences}. \url{https://link.springer.com/article/10.1007/s12665-024-11066-3}.
-\bibitem{harbaugh2005}
-Harbaugh, A. W. (2005). \textit{MODFLOW-2005, The U.S. Geological Survey Modular Ground-Water Model---the Ground-Water Flow Process}. U.S. Geological Survey Techniques and Methods 6-A16.
+	\bibitem{gholami2024}
+	Gholami, R., et al. (2024). Geochemistry and machine learning: methods and benchmarking. \textit{Environmental Earth Sciences}. \url{https://link.springer.com/article/10.1007/s12665-024-11066-3}.
+	\bibitem{harbaugh2005}
+	Harbaugh, A. W. (2005). \textit{MODFLOW-2005, The U.S. Geological Survey Modular Ground-Water Model---the Ground-Water Flow Process}. U.S. Geological Survey Techniques and Methods 6-A16.
 
-\bibitem{pollock2016}
-Pollock, D. W. (2016). \textit{User Guide for MODPATH Version 7---A Particle-Tracking Model for MODFLOW}. U.S. Geological Survey Open-File Report 2016--1086.
+	\bibitem{pollock2016}
+	Pollock, D. W. (2016). \textit{User Guide for MODPATH Version 7---A Particle-Tracking Model for MODFLOW}. U.S. Geological Survey Open-File Report 2016--1086.
 
-\bibitem{bakker2016}
-Bakker, M., Post, V., Langevin, C. D., Hughes, J. D., White, J. T., Starn, J. J., \& Fienen, M. N. (2016). Scripting MODFLOW Model Development Using Python and FloPy. \textit{Groundwater}, 54(5), 733--739.
-\bibitem{vangenuchten1980}
-van Genuchten, M. T. (1980). A closed-form equation for predicting the hydraulic conductivity of unsaturated soils. \textit{Soil Science Society of America Journal}, 44(5), 892--898.
+	\bibitem{bakker2016}
+	Bakker, M., Post, V., Langevin, C. D., Hughes, J. D., White, J. T., Starn, J. J., \& Fienen, M. N. (2016). Scripting MODFLOW Model Development Using Python and FloPy. \textit{Groundwater}, 54(5), 733--739.
 
-\bibitem{mualem1976}
-Mualem, Y. (1976). A new model for predicting the hydraulic conductivity of unsaturated porous media. \textit{Water Resources Research}, 12(3), 513--522.
+	\bibitem{pymc2023}
+	PyMC Developers. (2023). PyMC: Probabilistic Programming in Python. \url{https://www.pymc.io/}.
 
-\bibitem{feddes1978}
-Feddes, R. A., Kowalik, P. J., \& Zaradny, H. (1978). \textit{Simulation of Field Water Use and Crop Yield}. Pudoc, Wageningen.
+	\bibitem{arviz2023}
+	ArviZ Developers. (2023). ArviZ: Exploratory analysis of Bayesian models. \url{https://www.arviz.org/}.
 
-\bibitem{richards1931}
-Richards, L. A. (1931). Capillary conduction of liquids through porous mediums. \textit{Physics}, 1(5), 318--333.
-\bibitem{robinson2008}
-Robinson, M. (2008). \textit{Sheaves in Geometry and Logic}. Springer.
+	\bibitem{vangenuchten1980}
+	van Genuchten, M. T. (1980). A closed-form equation for predicting the hydraulic conductivity of unsaturated soils. \textit{Soil Science Society of America Journal}, 44(5), 892--898.
 
-\bibitem{appelo2005}
-Appelo, C. A. J., \& Postma, D. (2005). \textit{Geochemistry, Groundwater and Pollution} (2nd ed.). CRC Press.
+	\bibitem{mualem1976}
+	Mualem, Y. (1976). A new model for predicting the hydraulic conductivity of unsaturated porous media. \textit{Water Resources Research}, 12(3), 513--522.
 
-\bibitem{clark2015}
-Clark, I. D., \& Fritz, P. (2015). \textit{Environmental Isotopes in Hydrogeology}. CRC Press.
+	\bibitem{feddes1978}
+	Feddes, R. A., Kowalik, P. J., \& Zaradny, H. (1978). \textit{Simulation of Field Water Use and Crop Yield}. Pudoc, Wageningen.
 
-\bibitem{kendall1998}
-Kendall, C. (1998). Tracing nitrogen sources and cycling in catchments. In \textit{Isotope Tracers in Catchment Hydrology} (pp. 519-576). Elsevier.
-    
-\bibitem{xue2009}
-Xue, D., et al. (2009). Application of stable isotopes to study sources and transformations of nitrate. \textit{Journal of Environmental Sciences}, 21(9).
+	\bibitem{richards1931}
+	Richards, L. A. (1931). Capillary conduction of liquids through porous mediums. \textit{Physics}, 1(5), 318--333.
+	\bibitem{robinson2008}
+	Robinson, M. (2008). \textit{Sheaves in Geometry and Logic}. Springer.
 
-\bibitem{curry2014}
-Curry, J. M. (2014). Sheaves, cosheaves and applications. \textit{arXiv preprint arXiv:1303.3255}.
+	\bibitem{appelo2005}
+	Appelo, C. A. J., \& Postma, D. (2005). \textit{Geochemistry, Groundwater and Pollution} (2nd ed.). CRC Press.
 
-\bibitem{tseng2001}
-Tseng, P. (2001). Convergence of a block coordinate descent method for nondifferentiable minimization. \textit{Journal of Optimization Theory and Applications}, 109(3), 475-494.
+	\bibitem{clark2015}
+	Clark, I. D., \& Fritz, P. (2015). \textit{Environmental Isotopes in Hydrogeology}. CRC Press.
+
+	\bibitem{kendall1998}
+	Kendall, C. (1998). Tracing nitrogen sources and cycling in catchments. In \textit{Isotope Tracers in Catchment Hydrology} (pp. 519-576). Elsevier.
+
+	\bibitem{xue2009}
+	Xue, D., et al. (2009). Application of stable isotopes to study sources and transformations of nitrate. \textit{Journal of Environmental Sciences}, 21(9).
+
+	\bibitem{curry2014}
+	Curry, J. M. (2014). Sheaves, cosheaves and applications. \textit{arXiv preprint arXiv:1303.3255}.
+
+	\bibitem{tseng2001}
+	Tseng, P. (2001). Convergence of a block coordinate descent method for nondifferentiable minimization. \textit{Journal of Optimization Theory and Applications}, 109(3), 475-494.
 
 \end{thebibliography}
 

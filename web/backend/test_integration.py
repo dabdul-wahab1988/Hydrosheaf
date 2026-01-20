@@ -49,7 +49,7 @@ def run_health_checks():
         print(f"  Status: {health.get('status')}")
         print(f"  Message: {health.get('message')}")
 
-        if not health.get('hydrosheaf_available'):
+        if not health.get("hydrosheaf_available"):
             print("\n   [WARN] WARNING: Hydrosheaf not installed!")
             print("   Install with: cd web/backend && pip install ../../")
             return False
@@ -129,11 +129,13 @@ def run_full_analysis_workflow():
     try:
         upload_res = requests.post(
             f"{API_BASE}/samples/upload",
-            json={"name": "Integration Test Dataset", "samples": test_samples}
+            json={"name": "Integration Test Dataset", "samples": test_samples},
         )
         upload_res.raise_for_status()
         dataset = upload_res.json()
-        print(f"   [OK] Dataset uploaded: {dataset['name']} ({dataset['sample_count']} samples)")
+        print(
+            f"   [OK] Dataset uploaded: {dataset['name']} ({dataset['sample_count']} samples)"
+        )
     except Exception as e:
         print(f"   [X] Upload failed: {e}")
         return False
@@ -148,21 +150,18 @@ def run_full_analysis_workflow():
             "enable_phreeqc": False,  # Disable PHREEQC for simplicity
             "enable_isotopes": False,  # No isotope data
             "enable_uncertainty": False,  # Disable for faster testing
-        }
+        },
     }
 
     try:
-        analysis_res = requests.post(
-            f"{API_BASE}/analysis/run",
-            json=analysis_req
-        )
+        analysis_res = requests.post(f"{API_BASE}/analysis/run", json=analysis_req)
         analysis_res.raise_for_status()
         job = analysis_res.json()
-        job_id = job['job_id']
+        job_id = job["job_id"]
         print(f"   [OK] Analysis job created: {job_id}")
         print(f"   Hydrosheaf available: {job.get('hydrosheaf_available')}")
 
-        if not job.get('hydrosheaf_available'):
+        if not job.get("hydrosheaf_available"):
             print("   [X] Cannot proceed without Hydrosheaf!")
             return False
 
@@ -176,17 +175,17 @@ def run_full_analysis_workflow():
         try:
             status_res = requests.get(f"{API_BASE}/analysis/status/{job_id}")
             status = status_res.json()
-            status_str = status['status']
+            status_str = status["status"]
 
             if i % 5 == 0:  # Print every 5 seconds
                 print(f"   [{i+1}s] Status: {status_str}")
 
-            if status_str == 'completed':
+            if status_str == "completed":
                 print(f"\n   [OK] Analysis completed in {i+1} seconds!")
                 break
-            elif status_str == 'failed':
+            elif status_str == "failed":
                 print(f"\n   [X] Analysis failed: {status.get('error')}")
-                if 'error_preview' in status:
+                if "error_preview" in status:
                     print(f"\n   Error preview:\n{status['error_preview']}")
                 return False
         except Exception as e:
@@ -208,22 +207,24 @@ def run_full_analysis_workflow():
         print(f"     Total edges: {results['summary']['total_edges']}")
 
         print(f"\n   Transport Model:")
-        tm = results['transport_model']
+        tm = results["transport_model"]
         print(f"     Dominant process: {tm['dominant_process']}")
         print(f"     Average gamma: {tm.get('average_gamma', 'N/A')}")
 
         print(f"\n   Reactions found: {len(results['reactions'])}")
-        for i, rxn in enumerate(results['reactions'][:5], 1):  # Show top 5
-            print(f"     {i}. {rxn['mineral']}: {rxn['rate_mmol_L']:.4f} mmol/L ({rxn['direction']})")
+        for i, rxn in enumerate(results["reactions"][:5], 1):  # Show top 5
+            print(
+                f"     {i}. {rxn['mineral']}: {rxn['rate_mmol_L']:.4f} mmol/L ({rxn['direction']})"
+            )
 
         # Check metadata to verify real Hydrosheaf was used
-        if 'metadata' in results:
-            metadata = results['metadata']
+        if "metadata" in results:
+            metadata = results["metadata"]
             print(f"\n   Metadata:")
             print(f"     Engine: {metadata.get('analysis_engine')}")
             print(f"     Mock data: {metadata.get('mock_data')}")
 
-            if metadata.get('mock_data', True):
+            if metadata.get("mock_data", True):
                 print("\n   [WARN] WARNING: Results are still mock data!")
                 return False
 
@@ -251,18 +252,15 @@ def run_network_inference():
         "edges": [
             {"source": "A", "target": "B"},
             {"source": "B", "target": "C"},
-        ]
+        ],
     }
 
     print("\n1. Creating network...")
     try:
-        create_res = requests.post(
-            f"{API_BASE}/network/create",
-            json=network_data
-        )
+        create_res = requests.post(f"{API_BASE}/network/create", json=network_data)
         create_res.raise_for_status()
         network = create_res.json()
-        network_id = network['network_id']
+        network_id = network["network_id"]
         print(f"   [OK] Network created: {network_id}")
     except Exception as e:
         print(f"   [X] Network creation failed: {e}")
@@ -270,9 +268,7 @@ def run_network_inference():
 
     print("\n2. Running flow inference...")
     try:
-        infer_res = requests.post(
-            f"{API_BASE}/network/{network_id}/infer-flow"
-        )
+        infer_res = requests.post(f"{API_BASE}/network/{network_id}/infer-flow")
         infer_res.raise_for_status()
         inference = infer_res.json()
 
@@ -281,10 +277,12 @@ def run_network_inference():
         print(f"     Hydrosheaf used: {inference.get('hydrosheaf_used', False)}")
 
         print(f"\n     Inferred edges:")
-        for edge in inference['inferred_edges']:
-            print(f"       {edge['source']} -> {edge['target']}: "
-                  f"P={edge.get('flow_probability', 'N/A'):.2f} "
-                  f"({edge.get('flow_direction', 'unknown')})")
+        for edge in inference["inferred_edges"]:
+            print(
+                f"       {edge['source']} -> {edge['target']}: "
+                f"P={edge.get('flow_probability', 'N/A'):.2f} "
+                f"({edge.get('flow_direction', 'unknown')})"
+            )
 
     except Exception as e:
         print(f"   [X] Inference failed: {e}")

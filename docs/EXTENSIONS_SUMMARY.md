@@ -179,6 +179,9 @@ Implementation of future extensions for the Hydrosheaf groundwater geochemistry 
 **Total Config Fields Added:** 48
 **Total CLI Arguments Added:** 32
 
+**Runtime Notes:** Bayesian MCMC (uncertainty + nitrate isotopes) can take minutes and requires PyMC; reactive transport validation requires PHREEQC kinetics; FloPy-based transport needs MODFLOW/MT3DMS executables on PATH.
+
+
 ---
 
 ## 🔧 Technical Achievements

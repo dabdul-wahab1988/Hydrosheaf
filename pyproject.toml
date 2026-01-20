@@ -1,48 +1,4 @@
-[build-system]
-requires = ["setuptools>=61"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "hydrosheaf"
-version = "0.3.0"
-description = "Sheaf-style groundwater hydrogeochemistry modeling."
-readme = "README.md"
-requires-python = ">=3.8"
-authors = [
-  {name = "Dickson Abdul-Wahab"},
-  {name = "Ebenezer Aquisman Asare"},
-  {name = "Abdul Rashid Dickson"},
-]
-dependencies = [
-  "numpy>=1.20",
-  "scipy>=1.7",
-  "pandas>=1.3",
-  "pymc>=5.0",
-  "arviz>=0.15",
-  "PyYAML>=6.0",
-]
-
-[project.optional-dependencies]
-plot = ["matplotlib>=3.7"]
-# Optional extras:
-# - phreeqc: Python PHREEQC bindings (or use external PHREEQC executable)
-# - transport: FloPy for 1D transport modeling and MODPATH endpoint parsing
-# - mcmc: Full MCMC isotope mixing (already included in base dependencies)
-phreeqc = ["phreeqpython", "phreeqpy"]
-transport = ["flopy>=3.3"]
-all = [
-    "matplotlib>=3.7",
-    "phreeqpython",
-    "phreeqpy",
-    "flopy>=3.3",
-]
 
 [project.scripts]
 hydrosheaf = "hydrosheaf.cli:main"
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["hydrosheaf*"]
-
-[tool.setuptools.package-data]
-hydrosheaf = ["databases/*.dat"]
+hydrosheaf-cal = "hydrosheaf.calibration.cli:run_calibration_cli"

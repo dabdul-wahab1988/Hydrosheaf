@@ -9,7 +9,8 @@ Hydrosheaf can call PHREEQC to compute saturation indices (SI), ionic strength, 
 - `phreeqc_mode="phreeqpython"`: uses the `phreeqpython` bindings.
 - `phreeqc_mode="subprocess"`: calls an external PHREEQC executable.
 
-If PHREEQC is unavailable, results are marked with `phreeqc_ok=false` and constraints are disabled for affected edges.
+If PHREEQC is unavailable, results are marked with `phreeqc_ok=false` and constraints are disabled for affected edges. The CLI can still run but will skip thermodynamic bounds.
+
 
 ## Input Template
 

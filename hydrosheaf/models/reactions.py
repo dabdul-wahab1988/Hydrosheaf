@@ -4,8 +4,7 @@ from dataclasses import dataclass
 from typing import Iterable, List, Optional, Sequence, Tuple
 
 from ..config import Config, DEFAULT_ION_ORDER
-from ..data.minerals import get_mineral_stoich, MINERAL_LIBRARY
-
+from ..data.minerals import get_mineral_stoich
 
 
 def _vector_from_coeffs(coeffs: dict, ion_order: Iterable[str]) -> List[float]:
@@ -34,12 +33,11 @@ def build_reaction_dictionary(
     # These are always available or controlled by specific flags
     reactions.append(("NO3src", {"NO3": 1}, False))
     reactions.append(("denit", {"HCO3": kappa, "NO3": -1}, False))
-    
+
     # 3. Add Exchange Reactions (Controlled by config flag)
     if config.exchange_enabled:
         reactions.append(("CaNa_exch", {"Ca": 1, "Na": -2}, False))
         reactions.append(("MgNa_exch", {"Mg": 1, "Na": -2}, False))
-
 
     labels = [label for label, _, _ in reactions]
     mineral_mask = [is_mineral for _, _, is_mineral in reactions]
@@ -51,7 +49,9 @@ def _dot(a: Iterable[float], b: Iterable[float]) -> float:
     return sum(x * y for x, y in zip(a, b))
 
 
-def _combine_reactions(matrix: Sequence[Sequence[float]], weights: Sequence[float]) -> List[float]:
+def _combine_reactions(
+    matrix: Sequence[Sequence[float]], weights: Sequence[float]
+) -> List[float]:
     if not matrix:
         return []
     result = [0.0] * len(matrix[0])
@@ -71,10 +71,12 @@ def _weighted_vectors(
         weighted_residual = list(residual)
     else:
         weighted_matrix = [
-            [value * (weight ** 0.5) for value, weight in zip(row, weights)]
+            [value * (weight**0.5) for value, weight in zip(row, weights)]
             for row in reaction_matrix
         ]
-        weighted_residual = [value * (weight ** 0.5) for value, weight in zip(residual, weights)]
+        weighted_residual = [
+            value * (weight**0.5) for value, weight in zip(residual, weights)
+        ]
     return weighted_matrix, weighted_residual
 
 
@@ -97,7 +99,9 @@ class ReactionFit:
     extents_std: Optional[List[float]] = None
     extents_ci_low: Optional[List[float]] = None
     extents_ci_high: Optional[List[float]] = None
-    uncertainty_result: Optional[object] = None  # UncertaintyResult from uncertainty module
+    uncertainty_result: Optional[object] = (
+        None  # UncertaintyResult from uncertainty module
+    )
 
 
 def _soft_threshold(value: float, threshold: float) -> float:
@@ -120,12 +124,19 @@ def fit_reactions(
     ub: Optional[List[float]] = None,
 ) -> ReactionFit:
     if not reaction_matrix:
-        return ReactionFit([], residual, _weighted_norm_sq(residual, weights), 0.0, 0, True)
+        return ReactionFit(
+            [], residual, _weighted_norm_sq(residual, weights), 0.0, 0, True
+        )
 
-    weighted_matrix, weighted_residual = _weighted_vectors(reaction_matrix, residual, weights)
+    weighted_matrix, weighted_residual = _weighted_vectors(
+        reaction_matrix, residual, weights
+    )
     m = len(weighted_matrix)
 
-    gram = [[_dot(weighted_matrix[i], weighted_matrix[j]) for j in range(m)] for i in range(m)]
+    gram = [
+        [_dot(weighted_matrix[i], weighted_matrix[j]) for j in range(m)]
+        for i in range(m)
+    ]
     s_r = [_dot(weighted_matrix[i], weighted_residual) for i in range(m)]
 
     if lb is not None and len(lb) != m:
@@ -147,11 +158,12 @@ def fit_reactions(
             updated = _soft_threshold(rho, lambda_l1 / 2.0) / denom
             if not signed_mask[j]:
                 updated = max(0.0, updated)
-            if lb is not None:
+            if lb is not None and lb[j] is not None:
                 updated = max(lb[j], updated)
-            if ub is not None:
+            if ub is not None and ub[j] is not None:
                 updated = min(ub[j], updated)
             max_delta = max(max_delta, abs(updated - z[j]))
+
             z[j] = updated
         if max_delta <= tol:
             converged = True

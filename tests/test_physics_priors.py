@@ -9,7 +9,9 @@ from hydrosheaf.config import Config
 class TestPhysicsPriors(unittest.TestCase):
     def test_apply_physics_priors_override(self):
         edges = [Edge(edge_id="A->B", u="A", v="B", attrs={"p_uv": 0.2})]
-        priors = [PhysicsPrior(u="A", v="B", p_uv=0.9, tt_mean_days=12.0, tt_std_days=3.0)]
+        priors = [
+            PhysicsPrior(u="A", v="B", p_uv=0.9, tt_mean_days=12.0, tt_std_days=3.0)
+        ]
         out = apply_physics_priors(edges, priors, mode="override")
         self.assertEqual(len(out), 1)
         attrs = out[0].attrs
@@ -31,4 +33,3 @@ class TestPhysicsPriors(unittest.TestCase):
         cfg = Config()
         tau = estimate_edge_residence_time_days({"edge_residence_time_days": 42.0}, cfg)
         self.assertAlmostEqual(float(tau or 0.0), 42.0)
-

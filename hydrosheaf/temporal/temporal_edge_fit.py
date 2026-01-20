@@ -2,19 +2,20 @@
 Temporal edge fitting - fit transport and reaction models across time series.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import numpy as np
 
+from ..config import Config
 from . import TemporalEdgeResult, TemporalNode
-from .interpolation import align_time_series
+from .interpolation import align_time_series, align_time_series_recharge
 from .residence_time import estimate_residence_time_with_details
 
 
 def fit_temporal_edge(
     node_u: TemporalNode,
     node_v: TemporalNode,
-    config: "Config",  # type: ignore
+    config: Config,
     edge_id: str = "",
     hydraulic_params: Optional[Dict[str, float]] = None,
 ) -> TemporalEdgeResult:
@@ -64,17 +65,36 @@ def fit_temporal_edge(
     from ..inference.edge_fit import fit_edge
 
     # Estimate residence time
-    tau_days, tau_uncertainty, tau_method, tau_details, tau_flags = estimate_residence_time_with_details(
-        node_u,
-        node_v,
-        method=getattr(config, "residence_time_method", "cross_correlation"),
-        tracer_ion=getattr(config, "residence_time_tracer", "Cl"),
-        ion_order=config.ion_order,
-        hydraulic_params=hydraulic_params,
+    tau_days, tau_uncertainty, tau_method, tau_details, tau_flags = (
+        estimate_residence_time_with_details(
+            node_u,
+            node_v,
+            method=getattr(config, "residence_time_method", "cross_correlation"),
+            tracer_ion=getattr(config, "residence_time_tracer", "Cl"),
+            ion_order=config.ion_order,
+            hydraulic_params=hydraulic_params,
+        )
     )
 
-    # Align time series with lag
-    aligned_u, aligned_v = align_time_series(node_u, node_v, tau_days)
+    # Align time series
+    if (
+        getattr(config, "residence_time_method", "") == "recharge_piston"
+        and hydraulic_params
+        and "rain_dates" in hydraulic_params
+    ):
+        aligned_u, aligned_v = align_time_series_recharge(
+            node_u,
+            node_v,
+            hydraulic_params["rain_dates"],  # type: ignore
+            hydraulic_params["rain_mm"],  # type: ignore
+            storage_mm=hydraulic_params.get(
+                "storage_mm", getattr(config, "recharge_lag_volume_mm", 500.0)
+            ),
+            recharge_fraction=getattr(config, "recharge_effective_fraction", 1.0),
+        )
+    else:
+        # Standard constant lag alignment
+        aligned_u, aligned_v = align_time_series(node_u, node_v, tau_days)
 
     if not aligned_u or not aligned_v:
         # No aligned data, return empty result
@@ -145,7 +165,9 @@ def fit_temporal_edge(
     if gamma_series:
         gamma_arr = np.array(gamma_series)
         result.gamma_mean = float(np.mean(gamma_arr))
-        result.gamma_std = float(np.std(gamma_arr, ddof=1) if len(gamma_arr) > 1 else 0.0)
+        result.gamma_std = float(
+            np.std(gamma_arr, ddof=1) if len(gamma_arr) > 1 else 0.0
+        )
 
     # Compute mean and std for f
     if f_series:
@@ -156,15 +178,22 @@ def fit_temporal_edge(
     # Compute mean and std for extents
     if extents_series and extents_series[0]:
         n_reactions = len(extents_series[0])
-        extents_arr = np.array([ext if ext else [0.0] * n_reactions for ext in extents_series])
+        extents_arr = np.array(
+            [ext if ext else [0.0] * n_reactions for ext in extents_series]
+        )
 
-        result.reaction_extents_mean = [float(np.mean(extents_arr[:, j])) for j in range(n_reactions)]
+        result.reaction_extents_mean = [
+            float(np.mean(extents_arr[:, j])) for j in range(n_reactions)
+        ]
         result.reaction_extents_std = [
-            float(np.std(extents_arr[:, j], ddof=1) if len(extents_arr) > 1 else 0.0) for j in range(n_reactions)
+            float(np.std(extents_arr[:, j], ddof=1) if len(extents_arr) > 1 else 0.0)
+            for j in range(n_reactions)
         ]
 
     # Total residual
-    result.total_residual_norm = float(np.sum(residual_series)) if residual_series else 0.0
+    result.total_residual_norm = (
+        float(np.sum(residual_series)) if residual_series else 0.0
+    )
 
     return result
 
@@ -206,7 +235,9 @@ def compute_seasonal_decomposition(
     # C = a0 + a1*t + a2*cos(2πt/T) + a3*sin(2πt/T)
     omega = 2 * np.pi / period_days
 
-    X = np.column_stack([np.ones_like(times), times, np.cos(omega * times), np.sin(omega * times)])
+    X = np.column_stack(
+        [np.ones_like(times), times, np.cos(omega * times), np.sin(omega * times)]
+    )
 
     # Solve normal equations
     try:

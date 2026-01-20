@@ -11,6 +11,7 @@ from hydrosheaf.graph.types import Edge
 
 SYNTHETIC_DIR = Path(__file__).parents[2] / "hydrosheaf_synthetic_csv"
 
+
 class TemporalEvolutionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -48,24 +49,32 @@ class TemporalEvolutionTests(unittest.TestCase):
                     node_id=station,
                     timestamp=timestamp,
                     concentrations=concentrations,
-                    temperature_c=row.get("temp_C") if pd.notnull(row.get("temp_C")) else None,
+                    temperature_c=(
+                        row.get("temp_C") if pd.notnull(row.get("temp_C")) else None
+                    ),
                     ph=row.get("pH") if pd.notnull(row.get("pH")) else None,
                 )
                 time_series_samples.append(sample)
 
-            node = TemporalNode(
-                node_id=station,
-                samples=time_series_samples
-            )
+            node = TemporalNode(node_id=station, samples=time_series_samples)
             cls.temporal_nodes[station] = node
 
     def test_temporal_fitting(self):
         """Test residence time estimation for edges over 7 events."""
         # Edge: BH1 -> BH2
-        edges = [Edge(edge_id="BH1->BH2", u="BH1", v="BH2", attrs={"edge_type": "groundwater_flow", "distance": 109.5})]
+        edges = [
+            Edge(
+                edge_id="BH1->BH2",
+                u="BH1",
+                v="BH2",
+                attrs={"edge_type": "groundwater_flow", "distance": 109.5},
+            )
+        ]
 
         # Fit temporal - returns tuple (List[TemporalEdgeResult], Dict[str, float])
-        results, residence_overrides = fit_temporal_edges(self.temporal_nodes, edges, self.config)
+        results, residence_overrides = fit_temporal_edges(
+            self.temporal_nodes, edges, self.config
+        )
 
         self.assertIsInstance(results, list)
         if len(results) > 0:
@@ -89,6 +98,7 @@ class TemporalEvolutionTests(unittest.TestCase):
 
         # Feb 2024 to Sep 2025 is ~1.5 years (~550 days)
         self.assertGreater(delta.days, 500)
+
 
 if __name__ == "__main__":
     unittest.main()

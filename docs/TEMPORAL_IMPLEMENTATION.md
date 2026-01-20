@@ -72,6 +72,13 @@ Extension 1: Temporal Dynamics has been successfully implemented and tested.
 
 ## ✅ Test Results
 
+### Runtime Notes
+
+- Temporal residence time estimation uses cross-correlation, gradient, Bayesian lag, TTD, or tracer decay depending on CLI flags.
+- Spline interpolation requires SciPy; otherwise use linear or nearest.
+- Temporal outputs can be written via `--temporal-output`.
+
+
 ### Module Import Tests
 ```
 ✓ TimeSeriesSample, TemporalNode, TemporalEdgeResult import successfully

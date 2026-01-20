@@ -6,7 +6,7 @@ with saturated zone transport models.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
+from typing import List, Optional
 
 import numpy as np
 
@@ -15,7 +15,6 @@ from .flopy_1d import (
     TransportResult,
     build_1d_transport_model,
     run_1d_transport,
-    run_analytical_1d_transport,
     check_flopy_available,
 )
 
@@ -196,7 +195,10 @@ def couple_vadose_saturated(
             saturated_result = run_1d_transport(mf, mt, params, cleanup=True)
 
             # Check if FloPy run actually succeeded (executables might be missing)
-            if not saturated_result.success or len(saturated_result.concentrations) <= 1:
+            if (
+                not saturated_result.success
+                or len(saturated_result.concentrations) <= 1
+            ):
                 raise RuntimeError(
                     f"FloPy model failed: {saturated_result.warnings}. "
                     "MODFLOW/MT3DMS executables may not be installed."
@@ -206,7 +208,9 @@ def couple_vadose_saturated(
             output_times = saturated_result.times
 
         except Exception as e:
-            warnings_list.append(f"FloPy error: {str(e)}. Falling back to analytical solution.")
+            warnings_list.append(
+                f"FloPy error: {str(e)}. Falling back to analytical solution."
+            )
             # Fallback to analytical
             combined_concentration = _convolve_transport(
                 input_times=vadose_times,
@@ -225,10 +229,14 @@ def couple_vadose_saturated(
 
     # Calculate attenuation metrics
     peak_input = np.max(vadose_concentration) if len(vadose_concentration) > 0 else 0.0
-    peak_output = np.max(combined_concentration) if len(combined_concentration) > 0 else 0.0
+    peak_output = (
+        np.max(combined_concentration) if len(combined_concentration) > 0 else 0.0
+    )
     attenuation_factor = peak_output / peak_input if peak_input > 0 else 0.0
 
-    peak_idx = np.argmax(combined_concentration) if len(combined_concentration) > 0 else 0
+    peak_idx = (
+        np.argmax(combined_concentration) if len(combined_concentration) > 0 else 0
+    )
     peak_time = output_times[peak_idx] if len(output_times) > peak_idx else 0.0
 
     return VadoseCouplingResult(
@@ -263,7 +271,6 @@ def _convolve_transport(
     impulse response function.
     """
     from scipy.interpolate import interp1d
-    from scipy.special import erfc
 
     # Dispersion coefficient
     D = dispersivity_m * velocity_m_day
@@ -275,8 +282,11 @@ def _convolve_transport(
     # Interpolate input concentration
     if len(input_times) > 1:
         interp_func = interp1d(
-            input_times, input_concentration,
-            kind='linear', fill_value=0.0, bounds_error=False
+            input_times,
+            input_concentration,
+            kind="linear",
+            fill_value=0.0,
+            bounds_error=False,
         )
         fine_input = interp_func(fine_times)
     else:
@@ -292,14 +302,16 @@ def _convolve_transport(
     for i, t in enumerate(fine_times):
         if t > 0:
             # Gaussian-like impulse response
-            beta = np.sqrt(velocity_m_day**2 + 4 * decay_rate_1_day * D)
+            # beta = np.sqrt(velocity_m_day**2 + 4 * decay_rate_1_day * D)
             sigma = np.sqrt(2 * D * t)
             if sigma > 0:
                 # Peak arrival
-                t_peak = x / velocity_m_day
+                # t_peak = x / velocity_m_day
                 # Impulse response approximation
                 exp_decay = np.exp(-decay_rate_1_day * t)
-                gauss = np.exp(-((x - velocity_m_day * t)**2) / (4 * D * t)) / np.sqrt(4 * np.pi * D * t)
+                gauss = np.exp(
+                    -((x - velocity_m_day * t) ** 2) / (4 * D * t)
+                ) / np.sqrt(4 * np.pi * D * t)
                 impulse_response[i] = gauss * exp_decay * velocity_m_day
 
     # Normalize impulse response
@@ -307,13 +319,14 @@ def _convolve_transport(
         impulse_response = impulse_response / (np.sum(impulse_response) * dt)
 
     # Convolve
-    convolved = np.convolve(fine_input, impulse_response, mode='full')[:len(fine_times)] * dt
+    convolved = (
+        np.convolve(fine_input, impulse_response, mode="full")[: len(fine_times)] * dt
+    )
 
     # Interpolate back to output times
     if len(fine_times) > 1:
         output_func = interp1d(
-            fine_times, convolved,
-            kind='linear', fill_value=0.0, bounds_error=False
+            fine_times, convolved, kind="linear", fill_value=0.0, bounds_error=False
         )
         result = output_func(output_times)
     else:
@@ -350,7 +363,7 @@ def estimate_saturated_travel_time(
     velocity = hydraulic_k_m_day * head_gradient / porosity
     if velocity > 0:
         return distance_m / velocity
-    return float('inf')
+    return float("inf")
 
 
 def estimate_denitrification_attenuation(

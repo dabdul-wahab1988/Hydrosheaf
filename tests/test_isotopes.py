@@ -1,6 +1,11 @@
 import unittest
 
-from hydrosheaf.isotopes import compute_d_excess, evaporation_index, fit_lmwl, isotope_penalty
+from hydrosheaf.isotopes import (
+    compute_d_excess,
+    evaporation_index,
+    fit_lmwl,
+    isotope_penalty,
+)
 
 
 class IsotopeTests(unittest.TestCase):
@@ -18,7 +23,9 @@ class IsotopeTests(unittest.TestCase):
         self.assertAlmostEqual(b, 8.0, places=6)
 
     def test_isotope_penalty(self):
-        penalty, metrics = isotope_penalty(-2.0, -10.0, -1.0, -7.0, 0.0, 8.0, "evap", d_excess_weight=1.0)
+        penalty, metrics = isotope_penalty(
+            -2.0, -10.0, -1.0, -7.0, 0.0, 8.0, "evap", d_excess_weight=1.0
+        )
         self.assertGreaterEqual(penalty, 0.0)
         self.assertIn("e_u", metrics)
         self.assertIn("e_v", metrics)

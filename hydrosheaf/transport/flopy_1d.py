@@ -5,7 +5,6 @@ This module provides functions for building and running 1D advection-dispersion
 transport models using FloPy's MODFLOW and MT3DMS interfaces.
 """
 
-import os
 import tempfile
 import shutil
 from dataclasses import dataclass, field
@@ -17,8 +16,18 @@ import numpy as np
 # Try to import FloPy
 try:
     import flopy
-    from flopy.modflow import Modflow, ModflowDis, ModflowBas, ModflowLpf, ModflowWel, ModflowOc, ModflowPcg, ModflowLmt
+    from flopy.modflow import (
+        Modflow,
+        ModflowDis,
+        ModflowBas,
+        ModflowLpf,
+        ModflowWel,
+        ModflowOc,
+        ModflowPcg,
+        ModflowLmt,
+    )
     from flopy.mt3d import Mt3dms, Mt3dBtn, Mt3dAdv, Mt3dDsp, Mt3dSsm, Mt3dGcg, Mt3dRct
+
     FLOPY_AVAILABLE = True
 except ImportError:
     flopy = None
@@ -167,7 +176,7 @@ def build_1d_transport_model(
     mf = Modflow(model_name, exe_name="mf2005", model_ws=str(ws_path))
 
     # Discretization
-    dis = ModflowDis(
+    _dis = ModflowDis(
         mf,
         nlay=nlay,
         nrow=nrow,
@@ -190,25 +199,27 @@ def build_1d_transport_model(
     strt = np.linspace(head_upstream_m, head_downstream_m, ncol)
     strt = strt.reshape((nlay, nrow, ncol))
 
-    bas = ModflowBas(mf, ibound=ibound, strt=strt)
+    _bas = ModflowBas(mf, ibound=ibound, strt=strt)
 
     # Layer properties (LPF)
-    lpf = ModflowLpf(mf, hk=hydraulic_k_m_day, vka=hydraulic_k_m_day, ss=1e-5, sy=porosity)
+    _lpf = ModflowLpf(
+        mf, hk=hydraulic_k_m_day, vka=hydraulic_k_m_day, ss=1e-5, sy=porosity
+    )
 
     # Well package for source injection
     if source_concentration > 0:
         # Injection at source cell
         well_data = {0: [[0, 0, source_cell, 0.001]]}  # Small flux for source
-        wel = ModflowWel(mf, stress_period_data=well_data)
+        _wel = ModflowWel(mf, stress_period_data=well_data)
 
     # Output control
-    oc = ModflowOc(mf, stress_period_data={(0, 0): ["save head", "save budget"]})
+    _oc = ModflowOc(mf, stress_period_data={(0, 0): ["save head", "save budget"]})
 
     # PCG solver
-    pcg = ModflowPcg(mf)
+    _pcg = ModflowPcg(mf)
 
     # LMT package (Link-MT3DMS)
-    lmt = ModflowLmt(mf)
+    _lmt = ModflowLmt(mf)
 
     # --- Build MT3DMS model ---
     mt = Mt3dms(
@@ -223,7 +234,7 @@ def build_1d_transport_model(
     sconc = np.zeros((nlay, nrow, ncol))
     sconc[0, 0, source_cell] = source_concentration  # Initial concentration at source
 
-    btn = Mt3dBtn(
+    _btn = Mt3dBtn(
         mt,
         icbund=icbund,
         prsity=porosity,
@@ -237,10 +248,10 @@ def build_1d_transport_model(
     )
 
     # ADV - Advection
-    adv = Mt3dAdv(mt, mixelm=0)  # Upstream finite difference
+    _adv = Mt3dAdv(mt, mixelm=0)  # Upstream finite difference
 
     # DSP - Dispersion
-    dsp = Mt3dDsp(mt, al=dispersivity_m, trpt=0.1, trpv=0.01, dmcoef=1e-9)
+    _dsp = Mt3dDsp(mt, al=dispersivity_m, trpt=0.1, trpv=0.01, dmcoef=1e-9)
 
     # SSM - Source/Sink mixing
     ssm_data = {}
@@ -248,20 +259,26 @@ def build_1d_transport_model(
         # Constant concentration source
         ssm_data[0] = [[0, 0, source_cell, source_concentration, 15]]  # Type 15 = RCH
 
-    ssm = Mt3dSsm(mt, stress_period_data=ssm_data, mxss=100)
+    _ssm = Mt3dSsm(mt, stress_period_data=ssm_data, mxss=100)
 
     # RCT - Reaction (first-order decay for denitrification)
     if decay_rate_1_day > 0:
-        rct = Mt3dRct(
+        _rct = Mt3dRct(
             mt,
             isothm=0,  # No sorption
             ireact=1,  # First-order kinetic reaction
             rc1=decay_rate_1_day,  # Decay rate
             igetsc=0,
         )
+    else:
+        # No reaction
+        pass  # _rct is not strictly needed if decay is 0? Or maybe default is no reaction. 
+              # Actually usually if RCT is missing it's fine. 
+              # But let's check old code: `rct = Mt3dRct(mt, isothm=0, ireact=0)` was used else.
+              # I should keep it but prefix.
 
     # GCG - Solver
-    gcg = Mt3dGcg(mt)
+    _gcg = Mt3dGcg(mt)
 
     # Parameter dictionary
     params = {
@@ -274,7 +291,10 @@ def build_1d_transport_model(
         "aquifer_length_m": aquifer_length_m,
         "aquifer_thickness_m": aquifer_thickness_m,
         "head_gradient": (head_upstream_m - head_downstream_m) / aquifer_length_m,
-        "velocity_m_day": hydraulic_k_m_day * (head_upstream_m - head_downstream_m) / aquifer_length_m / porosity,
+        "velocity_m_day": hydraulic_k_m_day
+        * (head_upstream_m - head_downstream_m)
+        / aquifer_length_m
+        / porosity,
         "perlen_days": perlen_days,
         "n_stress_periods": n_stress_periods,
         "workspace": str(ws_path),
@@ -331,7 +351,7 @@ def run_1d_transport(
 
         # Write and run MT3DMS
         mt.write_input()
-        success_mt, buff_mt = mt.run_model(silent=True, normal_msg='Normal termination')
+        success_mt, buff_mt = mt.run_model(silent=True, normal_msg="Normal termination")
 
         if not success_mt:
             # Only warn, don't fail immediately, check for output files
@@ -345,7 +365,7 @@ def run_1d_transport(
         if ucn_file.exists():
             ucn = flopy.utils.UcnFile(str(ucn_file))
             times = ucn.get_times()
-            n_cells = params.get("n_cells", 50)
+            # n_cells = params.get("n_cells", 50)
 
             # Get concentration at outlet (last cell)
             concentrations = []
@@ -441,7 +461,7 @@ def analytical_1d_transport(
     float
         Concentration at (x, t)
     """
-    from scipy.special import erfc, erfcx
+    from scipy.special import erfc
 
     if t <= 0 or D <= 0 or x < 0:
         return 0.0

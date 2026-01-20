@@ -24,14 +24,20 @@ def validate_required_columns(samples: object, ion_order: Iterable[str]) -> None
         raise ValueError(f"Missing required columns: {missing}")
 
 
-def missing_required(sample: Mapping[str, object], ion_order: Iterable[str]) -> List[str]:
+def missing_required(
+    sample: Mapping[str, object], ion_order: Iterable[str]
+) -> List[str]:
     required = required_columns(ion_order)
-    missing = [col for col in required if col not in sample or sample[col] in ("", None)]
+    missing = [
+        col for col in required if col not in sample or sample[col] in ("", None)
+    ]
     return missing
 
 
 def missing_ions(sample: Mapping[str, object], ion_order: Iterable[str]) -> List[str]:
-    missing = [ion for ion in ion_order if ion not in sample or sample[ion] in ("", None)]
+    missing = [
+        ion for ion in ion_order if ion not in sample or sample[ion] in ("", None)
+    ]
     return missing
 
 

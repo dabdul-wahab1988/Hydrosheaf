@@ -28,6 +28,7 @@ def test_imports():
     print("1. Testing Hydrosheaf core imports...", flush=True)
     try:
         from hydrosheaf import Config, fit_network_pipeline
+
         print("   [OK] Hydrosheaf core imported successfully")
     except ImportError as e:
         print(f"   [X] Hydrosheaf core import failed: {e}")
@@ -37,6 +38,7 @@ def test_imports():
     print("\n2. Testing Hydrosheaf graph types...")
     try:
         from hydrosheaf.graph.types import Edge
+
         print("   [OK] Hydrosheaf Edge imported successfully")
         print(f"   Edge class: {Edge}")
 
@@ -51,6 +53,7 @@ def test_imports():
     print("\n3. Testing adapter module...")
     try:
         from app.hydrosheaf_adapter import ConfigAdapter, SampleAdapter, ResultAdapter
+
         print("   [OK] Adapter module imported successfully")
         print(f"   ConfigAdapter: {ConfigAdapter}")
         print(f"   SampleAdapter: {SampleAdapter}")
@@ -65,6 +68,7 @@ def test_imports():
     print("\n4. Testing analysis router...")
     try:
         from app.routers.analysis import router as analysis_router
+
         print(f"   [OK] Analysis router imported successfully")
         print(f"   Routes: {len(analysis_router.routes)} endpoints")
     except Exception as e:
@@ -76,6 +80,7 @@ def test_imports():
     print("\n5. Testing network router...")
     try:
         from app.routers.network import router as network_router
+
         print(f"   [OK] Network router imported successfully")
         print(f"   Routes: {len(network_router.routes)} endpoints")
     except Exception as e:
@@ -100,9 +105,9 @@ def test_adapter_functions():
         # Test ConfigAdapter
         print("1. Testing ConfigAdapter...")
         frontend_config = {
-            'lasso_penalty': 0.1,
-            'enable_phreeqc': False,
-            'enable_isotopes': True,
+            "lasso_penalty": 0.1,
+            "enable_phreeqc": False,
+            "enable_isotopes": True,
         }
         try:
             hydrosheaf_config = ConfigAdapter.frontend_to_hydrosheaf(frontend_config)
@@ -124,19 +129,19 @@ def test_adapter_functions():
         print("\n2. Testing SampleAdapter...")
         frontend_samples = [
             {
-                'sample_id': 'W1',
-                'location_id': 'Well_1',
-                'ca': 80.0,  # mg/L
-                'mg': 30.0,
-                'na': 40.0,
-                'hco3': 250.0,
-                'cl': 50.0,
-                'so4': 70.0,
-                'no3': 15.0,
-                'f': 1.0,
-                'fe': 0.1,
-                'po4': 0.05,
-                'ph': 7.2,
+                "sample_id": "W1",
+                "location_id": "Well_1",
+                "ca": 80.0,  # mg/L
+                "mg": 30.0,
+                "na": 40.0,
+                "hco3": 250.0,
+                "cl": 50.0,
+                "so4": 70.0,
+                "no3": 15.0,
+                "f": 1.0,
+                "fe": 0.1,
+                "po4": 0.05,
+                "ph": 7.2,
             }
         ]
         try:
@@ -146,13 +151,15 @@ def test_adapter_functions():
 
             sample = hydrosheaf_samples[0]
             print(f"     site_id: {sample.get('site_id')}")
-            print(f"     Ca (mmol/L): {sample.get('Ca', 'N/A'):.4f}")  # Should be converted from mg/L
+            print(
+                f"     Ca (mmol/L): {sample.get('Ca', 'N/A'):.4f}"
+            )  # Should be converted from mg/L
             print(f"     pH: {sample.get('ph')}")
 
             # Verify conversion
-            assert 'site_id' in sample
-            assert 'Ca' in sample
-            assert sample['Ca'] < 10  # Should be in mmol/L, not mg/L
+            assert "site_id" in sample
+            assert "Ca" in sample
+            assert sample["Ca"] < 10  # Should be in mmol/L, not mg/L
             print("   [OK] Sample validation passed")
         except Exception as e:
             print(f"   [X] SampleAdapter failed: {e}")
@@ -182,16 +189,18 @@ def test_adapter_functions():
 
             frontend_results = ResultAdapter.hydrosheaf_to_frontend(mock_results)
             print(f"   [OK] Result conversion successful")
-            print(f"     Dominant process: {frontend_results['transport_model']['dominant_process']}")
+            print(
+                f"     Dominant process: {frontend_results['transport_model']['dominant_process']}"
+            )
             print(f"     Reactions found: {len(frontend_results['reactions'])}")
             print(f"     Edges: {len(frontend_results['edges'])}")
 
             # Verify structure
-            assert 'transport_model' in frontend_results
-            assert 'reactions' in frontend_results
-            assert 'edges' in frontend_results
-            assert frontend_results['edges'][0]['source'] == 'W1'
-            assert frontend_results['edges'][0]['target'] == 'W2'
+            assert "transport_model" in frontend_results
+            assert "reactions" in frontend_results
+            assert "edges" in frontend_results
+            assert frontend_results["edges"][0]["source"] == "W1"
+            assert frontend_results["edges"][0]["target"] == "W2"
             print("   [OK] Result validation passed")
         except Exception as e:
             print(f"   [X] ResultAdapter failed: {e}")
@@ -212,7 +221,11 @@ def test_hydrosheaf_integration():
     issues = []
 
     try:
-        from hydrosheaf import Config, fit_network_pipeline, auto_disable_missing_modules
+        from hydrosheaf import (
+            Config,
+            fit_network_pipeline,
+            auto_disable_missing_modules,
+        )
         from hydrosheaf.graph.types import Edge
         from app.hydrosheaf_adapter import SampleAdapter, ConfigAdapter
 
@@ -220,20 +233,36 @@ def test_hydrosheaf_integration():
         # Create test samples
         test_samples = [
             {
-                'sample_id': 'W1',
-                'location_id': 'Well_1',
-                'ca': 80.0, 'mg': 30.0, 'na': 40.0, 'k': 5.0,
-                'hco3': 250.0, 'so4': 70.0, 'cl': 50.0, 'no3': 15.0,
-                'f': 1.0, 'fe': 0.1, 'po4': 0.05,
-                'ph': 7.2,
+                "sample_id": "W1",
+                "location_id": "Well_1",
+                "ca": 80.0,
+                "mg": 30.0,
+                "na": 40.0,
+                "k": 5.0,
+                "hco3": 250.0,
+                "so4": 70.0,
+                "cl": 50.0,
+                "no3": 15.0,
+                "f": 1.0,
+                "fe": 0.1,
+                "po4": 0.05,
+                "ph": 7.2,
             },
             {
-                'sample_id': 'W2',
-                'location_id': 'Well_2',
-                'ca': 95.0, 'mg': 35.0, 'na': 50.0, 'k': 6.0,
-                'hco3': 280.0, 'so4': 85.0, 'cl': 65.0, 'no3': 22.0,
-                'f': 1.2, 'fe': 0.15, 'po4': 0.08,
-                'ph': 7.0,
+                "sample_id": "W2",
+                "location_id": "Well_2",
+                "ca": 95.0,
+                "mg": 35.0,
+                "na": 50.0,
+                "k": 6.0,
+                "hco3": 280.0,
+                "so4": 85.0,
+                "cl": 65.0,
+                "no3": 22.0,
+                "f": 1.2,
+                "fe": 0.15,
+                "po4": 0.08,
+                "ph": 7.0,
             },
         ]
 
@@ -256,7 +285,11 @@ def test_hydrosheaf_integration():
         print(f"     Isotopes: {config.isotope_enabled}")
 
         # Create edges
-        edges = [Edge(edge_id="Well_1->Well_2", u="Well_1", v="Well_2", attrs={"weight": 1.0})]
+        edges = [
+            Edge(
+                edge_id="Well_1->Well_2", u="Well_1", v="Well_2", attrs={"weight": 1.0}
+            )
+        ]
         print(f"   [OK] Created {len(edges)} edges")
 
         # Run actual Hydrosheaf analysis!
@@ -279,10 +312,10 @@ def test_hydrosheaf_integration():
                 print(f"     Reactions: {len(result.z_labels)}")
 
                 # Verify result structure
-                assert hasattr(result, 'u')
-                assert hasattr(result, 'v')
-                assert hasattr(result, 'z_labels')
-                assert hasattr(result, 'z_extents')
+                assert hasattr(result, "u")
+                assert hasattr(result, "v")
+                assert hasattr(result, "z_labels")
+                assert hasattr(result, "z_extents")
                 print("   [OK] Result structure validated")
         except Exception as e:
             print(f"   [X] Hydrosheaf analysis failed: {e}")
@@ -310,15 +343,13 @@ def test_api_models():
         print("1. Testing AnalysisRequest model...")
         try:
             request_data = {
-                'name': 'Test Analysis',
-                'analysis_type': 'full_pipeline',
-                'samples': [
-                    {'sample_id': 'W1', 'location_id': 'Well_1', 'ca': 80.0}
-                ],
-                'config': {
-                    'lasso_penalty': 0.1,
-                    'enable_phreeqc': False,
-                }
+                "name": "Test Analysis",
+                "analysis_type": "full_pipeline",
+                "samples": [{"sample_id": "W1", "location_id": "Well_1", "ca": 80.0}],
+                "config": {
+                    "lasso_penalty": 0.1,
+                    "enable_phreeqc": False,
+                },
             }
             request = AnalysisRequest(**request_data)
             print(f"   [OK] AnalysisRequest created successfully")
@@ -331,13 +362,9 @@ def test_api_models():
         print("\n2. Testing NetworkData model...")
         try:
             network_data = {
-                'name': 'Test Network',
-                'nodes': [
-                    {'id': 'A', 'name': 'Well A', 'x': 0, 'y': 0}
-                ],
-                'edges': [
-                    {'source': 'A', 'target': 'B'}
-                ]
+                "name": "Test Network",
+                "nodes": [{"id": "A", "name": "Well A", "x": 0, "y": 0}],
+                "edges": [{"source": "A", "target": "B"}],
             }
             network = NetworkData(**network_data)
             print(f"   [OK] NetworkData created successfully")
@@ -387,7 +414,10 @@ def main():
             print(f"   {error[:200]}...")  # Truncate long errors
 
         print("\nRecommendations:")
-        if any("Hydrosheaf" in issue[0] and "import" in issue[1].lower() for issue in all_issues):
+        if any(
+            "Hydrosheaf" in issue[0] and "import" in issue[1].lower()
+            for issue in all_issues
+        ):
             print("  - Install Hydrosheaf: pip install ../../")
         if any("Adapter" in issue[0] for issue in all_issues):
             print("  - Check adapter module for syntax errors")

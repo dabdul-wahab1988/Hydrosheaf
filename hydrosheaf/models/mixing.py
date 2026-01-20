@@ -1,4 +1,4 @@
-"""Transport model fitting for evaporation and mixing."""
+"""Mixing and Evolution model fitting."""
 
 from typing import Iterable, List, Tuple
 
@@ -62,7 +62,9 @@ def homogeneous_embed(values: Iterable[float]) -> List[float]:
     return [float(v) for v in values] + [1.0]
 
 
-def evaporation_affine(gamma: float, size: int) -> Tuple[List[List[float]], List[float]]:
+def evaporation_affine(
+    gamma: float, size: int
+) -> Tuple[List[List[float]], List[float]]:
     matrix = [[0.0 for _ in range(size)] for _ in range(size)]
     for idx in range(size):
         matrix[idx][idx] = gamma
@@ -83,7 +85,9 @@ def mixing_affine(
     return matrix, offset
 
 
-def apply_affine(matrix: List[List[float]], offset: List[float], x_u: Iterable[float]) -> List[float]:
+def apply_affine(
+    matrix: List[List[float]], offset: List[float], x_u: Iterable[float]
+) -> List[float]:
     x_list = list(x_u)
     result = []
     for row, bias in zip(matrix, offset):

@@ -35,7 +35,9 @@ def nonnegative(values: Iterable[float]) -> bool:
     return all(v >= 0 for v in values)
 
 
-def qc_flags(values: Iterable[float], ion_order: Iterable[str], limit: float = 0.1) -> List[str]:
+def qc_flags(
+    values: Iterable[float], ion_order: Iterable[str], limit: float = 0.1
+) -> List[str]:
     flags = []
     if not nonnegative(values):
         flags.append("negative_concentration")

@@ -188,7 +188,10 @@ Provides statistical bounds on model outputs.
 
 ## 8. Dual Isotope Nitrate Source Apportionment (v0.3.0)
 
-Version 0.3.0 introduces a rigorous Bayesian mixing model for analyzing $\delta^{15}\text{N}_{\text{NO}_3}$ and $\delta^{18}\text{O}_{\text{NO}_3}$ data. this module works in tandem with the hydrochemical evidence accumulator (Section 6).
+Version 0.3.0 introduces a rigorous Bayesian mixing model for analyzing $\delta^{15}\text{N}_{\text{NO}_3}$ and $\delta^{18}\text{O}_{\text{NO}_3}$ data. This module works in tandem with the hydrochemical evidence accumulator (Section 6).
+
+If PyMC is unavailable, the model falls back to analytic likelihood scoring (see `hydrosheaf/models/nitrate_isotopes.py`).
+
 
 ### 8.1 Process Logic
 

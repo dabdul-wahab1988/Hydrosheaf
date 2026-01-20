@@ -3,7 +3,7 @@ from __future__ import annotations
 import csv
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 import math
 import numpy as np
@@ -111,7 +111,9 @@ def calibrate_ks_and_kc(
     This is intended as a minimal, field-realistic calibration step (Tier 2).
     """
     if least_squares is None:
-        raise RuntimeError("SciPy optimize is required for vadose calibration (scipy.optimize.least_squares).")
+        raise RuntimeError(
+            "SciPy optimize is required for vadose calibration (scipy.optimize.least_squares)."
+        )
     cfg0 = config or VadoseRunConfig()
     if not observations:
         raise ValueError("No theta observations provided for calibration.")
@@ -133,22 +135,27 @@ def calibrate_ks_and_kc(
 
     # Helper: map timestamps to nearest forcing index.
     forcing_times = [f.timestamp for f in forcing]
+
     def _time_to_index(t: datetime) -> int:
         # nearest time
         diffs = [abs((tt - t).total_seconds()) for tt in forcing_times]
         return int(np.argmin(diffs))
 
-    obs_time_idx = [ _time_to_index(t) for t in obs_time ]
+    obs_time_idx = [_time_to_index(t) for t in obs_time]
 
     # Param vector: [log_ks_mult, kc]
     x0 = np.array([0.0, float(cfg0.kc)], dtype=float)
-    lower = np.array([math.log10(float(ks_bounds[0])), float(kc_bounds[0])], dtype=float)
-    upper = np.array([math.log10(float(ks_bounds[1])), float(kc_bounds[1])], dtype=float)
+    lower = np.array(
+        [math.log10(float(ks_bounds[0])), float(kc_bounds[0])], dtype=float
+    )
+    upper = np.array(
+        [math.log10(float(ks_bounds[1])), float(kc_bounds[1])], dtype=float
+    )
 
     def residuals(x: np.ndarray) -> np.ndarray:
         log_ks_mult = float(x[0])
         kc = float(x[1])
-        ks_mult = 10.0 ** log_ks_mult
+        ks_mult = 10.0**log_ks_mult
         prof = scale_profile_ks(profile, ks_mult)
         cfg = VadoseRunConfig(
             dz_m=cfg0.dz_m,
@@ -169,7 +176,9 @@ def calibrate_ks_and_kc(
             ttd_max_lag_days=cfg0.ttd_max_lag_days,
             ttd_default_cv=cfg0.ttd_default_cv,
         )
-        sim = run_richards_column(prof, forcing, config=cfg, water_table_depth_m=water_table_depth_m)
+        sim = run_richards_column(
+            prof, forcing, config=cfg, water_table_depth_m=water_table_depth_m
+        )
         pred = []
         for ti, zi in zip(obs_time_idx, obs_depth_idx):
             ti = max(0, min(ti, len(sim.theta) - 1))

@@ -69,7 +69,8 @@ pip install ../../
 ```bash
 pip install ../../[plot]      # Add matplotlib for plotting
 pip install ../../[phreeqc]   # Add PHREEQC integration
-pip install ../../[modpath]   # Add MODPATH support
+pip install ../../[transport] # Add FloPy transport + MODPATH helpers
+pip install ../../[all]       # Install all optional extras
 ```
 
 ### 3. Verify Installation
@@ -92,6 +93,7 @@ The API will be available at:
 - **Main API**: http://localhost:8000
 - **Interactive Docs**: http://localhost:8000/api/docs
 - **Health Check**: http://localhost:8000/api/health
+- **Demo Objectives**: http://localhost:8000/api/demo/objectives/1/vadose (and `/2/sources`, `/3/recharge`, `/4/transport`)
 
 ### 5. Run Integration Tests
 
@@ -228,6 +230,12 @@ edge_results, extras = fit_network_pipeline(samples, edges, config)
 | `enable_phreeqc` | `phreeqc_enabled` | Thermodynamic constraints |
 | `enable_isotopes` | `isotope_enabled` | δ18O/δ2H analysis |
 | `bootstrap_iterations` | N/A | Function parameter, not config |
+| `temporal_enabled` | `temporal_enabled` | Enables temporal analysis output |
+| `uncertainty` | `uncertainty_method` | `none`, `bootstrap`, `bayesian`, `monte_carlo` |
+
+## Demo Objectives Data
+
+The demo endpoints use `hydrosheaf_synthetic_csv/` at the repo root. If the folder is missing, the demo routes will return errors. The CLI example `python examples/demo_research_objectives.py` uses the same data.
 
 ## Troubleshooting
 

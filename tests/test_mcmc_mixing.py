@@ -224,6 +224,7 @@ class MCMCFallbackTests(unittest.TestCase):
         """Test module imports without errors even if PyMC not available."""
         # This should not raise even if PyMC is not installed
         from hydrosheaf.models.nitrate_isotopes_mcmc import check_pymc_available
+
         available = check_pymc_available()
         self.assertIsInstance(available, bool)
 

@@ -3,7 +3,7 @@ import unittest
 from hydrosheaf.config import Config
 from hydrosheaf.inference.edge_fit import fit_edge
 from hydrosheaf.models.reactions import build_reaction_dictionary
-from hydrosheaf.models.transport import fit_evaporation
+from hydrosheaf.models.mixing import fit_evaporation
 
 
 class EdgeFitTests(unittest.TestCase):
@@ -23,7 +23,9 @@ class EdgeFitTests(unittest.TestCase):
         self.assertEqual(result.transport_model, "evap")
         self.assertAlmostEqual(result.gamma, gamma, places=6)
         self.assertAlmostEqual(result.z_extents[halite_idx], z_true, places=2)
-        self.assertAlmostEqual(sum(result.transport_probabilities.values()), 1.0, places=6)
+        self.assertAlmostEqual(
+            sum(result.transport_probabilities.values()), 1.0, places=6
+        )
 
     def test_edge_fit_evap_composite_reactions(self):
         config = Config(lambda_sparse=0.0)
@@ -50,7 +52,9 @@ class EdgeFitTests(unittest.TestCase):
         self.assertGreater(result.z_extents[halite_idx], 0.0)
         self.assertGreater(result.z_extents[gypsum_idx], 0.0)
         self.assertLess(result.anomaly_norm, 0.2)
-        self.assertAlmostEqual(sum(result.transport_probabilities.values()), 1.0, places=6)
+        self.assertAlmostEqual(
+            sum(result.transport_probabilities.values()), 1.0, places=6
+        )
 
 
 if __name__ == "__main__":

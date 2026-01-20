@@ -3,7 +3,7 @@ from __future__ import annotations
 import csv
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -138,7 +138,9 @@ def predict_no3_breakthrough(
     if len(ttd_tau_days) != len(ttd_g) or not ttd_tau_days:
         raise ValueError("TTD kernel is empty or has mismatched lengths.")
     if not timestamps or len(timestamps) != len(recharge_m_day):
-        raise ValueError("timestamps and recharge_m_day must be the same length and non-empty.")
+        raise ValueError(
+            "timestamps and recharge_m_day must be the same length and non-empty."
+        )
     if not loading:
         raise ValueError("loading is empty.")
 
@@ -169,8 +171,10 @@ def predict_no3_breakthrough(
     grid = _build_uniform_grid(start, end, dt)
 
     # Resample loading and recharge onto the same grid.
-    cin_series = _resample_to_grid([(s.timestamp, s.c_in) for s in loading], grid, fill=0.0)
-    r_series = _resample_to_grid(list(zip(timestamps, recharge_m_day)), grid, fill=0.0)
+    cin_series = _resample_to_grid(
+        [(s.timestamp, s.c_in) for s in loading], grid, fill=0.0
+    )
+    # r_series = _resample_to_grid(list(zip(timestamps, recharge_m_day)), grid, fill=0.0)
 
     # Discrete convolution: C_wt[t] = sum_j cin[t-j] * g[j] * exp(-k*tau[j]) * dt
     att = np.exp(-float(k_1_day) * tau)
@@ -242,4 +246,3 @@ def predict_no3_breakthrough(
         peak_time=peak.timestamp.strftime("%Y-%m-%d") if peak else None,
     )
     return out_points, summary
-

@@ -3,7 +3,9 @@
 from typing import Mapping
 
 
-def build_solution_block(sample: Mapping[str, object], solution_id: int, temp_default_c: float) -> str:
+def build_solution_block(
+    sample: Mapping[str, object], solution_id: int, temp_default_c: float
+) -> str:
     temp_c = sample.get("temp_c")
     if temp_c is None:
         temp_c = temp_default_c

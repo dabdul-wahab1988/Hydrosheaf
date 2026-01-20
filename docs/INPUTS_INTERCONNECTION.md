@@ -39,7 +39,8 @@ PHREEQC runner (`hydrosheaf/phreeqc/runner.py`)
 Isotope penalties (`hydrosheaf/isotopes.py`, used in `fit_edge`)
 - Primary inputs: `18O`, `2H` from normalized `obs_u` and `obs_v`
 - Derived outputs: d-excess, evaporation index, isotope penalty
-- Downstream use: adds penalty to objective in `fit_edge`
+- Downstream use: adds penalty to objective in `fit_edge` and contributes to nitrate source gating
+
 
 Gibbs metrics (`hydrosheaf/models/gibbs.py`)
 - Primary inputs: Na/Ca/Cl/HCO3, optional TDS
@@ -54,7 +55,8 @@ EC/TDS penalty (`hydrosheaf/models/ec_tds.py`)
 Nitrate source v2 (`hydrosheaf/nitrate_source_v2.py`)
 - Primary inputs: raw node chemistry (NO3, Cl, K, PO4, Fe, HCO3), optional `d_excess`, optional nitrate isotopes
 - Derived outputs: posterior probabilities and evidence per node
-- Downstream use: attached to edges in `fit_network` for reporting
+- Downstream use: attached to edges in `fit_network` for reporting (Bayesian mixing optional if PyMC available)
+
 
 Temporal module (`hydrosheaf/temporal/time_series.py`, `hydrosheaf/temporal/temporal_edge_fit.py`)
 - Primary inputs: time-series CSV with `timestamp`, node id, and ions
@@ -79,7 +81,8 @@ Uncertainty (`hydrosheaf/uncertainty/*`)
 Reactive transport validation (`hydrosheaf/reactive_transport/validation.py`)
 - Primary inputs: inverse results (extents), residence time, sample chemistry
 - Derived outputs: RMSE/NSE and thermo consistency flags
-- Downstream use: attached to `EdgeResult`
+- Downstream use: attached to `EdgeResult` (residence time uses temporal output if present)
+
 
 Auto-disable linkage (`hydrosheaf/api.py`)
 - If required primary inputs are missing, PHREEQC, isotopes, and nitrate source are disabled automatically to avoid invoking modules without data.

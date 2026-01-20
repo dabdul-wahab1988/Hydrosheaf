@@ -78,6 +78,13 @@ Extension 2: Uncertainty Quantification has been successfully implemented and te
 
 ## ✅ Test Results
 
+### Runtime Notes
+
+- Bayesian MCMC requires PyMC + ArviZ; otherwise the module should be disabled.
+- Bootstrap and Monte Carlo modes can be parallelized externally if needed.
+- Expect minutes of runtime for large networks.
+
+
 ### Python Syntax Check
 ```
 ✓ All uncertainty module files compile without errors

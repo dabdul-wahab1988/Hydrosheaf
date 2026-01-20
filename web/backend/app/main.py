@@ -18,6 +18,7 @@ try:
     from slowapi import Limiter, _rate_limit_exceeded_handler
     from slowapi.util import get_remote_address
     from slowapi.errors import RateLimitExceeded
+
     RATE_LIMITING_AVAILABLE = True
 except ImportError:
     RATE_LIMITING_AVAILABLE = False
@@ -34,7 +35,7 @@ CLEANUP_INTERVAL_SECONDS = int(os.getenv("CLEANUP_INTERVAL_SECONDS", "3600"))
 # CORS origins from environment variable or default to dev origins
 CORS_ORIGINS = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174",
 ).split(",")
 
 
@@ -48,10 +49,12 @@ async def cleanup_old_jobs():
             # Cleanup analysis jobs
             jobs_to_remove = []
             for job_id, job in analysis.analysis_jobs.items():
-                created_at = job.get('created_at')
+                created_at = job.get("created_at")
                 if created_at:
                     try:
-                        job_time = datetime.fromisoformat(created_at.replace('Z', '+00:00').replace('+00:00', ''))
+                        job_time = datetime.fromisoformat(
+                            created_at.replace("Z", "+00:00").replace("+00:00", "")
+                        )
                         if job_time < cutoff:
                             jobs_to_remove.append(job_id)
                     except (ValueError, TypeError):
@@ -87,7 +90,9 @@ async def lifespan(app: FastAPI):
 
     # Start cleanup task
     cleanup_task = asyncio.create_task(cleanup_old_jobs())
-    print(f"[Startup] Job cleanup task started (interval: {CLEANUP_INTERVAL_SECONDS}s, max age: {MAX_JOB_AGE_HOURS}h)")
+    print(
+        f"[Startup] Job cleanup task started (interval: {CLEANUP_INTERVAL_SECONDS}s, max age: {MAX_JOB_AGE_HOURS}h)"
+    )
     yield
     # Cancel cleanup task on shutdown
     cleanup_task.cancel()

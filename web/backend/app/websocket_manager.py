@@ -1,6 +1,7 @@
 """
 WebSocket connection manager for real-time analysis progress updates.
 """
+
 import asyncio
 from typing import Dict, Set
 from fastapi import WebSocket
@@ -40,7 +41,9 @@ class ConnectionManager:
                     del self.active_connections[job_id]
         logger.info(f"WebSocket disconnected for job {job_id}")
 
-    async def broadcast_progress(self, job_id: str, progress: int, step: str, status: str = "running"):
+    async def broadcast_progress(
+        self, job_id: str, progress: int, step: str, status: str = "running"
+    ):
         """
         Broadcast progress update to all connected clients for a job.
 
@@ -56,13 +59,15 @@ class ConnectionManager:
         if not connections:
             return
 
-        message = json.dumps({
-            "type": "progress",
-            "job_id": job_id,
-            "progress": progress,
-            "step": step,
-            "status": status
-        })
+        message = json.dumps(
+            {
+                "type": "progress",
+                "job_id": job_id,
+                "progress": progress,
+                "step": step,
+                "status": status,
+            }
+        )
 
         # Send to all connected clients
         disconnected = []
@@ -99,7 +104,7 @@ class ConnectionManager:
             "type": "completion",
             "job_id": job_id,
             "status": status,
-            "progress": 100 if status == "completed" else 0
+            "progress": 100 if status == "completed" else 0,
         }
 
         if error:
@@ -118,7 +123,9 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-def broadcast_progress_sync(job_id: str, progress: int, step: str, status: str = "running"):
+def broadcast_progress_sync(
+    job_id: str, progress: int, step: str, status: str = "running"
+):
     """
     Synchronous wrapper for broadcasting progress.
     Creates a new event loop if needed for background tasks.
@@ -127,9 +134,13 @@ def broadcast_progress_sync(job_id: str, progress: int, step: str, status: str =
         loop = asyncio.get_event_loop()
         if loop.is_running():
             # We're in an async context, schedule the coroutine
-            asyncio.create_task(manager.broadcast_progress(job_id, progress, step, status))
+            asyncio.create_task(
+                manager.broadcast_progress(job_id, progress, step, status)
+            )
         else:
-            loop.run_until_complete(manager.broadcast_progress(job_id, progress, step, status))
+            loop.run_until_complete(
+                manager.broadcast_progress(job_id, progress, step, status)
+            )
     except RuntimeError:
         # No event loop, create one
         asyncio.run(manager.broadcast_progress(job_id, progress, step, status))

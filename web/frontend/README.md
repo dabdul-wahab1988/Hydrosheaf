@@ -1,16 +1,39 @@
-# React + Vite
+# Hydrosheaf Web Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite frontend for the Hydrosheaf web application.
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+cd web/frontend
+npm install
+npm run dev
+```
 
-## React Compiler
+The dev server runs on `http://localhost:5173` and expects the backend at `http://localhost:8000`.
+Override the backend URL with `VITE_API_BASE` or `VITE_API_HOST`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Build & Lint
 
-## Expanding the ESLint configuration
+```bash
+npm run build
+npm run lint
+npm run preview
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Demo Objectives Page
+
+The demo objectives page queries `/api/demo` endpoints for research objectives 1–4.
+These endpoints require `hydrosheaf_synthetic_csv/` at the repo root and the backend running.
+
+## Environment Variables
+
+- `VITE_API_BASE`: Full backend API base URL (defaults to `http://localhost:8000/api`).
+- `VITE_API_HOST`: Host override for WebSocket connections (defaults to window host).
+- `VITE_APP_VERSION`: Optional app version string shown in UI.
+
+## Notes
+
+- The frontend assumes mg/L inputs; conversions happen in the backend adapter.
+- The demo objectives data uses synthetic CSVs; see `examples/demo_research_objectives.py`.
+

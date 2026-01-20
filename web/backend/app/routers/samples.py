@@ -13,7 +13,10 @@ import io
 
 from pathlib import Path
 from ..database import (
-    create_dataset, get_dataset as db_get_dataset, get_all_datasets, delete_dataset as db_delete_dataset
+    create_dataset,
+    get_dataset as db_get_dataset,
+    get_all_datasets,
+    delete_dataset as db_delete_dataset,
 )
 
 router = APIRouter()
@@ -25,10 +28,11 @@ MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 class WaterSample(BaseModel):
     """A single water sample with chemical analysis"""
+
     sample_id: str
     location_id: str
     date: Optional[str] = None
-    
+
     # Major ions (mg/L)
     ca: Optional[float] = Field(None, description="Calcium")
     mg: Optional[float] = Field(None, description="Magnesium")
@@ -38,24 +42,25 @@ class WaterSample(BaseModel):
     so4: Optional[float] = Field(None, description="Sulfate")
     cl: Optional[float] = Field(None, description="Chloride")
     no3: Optional[float] = Field(None, description="Nitrate")
-    
+
     # Isotopes
     d18o: Optional[float] = Field(None, description="δ18O (‰)")
     d2h: Optional[float] = Field(None, description="δ2H (‰)")
     d15n: Optional[float] = Field(None, description="δ15N-NO3 (‰)")
     d18o_no3: Optional[float] = Field(None, description="δ18O-NO3 (‰)")
-    
+
     # Field parameters
     ph: Optional[float] = None
     ec: Optional[float] = Field(None, description="Electrical Conductivity (μS/cm)")
     temperature: Optional[float] = Field(None, description="Temperature (°C)")
-    
+
     # Additional properties
     tds: Optional[float] = Field(None, description="Total Dissolved Solids (mg/L)")
 
 
 class SampleDataset(BaseModel):
     """A collection of water samples"""
+
     name: str
     description: Optional[str] = None
     samples: List[WaterSample]
@@ -70,7 +75,7 @@ async def upload_samples(dataset: SampleDataset):
         dataset_id=dataset_id,
         name=dataset.name,
         samples=[s.model_dump() for s in dataset.samples],
-        description=dataset.description
+        description=dataset.description,
     )
 
     return {
@@ -85,9 +90,9 @@ def parse_csv_samples(content: bytes, filename: str) -> List[Dict]:
     """Parse CSV content into sample dictionaries"""
     # Decode content
     try:
-        text = content.decode('utf-8')
+        text = content.decode("utf-8")
     except UnicodeDecodeError:
-        text = content.decode('latin-1')
+        text = content.decode("latin-1")
 
     # Parse CSV
     reader = csv.DictReader(io.StringIO(text))
@@ -95,30 +100,38 @@ def parse_csv_samples(content: bytes, filename: str) -> List[Dict]:
 
     # Column name mapping (case-insensitive, common variations)
     column_mapping = {
-        'sample_id': ['sample_id', 'sampleid', 'sample', 'id', 'name'],
-        'location_id': ['location_id', 'locationid', 'location', 'well', 'well_id', 'site', 'site_id'],
-        'date': ['date', 'sample_date', 'collection_date', 'datetime'],
-        'ca': ['ca', 'calcium', 'ca2+', 'ca_mgl'],
-        'mg': ['mg', 'magnesium', 'mg2+', 'mg_mgl'],
-        'na': ['na', 'sodium', 'na+', 'na_mgl'],
-        'k': ['k', 'potassium', 'k+', 'k_mgl'],
-        'hco3': ['hco3', 'bicarbonate', 'hco3-', 'hco3_mgl', 'alkalinity'],
-        'so4': ['so4', 'sulfate', 'sulphate', 'so42-', 'so4_mgl'],
-        'cl': ['cl', 'chloride', 'cl-', 'cl_mgl'],
-        'no3': ['no3', 'nitrate', 'no3-', 'no3_mgl'],
-        'f': ['f', 'fluoride', 'f-', 'f_mgl'],
-        'fe': ['fe', 'iron', 'fe2+', 'fe_mgl'],
-        'po4': ['po4', 'phosphate', 'po43-', 'po4_mgl'],
-        'd18o': ['d18o', 'delta18o', 'o18', 'δ18o', 'oxygen18'],
-        'd2h': ['d2h', 'delta2h', 'deuterium', 'δ2h', 'h2'],
-        'd15n': ['d15n', 'delta15n', 'n15', 'δ15n', 'nitrogen15'],
-        'd18o_no3': ['d18o_no3', 'delta18o_no3', 'o18_no3'],
-        'ph': ['ph'],
-        'ec': ['ec', 'conductivity', 'electrical_conductivity', 'spc'],
-        'temperature': ['temperature', 'temp', 't'],
-        'tds': ['tds', 'total_dissolved_solids'],
-        'x': ['x', 'longitude', 'lon', 'easting', 'x_coord'],
-        'y': ['y', 'latitude', 'lat', 'northing', 'y_coord'],
+        "sample_id": ["sample_id", "sampleid", "sample", "id", "name"],
+        "location_id": [
+            "location_id",
+            "locationid",
+            "location",
+            "well",
+            "well_id",
+            "site",
+            "site_id",
+        ],
+        "date": ["date", "sample_date", "collection_date", "datetime"],
+        "ca": ["ca", "calcium", "ca2+", "ca_mgl"],
+        "mg": ["mg", "magnesium", "mg2+", "mg_mgl"],
+        "na": ["na", "sodium", "na+", "na_mgl"],
+        "k": ["k", "potassium", "k+", "k_mgl"],
+        "hco3": ["hco3", "bicarbonate", "hco3-", "hco3_mgl", "alkalinity"],
+        "so4": ["so4", "sulfate", "sulphate", "so42-", "so4_mgl"],
+        "cl": ["cl", "chloride", "cl-", "cl_mgl"],
+        "no3": ["no3", "nitrate", "no3-", "no3_mgl"],
+        "f": ["f", "fluoride", "f-", "f_mgl"],
+        "fe": ["fe", "iron", "fe2+", "fe_mgl"],
+        "po4": ["po4", "phosphate", "po43-", "po4_mgl"],
+        "d18o": ["d18o", "delta18o", "o18", "δ18o", "oxygen18"],
+        "d2h": ["d2h", "delta2h", "deuterium", "δ2h", "h2"],
+        "d15n": ["d15n", "delta15n", "n15", "δ15n", "nitrogen15"],
+        "d18o_no3": ["d18o_no3", "delta18o_no3", "o18_no3"],
+        "ph": ["ph"],
+        "ec": ["ec", "conductivity", "electrical_conductivity", "spc"],
+        "temperature": ["temperature", "temp", "t"],
+        "tds": ["tds", "total_dissolved_solids"],
+        "x": ["x", "longitude", "lon", "easting", "x_coord"],
+        "y": ["y", "latitude", "lat", "northing", "y_coord"],
     }
 
     # Build reverse mapping from actual column names to standard names
@@ -132,13 +145,13 @@ def parse_csv_samples(content: bytes, filename: str) -> List[Dict]:
     for row_num, row in enumerate(reader, start=1):
         sample = {}
         for col_name, value in row.items():
-            if value is None or value.strip() == '':
+            if value is None or value.strip() == "":
                 continue
 
             standard_name = find_standard_name(col_name)
             if standard_name:
                 # Try to convert numeric values
-                if standard_name not in ['sample_id', 'location_id', 'date']:
+                if standard_name not in ["sample_id", "location_id", "date"]:
                     try:
                         sample[standard_name] = float(value)
                     except ValueError:
@@ -153,12 +166,12 @@ def parse_csv_samples(content: bytes, filename: str) -> List[Dict]:
                     sample[col_name.lower()] = value
 
         # Generate sample_id if missing
-        if 'sample_id' not in sample:
-            sample['sample_id'] = f"S{row_num:03d}"
+        if "sample_id" not in sample:
+            sample["sample_id"] = f"S{row_num:03d}"
 
         # Generate location_id if missing
-        if 'location_id' not in sample:
-            sample['location_id'] = sample['sample_id']
+        if "location_id" not in sample:
+            sample["location_id"] = sample["sample_id"]
 
         samples.append(sample)
 
@@ -174,19 +187,19 @@ async def upload_samples_file(file: UploadFile = File(...)):
     if len(content) > MAX_FILE_SIZE_BYTES:
         raise HTTPException(
             status_code=413,
-            detail=f"File too large. Maximum size is {MAX_FILE_SIZE_MB}MB. Your file is {len(content) / (1024 * 1024):.1f}MB."
+            detail=f"File too large. Maximum size is {MAX_FILE_SIZE_MB}MB. Your file is {len(content) / (1024 * 1024):.1f}MB.",
         )
 
     filename = file.filename or "uploaded_file"
-    file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
+    file_ext = filename.lower().split(".")[-1] if "." in filename else ""
 
     dataset_id = str(uuid.uuid4())[:8]
     samples = []
-    name = filename.rsplit('.', 1)[0] if '.' in filename else filename
+    name = filename.rsplit(".", 1)[0] if "." in filename else filename
     file_type = ""
 
     # Determine file type and parse accordingly
-    if file_ext == 'csv':
+    if file_ext == "csv":
         # Parse CSV file
         try:
             samples = parse_csv_samples(content, filename)
@@ -194,7 +207,7 @@ async def upload_samples_file(file: UploadFile = File(...)):
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"CSV parsing error: {str(e)}")
 
-    elif file_ext == 'json':
+    elif file_ext == "json":
         # Parse JSON file
         try:
             data = json.loads(content)
@@ -204,10 +217,15 @@ async def upload_samples_file(file: UploadFile = File(...)):
                 samples = data.get("samples", [])
                 name = data.get("name", name)
             else:
-                raise HTTPException(status_code=400, detail="Invalid JSON data format - expected array or object with 'samples' key")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid JSON data format - expected array or object with 'samples' key",
+                )
             file_type = "JSON"
         except json.JSONDecodeError as e:
-            raise HTTPException(status_code=400, detail=f"Invalid JSON format: {str(e)}")
+            raise HTTPException(
+                status_code=400, detail=f"Invalid JSON format: {str(e)}"
+            )
 
     else:
         # Try to auto-detect format - try JSON first, then CSV
@@ -227,16 +245,22 @@ async def upload_samples_file(file: UploadFile = File(...)):
                 samples = parse_csv_samples(content, filename)
                 file_type = "CSV"
             except Exception as e:
-                raise HTTPException(status_code=400, detail=f"Could not parse file as JSON or CSV: {str(e)}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Could not parse file as JSON or CSV: {str(e)}",
+                )
 
     if not samples:
-        raise HTTPException(status_code=400, detail="No samples found in the file. Please check the file format.")
+        raise HTTPException(
+            status_code=400,
+            detail="No samples found in the file. Please check the file format.",
+        )
 
     create_dataset(
         dataset_id=dataset_id,
         name=name,
         samples=samples,
-        description=f"Uploaded from {filename} ({file_type})"
+        description=f"Uploaded from {filename} ({file_type})",
     )
 
     return {
@@ -279,11 +303,24 @@ async def get_dataset_summary(dataset_id: str):
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
     samples = dataset["samples"]
-    
+
     # Calculate summary statistics
-    numeric_fields = ["ca", "mg", "na", "k", "hco3", "so4", "cl", "no3", "ph", "ec", "d18o", "d2h"]
+    numeric_fields = [
+        "ca",
+        "mg",
+        "na",
+        "k",
+        "hco3",
+        "so4",
+        "cl",
+        "no3",
+        "ph",
+        "ec",
+        "d18o",
+        "d2h",
+    ]
     summary = {}
-    
+
     for field in numeric_fields:
         values = [s.get(field) for s in samples if s.get(field) is not None]
         if values:
@@ -293,7 +330,7 @@ async def get_dataset_summary(dataset_id: str):
                 "max": max(values),
                 "mean": sum(values) / len(values),
             }
-    
+
     return {
         "dataset_id": dataset_id,
         "name": dataset["name"],
@@ -314,18 +351,20 @@ async def get_dataset_capabilities(dataset_id: str):
     samples = dataset["samples"]
 
     # Define field categories
-    ion_fields = ['ca', 'mg', 'na', 'k', 'hco3', 'so4', 'cl', 'no3', 'f', 'fe', 'po4']
-    isotope_fields = ['d18o', 'd2h']
-    nitrate_isotope_fields = ['d15n', 'd18o_no3']
-    spatial_fields = ['x', 'y', 'longitude', 'latitude', 'lon', 'lat']
-    depth_fields = ['z', 'screen_depth', 'well_depth', 'elevation']
-    temporal_fields = ['date', 'datetime', 'sample_date']
-    field_param_fields = ['ph', 'ec', 'temperature', 'tds']
+    ion_fields = ["ca", "mg", "na", "k", "hco3", "so4", "cl", "no3", "f", "fe", "po4"]
+    isotope_fields = ["d18o", "d2h"]
+    nitrate_isotope_fields = ["d15n", "d18o_no3"]
+    spatial_fields = ["x", "y", "longitude", "latitude", "lon", "lat"]
+    depth_fields = ["z", "screen_depth", "well_depth", "elevation"]
+    temporal_fields = ["date", "datetime", "sample_date"]
+    field_param_fields = ["ph", "ec", "temperature", "tds"]
 
     # Count samples with each field
     def count_field(field_list):
         for field in field_list:
-            count = sum(1 for s in samples if s.get(field) is not None and s.get(field) != '')
+            count = sum(
+                1 for s in samples if s.get(field) is not None and s.get(field) != ""
+            )
             if count > 0:
                 return count, field
         return 0, None
@@ -333,7 +372,9 @@ async def get_dataset_capabilities(dataset_id: str):
     def get_present_fields(field_list):
         present = []
         for field in field_list:
-            count = sum(1 for s in samples if s.get(field) is not None and s.get(field) != '')
+            count = sum(
+                1 for s in samples if s.get(field) is not None and s.get(field) != ""
+            )
             if count > 0:
                 present.append(field)
         return present
@@ -348,14 +389,16 @@ async def get_dataset_capabilities(dataset_id: str):
     available_field_params = get_present_fields(field_param_fields)
 
     # Minimum requirements for each analysis
-    has_major_ions = len(set(available_ions) & {'ca', 'mg', 'na', 'hco3', 'cl', 'so4'}) >= 4
+    has_major_ions = (
+        len(set(available_ions) & {"ca", "mg", "na", "hco3", "cl", "so4"}) >= 4
+    )
     has_coordinates = len(available_spatial) >= 2
     has_isotopes = len(available_isotopes) >= 2
     has_nitrate_isotopes = len(available_nitrate_isotopes) >= 2
-    has_nitrate = 'no3' in available_ions
+    has_nitrate = "no3" in available_ions
     has_temporal = len(available_temporal) > 0
     has_depth = len(available_depth) > 0
-    has_ph = 'ph' in available_field_params
+    has_ph = "ph" in available_field_params
 
     # Determine available analyses
     available_analyses = {
@@ -367,7 +410,8 @@ async def get_dataset_capabilities(dataset_id: str):
         "nitrate_source": has_nitrate and has_nitrate_isotopes,
         "temporal": has_temporal and has_major_ions,
         "network_3d": has_coordinates and has_depth,
-        "gibbs": has_major_ions and ('tds' in available_field_params or 'ec' in available_field_params),
+        "gibbs": has_major_ions
+        and ("tds" in available_field_params or "ec" in available_field_params),
         "exchange": has_major_ions,
         "coda": has_major_ions,
         "vadose_zone": has_nitrate and has_depth,
@@ -378,13 +422,19 @@ async def get_dataset_capabilities(dataset_id: str):
     # Generate warnings for unavailable analyses
     warnings = []
     if not has_major_ions:
-        warnings.append("Major ion analysis requires at least Ca, Mg, Na, HCO3, Cl, SO4")
+        warnings.append(
+            "Major ion analysis requires at least Ca, Mg, Na, HCO3, Cl, SO4"
+        )
     if not has_coordinates:
-        warnings.append("Network inference requires spatial coordinates (x/y or lat/lon)")
+        warnings.append(
+            "Network inference requires spatial coordinates (x/y or lat/lon)"
+        )
     if not has_isotopes:
         warnings.append("Isotope analysis requires d18o and d2h fields")
     if not has_nitrate_isotopes and has_nitrate:
-        warnings.append("Nitrate source discrimination requires d15n and d18o_no3 isotope fields")
+        warnings.append(
+            "Nitrate source discrimination requires d15n and d18o_no3 isotope fields"
+        )
     if not has_ph and has_major_ions:
         warnings.append("PHREEQC constraints require pH measurements")
     if not has_depth and has_coordinates:
@@ -411,12 +461,13 @@ async def get_dataset_capabilities(dataset_id: str):
             "can_run_spatial": has_coordinates,
             "can_run_isotope": has_isotopes,
             "can_run_full_pipeline": has_major_ions and has_coordinates,
-        }
+        },
     }
 
 
 class ValidationResult(BaseModel):
     """Validation result for a single sample"""
+
     sample_id: str
     is_valid: bool
     charge_balance_error: Optional[float] = None
@@ -426,6 +477,7 @@ class ValidationResult(BaseModel):
 
 class DatasetValidationResponse(BaseModel):
     """Response for dataset validation"""
+
     dataset_id: str
     total_samples: int
     valid_samples: int
@@ -460,21 +512,38 @@ async def validate_dataset(dataset_id: str, charge_balance_limit: float = 0.1):
 
     # Molecular weights for conversion to mmol/L
     mw = {
-        'ca': 40.08, 'mg': 24.31, 'na': 22.99, 'k': 39.10,
-        'hco3': 61.02, 'so4': 96.06, 'cl': 35.45, 'no3': 62.00,
-        'f': 19.00, 'fe': 55.85, 'po4': 94.97
+        "ca": 40.08,
+        "mg": 24.31,
+        "na": 22.99,
+        "k": 39.10,
+        "hco3": 61.02,
+        "so4": 96.06,
+        "cl": 35.45,
+        "no3": 62.00,
+        "f": 19.00,
+        "fe": 55.85,
+        "po4": 94.97,
     }
 
     # Valence for charge balance
     valence = {
-        'ca': 2, 'mg': 2, 'na': 1, 'k': 1, 'fe': 2,  # Cations
-        'hco3': -1, 'so4': -2, 'cl': -1, 'no3': -1, 'f': -1, 'po4': -3  # Anions
+        "ca": 2,
+        "mg": 2,
+        "na": 1,
+        "k": 1,
+        "fe": 2,  # Cations
+        "hco3": -1,
+        "so4": -2,
+        "cl": -1,
+        "no3": -1,
+        "f": -1,
+        "po4": -3,  # Anions
     }
 
-    required_ions = ['ca', 'mg', 'na', 'hco3', 'cl', 'so4']
+    required_ions = ["ca", "mg", "na", "hco3", "cl", "so4"]
 
     for sample in samples:
-        sample_id = sample.get('sample_id', 'unknown')
+        sample_id = sample.get("sample_id", "unknown")
         flags = []
         warnings = []
 
@@ -517,7 +586,7 @@ async def validate_dataset(dataset_id: str, charge_balance_limit: float = 0.1):
                 warnings.append("Could not calculate charge balance")
 
         # Check pH range
-        ph = sample.get('ph')
+        ph = sample.get("ph")
         if ph is not None:
             if ph < 0 or ph > 14:
                 flags.append(f"invalid_ph ({ph})")
@@ -525,7 +594,7 @@ async def validate_dataset(dataset_id: str, charge_balance_limit: float = 0.1):
                 warnings.append(f"Unusual pH value ({ph})")
 
         # Check EC range
-        ec = sample.get('ec')
+        ec = sample.get("ec")
         if ec is not None and ec < 0:
             flags.append("negative_ec")
 
@@ -533,19 +602,21 @@ async def validate_dataset(dataset_id: str, charge_balance_limit: float = 0.1):
         if is_valid:
             valid_count += 1
 
-        results.append(ValidationResult(
-            sample_id=sample_id,
-            is_valid=is_valid,
-            charge_balance_error=cbe,
-            flags=flags,
-            warnings=warnings
-        ))
+        results.append(
+            ValidationResult(
+                sample_id=sample_id,
+                is_valid=is_valid,
+                charge_balance_error=cbe,
+                flags=flags,
+                warnings=warnings,
+            )
+        )
 
     # Summarize issues
     issue_counts = {}
     for r in results:
         for flag in r.flags:
-            issue_type = flag.split(' ')[0].split('(')[0]  # Get base issue type
+            issue_type = flag.split(" ")[0].split("(")[0]  # Get base issue type
             issue_counts[issue_type] = issue_counts.get(issue_type, 0) + 1
 
     return DatasetValidationResponse(
@@ -558,7 +629,7 @@ async def validate_dataset(dataset_id: str, charge_balance_limit: float = 0.1):
             "pass_rate": valid_count / len(samples) if samples else 0,
             "common_issues": issue_counts,
             "charge_balance_limit": charge_balance_limit,
-        }
+        },
     )
 
 
@@ -582,23 +653,25 @@ def init_demo_data():
         # Path relative to web/backend/app/routers/samples.py -> ... -> ... -> root -> hydrosheaf_synthetic_csv
         base_path = Path(__file__).resolve().parents[4]
         csv_path = base_path / "hydrosheaf_synthetic_csv" / "water_chem_full.csv"
-        
+
         if csv_path.exists():
             print(f"Loading synthetic data from {csv_path}")
-            with open(csv_path, 'rb') as f:
+            with open(csv_path, "rb") as f:
                 content = f.read()
                 samples = parse_csv_samples(content, "water_chem_full.csv")
-                
+
             create_dataset(
                 dataset_id="demo",
                 name="Synthetic Research Dataset",
                 samples=samples,
-                description="Full synthetic dataset with seasonal events and isotopes"
+                description="Full synthetic dataset with seasonal events and isotopes",
             )
             return
         else:
-            print(f"Synthetic data not found at {csv_path}, falling back to hardcoded samples.")
-            
+            print(
+                f"Synthetic data not found at {csv_path}, falling back to hardcoded samples."
+            )
+
     except Exception as e:
         print(f"Error loading synthetic data: {e}")
 
@@ -672,5 +745,5 @@ def init_demo_data():
         dataset_id="demo",
         name="Demo Groundwater Samples",
         samples=demo_samples,
-        description="Example dataset for demonstration purposes"
+        description="Example dataset for demonstration purposes",
     )

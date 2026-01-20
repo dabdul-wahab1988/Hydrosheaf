@@ -10,6 +10,7 @@ import pandas as pd
 
 SYNTHETIC_DIR = Path(__file__).parents[2] / "hydrosheaf_synthetic_csv"
 
+
 class CLIIntegrationTests(unittest.TestCase):
     def test_cli_basic_run(self):
         """Run the full CLI pipeline on synthetic data and check output."""
@@ -19,11 +20,15 @@ class CLIIntegrationTests(unittest.TestCase):
             output_path = tmp.name
 
         # Create temporary samples CSV with proper column names (site_id, standard ion names)
-        with tempfile.NamedTemporaryFile(suffix="_samples.csv", delete=False, mode='w', newline='') as samples_tmp:
+        with tempfile.NamedTemporaryFile(
+            suffix="_samples.csv", delete=False, mode="w", newline=""
+        ) as samples_tmp:
             samples_path = samples_tmp.name
 
         # Create temporary edges CSV with proper column names (u, v instead of from_station, to_station)
-        with tempfile.NamedTemporaryFile(suffix="_edges.csv", delete=False, mode='w', newline='') as edges_tmp:
+        with tempfile.NamedTemporaryFile(
+            suffix="_edges.csv", delete=False, mode="w", newline=""
+        ) as edges_tmp:
             edges_path = edges_tmp.name
 
         try:
@@ -34,10 +39,16 @@ class CLIIntegrationTests(unittest.TestCase):
             chem_df["sample_id"] = chem_df["station_code"] + "_" + chem_df["event_code"]
             # Map column names: Ca_mg_L -> Ca, etc.
             ion_mapping = {
-                "Ca_mg_L": "Ca", "Mg_mg_L": "Mg", "Na_mg_L": "Na",
-                "K_mg_L": "K", "Cl_mg_L": "Cl", "SO4_mg_L": "SO4",
-                "HCO3_mg_L": "HCO3", "NO3_mg_L": "NO3",
-                "EC_uS_cm": "EC", "TDS_mg_L": "TDS"
+                "Ca_mg_L": "Ca",
+                "Mg_mg_L": "Mg",
+                "Na_mg_L": "Na",
+                "K_mg_L": "K",
+                "Cl_mg_L": "Cl",
+                "SO4_mg_L": "SO4",
+                "HCO3_mg_L": "HCO3",
+                "NO3_mg_L": "NO3",
+                "EC_uS_cm": "EC",
+                "TDS_mg_L": "TDS",
             }
             for old_col, new_col in ion_mapping.items():
                 if old_col in chem_df.columns:
@@ -56,12 +67,19 @@ class CLIIntegrationTests(unittest.TestCase):
 
             # Construct command
             cmd = [
-                sys.executable, "-m", "hydrosheaf.cli",
-                "--samples", samples_path,
-                "--output", output_path,
-                "--edges", edges_path,
-                "--missing-policy", "impute_zero",
-                "--unit", "mg/L"
+                sys.executable,
+                "-m",
+                "hydrosheaf.cli",
+                "--samples",
+                samples_path,
+                "--output",
+                output_path,
+                "--edges",
+                edges_path,
+                "--missing-policy",
+                "impute_zero",
+                "--unit",
+                "mg/L",
             ]
 
             # Run
@@ -71,13 +89,15 @@ class CLIIntegrationTests(unittest.TestCase):
                 print("CLI stdout:", result.stdout)
                 print("CLI stderr:", result.stderr)
 
-            self.assertEqual(result.returncode, 0, f"CLI execution failed: {result.stderr}")
+            self.assertEqual(
+                result.returncode, 0, f"CLI execution failed: {result.stderr}"
+            )
 
             # Verify Output
             self.assertTrue(os.path.exists(output_path), "Output JSON not created")
 
             if os.path.exists(output_path):
-                with open(output_path, 'r') as f:
+                with open(output_path, "r") as f:
                     data = json.load(f)
 
                 # Check basic structure of results
@@ -95,6 +115,7 @@ class CLIIntegrationTests(unittest.TestCase):
                         os.remove(path)
                     except:
                         pass
+
 
 if __name__ == "__main__":
     unittest.main()

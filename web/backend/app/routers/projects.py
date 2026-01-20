@@ -20,12 +20,14 @@ router = APIRouter()
 
 class ProjectCreate(BaseModel):
     """Create a new project"""
+
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
 
 
 class Project(BaseModel):
     """Project model"""
+
     id: str
     name: str
     description: Optional[str]
@@ -98,8 +100,12 @@ def _build_text_report(project: Dict[str, Any]) -> str:
             if result.get("transport_model"):
                 report_lines.append("\nTransport Model:")
                 tm = result["transport_model"]
-                report_lines.append(f"  Dominant Process: {tm.get('dominant_process', 'N/A')}")
-                report_lines.append(f"  Evaporation Fraction: {tm.get('evaporation_fraction', 'N/A')}")
+                report_lines.append(
+                    f"  Dominant Process: {tm.get('dominant_process', 'N/A')}"
+                )
+                report_lines.append(
+                    f"  Evaporation Fraction: {tm.get('evaporation_fraction', 'N/A')}"
+                )
 
             if result.get("reactions"):
                 report_lines.append("\nReactions:")
@@ -188,8 +194,8 @@ async def export_project(project_id: str):
         "framework": "Hydrosheaf - Sheaf-Theoretic Methods in Groundwater Hydrogeochemistry",
         "authors": [
             "Dickson Abdul-Wahab",
-            "Ebenezer Aquisman Asare", 
-            "Abdul Rashid Dickson"
+            "Ebenezer Aquisman Asare",
+            "Abdul Rashid Dickson",
         ],
         "analysis_summary": {
             "total_analyses": len(project["analysis_jobs"]),
@@ -213,11 +219,11 @@ async def download_project_report(project_id: str):
 
     # Return as downloadable file
     return StreamingResponse(
-        io.BytesIO(report_content.encode('utf-8')),
+        io.BytesIO(report_content.encode("utf-8")),
         media_type="text/plain",
         headers={
             "Content-Disposition": f"attachment; filename={project['name'].replace(' ', '_')}_report.txt"
-        }
+        },
     )
 
 
@@ -289,8 +295,16 @@ async def download_complete_project(project_id: str):
         zf.writestr(f"{root}/results/results.json", json.dumps(results, indent=2))
         result_summaries = []
         for result in results:
-            transport = result.get("transport_model", {}) if isinstance(result.get("transport_model"), dict) else {}
-            metadata_block = result.get("metadata", {}) if isinstance(result.get("metadata"), dict) else {}
+            transport = (
+                result.get("transport_model", {})
+                if isinstance(result.get("transport_model"), dict)
+                else {}
+            )
+            metadata_block = (
+                result.get("metadata", {})
+                if isinstance(result.get("metadata"), dict)
+                else {}
+            )
             result_summaries.append(
                 {
                     "name": result.get("name"),
@@ -298,10 +312,14 @@ async def download_complete_project(project_id: str):
                     "job_id": result.get("job_id"),
                     "saved_at": result.get("saved_at"),
                     "transport_dominant_process": transport.get("dominant_process"),
-                    "transport_evaporation_fraction": transport.get("evaporation_fraction"),
-                    "reaction_count": len(result.get("reactions", []))
-                    if isinstance(result.get("reactions"), list)
-                    else None,
+                    "transport_evaporation_fraction": transport.get(
+                        "evaporation_fraction"
+                    ),
+                    "reaction_count": (
+                        len(result.get("reactions", []))
+                        if isinstance(result.get("reactions"), list)
+                        else None
+                    ),
                     "edges_analyzed": metadata_block.get("edges_analyzed"),
                     "samples_analyzed": metadata_block.get("samples_analyzed"),
                 }
@@ -318,9 +336,7 @@ async def download_complete_project(project_id: str):
     return StreamingResponse(
         buffer,
         media_type="application/zip",
-        headers={
-            "Content-Disposition": f"attachment; filename={safe_name}.zip"
-        },
+        headers={"Content-Disposition": f"attachment; filename={safe_name}.zip"},
     )
 
 

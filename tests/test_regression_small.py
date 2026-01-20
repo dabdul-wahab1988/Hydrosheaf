@@ -10,7 +10,9 @@ class RegressionSmallNetworkTests(unittest.TestCase):
     def test_small_network_fixture(self):
         fixtures_dir = pathlib.Path(__file__).parent / "fixtures"
         samples = json.loads((fixtures_dir / "small_network_samples.json").read_text())
-        expected = json.loads((fixtures_dir / "small_network_expected.json").read_text())
+        expected = json.loads(
+            (fixtures_dir / "small_network_expected.json").read_text()
+        )
 
         config = Config(lambda_sparse=0.0, missing_policy="impute_zero")
         results = fit_network(samples, [("A", "B")], config)
@@ -27,7 +29,9 @@ class RegressionSmallNetworkTests(unittest.TestCase):
             places=6,
         )
         self.assertAlmostEqual(result.anomaly_norm, expected["anomaly_norm"], places=6)
-        self.assertAlmostEqual(result.objective_score, expected["objective_score"], places=6)
+        self.assertAlmostEqual(
+            result.objective_score, expected["objective_score"], places=6
+        )
 
         z_map = dict(zip(result.z_labels, result.z_extents))
         for label, value in expected["z"].items():

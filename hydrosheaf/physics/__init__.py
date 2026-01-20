@@ -7,4 +7,3 @@ model outputs (e.g., MODFLOW/MODPATH) as priors over graph edges and travel time
 from .priors import apply_physics_priors, load_physics_priors
 
 __all__ = ["apply_physics_priors", "load_physics_priors"]
-

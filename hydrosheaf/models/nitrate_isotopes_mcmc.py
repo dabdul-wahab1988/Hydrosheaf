@@ -6,16 +6,17 @@ uncertainty in nitrate source fractions based on dual isotope (d15N, d18O) data.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 
 import numpy as np
 
-from .nitrate_isotopes import IsotopeSample, SourceIsotopes, load_isotope_endmembers
+from .nitrate_isotopes import IsotopeSample, SourceIsotopes
 
 # Try to import PyMC and ArviZ
 try:
     import pymc as pm
     import arviz as az
+
     PYMC_AVAILABLE = True
 except ImportError:
     pm = None
@@ -131,7 +132,7 @@ def run_mcmc_mixing(
 
     warnings_list = []
 
-    with pm.Model() as mixing_model:
+    with pm.Model():
         # Prior on source fractions (Dirichlet ensures sum-to-one constraint)
         fractions = pm.Dirichlet("fractions", a=np.array(prior_alpha))
 
@@ -163,7 +164,7 @@ def run_mcmc_mixing(
             warnings_list.append(f"Sampling error: {str(e)}")
             # Return fallback uniform result
             return MCMCMixingResult(
-                source_fractions={name: 1.0/n_sources for name in source_names},
+                source_fractions={name: 1.0 / n_sources for name in source_names},
                 source_names=source_names,
                 converged=False,
                 warnings=warnings_list,

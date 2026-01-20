@@ -110,7 +110,9 @@ def add_result(project_id: str, result: Dict[str, Any]) -> Optional[Dict[str, An
     return project
 
 
-def add_input(project_id: str, input_payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def add_input(
+    project_id: str, input_payload: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
     project = get_project(project_id)
     if not project:
         return None

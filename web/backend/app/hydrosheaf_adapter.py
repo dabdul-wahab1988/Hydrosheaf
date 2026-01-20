@@ -19,63 +19,60 @@ class ConfigAdapter:
 
         # Build uncertainty method
         uncertainty_method = "none"
-        if frontend_config.get('enable_uncertainty', False):
-            uncertainty_method = frontend_config.get('uncertainty_method', 'bootstrap')
+        if frontend_config.get("enable_uncertainty", False):
+            uncertainty_method = frontend_config.get("uncertainty_method", "bootstrap")
 
         return Config(
             # Penalty settings
-            lambda_l1=frontend_config.get('lasso_penalty', 0.1),
-
+            lambda_l1=frontend_config.get("lasso_penalty", 0.1),
             # Core feature flags
-            phreeqc_enabled=frontend_config.get('enable_phreeqc', False),
-            isotope_enabled=frontend_config.get('enable_isotopes', True),
-
+            phreeqc_enabled=frontend_config.get("enable_phreeqc", False),
+            isotope_enabled=frontend_config.get("enable_isotopes", True),
             # Uncertainty quantification
             uncertainty_method=uncertainty_method,
-            bootstrap_n_resamples=frontend_config.get('bootstrap_iterations', 100),
-            bayesian_n_samples=frontend_config.get('bayesian_samples', 5000),
-            bayesian_n_chains=frontend_config.get('bayesian_chains', 4),
-
+            bootstrap_n_resamples=frontend_config.get("bootstrap_iterations", 100),
+            bayesian_n_samples=frontend_config.get("bayesian_samples", 5000),
+            bayesian_n_chains=frontend_config.get("bayesian_chains", 4),
             # Nitrate source discrimination
-            nitrate_source_enabled=frontend_config.get('enable_nitrate_source', False),
-            nitrate_isotope_mixing_enabled=frontend_config.get('nitrate_isotope_mixing', True),
-
+            nitrate_source_enabled=frontend_config.get("enable_nitrate_source", False),
+            nitrate_isotope_mixing_enabled=frontend_config.get(
+                "nitrate_isotope_mixing", True
+            ),
             # Temporal analysis
-            temporal_enabled=frontend_config.get('enable_temporal', False),
-            temporal_window_days=frontend_config.get('temporal_window_days', 365),
-            residence_time_method=frontend_config.get('residence_time_method', 'cross_correlation'),
-
+            temporal_enabled=frontend_config.get("enable_temporal", False),
+            temporal_window_days=frontend_config.get("temporal_window_days", 365),
+            residence_time_method=frontend_config.get(
+                "residence_time_method", "cross_correlation"
+            ),
             # 3D network / layered aquifer
-            network_3d_enabled=frontend_config.get('enable_3d_network', False),
-            vertical_flow_enabled=frontend_config.get('vertical_flow_enabled', True),
-            vertical_anisotropy=frontend_config.get('vertical_anisotropy', 0.1),
-            layer_enabled=frontend_config.get('enable_layer_system', False),
-
+            network_3d_enabled=frontend_config.get("enable_3d_network", False),
+            vertical_flow_enabled=frontend_config.get("vertical_flow_enabled", True),
+            vertical_anisotropy=frontend_config.get("vertical_anisotropy", 0.1),
+            layer_enabled=frontend_config.get("enable_layer_system", False),
             # Reactive transport validation
-            reactive_transport_validation=frontend_config.get('enable_reactive_transport', False),
-            rt_simulator=frontend_config.get('rt_simulator', 'phreeqc_kinetic'),
-            rt_n_time_steps=frontend_config.get('rt_time_steps', 100),
-
+            reactive_transport_validation=frontend_config.get(
+                "enable_reactive_transport", False
+            ),
+            rt_simulator=frontend_config.get("rt_simulator", "phreeqc_kinetic"),
+            rt_n_time_steps=frontend_config.get("rt_time_steps", 100),
             # Edge inference settings
-            edge_radius_km=frontend_config.get('edge_radius_km', 10.0),
-            edge_max_neighbors=frontend_config.get('edge_max_neighbors', 3),
-            edge_p_min=frontend_config.get('edge_p_min', 0.75),
-            edge_head_inference=frontend_config.get('edge_head_inference', 'heuristic'),
-
+            edge_radius_km=frontend_config.get("edge_radius_km", 10.0),
+            edge_max_neighbors=frontend_config.get("edge_max_neighbors", 3),
+            edge_p_min=frontend_config.get("edge_p_min", 0.75),
+            edge_head_inference=frontend_config.get("edge_head_inference", "heuristic"),
             # Gibbs diagram analysis
-            gibbs_enabled=frontend_config.get('enable_gibbs', True),
-            gibbs_weight=frontend_config.get('gibbs_weight', 0.5),
-
+            gibbs_enabled=frontend_config.get("enable_gibbs", True),
+            gibbs_weight=frontend_config.get("gibbs_weight", 0.5),
             # Ion exchange
-            exchange_enabled=frontend_config.get('enable_exchange', True),
-
+            exchange_enabled=frontend_config.get("enable_exchange", True),
             # Optional advanced settings
-            ion_order=frontend_config.get('ion_order', DEFAULT_ION_ORDER.copy()),
-            weights=frontend_config.get('weights', [1.0] * 10),
-
+            ion_order=frontend_config.get("ion_order", DEFAULT_ION_ORDER.copy()),
+            weights=frontend_config.get("weights", [1.0] * 10),
             # Detection limit handling
-            detection_limit_policy=frontend_config.get('detection_limit_policy', 'half'),
-            missing_policy=frontend_config.get('missing_policy', 'skip'),
+            detection_limit_policy=frontend_config.get(
+                "detection_limit_policy", "half"
+            ),
+            missing_policy=frontend_config.get("missing_policy", "skip"),
         )
 
 
@@ -84,17 +81,17 @@ class SampleAdapter:
 
     # Molecular weights for unit conversion (mg/L to mmol/L)
     ION_MOLECULAR_WEIGHTS = {
-        'Ca': 40.078,
-        'Mg': 24.305,
-        'Na': 22.990,
-        'K': 39.098,
-        'HCO3': 61.017,
-        'SO4': 96.064,
-        'Cl': 35.453,
-        'NO3': 62.005,
-        'F': 18.998,
-        'Fe': 55.845,
-        'PO4': 94.971,
+        "Ca": 40.078,
+        "Mg": 24.305,
+        "Na": 22.990,
+        "K": 39.098,
+        "HCO3": 61.017,
+        "SO4": 96.064,
+        "Cl": 35.453,
+        "NO3": 62.005,
+        "F": 18.998,
+        "Fe": 55.845,
+        "PO4": 94.971,
     }
 
     @staticmethod
@@ -103,7 +100,9 @@ class SampleAdapter:
         return mg_l / molecular_weight
 
     @staticmethod
-    def frontend_to_hydrosheaf(frontend_samples: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def frontend_to_hydrosheaf(
+        frontend_samples: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         Convert frontend sample format to Hydrosheaf expected format.
 
@@ -130,28 +129,28 @@ class SampleAdapter:
             hydrosheaf_sample = {}
 
             # Map ID fields
-            if 'location_id' in sample:
-                hydrosheaf_sample['site_id'] = sample['location_id']
-            elif 'sample_id' in sample:
-                hydrosheaf_sample['site_id'] = sample['sample_id']
+            if "location_id" in sample:
+                hydrosheaf_sample["site_id"] = sample["location_id"]
+            elif "sample_id" in sample:
+                hydrosheaf_sample["site_id"] = sample["sample_id"]
 
             # Optional: preserve original sample_id
-            if 'sample_id' in sample:
-                hydrosheaf_sample['sample_id'] = sample['sample_id']
+            if "sample_id" in sample:
+                hydrosheaf_sample["sample_id"] = sample["sample_id"]
 
             # Convert major ions from mg/L to mmol/L
             ions_to_convert = {
-                'ca': 'Ca',
-                'mg': 'Mg',
-                'na': 'Na',
-                'k': 'K',
-                'hco3': 'HCO3',
-                'so4': 'SO4',
-                'cl': 'Cl',
-                'no3': 'NO3',
-                'f': 'F',
-                'fe': 'Fe',
-                'po4': 'PO4',
+                "ca": "Ca",
+                "mg": "Mg",
+                "na": "Na",
+                "k": "K",
+                "hco3": "HCO3",
+                "so4": "SO4",
+                "cl": "Cl",
+                "no3": "NO3",
+                "f": "F",
+                "fe": "Fe",
+                "po4": "PO4",
             }
 
             for ion_lower, ion_capital in ions_to_convert.items():
@@ -164,23 +163,23 @@ class SampleAdapter:
                         hydrosheaf_sample[ion_capital] = mmol_l_value
 
             # Direct copy for non-concentration fields
-            direct_copy_fields = ['ph', 'temperature', 'ec', 'tds', 'date']
+            direct_copy_fields = ["ph", "temperature", "ec", "tds", "date"]
             for field in direct_copy_fields:
                 if field in sample:
                     hydrosheaf_sample[field] = sample[field]
 
             # Isotope fields (already in per-mil, no conversion needed)
-            if 'd18o' in sample:
-                hydrosheaf_sample['18O'] = sample['d18o']
-            if 'd2h' in sample:
-                hydrosheaf_sample['2H'] = sample['d2h']
-            if 'd15n' in sample:
-                hydrosheaf_sample['15N_NO3'] = sample['d15n']
-            if 'd18o_no3' in sample:
-                hydrosheaf_sample['18O_NO3'] = sample['d18o_no3']
+            if "d18o" in sample:
+                hydrosheaf_sample["18O"] = sample["d18o"]
+            if "d2h" in sample:
+                hydrosheaf_sample["2H"] = sample["d2h"]
+            if "d15n" in sample:
+                hydrosheaf_sample["15N_NO3"] = sample["d15n"]
+            if "d18o_no3" in sample:
+                hydrosheaf_sample["18O_NO3"] = sample["d18o_no3"]
 
             # Spatial coordinates
-            for field in ['x', 'y', 'z', 'latitude', 'longitude', 'elevation']:
+            for field in ["x", "y", "z", "latitude", "longitude", "elevation"]:
                 if field in sample:
                     hydrosheaf_sample[field] = sample[field]
 
@@ -193,7 +192,9 @@ class ResultAdapter:
     """Convert Hydrosheaf results to frontend format"""
 
     @staticmethod
-    def hydrosheaf_to_frontend(edge_results, extras: Optional[Dict] = None) -> Dict[str, Any]:
+    def hydrosheaf_to_frontend(
+        edge_results, extras: Optional[Dict] = None
+    ) -> Dict[str, Any]:
         """
         Convert Hydrosheaf EdgeResult objects to frontend-compatible format.
 
@@ -206,19 +207,27 @@ class ResultAdapter:
         """
         if not edge_results:
             return {
-                'summary': {'total_samples': 0, 'total_edges': 0},
-                'edges': [],
-                'transport_model': {},
-                'reactions': [],
+                "summary": {"total_samples": 0, "total_edges": 0},
+                "edges": [],
+                "transport_model": {},
+                "reactions": [],
             }
 
         # Aggregate statistics
-        transport_models = [r.transport_model for r in edge_results if r.transport_model]
-        dominant_process = max(set(transport_models), key=transport_models.count) if transport_models else 'unknown'
+        transport_models = [
+            r.transport_model for r in edge_results if r.transport_model
+        ]
+        dominant_process = (
+            max(set(transport_models), key=transport_models.count)
+            if transport_models
+            else "unknown"
+        )
 
         # Average gamma and f across edges
         avg_gamma = sum(r.gamma or 1.0 for r in edge_results) / len(edge_results)
-        avg_f = sum(r.f or 0.0 for r in edge_results if r.f is not None) / max(1, len([r for r in edge_results if r.f is not None]))
+        avg_f = sum(r.f or 0.0 for r in edge_results if r.f is not None) / max(
+            1, len([r for r in edge_results if r.f is not None])
+        )
 
         # Collect all unique reactions across network
         all_reactions = {}
@@ -234,16 +243,16 @@ class ResultAdapter:
         # Average reaction extents
         reactions_list = [
             {
-                'mineral': label,
-                'rate_mmol_L': sum(extents) / len(extents),
-                'direction': 'dissolution' if sum(extents) > 0 else 'precipitation',
-                'occurrences': len(extents),
+                "mineral": label,
+                "rate_mmol_L": sum(extents) / len(extents),
+                "direction": "dissolution" if sum(extents) > 0 else "precipitation",
+                "occurrences": len(extents),
             }
             for label, extents in all_reactions.items()
         ]
 
         # Sort by absolute rate
-        reactions_list.sort(key=lambda x: abs(x['rate_mmol_L']), reverse=True)
+        reactions_list.sort(key=lambda x: abs(x["rate_mmol_L"]), reverse=True)
 
         # Collect unique nodes
         # EdgeResult uses 'u' and 'v' attributes, not 'source' and 'target'
@@ -254,64 +263,68 @@ class ResultAdapter:
 
         # Build result structure
         frontend_result = {
-            'analysis_type': 'full_pipeline',
-            'summary': {
-                'total_samples': len(all_nodes),
-                'total_edges': len(edge_results),
+            "analysis_type": "full_pipeline",
+            "summary": {
+                "total_samples": len(all_nodes),
+                "total_edges": len(edge_results),
             },
-            'transport_model': {
-                'dominant_process': dominant_process,
-                'evaporation_fraction': (avg_gamma - 1.0) if dominant_process == 'evap' else 0.0,
-                'mixing_fractions': {
-                    'mixing_fraction': avg_f if dominant_process == 'mix' else 0.0,
+            "transport_model": {
+                "dominant_process": dominant_process,
+                "evaporation_fraction": (
+                    (avg_gamma - 1.0) if dominant_process == "evap" else 0.0
+                ),
+                "mixing_fractions": {
+                    "mixing_fraction": avg_f if dominant_process == "mix" else 0.0,
                 },
-                'average_gamma': avg_gamma,
+                "average_gamma": avg_gamma,
             },
-            'reactions': reactions_list,
-            'network_inference': {
-                'flow_probabilities': [
+            "reactions": reactions_list,
+            "network_inference": {
+                "flow_probabilities": [
                     {
-                        'from': r.u,
-                        'to': r.v,
-                        'probability': r.edge_confidence if r.edge_confidence else 0.85,
+                        "from": r.u,
+                        "to": r.v,
+                        "probability": r.edge_confidence if r.edge_confidence else 0.85,
                     }
                     for r in edge_results[:10]  # Limit to first 10 for display
                 ]
             },
-            'edges': [
+            "edges": [
                 {
-                    'edge_id': r.edge_id,
-                    'source': r.u,  # EdgeResult uses 'u' not 'source'
-                    'target': r.v,  # EdgeResult uses 'v' not 'target'
-                    'transport_model': r.transport_model,
-                    'gamma': r.gamma,
-                    'f': r.f,
-                    'residual_norm': r.transport_residual_norm,  # Correct field name
-                    'reactions': [
-                        {'label': label, 'extent': extent}
-                        for label, extent in zip(r.z_labels or [], r.z_extents or [])  # z_labels/z_extents not reaction_labels/reaction_extents
+                    "edge_id": r.edge_id,
+                    "source": r.u,  # EdgeResult uses 'u' not 'source'
+                    "target": r.v,  # EdgeResult uses 'v' not 'target'
+                    "transport_model": r.transport_model,
+                    "gamma": r.gamma,
+                    "f": r.f,
+                    "residual_norm": r.transport_residual_norm,  # Correct field name
+                    "reactions": [
+                        {"label": label, "extent": extent}
+                        for label, extent in zip(
+                            r.z_labels or [], r.z_extents or []
+                        )  # z_labels/z_extents not reaction_labels/reaction_extents
                         if abs(extent) > 1e-6
-                    ]
+                    ],
                 }
                 for r in edge_results
             ],
-            'uncertainty': {
-                'confidence_level': 0.95,
-                'mixing_ci': [max(0, avg_f - 0.05), min(1, avg_f + 0.05)],
-                'reaction_uncertainties': {}
-            }
+            "uncertainty": {
+                "confidence_level": 0.95,
+                "mixing_ci": [max(0, avg_f - 0.05), min(1, avg_f + 0.05)],
+                "reaction_uncertainties": {},
+            },
         }
 
         # Add temporal results if available
-        if extras and 'temporal_results' in extras:
-            frontend_result['temporal'] = {
-                'residence_times': [
+        if extras and "temporal_results" in extras:
+            frontend_result["temporal"] = {
+                "residence_times": [
                     {
-                        'edge_id': tr.edge_id,
-                        'residence_time_days': tr.residence_time_days,
-                        'method': tr.residence_time_method,
+                        "edge_id": tr.edge_id,
+                        "residence_time_days": tr.residence_time_days,
+                        "method": tr.residence_time_method,
                     }
-                    for tr in extras['temporal_results']
+                    for tr in extras["temporal_results"]
                 ]
             }
 

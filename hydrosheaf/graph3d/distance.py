@@ -49,7 +49,10 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     dlon = lon2_rad - lon1_rad
 
     # Haversine formula
-    a = math.sin(dlat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
+    )
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
     distance_km = R * c
@@ -121,7 +124,9 @@ def compute_3d_distance(
     # Horizontal distance
     if use_haversine:
         # Assume x, y are lon, lat in degrees
-        d_xy = haversine_distance(node_i.y, node_i.x, node_j.y, node_j.x) * 1000.0  # km to m
+        d_xy = (
+            haversine_distance(node_i.y, node_i.x, node_j.y, node_j.x) * 1000.0
+        )  # km to m
     else:
         # Euclidean distance for projected coordinates
         d_xy = math.sqrt((node_i.x - node_j.x) ** 2 + (node_i.y - node_j.y) ** 2)

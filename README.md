@@ -94,7 +94,8 @@ npm install
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173`.
+The frontend will be available at `http://localhost:5173` and expects the backend at `http://localhost:8000` (override with `VITE_API_BASE`).
+
 
 #### Development Roadmap
 
@@ -123,6 +124,9 @@ Open your browser and navigate to `http://localhost:5173` to access the Hydroshe
 - Python >= 3.8
 - PHREEQC (optional, for thermodynamic constraints)
 - Node.js >= 18.x (for web application)
+- Optional: PyMC + ArviZ for Bayesian nitrate isotope mixing and uncertainty quantification
+- Optional: FloPy + MODFLOW/MT3DMS executables for saturated transport coupling
+
 
 ## Usage
 
@@ -140,7 +144,20 @@ hydrosheaf --help
 2. Configure the model parameters (weights, penalties, active minerals).
 3. Run the inference pipeline.
 
+#### Example Scripts
+
+```bash
+python hydrosheaf/examples/demo_small_network.py
+```
+
+```bash
+python examples/demo_research_objectives.py
+```
+
+The research objectives demo expects `hydrosheaf_synthetic_csv/` at the repo root and can run optional MCMC (PyMC) and FloPy transport steps if those dependencies are installed.
+
 ### Web Application
+
 
 The web interface provides:
 

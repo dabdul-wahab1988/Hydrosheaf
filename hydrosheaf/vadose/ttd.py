@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Sequence, Tuple
 
 import numpy as np
 
@@ -106,7 +106,11 @@ def gamma_kernel_grid(
         t = tau[positive]
         # pdf = t^(k-1) * exp(-t/theta) / (Gamma(k) * theta^k)
         # compute in log-space for stability
-        log_pdf = (k - 1.0) * np.log(t) - (t / theta) - (np.log(np.math.gamma(k)) + k * np.log(theta))
+        log_pdf = (
+            (k - 1.0) * np.log(t)
+            - (t / theta)
+            - (np.log(np.math.gamma(k)) + k * np.log(theta))
+        )
         pdf[positive] = np.exp(log_pdf)
     # normalize discrete
     area = float(np.sum(pdf) * float(grid_dt_days))
@@ -129,7 +133,13 @@ def mixture_ttd_from_series(
     taus = np.where(np.isfinite(taus) & (taus > 0), taus, np.nan)
     mask = np.isfinite(taus) & (w > 0)
     if not np.any(mask):
-        summary = TravelTimeSummary(mean_days=float("nan"), std_days=float("nan"), p10_days=float("nan"), p50_days=float("nan"), p90_days=float("nan"))
+        summary = TravelTimeSummary(
+            mean_days=float("nan"),
+            std_days=float("nan"),
+            p10_days=float("nan"),
+            p50_days=float("nan"),
+            p90_days=float("nan"),
+        )
         return [], [], summary
     taus = taus[mask]
     w = w[mask]
@@ -141,20 +151,29 @@ def mixture_ttd_from_series(
     p10 = _weighted_quantile(taus, w, 0.1)
     p50 = _weighted_quantile(taus, w, 0.5)
     p90 = _weighted_quantile(taus, w, 0.9)
-    summary = TravelTimeSummary(mean_days=mean, std_days=std, p10_days=p10, p50_days=p50, p90_days=p90)
+    summary = TravelTimeSummary(
+        mean_days=mean, std_days=std, p10_days=p10, p50_days=p50, p90_days=p90
+    )
 
     # Build mixture kernel as weighted sum of per-time gamma kernels.
     n = int(np.floor(float(max_lag_days) / float(grid_dt_days))) + 1
     grid = np.linspace(0.0, float(max_lag_days), n)
     pdf_mix = np.zeros_like(grid)
     for tau_i, wi in zip(taus, w):
-        g_tau, g_pdf = gamma_kernel_grid(mean_days=float(tau_i), cv=cv, grid_dt_days=grid_dt_days, max_lag_days=max_lag_days)
+        g_tau, g_pdf = gamma_kernel_grid(
+            mean_days=float(tau_i),
+            cv=cv,
+            grid_dt_days=grid_dt_days,
+            max_lag_days=max_lag_days,
+        )
         if not g_tau:
             continue
         pdf_mix += wi * np.asarray(g_pdf, dtype=float)
     area = float(np.sum(pdf_mix) * float(grid_dt_days))
     if area > 0:
         pdf_mix /= area
-    return [float(x) for x in grid.tolist()], [float(x) for x in pdf_mix.tolist()], summary
-
-
+    return (
+        [float(x) for x in grid.tolist()],
+        [float(x) for x in pdf_mix.tolist()],
+        summary,
+    )

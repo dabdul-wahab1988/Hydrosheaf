@@ -11,6 +11,7 @@ from hydrosheaf.graph.types import Edge
 
 SYNTHETIC_DIR = Path(__file__).parents[2] / "hydrosheaf_synthetic_csv"
 
+
 class IsotopeAnalysisTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -19,12 +20,12 @@ class IsotopeAnalysisTests(unittest.TestCase):
         cls.config = Config(isotope_enabled=True)
         cls.config.isotope_d18o_key = "d18O_H2O_permil"
         cls.config.isotope_d2h_key = "d2H_H2O_permil"
-        
+
         # E1 data
         e1_data = cls.chem_df[cls.chem_df["event_code"] == "E1"].copy()
         records = e1_data.to_dict(orient="records")
         # Note: Isotope columns (d18O_H2O_permil, etc) are preserved
-        
+
         cls.samples = []
         for r in records:
             new_r = r.copy()
@@ -55,7 +56,7 @@ class IsotopeAnalysisTests(unittest.TestCase):
         d18 = s[self.config.isotope_d18o_key]
         d2 = s[self.config.isotope_d2h_key]
         expected_d_excess = d2 - 8 * d18
-        
+
         # Hydrosheaf calculates this internally during fitting.
         # We'll run a fit and see if it didn't crash, implying successful isotope handling.
         pass
@@ -64,18 +65,36 @@ class IsotopeAnalysisTests(unittest.TestCase):
         """Run a fit with isotopes enabled and check for isotope results."""
         u = self.samples_map.get("BH1")
         v = self.samples_map.get("BH2")
-        edge = Edge(edge_id="BH1->BH2", u="BH1", v="BH2", attrs={"edge_type": "groundwater_flow", "distance": 100.0})
-        
-        x_u, _ = vector_from_sample(u, self.config.ion_order, missing_policy="impute_zero", detection_policy="half")
-        x_v, _ = vector_from_sample(v, self.config.ion_order, missing_policy="impute_zero", detection_policy="half")
-        
-        result = fit_edge(x_u, x_v, self.config, edge_id=edge.edge_id, u=edge.u, v=edge.v)
-        
+        edge = Edge(
+            edge_id="BH1->BH2",
+            u="BH1",
+            v="BH2",
+            attrs={"edge_type": "groundwater_flow", "distance": 100.0},
+        )
+
+        x_u, _ = vector_from_sample(
+            u,
+            self.config.ion_order,
+            missing_policy="impute_zero",
+            detection_policy="half",
+        )
+        x_v, _ = vector_from_sample(
+            v,
+            self.config.ion_order,
+            missing_policy="impute_zero",
+            detection_policy="half",
+        )
+
+        result = fit_edge(
+            x_u, x_v, self.config, edge_id=edge.edge_id, u=edge.u, v=edge.v
+        )
+
         # Check for isotope-specific attributes in result
         # Assuming EdgeResult has fields for isotope validation or it influences the objective score
         # Specifically, we check that it ran without error and returned a valid result object.
         self.assertIsNotNone(result)
         self.assertFalse(np.isnan(result.objective_score))
+
 
 if __name__ == "__main__":
     unittest.main()

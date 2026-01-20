@@ -1,0 +1,77 @@
+"""
+Calibration Configuration Parser.
+"""
+
+from dataclasses import dataclass, field
+from typing import List, Dict, Optional, Any
+import yaml
+import pandas as pd
+
+from .definitions import AdjustableParameter, Observation
+
+
+@dataclass
+class CalibrationConfig:
+    problem_type: str  # "kinetic", "transport", "vadose"
+    n_workers: int = 1
+    max_nfev: int = 50
+    output_dir: str = "calibration_results"
+
+    # Generic Parameter Definitions
+    parameters: List[AdjustableParameter] = field(default_factory=list)
+
+    # File paths for specific adapters
+    observations_file: Optional[str] = None
+    model_config_file: Optional[str] = None  # e.g. vadose_profile.json
+
+    # Model specific settings
+    adapter_settings: Dict[str, Any] = field(default_factory=dict)
+
+
+def load_calibration_config(path: str) -> CalibrationConfig:
+    with open(path, "r") as f:
+        data = yaml.safe_load(f)
+
+    cal_section = data.get("calibration", data)
+
+    config = CalibrationConfig(
+        problem_type=cal_section.get("type", "generic"),
+        n_workers=cal_section.get("settings", {}).get("n_workers", 1),
+        max_nfev=cal_section.get("settings", {}).get("max_iterations", 50),
+        output_dir=cal_section.get("settings", {}).get(
+            "output_dir", "calibration_results"
+        ),
+        observations_file=cal_section.get("observations", {}).get("file"),
+        model_config_file=cal_section.get("model", {}).get("config_file"),
+        adapter_settings=cal_section.get("model", {}),
+    )
+
+    # Parse Parameters
+    for p_def in cal_section.get("parameters", []):
+        config.parameters.append(
+            AdjustableParameter(
+                name=p_def["name"],
+                value=float(p_def["initial"]),
+                lower_bound=float(p_def["bounds"][0]),
+                upper_bound=float(p_def["bounds"][1]),
+                log_transform=p_def.get("log", False),
+                prior_mean=p_def.get("prior_mean"),
+                prior_sigma=p_def.get("prior_sigma"),
+            )
+        )
+
+    return config
+
+
+def load_observations_from_csv(path: str) -> List[Observation]:
+    """
+    Load observations from a simple CSV: id, value, weight
+    """
+    df = pd.read_csv(path)
+    obs = []
+    for _, row in df.iterrows():
+        name = str(row.get("id", f"obs_{_}"))
+        val = float(row.get("value", 0.0))
+        weight = float(row.get("weight", 1.0))
+        obs.append(Observation(name, val, weight))
+    return obs

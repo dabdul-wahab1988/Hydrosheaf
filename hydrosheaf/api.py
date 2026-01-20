@@ -4,22 +4,29 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import datetime
-from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Union
 
 from .config import Config
 from .data.schema import parse_numeric
-from .graph.build import build_edges
+from .graph.build import EdgeInput, build_edges
 from .graph.types import Edge
 from .inference.edge_fit import EdgeResult
 from .inference.network_fit import fit_network
 from .physics.priors import PhysicsPrior, apply_physics_priors
 from .temporal import TemporalEdgeResult, TemporalNode
 from .temporal.temporal_edge_fit import fit_temporal_edge
-from .vadose.contracts import VadoseForcingSample, VadoseLinksRow, VadoseProfile, VadoseRunConfig
+from .vadose.contracts import (
+    VadoseForcingSample,
+    VadoseLinksRow,
+    VadoseProfile,
+    VadoseRunConfig,
+)
 from .vadose.run import build_vadose_edge_priors
 
 
-def _sample_list(samples: object) -> List[Mapping[str, object]]:
+def _sample_list(
+    samples: Union[Mapping[str, Any], Sequence[Any]]
+) -> List[Mapping[str, Any]]:
     if isinstance(samples, Mapping):
         return list(samples.values())
     if isinstance(samples, Sequence):
@@ -78,7 +85,18 @@ def validate_required_inputs(samples: object, config: Config) -> None:
     missing_reports: List[str] = []
 
     if config.phreeqc_enabled:
-        required_phreeqc = ["pH", "Ca", "Mg", "Na", "K", "Cl", "SO4", "NO3", "F", "HCO3"]
+        required_phreeqc = [
+            "pH",
+            "Ca",
+            "Mg",
+            "Na",
+            "K",
+            "Cl",
+            "SO4",
+            "NO3",
+            "F",
+            "HCO3",
+        ]
         missing = _missing_keys(sample_list, required_phreeqc, detection_policy)
         if missing:
             missing_reports.append(
@@ -102,7 +120,9 @@ def validate_required_inputs(samples: object, config: Config) -> None:
     if config.nitrate_source_enabled:
         missing = _missing_keys(sample_list, ["NO3"], detection_policy)
         if missing:
-            missing_reports.append(f"Nitrate source requires NO3 for all samples (missing: {missing})")
+            missing_reports.append(
+                f"Nitrate source requires NO3 for all samples (missing: {missing})"
+            )
 
     if missing_reports:
         raise ValueError("; ".join(missing_reports))
@@ -125,7 +145,9 @@ def auto_disable_missing_modules(samples: object, config: Config) -> Config:
     ):
         updates["isotope_enabled"] = False
 
-    if config.nitrate_source_enabled and not _any_numeric(sample_list, "NO3", detection_policy):
+    if config.nitrate_source_enabled and not _any_numeric(
+        sample_list, "NO3", detection_policy
+    ):
         updates["nitrate_source_enabled"] = False
 
     if updates:
@@ -155,10 +177,10 @@ def build_vadose_priors(
 
 def fit_temporal_edges(
     temporal_nodes: Mapping[str, TemporalNode],
-    edges: Iterable[object],
+    edges: Iterable[EdgeInput],
     config: Config,
     *,
-    hydraulic_params_by_edge: Optional[Mapping[str, Mapping[str, float]]] = None,
+    hydraulic_params_by_edge: Optional[Mapping[str, Dict[str, float]]] = None,
 ) -> Tuple[List[TemporalEdgeResult], Dict[str, float]]:
     """Fit temporal edges and return residence time overrides."""
     built_edges = build_edges(edges)
@@ -167,7 +189,7 @@ def fit_temporal_edges(
     for edge in built_edges:
         if edge.u not in temporal_nodes or edge.v not in temporal_nodes:
             continue
-        hydraulic_params = None
+        hydraulic_params: Optional[Dict[str, float]] = None
         if hydraulic_params_by_edge is not None:
             hydraulic_params = hydraulic_params_by_edge.get(edge.edge_id)
         temporal_result = fit_temporal_edge(
@@ -205,12 +227,14 @@ def attach_temporal_results(
         res.temporal_total_residual_norm = temporal.total_residual_norm
         res.temporal_n_time_points = len(temporal.timestamps or [])
         res.temporal_residence_time_flags = list(temporal.residence_time_flags or [])
-        res.temporal_residence_time_details = dict(temporal.residence_time_details or {})
+        res.temporal_residence_time_details = dict(
+            temporal.residence_time_details or {}
+        )
 
 
 def fit_network_with_priors(
     samples: object,
-    edges: Iterable[object],
+    edges: Iterable[EdgeInput],
     config: Config,
     *,
     auto_disable_missing: bool = True,
@@ -226,7 +250,9 @@ def fit_network_with_priors(
         config = auto_disable_missing_modules(samples, config)
     built_edges = build_edges(edges)
     if physics_priors:
-        built_edges = apply_physics_priors(built_edges, physics_priors, mode=physics_priors_mode)
+        built_edges = apply_physics_priors(
+            built_edges, physics_priors, mode=physics_priors_mode
+        )
     results = fit_network(
         samples,
         built_edges,
@@ -239,14 +265,14 @@ def fit_network_with_priors(
 
 def fit_network_pipeline(
     samples: object,
-    edges: Iterable[object],
+    edges: Iterable[EdgeInput],
     config: Config,
     *,
     auto_disable_missing: bool = True,
     physics_priors: Optional[Iterable[PhysicsPrior]] = None,
     physics_priors_mode: str = "override",
     temporal_nodes: Optional[Mapping[str, TemporalNode]] = None,
-    temporal_hydraulic_params: Optional[Mapping[str, Mapping[str, float]]] = None,
+    temporal_hydraulic_params: Optional[Mapping[str, Dict[str, float]]] = None,
     phreeqc_results: Optional[Mapping[str, Mapping[str, object]]] = None,
 ) -> Tuple[List[EdgeResult], Dict[str, object]]:
     """Run a connected pipeline with optional physics priors and temporal fits."""
@@ -256,7 +282,9 @@ def fit_network_pipeline(
         config = auto_disable_missing_modules(samples, config)
     built_edges = build_edges(edges)
     if physics_priors:
-        built_edges = apply_physics_priors(built_edges, physics_priors, mode=physics_priors_mode)
+        built_edges = apply_physics_priors(
+            built_edges, physics_priors, mode=physics_priors_mode
+        )
 
     temporal_results: List[TemporalEdgeResult] = []
     residence_time_overrides: Optional[Dict[str, float]] = None

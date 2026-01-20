@@ -1,6 +1,6 @@
 import unittest
 
-from hydrosheaf.models.transport import fit_evaporation, fit_mixing
+from hydrosheaf.models.mixing import fit_evaporation, fit_mixing
 
 
 class TransportTests(unittest.TestCase):

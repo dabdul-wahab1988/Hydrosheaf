@@ -6,6 +6,7 @@ import numpy as np
 from hydrosheaf.config import Config
 from hydrosheaf.inference.edge_fit import fit_edge
 
+
 def test_bootstrap_integration():
     """Test bootstrap uncertainty quantification."""
     print("Testing Bootstrap Integration...")
@@ -29,7 +30,9 @@ def test_bootstrap_integration():
     print(f"  Transport model: {result.transport_model}")
     print(f"  Gamma: {result.gamma:.3f}")
     print(f"  Reaction extents: {[f'{x:.3f}' for x in result.z_extents[:3]]}")
-    print(f"  Has uncertainty fields: gamma_std={result.gamma_std}, extents_std={result.extents_std}")
+    print(
+        f"  Has uncertainty fields: gamma_std={result.gamma_std}, extents_std={result.extents_std}"
+    )
 
     # Now test with bootstrap (small number for speed)
     print("\nTesting with bootstrap (n=50 for speed)...")
@@ -46,6 +49,7 @@ def test_bootstrap_integration():
 
     print("\nAll integration tests passed!")
 
+
 def test_config_validation():
     """Test configuration validation."""
     print("\nTesting Config Validation...")
@@ -59,7 +63,7 @@ def test_config_validation():
     config_bs = Config(
         uncertainty_method="bootstrap",
         bootstrap_n_resamples=1000,
-        bootstrap_ci_method="percentile"
+        bootstrap_ci_method="percentile",
     )
     config_bs.validate()
     print("  Bootstrap config validated")
@@ -69,7 +73,7 @@ def test_config_validation():
         uncertainty_method="bayesian",
         bayesian_n_samples=5000,
         bayesian_n_chains=4,
-        bayesian_target_accept=0.95
+        bayesian_target_accept=0.95,
     )
     config_bay.validate()
     print("  Bayesian config validated")
@@ -78,7 +82,7 @@ def test_config_validation():
     config_mc = Config(
         uncertainty_method="monte_carlo",
         monte_carlo_n_samples=1000,
-        input_uncertainty_pct=5.0
+        input_uncertainty_pct=5.0,
     )
     config_mc.validate()
     print("  Monte Carlo config validated")
@@ -93,9 +97,10 @@ def test_config_validation():
 
     print("  All config tests passed!")
 
+
 if __name__ == "__main__":
     test_config_validation()
     test_bootstrap_integration()
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("SUCCESS: All uncertainty integration tests passed!")
-    print("="*60)
+    print("=" * 60)

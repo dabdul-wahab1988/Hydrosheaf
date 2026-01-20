@@ -1,7 +1,7 @@
 import unittest
 
 from hydrosheaf.models.sheaf import edge_residual
-from hydrosheaf.models.transport import evaporation_affine
+from hydrosheaf.models.mixing import evaporation_affine
 
 
 class SheafTests(unittest.TestCase):
@@ -13,7 +13,9 @@ class SheafTests(unittest.TestCase):
         reaction_extents = [1.0]
         x_v = [gamma * x_u[0] + 1.0, gamma * x_u[1]]
 
-        residual = edge_residual(x_u, x_v, matrix, offset, reaction_matrix, reaction_extents)
+        residual = edge_residual(
+            x_u, x_v, matrix, offset, reaction_matrix, reaction_extents
+        )
         self.assertAlmostEqual(residual[0], 0.0, places=6)
         self.assertAlmostEqual(residual[1], 0.0, places=6)
 

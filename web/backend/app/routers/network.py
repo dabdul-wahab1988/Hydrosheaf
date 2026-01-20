@@ -10,8 +10,11 @@ import uuid
 
 from ..logger import network_logger as logger
 from ..database import (
-    create_network as db_create_network, get_network as db_get_network,
-    get_all_networks, update_network, delete_network as db_delete_network
+    create_network as db_create_network,
+    get_network as db_get_network,
+    get_all_networks,
+    update_network,
+    delete_network as db_delete_network,
 )
 
 HYDROSHEAF_AVAILABLE = None
@@ -27,7 +30,10 @@ def _load_hydrosheaf() -> None:
     if HYDROSHEAF_AVAILABLE is not None:
         return
     try:
-        from hydrosheaf import infer_edges_probabilistic as hydrosheaf_infer_edges_probabilistic, Config as HydrosheafConfig
+        from hydrosheaf import (
+            infer_edges_probabilistic as hydrosheaf_infer_edges_probabilistic,
+            Config as HydrosheafConfig,
+        )
         from hydrosheaf.graph.types import Edge as HydrosheafEdgeType
 
         infer_edges_probabilistic = hydrosheaf_infer_edges_probabilistic
@@ -39,11 +45,13 @@ def _load_hydrosheaf() -> None:
         HydrosheafEdge = None
         logger.warning(f"Hydrosheaf not available in network router: {exc}")
 
+
 router = APIRouter()
 
 
 class Node(BaseModel):
     """A node in the flow network (e.g., a well or sampling point)"""
+
     id: str
     name: str
     x: Optional[float] = None
@@ -55,6 +63,7 @@ class Node(BaseModel):
 
 class EdgeAPI(BaseModel):
     """An edge representing potential flow between nodes (API model)"""
+
     source: str
     target: str
     weight: Optional[float] = 1.0
@@ -63,6 +72,7 @@ class EdgeAPI(BaseModel):
 
 class NetworkData(BaseModel):
     """Complete network data structure"""
+
     nodes: List[Node]
     edges: List[EdgeAPI]  # Use EdgeAPI model
     name: Optional[str] = "Untitled Network"
@@ -70,6 +80,7 @@ class NetworkData(BaseModel):
 
 class NetworkInferenceConfig(BaseModel):
     """Configuration for network inference"""
+
     method: str = Field(default="bayesian", description="heuristic or bayesian")
     radius_km: float = Field(default=10.0, ge=0.1, le=100.0)
     max_neighbors: int = Field(default=3, ge=1, le=10)
@@ -77,6 +88,7 @@ class NetworkInferenceConfig(BaseModel):
 
 class NetworkInferenceResult(BaseModel):
     """Results from network flow inference"""
+
     edges: List[Dict[str, Any]]
     flow_directions: Dict[str, str]
     probabilities: Dict[str, float]
@@ -89,7 +101,11 @@ async def network_health_check():
     return {
         "hydrosheaf_available": HYDROSHEAF_AVAILABLE,
         "status": "ready" if HYDROSHEAF_AVAILABLE else "fallback",
-        "message": "Using real Hydrosheaf probabilistic inference" if HYDROSHEAF_AVAILABLE else "Using simple gradient method (install Hydrosheaf for advanced features)",
+        "message": (
+            "Using real Hydrosheaf probabilistic inference"
+            if HYDROSHEAF_AVAILABLE
+            else "Using simple gradient method (install Hydrosheaf for advanced features)"
+        ),
     }
 
 
@@ -106,7 +122,7 @@ async def create_network_endpoint(network: NetworkData):
         network_id=network_id,
         name=network.name or "Untitled Network",
         nodes=nodes,
-        edges=edges
+        edges=edges,
     )
 
     return {
@@ -143,7 +159,9 @@ async def get_network_endpoint(network_id: str):
 
 
 @router.post("/{network_id}/infer-flow")
-async def infer_flow_directions(network_id: str, config: Optional[NetworkInferenceConfig] = None):
+async def infer_flow_directions(
+    network_id: str, config: Optional[NetworkInferenceConfig] = None
+):
     """
     Infer flow directions using REAL Hydrosheaf probabilistic inference
     (when available) or simple hydraulic head gradient fallback
@@ -160,37 +178,37 @@ async def infer_flow_directions(network_id: str, config: Optional[NetworkInferen
 
     _load_hydrosheaf()
 
-            # Try to use real Hydrosheaf inference if available
+    # Try to use real Hydrosheaf inference if available
     if HYDROSHEAF_AVAILABLE:
         try:
             # Convert nodes to sample format for Hydrosheaf
             samples = []
             for node in nodes:
                 sample = {
-                    'site_id': node.get('id'),
+                    "site_id": node.get("id"),
                 }
-                
+
                 # Check for explicit lat/lon first
-                if node.get('lat') is not None and node.get('lon') is not None:
-                    sample['lat'] = node['lat']
-                    sample['lon'] = node['lon']
+                if node.get("lat") is not None and node.get("lon") is not None:
+                    sample["lat"] = node["lat"]
+                    sample["lon"] = node["lon"]
                 # Fallback: Map UI X/Y (pixels) to Lat/Lon for demo purposes
                 # Assuming 1 pixel = 1 meter (approx)
                 # 1 degree lat ~ 111km = 111,000m
                 # So 1 pixel ~ 9e-6 degrees
-                elif node.get('x') is not None and node.get('y') is not None:
+                elif node.get("x") is not None and node.get("y") is not None:
                     scale_factor = 9e-6  # Convert "meters" (pixels) to degrees
-                    sample['lon'] = float(node['x']) * scale_factor
-                    sample['lat'] = float(node['y']) * scale_factor
-                    
+                    sample["lon"] = float(node["x"]) * scale_factor
+                    sample["lat"] = float(node["y"]) * scale_factor
+
                     # Also keep x/y if needed
-                    sample['x'] = node['x']
-                    sample['y'] = node['y']
-                
-                if node.get('z') is not None:
-                    sample['elevation'] = node['z']
-                if node.get('hydraulic_head') is not None:
-                    sample['head_meas'] = node['hydraulic_head']
+                    sample["x"] = node["x"]
+                    sample["y"] = node["y"]
+
+                if node.get("z") is not None:
+                    sample["elevation"] = node["z"]
+                if node.get("hydraulic_head") is not None:
+                    sample["head_meas"] = node["hydraulic_head"]
 
                 samples.append(sample)
 
@@ -207,17 +225,19 @@ async def infer_flow_directions(network_id: str, config: Optional[NetworkInferen
             inferred_edges_data = []
             for edge in inferred_edges:
                 # Extract probability from edge metadata if available
-                probability = getattr(edge, 'probability', 0.75)
+                probability = getattr(edge, "probability", 0.75)
 
                 # Determine flow direction based on edge direction
-                inferred_edges_data.append({
-                    "source": edge.u,
-                    "target": edge.v,
-                    "weight": edge.weight,
-                    "flow_probability": probability,
-                    "flow_direction": "forward",
-                    "method": "hydrosheaf_probabilistic"
-                })
+                inferred_edges_data.append(
+                    {
+                        "source": edge.u,
+                        "target": edge.v,
+                        "weight": edge.weight,
+                        "flow_probability": probability,
+                        "flow_direction": "forward",
+                        "method": "hydrosheaf_probabilistic",
+                    }
+                )
 
             return {
                 "network_id": network_id,
@@ -227,46 +247,56 @@ async def infer_flow_directions(network_id: str, config: Optional[NetworkInferen
             }
 
         except Exception as e:
-            logger.warning(f"Hydrosheaf inference failed, falling back to simple method: {e}")
+            logger.warning(
+                f"Hydrosheaf inference failed, falling back to simple method: {e}"
+            )
             # Fall through to simple method
 
     # Fallback: Simple flow inference based on hydraulic head differences
     inferred_edges = []
     for edge in edges:
-        source_node = next((n for n in nodes if n.get('id') == edge.get('source')), None)
-        target_node = next((n for n in nodes if n.get('id') == edge.get('target')), None)
+        source_node = next(
+            (n for n in nodes if n.get("id") == edge.get("source")), None
+        )
+        target_node = next(
+            (n for n in nodes if n.get("id") == edge.get("target")), None
+        )
 
         if source_node and target_node:
-            source_head = source_node.get('hydraulic_head')
-            target_head = target_node.get('hydraulic_head')
+            source_head = source_node.get("hydraulic_head")
+            target_head = target_node.get("hydraulic_head")
             if source_head and target_head:
                 head_diff = source_head - target_head
                 # Flow probability based on head gradient
                 probability = min(1.0, max(0.0, 0.5 + head_diff * 0.1))
-                inferred_edges.append({
-                    "source": edge.get('source'),
-                    "target": edge.get('target'),
-                    "head_difference": head_diff,
-                    "flow_probability": probability,
-                    "flow_direction": "forward" if head_diff > 0 else "reverse",
-                    "method": "simple_gradient"
-                })
+                inferred_edges.append(
+                    {
+                        "source": edge.get("source"),
+                        "target": edge.get("target"),
+                        "head_difference": head_diff,
+                        "flow_probability": probability,
+                        "flow_direction": "forward" if head_diff > 0 else "reverse",
+                        "method": "simple_gradient",
+                    }
+                )
             else:
-                inferred_edges.append({
-                    "source": edge.get('source'),
-                    "target": edge.get('target'),
-                    "head_difference": None,
-                    "flow_probability": 0.5,
-                    "flow_direction": "uncertain",
-                    "method": "simple_gradient"
-                })
+                inferred_edges.append(
+                    {
+                        "source": edge.get("source"),
+                        "target": edge.get("target"),
+                        "head_difference": None,
+                        "flow_probability": 0.5,
+                        "flow_direction": "uncertain",
+                        "method": "simple_gradient",
+                    }
+                )
 
     return {
         "network_id": network_id,
         "inferred_edges": inferred_edges,
         "method": "simple_hydraulic_head_gradient",
         "hydrosheaf_used": False,
-        "note": "Install Hydrosheaf for advanced probabilistic inference"
+        "note": "Install Hydrosheaf for advanced probabilistic inference",
     }
 
 
@@ -277,6 +307,3 @@ async def delete_network_endpoint(network_id: str):
         raise HTTPException(status_code=404, detail="Network not found")
 
     return {"message": "Network deleted successfully"}
-
-
-

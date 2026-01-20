@@ -1,7 +1,7 @@
 """Endmember JSON parsing."""
 
 import json
-from typing import Dict, List, Mapping, Tuple
+from typing import Dict, List, Tuple
 
 from .units import mgL_to_mmolL, meqL_to_mmolL
 
@@ -40,8 +40,7 @@ def load_endmembers_json(path: str) -> Tuple[Dict[str, List[float]], Dict[str, o
             missing = [ion for ion in ion_order if ion not in composition]
             raise ValueError(f"endmember '{end_id}' missing ions: {missing}")
         vector = [
-            _convert_value(float(composition[ion]), ion, units)
-            for ion in ion_order
+            _convert_value(float(composition[ion]), ion, units) for ion in ion_order
         ]
         endmembers[str(end_id)] = vector
 

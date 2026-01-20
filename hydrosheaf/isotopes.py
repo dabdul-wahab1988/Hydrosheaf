@@ -87,6 +87,10 @@ def isotope_penalty(
         "d_excess_v": d_v,
         "d_excess_delta": d_v - d_u,
         "d_excess_penalty": d_penalty,
-        "enrichment_slope": (d2h_v - d2h_u) / (d18o_v - d18o_u) if abs(d18o_v - d18o_u) > 1e-6 else float("nan"),
+        "enrichment_slope": (
+            (d2h_v - d2h_u) / (d18o_v - d18o_u)
+            if abs(d18o_v - d18o_u) > 1e-6
+            else float("nan")
+        ),
     }
     return penalty, metrics

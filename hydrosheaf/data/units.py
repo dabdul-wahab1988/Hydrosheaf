@@ -26,8 +26,8 @@ CHARGE_EQUIV: Dict[str, int] = {
     "SO4": 2,
     "NO3": 1,
     "F": 1,
-    "Fe": 2,    # Assuming Fe(II) for charge balance estimation
-    "PO4": 3,   # Assuming PO4(3-)
+    "Fe": 2,  # Assuming Fe(II) for charge balance estimation
+    "PO4": 3,  # Assuming PO4(3-)
 }
 
 

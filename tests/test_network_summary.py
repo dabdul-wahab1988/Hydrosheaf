@@ -1,7 +1,11 @@
 import unittest
 
 from hydrosheaf.config import Config
-from hydrosheaf.inference.network_fit import edge_process_maps, fit_network, summarize_network
+from hydrosheaf.inference.network_fit import (
+    edge_process_maps,
+    fit_network,
+    summarize_network,
+)
 
 
 class NetworkSummaryTests(unittest.TestCase):
@@ -38,7 +42,11 @@ class NetworkSummaryTests(unittest.TestCase):
                 "pH": 7.1,
             },
         ]
-        results = fit_network(samples, [("A", "B")], Config(lambda_sparse=0.0, missing_policy="impute_zero"))
+        results = fit_network(
+            samples,
+            [("A", "B")],
+            Config(lambda_sparse=0.0, missing_policy="impute_zero"),
+        )
         summary = summarize_network(results)
         self.assertEqual(summary["edge_count"], 1)
         maps = edge_process_maps(results)

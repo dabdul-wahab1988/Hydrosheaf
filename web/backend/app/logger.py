@@ -52,7 +52,7 @@ def get_logger(name: str) -> logging.Logger:
             file_handler = RotatingFileHandler(
                 LOGS_DIR / LOG_FILE,
                 maxBytes=LOG_MAX_BYTES,
-                backupCount=LOG_BACKUP_COUNT
+                backupCount=LOG_BACKUP_COUNT,
             )
             file_handler.setLevel(logging.DEBUG)
             file_handler.setFormatter(formatter)

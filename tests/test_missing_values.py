@@ -74,7 +74,9 @@ class MissingValuesTests(unittest.TestCase):
                 "pH": 7.1,
             },
         ]
-        results = fit_network(samples, [("A", "B")], Config(missing_policy="impute_zero"))
+        results = fit_network(
+            samples, [("A", "B")], Config(missing_policy="impute_zero")
+        )
         self.assertEqual(len(results), 1)
 
 

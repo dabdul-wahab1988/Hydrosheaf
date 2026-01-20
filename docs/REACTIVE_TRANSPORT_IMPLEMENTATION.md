@@ -4,6 +4,9 @@
 
 Extension 3 adds forward reactive transport validation to Hydrosheaf, enabling verification of inverse model results through kinetic simulations. This creates a complete inverse-forward modeling loop where reaction extents estimated from the inverse problem are validated by forward-running PHREEQC kinetics and comparing predicted vs. observed downstream chemistry.
 
+This module requires PHREEQC kinetic support. When unavailable, the validation step should be skipped (or the pipeline uses inverse-only results).
+
+
 **Status**: ✅ **COMPLETE**
 
 **Files Modified**: 10 new files, 2 modified files

@@ -5,9 +5,13 @@ This script produces numerical outputs that expert reviewers can reproduce.
 """
 
 import numpy as np
-from hydrosheaf.models.transport import fit_evaporation, fit_mixing
+from hydrosheaf.models.mixing import fit_evaporation, fit_mixing
 from hydrosheaf.models.reactions import fit_reactions
-from hydrosheaf.models.nitrate_isotopes import load_isotope_endmembers, compute_isotope_prob, IsotopeSample
+from hydrosheaf.models.nitrate_isotopes import (
+    load_isotope_endmembers,
+    compute_isotope_prob,
+    IsotopeSample,
+)
 from hydrosheaf.nitrate_source_v2 import load_nitrate_config
 import json
 
@@ -78,7 +82,9 @@ print(f"Predicted concentrations: {x_pred_mix}")
 print(f"Residual: {residual_mix}")
 print(f"Sum of squared errors: {sse_mix:.6f}")
 
-print(f"\n*** CONCLUSION: Evaporation is strongly preferred (SSE_evap = {sse_evap:.6f} << SSE_mix = {sse_mix:.6f}) ***")
+print(
+    f"\n*** CONCLUSION: Evaporation is strongly preferred (SSE_evap = {sse_evap:.6f} << SSE_mix = {sse_mix:.6f}) ***"
+)
 
 # ============================================================================
 # EXAMPLE 5.4: Reaction Fitting for Calcite-Gypsum System
@@ -121,8 +127,9 @@ ub = [100.0, 100.0]
 signed_mask = [True, True]
 
 print(f"\nLASSO parameters: lambda = {lambda_param}")
-fit_result = fit_reactions(r, reaction_matrix, weights_rxn, lambda_param,
-                           signed_mask=signed_mask, lb=lb, ub=ub)
+fit_result = fit_reactions(
+    r, reaction_matrix, weights_rxn, lambda_param, signed_mask=signed_mask, lb=lb, ub=ub
+)
 z_star = fit_result.extents
 
 print(f"LASSO solution: z* = {z_star}")
@@ -195,24 +202,32 @@ for src in sources:
 # Test case: Clear manure signature
 print("\n--- Test Sample 1: Manure Signature ---")
 sample_manure = IsotopeSample(d15N=15.0, d18O=5.0)
-print(f"Sample isotopes: d15N = {sample_manure.d15N} permil, d18O = {sample_manure.d18O} permil")
+print(
+    f"Sample isotopes: d15N = {sample_manure.d15N} permil, d18O = {sample_manure.d18O} permil"
+)
 
 probs_manure = compute_isotope_prob(sample_manure, sources)
 for source_name, prob in probs_manure.items():
     print(f"  P({source_name}|sample) = {prob:.4f}")
 
-print(f"\n*** Most likely source: {max(probs_manure, key=probs_manure.get)} (p = {max(probs_manure.values()):.4f}) ***")
+print(
+    f"\n*** Most likely source: {max(probs_manure, key=probs_manure.get)} (p = {max(probs_manure.values()):.4f}) ***"
+)
 
 # Test case: Clear fertilizer signature
 print("\n--- Test Sample 2: Fertilizer Signature ---")
 sample_fert = IsotopeSample(d15N=0.0, d18O=20.0)
-print(f"Sample isotopes: d15N = {sample_fert.d15N} permil, d18O = {sample_fert.d18O} permil")
+print(
+    f"Sample isotopes: d15N = {sample_fert.d15N} permil, d18O = {sample_fert.d18O} permil"
+)
 
 probs_fert = compute_isotope_prob(sample_fert, sources)
 for source_name, prob in probs_fert.items():
     print(f"  P({source_name}|sample) = {prob:.4f}")
 
-print(f"\n*** Most likely source: {max(probs_fert, key=probs_fert.get)} (p = {max(probs_fert.values()):.4f}) ***")
+print(
+    f"\n*** Most likely source: {max(probs_fert, key=probs_fert.get)} (p = {max(probs_fert.values()):.4f}) ***"
+)
 
 # ============================================================================
 # NITRATE SOURCE DISCRIMINATION: HYDROCHEMICAL RATIOS METHOD

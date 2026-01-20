@@ -20,8 +20,7 @@ def edge_results_table(results: List[EdgeResult]) -> List[dict]:
     for result in results:
         reaction_map = dict(zip(result.z_labels, result.z_extents))
         reaction_columns = {
-            f"reaction_{label}": reaction_map.get(label)
-            for label in label_set
+            f"reaction_{label}": reaction_map.get(label) for label in label_set
         }
         transport_columns = {
             f"transport_prob_{key}": result.transport_probabilities.get(key)
@@ -104,12 +103,20 @@ def edge_results_table(results: List[EdgeResult]) -> List[dict]:
                 "temporal_gamma_std": result.temporal_gamma_std,
                 "temporal_f_mean": result.temporal_f_mean,
                 "temporal_f_std": result.temporal_f_std,
-                "temporal_reaction_extents_mean": json.dumps(result.temporal_reaction_extents_mean),
-                "temporal_reaction_extents_std": json.dumps(result.temporal_reaction_extents_std),
+                "temporal_reaction_extents_mean": json.dumps(
+                    result.temporal_reaction_extents_mean
+                ),
+                "temporal_reaction_extents_std": json.dumps(
+                    result.temporal_reaction_extents_std
+                ),
                 "temporal_total_residual_norm": result.temporal_total_residual_norm,
                 "temporal_n_time_points": result.temporal_n_time_points,
-                "temporal_residence_time_flags": ",".join(result.temporal_residence_time_flags or []),
-                "temporal_residence_time_details": json.dumps(result.temporal_residence_time_details or {}),
+                "temporal_residence_time_flags": ",".join(
+                    result.temporal_residence_time_flags or []
+                ),
+                "temporal_residence_time_details": json.dumps(
+                    result.temporal_residence_time_details or {}
+                ),
                 "rt_validated": result.rt_validated,
                 "rt_simulator": result.rt_simulator,
                 "rt_residence_time_days": result.rt_residence_time_days,

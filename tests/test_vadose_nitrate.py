@@ -43,7 +43,9 @@ def test_no3_breakthrough_delta_kernel_shift_and_attenuation() -> None:
 
     c = {p.timestamp: p.c_wt for p in points}
     assert c[start + timedelta(days=9)] == 0.0
-    assert c[start + timedelta(days=10)] == pytest.approx(100.0 * math.exp(-k * 10.0), rel=1e-12, abs=1e-12)
+    assert c[start + timedelta(days=10)] == pytest.approx(
+        100.0 * math.exp(-k * 10.0), rel=1e-12, abs=1e-12
+    )
     assert summary.edge_id == "A->B"
     assert summary.attenuated_fraction > 0.0
 
@@ -52,7 +54,10 @@ def test_no3_breakthrough_constant_input_reaches_constant_output() -> None:
     start = datetime(2020, 1, 1)
     timestamps = _days(start, 20)
     recharge = [0.02] * len(timestamps)
-    loading = [NitrateLoadingSample(timestamp=start + timedelta(days=i), c_in=50.0) for i in range(0, 30)]
+    loading = [
+        NitrateLoadingSample(timestamp=start + timedelta(days=i), c_in=50.0)
+        for i in range(0, 30)
+    ]
 
     # A simple kernel supported on [0,4] days, normalized by the implementation.
     tau = [0, 1, 2, 3, 4]
@@ -78,7 +83,10 @@ def test_no3_breakthrough_attenuation_reduces_total_mass() -> None:
     start = datetime(2020, 1, 1)
     timestamps = _days(start, 60)
     recharge = [0.01] * len(timestamps)
-    loading = [NitrateLoadingSample(timestamp=start + timedelta(days=i), c_in=10.0) for i in range(0, 60)]
+    loading = [
+        NitrateLoadingSample(timestamp=start + timedelta(days=i), c_in=10.0)
+        for i in range(0, 60)
+    ]
 
     tau = list(range(0, 31))
     g = [1.0] * len(tau)

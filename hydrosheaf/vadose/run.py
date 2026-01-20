@@ -7,7 +7,12 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import numpy as np
 
 from ..physics.priors import PhysicsPrior
-from .contracts import VadoseForcingSample, VadoseLinksRow, VadoseProfile, VadoseRunConfig
+from .contracts import (
+    VadoseForcingSample,
+    VadoseLinksRow,
+    VadoseProfile,
+    VadoseRunConfig,
+)
 from .richards1d import run_richards_column
 from .ttd import advective_travel_time_days, mixture_ttd_from_series
 
@@ -55,7 +60,9 @@ def run_vadose_profile(
     water_table_depth_m: Optional[Sequence[Tuple[datetime, float]]] = None,
 ) -> VadoseRunResult:
     cfg = config or VadoseRunConfig()
-    sim = run_richards_column(profile, forcing, config=cfg, water_table_depth_m=water_table_depth_m)
+    sim = run_richards_column(
+        profile, forcing, config=cfg, water_table_depth_m=water_table_depth_m
+    )
     return VadoseRunResult(
         profile_id=profile.profile_id,
         timestamps=list(sim.timestamps),
@@ -79,9 +86,11 @@ def build_vadose_edge_priors(
       - diagnostics per link, including optional mixture TTD kernel for reproducibility
     """
     cfg = config or VadoseRunConfig()
-    sim = run_richards_column(profile, forcing, config=cfg, water_table_depth_m=water_table_depth_m)
+    sim = run_richards_column(
+        profile, forcing, config=cfg, water_table_depth_m=water_table_depth_m
+    )
 
-    dz = float(sim.z_m[1] - sim.z_m[0]) if len(sim.z_m) >= 2 else float(cfg.dz_m)
+    # dz = float(sim.z_m[1] - sim.z_m[0]) if len(sim.z_m) >= 2 else float(cfg.dz_m)
     z = np.asarray(sim.z_m, dtype=float)
 
     # Precompute daily q_faces and daily taus for each link.
@@ -103,7 +112,11 @@ def build_vadose_edge_priors(
     # Run-level diagnostics for transparency.
     conv = [bool(d.converged) for d in sim.diagnostics]
     conv_frac = float(np.mean(conv)) if conv else float("nan")
-    max_abs_mb = float(np.max([abs(float(d.mass_balance_error_m)) for d in sim.diagnostics])) if sim.diagnostics else float("nan")
+    max_abs_mb = (
+        float(np.max([abs(float(d.mass_balance_error_m)) for d in sim.diagnostics]))
+        if sim.diagnostics
+        else float("nan")
+    )
     run_flags: List[str] = []
     if np.isfinite(conv_frac) and conv_frac < float(cfg.min_converged_fraction):
         run_flags.append(f"low_convergence_fraction:{conv_frac:.3f}")

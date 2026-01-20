@@ -9,7 +9,8 @@ All concentrations are assumed to be in mmol/L unless noted otherwise.
   `sample_id` is accepted and often required for file I/O, but `site_id` is the
   canonical node key during inference.
 - **Ion order**: Uses `config.ion_order` (default: Ca, Mg, Na, HCO3, Cl, SO4, NO3, F, Fe, PO4).
-- **Units**: Default is mmol/L. The CLI can convert from mg/L or meq/L.
+- **Units**: Default is mmol/L. The CLI can convert from mg/L or meq/L. Web requests are in mg/L and convert via adapters.
+
 - **Missing data**:
   - If `missing_policy="skip"`, missing ions skip the sample.
   - If `missing_policy="impute_zero"`, missing ions are treated as 0.
@@ -22,7 +23,8 @@ Minimum inputs per sample (for core chemistry fit):
 - Every ion in `config.ion_order`
 
 Optional but common:
-- `pH`, `EC`, `TDS`, `temp_c`, `K`
+- `pH`, `EC`, `TDS`, `temp_c`, `K`, `lat`, `lon`, `elevation`
+
 
 Edge inputs:
 - `(u, v)` tuples or edges with `edge_id`, `u`, `v`.
@@ -38,7 +40,8 @@ For probabilistic inference:
 
 For 3D inference:
 - `screen_depth` (or `z_mASL` depending on `config.z_coordinate_key`)
-- Optional: `aquifer_unit`, `well_depth`
+- Optional: `aquifer_unit`, `well_depth`, `layer` fields from layer YAML
+
 
 ## PHREEQC (thermodynamic constraints)
 
@@ -76,6 +79,8 @@ Common hydrochemistry (improves results):
 
 Optional isotopes (dual-isotope mixing):
 - `d15N`, `d18O_NO3` (configurable via `nitrate_isotope_n15_col` / `nitrate_isotope_o18_col`)
+- Requires PyMC/ArviZ for Bayesian mixing; otherwise analytical probabilities are returned.
+
 
 Config flag:
 - `config.nitrate_source_enabled=True`
@@ -111,6 +116,8 @@ Inputs:
 
 Outputs:
 - Physics priors with travel-time statistics, suitable for `fit_network_with_priors`.
+- Optional nitrate breakthrough curves when `vadose-no3-loading` is supplied.
+
 
 ## Physics Priors (external)
 
@@ -126,14 +133,16 @@ Apply with:
 Config flags:
 - `config.uncertainty_method` in `none`, `bootstrap`, `bayesian`, `monte_carlo`
 
-No extra input columns required, but uncertainty settings control runtime.
+No extra input columns required, but uncertainty settings control runtime. Bayesian mode requires PyMC.
+
 
 ## Reactive Transport Validation
 
 Config flag:
 - `config.reactive_transport_validation=True`
 
-Uses the same chemistry inputs as core fit; requires PHREEQC kinetic support if enabled.
+Uses the same chemistry inputs as core fit; requires PHREEQC kinetic support if enabled. `rt_residence_time` defaults to temporal results if available.
+
 
 ## Convenience API Pipeline
 

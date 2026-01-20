@@ -4,6 +4,9 @@
 
 Extension 4 extends Hydrosheaf from 2D horizontal flow networks to fully 3D representation with vertical discretization, multi-aquifer systems, and aquitard leakage. This enables modeling of complex groundwater systems with multiple confined/unconfined aquifers separated by aquitards.
 
+Use `--3d`, `--z-key`, and `--layer-file` in the CLI or provide the corresponding config fields in the API.
+
+
 **Status**: ✅ **COMPLETE**
 
 **Files Created**: 5 new files, 2 modified files
