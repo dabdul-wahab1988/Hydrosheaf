@@ -1,7 +1,6 @@
 import unittest
 import pandas as pd
 from pathlib import Path
-import json
 
 from hydrosheaf.config import Config
 from hydrosheaf.inference.edge_fit import fit_edge
@@ -11,12 +10,12 @@ from hydrosheaf.data.schema import vector_from_sample
 
 # Try to import phreeqc to see if installed
 try:
-    import phreeqpython
+    import phreeqpython as _  # noqa: F401
 
     PHREEQC_INSTALLED = True
 except ImportError:
     try:
-        import phreeqpy
+        import phreeqpy as _  # noqa: F401
 
         PHREEQC_INSTALLED = True
     except ImportError:

@@ -1,13 +1,11 @@
 import unittest
 import pandas as pd
 from pathlib import Path
-import math
 
 from hydrosheaf.config import Config
 from hydrosheaf.nitrate_source_v2 import (
     infer_node_posteriors,
     fit_robust_stats,
-    NitrateStats,
 )
 from hydrosheaf.data.units import mgL_to_mmolL
 
@@ -89,14 +87,11 @@ class NitrateDiscriminationTests(unittest.TestCase):
         # Examining nitrate_source_v2.py would confirm, but usually it handles mapping or expects standard names.
         # Assuming d15N_NO3_permil maps to d15N
 
-        df = pd.DataFrame([sample]).set_index("site_id", drop=False)
+        pd.DataFrame([sample]).set_index("site_id", drop=False)
 
         # We need robust stats background. We can fit it from the whole dataset.
-        stats = fit_robust_stats(self.chem_df)
+        fit_robust_stats(self.chem_df)
 
-        overrides = {
-            "stats": stats
-        }  # Pass fitted stats if possible, or just let it auto-fit on the 1 sample (bad but runs)
         # Actually fit_robust_stats returns a NitrateStats object. infer_node_posteriors allows overrides.
 
         # Let's run on the whole E2 dataset to get better stats

@@ -1,6 +1,6 @@
 # Hydrosheaf Functional Specification Document (FSD)
 
-**Version:** 1.0.0
+**Version:** 3.0.0
 **Status:** Active Development
 **Target Audience:** Scientific Supervisors, Hydrogeologists, and Research Engineers.
 
@@ -8,137 +8,168 @@
 
 ## 1. Executive Summary
 
-**Hydrosheaf** is an advanced Python-based framework for **Inverse Hydrogeochemical Modeling**. It solves the "Sheaf" problem: given a set of water quality samples scattered in space and time, what is the optimal network of flow paths and geochemical reactions that explains the observed data?
+**Hydrosheaf** is a comprehensive Python framework for **Inverse Hydrogeochemical Modeling**, developed to solve the "Sheaf" problem: reconstructing the optimal network of flow paths and biogeochemical processes that govern groundwater evolution.
 
-Unlike traditional forward models (e.g., PHREEQC, MODFLOW) that require exhaustive parameterization upfront, Hydrosheaf works backwards from the data. It uses **sparse optimization (L1 regularization)** and **Bayesian inference** to reconstruct the simplest, most scientifically probable explanation for groundwater evolution.
+Unlike traditional forward models (PHREEQC/MODFLOW) that require exhaustive parameterization, Hydrosheaf is **inference-driven**. It works backwards from sparse water quality data to identify:
 
-### Key Capabilities
-1.  **Network Inference**: Automatically identifies flow connections between wells based on hydraulic heads and chemical similarity.
-2.  **Process Identification**: Quantifies mixing ratios, evaporation extents, and mineral dissolution/precipitation rates for every connection.
-3.  **Source Discrimination**: Distinguishes nitrate sources (Manure vs. Fertilizer) using a multi-evidence Bayesian engine.
-4.  **Self-Calibration**: Includes a built-in PEST++ engine to automatically optimize physical parameters (dispersivity, reaction rates) against field data.
+1. **Topology**: Which wells are hydraulically connected?
+2. **processes**: What reactions (Mixing, Evaporation, Mineral Dissolution) occur along these connections?
+3. **Sources**: Are nitrate contaminants originating from Manure or Fertilizer?
+4. **Timescales**: How long does water reside in the aquifer?
 
----
-
-## 2. Scientific Workflow
-
-The Hydrosheaf pipeline follows a structured scientific logic:
-
-1.  **Data Ingestion**: Loads hydrochemistry (major ions, isotopes) and spatial data (coordinates, screen depths).
-2.  **Topology Construction**:
-    *   Builds a 3D graph of potential connections based on aquifer layers and spatial proximity.
-    *   Infers missing hydraulic heads using a Hierarchical Bayesian Model constrained by topography.
-3.  **Inverse Inference (The Core)**:
-    *   For every potential connection $u \to v$, solves the inverse problem:
-        $$v = \text{Mixing}(u, \text{Endmember}) + \text{Reactions} + \text{Evaporation}$$
-    *   Uses L1-regularization to enforce sparsity (Occam's Razor: favor fewer reactions unless data demands them).
-4.  **Temporal Analysis**:
-    *   If time-series data exists, uses Cross-Correlation and Deconvolution to estimate groundwater residence times ($ \tau $).
-5.  **Validation**:
-    *   Runs forward kinetic simulations (PHREEQC) to verify that the inferred reactions are thermodynamically plausible.
-6.  **Reporting**: Outputs detailed JSON results, geochemical interpretation reports, and visualization plots.
+The system integrates **Sparse Optimization (LASSO)**, **Bayesian MCMC Inference**, and **Physical Process Models (Richards Eq, TTDs)** into a unified pipeline.
 
 ---
 
-## 3. Core Architecture & Modules
+## 2. Core Module 1: Inverse Modeling Engine (The "Sheaf" Solver)
 
-### 3.1 Command Line Interface (`hydrosheaf.cli`)
-*   **Purpose**: The primary entry point for executing the pipeline.
-*   **Key Commands**:
-    *   `hydrosheaf`: Runs the full inverse modeling pipeline.
-    *   `hydrosheaf-cal`: Runs the calibration subsystem.
-*   **Inputs**: CSV samples, Edge definitions (optional), YAML configuration.
+The mathematical core (`hydrosheaf.inference`) explains the chemical evolution between an upgradient node $\mathbf{u}$ and downgradient node $\mathbf{v}$ by solving a constrained optimization problem.
 
-### 3.2 High-Level API (`hydrosheaf.api`)
-*   **Purpose**: Orchestrates the complex interaction between sub-modules.
-*   **Key Component**: `fit_network_pipeline` manages the flow of data from ingestion $\to$ topology $\to$ inference $\to$ validation.
+### 2.1 The Inverse Equation
 
-### 3.3 Configuration (`hydrosheaf.config`)
-*   **Purpose**: Centralized control of scientific parameters.
-*   **Features**: Strongly typed configuration for ~100 parameters (e.g., `lambda_l1` penalty strength, `dispersivity_m`). Supports dynamic updates from calibration results.
+We model the observed concentration vector $\mathbf{x}_v$ as:
+$$ \mathbf{x}_v \approx T(\mathbf{x}_u \mid \theta) + S \cdot \xi + \epsilon $$
 
-### 3.4 Logging & Transparency (`hydrosheaf.log`)
-*   **Purpose**: Ensures scientific reproducibility.
-*   **Feature**: Dual-channel logging records a high-level summary to the console and a granular **Audit Trail** to a file, documenting every decision (e.g., "Edge A->B rejected due to thermodynamic infeasibility").
+Where:
 
----
+* $T(\cdot)$: Physical transport operator (Mixing or Evaporation).
+* $S$: Stoichiometric matrix of candidate phases (minerals, gases).
+* $\xi$: Vector of reaction mass transfers (mol/L).
+* $\epsilon$: Residual error.
 
-## 4. Inverse Modeling Engine
+### 2.2 Transport Operators
 
-### 4.1 Inference Logic (`hydrosheaf.inference`)
-*   **Purpose**: The mathematical heart of the system.
-*   **`edge_fit.py`**: Solves the inverse problem for a single edge. It evaluates multiple competing hypotheses (e.g., "Is this change due to Evaporation or Mixing?") and selects the best one based on the Akaike Information Criterion (AIC) and residual error.
-*   **`network_fit.py`**: Applies `edge_fit` across the entire graph topology.
+The framework evaluates competing transport hypotheses:
 
-### 4.2 Geochemical Models (`hydrosheaf.models`)
-*   **`reactions.py`**: Implements the sparse linear solver for mineral mass transfer ($\Delta = S \cdot \xi$).
-*   **`mixing.py`**: Handles affine transformations for conservative mixing and Rayleigh fractionation (evaporation).
-*   **`gibbs.py`**: Implements Gibbs diagrams to classify waters (Rock/Rain/Evaporation dominance) as a prior constraint.
-*   **`ec_tds.py`**: Machine learning (Linear Regression) to fill missing TDS data from Electrical Conductivity.
+1. **Evaporation (Rayleigh-Type)**:
+    $$ \mathbf{x}_{pred} = \gamma \cdot \mathbf{x}_u $$
+    * $\gamma \ge 1$: Concentration factor ($1 / \text{Leaching Fraction}$).
+2. **Conservative Mixing**:
+    $$ \mathbf{x}_{pred} = (1 - f) \mathbf{x}_u + f \cdot \mathbf{x}_{end} $$
+    * $f \in [0, 1]$: Mixing fraction of a known endmember (e.g., Seawater).
 
-### 4.3 Compositional Data Analysis (`hydrosheaf.coda_sbp`)
-*   **Purpose**: robust statistics for chemical ratios.
-*   **Innovation**: Uses **Sequential Binary Partitions (SBP)** to transform ion concentrations into orthogonal **isometric log-ratio (ilr)** coordinates. This allows standard statistical methods (Z-scores, PCA) to be applied to compositional data without generating spurious correlations.
+### 2.3 Sparse Reaction Solver (LASSO)
 
----
+To ensure geochemical plausibility, we enforce **Sparsity** (Occam's Razor) using **L1-Regularization**. We solve for $\xi$ via:
 
-## 5. Calibration & Optimization (`hydrosheaf.calibration`)
+$$ \min_{\xi} \frac{1}{2} \| W^{1/2} (\mathbf{x}_{res} - S \xi) \|_2^2 + \lambda \|\xi\|_1 $$
 
-*   **Purpose**: Automates the search for unknown physical parameters.
-*   **Engine**: **PESTGLM**, a native Python implementation of the industry-standard PEST++ algorithm.
-*   **Capabilities**:
-    *   **Parallelization**: Distributed Jacobian calculation across multiple CPU cores.
-    *   **Regularization**: Tikhonov regularization to prevent overfitting.
-    *   **Adapters**: Plug-and-play interfaces to calibrate different model components (Vadose Zone, Transport, Kinetics).
+**Algorithm**: We implement **Coordinate Descent** with Soft-Thresholding:
+$$ \xi_j^{(k+1)} = \frac{\text{SoftThreshold}(\rho_j, \lambda)}{ (S^T W S)_{jj} } $$
+$$ \text{SoftThreshold}(z, \tau) = \text{sgn}(z) \max(|z| - \tau, 0) $$
+
+### 2.4 Physical Constraints & Penalties
+
+The objective function $J$ includes penalty terms used to guide the solver towards physically valid solutions:
+
+* **Gibbs Penalty**: Penalizes "Evaporation" models if the sample plots in the "Rock Dominance" or "Precipitation Dominance" fields of a Gibbs Diagram.
+* **Isotope Consistency**: Checks if $\delta^{18}O$ and $\delta^2H$ enrichment aligns with the computed chloride concentration factor $\gamma$.
+* **EC/TDS Penalty**: $\eta (Obs_{EC} - Est_{EC}(\mathbf{x}_{pred}))^2$, ensuring the major ion reconstruction matches bulk salinity.
 
 ---
 
-## 6. Physics & Transport Modules
+## 3. Core Module 2: Nitrate Source Discrimination
 
-### 6.1 Reactive Transport (`hydrosheaf.reactive_transport`)
-*   **Purpose**: Forward validation.
-*   **Method**: Generates PHREEQC input files (`KINETICS` blocks) based on the inverse model's results. If the forward simulation matches the observed data, the inverse result is validated.
+Located in `hydrosheaf.nitrate_source_v2`, this module uses a hierarchical Bayesian approach to distinguish Manure vs. Fertilizer sources.
 
-### 6.2 Saturated Transport (`hydrosheaf.transport`)
-*   **Purpose**: Simulates physical flow in the aquifer.
-*   **Integration**: Wraps **FloPy** (MODFLOW/MT3DMS) to simulate 1D advection-dispersion along flow paths.
+### 3.1 Dual Isotope Mixing (MCMC)
 
-### 6.3 Vadose Zone (`hydrosheaf.vadose`)
-*   **Purpose**: Simulates recharge from the soil surface.
-*   **Method**: Solves the 1D Richards Equation to estimate recharge timing and magnitude.
-*   **`calibrate.py`**: Special routine to fit soil hydraulic properties ($K_s$, $\alpha$) to moisture observations.
+When $\delta^{15}N$ and $\delta^{18}O_{NO3}$ data are available, we use **PyMC** to sample the posterior source probabilities:
 
-### 6.4 Physics Priors (`hydrosheaf.physics`)
-*   **Purpose**: Constrains the graph using physical laws.
-*   **`modpath.py`**: Imports particle tracking results from external MODFLOW models to define valid hydraulic connections.
+* **Model**: $\mathbf{Obs} \sim \mathcal{N}(\sum f_i \mu_i, \sigma^2)$
+* **Priors**: $f \sim \text{Dirichlet}(\alpha)$, $\sigma \sim \text{HalfNormal}$.
+* **Output**: Full posterior distribution $P(\text{Manure} \mid \text{Isotopes})$.
 
----
+### 3.2 Hydrochemical Evidence Fusion
 
-## 7. Specialized Scientific Modules
+When isotopes are missing, we use **Bayesian Evidence Fusion** of hydrochemical proxies.
 
-### 7.1 Nitrate Source Tracking (`hydrosheaf.nitrate_source_v2`)
-*   **Purpose**: Distinguishes between Manure and Fertilizer nitrate sources.
-*   **Algorithm**: **Bayesian Evidence Fusion**. It combines three independent lines of evidence into a single probability score:
-    1.  **Chemical Ratios**: CoDA-based Z-scores of NO3/Cl, NO3/K.
-    2.  **Dual Isotopes**: MCMC mixing model of $\delta^{15}N$ and $\delta^{18}O$.
-    3.  **Process Evidence**: Denitrification extent derived from the inverse graph.
+* **Method**: Weighted Sigmoid Fusion of Robust Z-Scores.
+* **Robust Z-Score**: $Z = \frac{x - \text{Median}(x)}{1.4826 \cdot \text{MAD}(x)}$ (Insensitive to outliers).
+* **Evidence Nodes**:
+    1. **$NO_3/Cl$ Ratio**: Low $\to$ Manure.
+    2. **$NO_3/K$ Ratio**: High $\to$ Fertilizer (Potash).
+    3. **High $PO_4$**: Low mobility, high in manure.
+    4. **Redox State**: $Fe > 0$ implies reducing conditions (often manure-linked).
 
-### 7.2 Head Inference (`hydrosheaf.graph.head_inference`)
-*   **Purpose**: Estimates groundwater levels in unmonitored wells.
-*   **Method**: **Hierarchical Bayesian Model**. It uses surface topography as a "prior" for hydraulic head, updating the estimate based on nearby measurements and depth-to-water data.
+### 3.3 Compositional Data Analysis (CoDA)
 
-### 7.3 Temporal Analysis (`hydrosheaf.temporal`)
-*   **Purpose**: Estimates groundwater age.
-*   **Methods**: Cross-correlation of tracer time-series and Deconvolution of Transit Time Distributions (TTDs).
+To avoid spurious correlations in closed datasets (mg/L sums to TDS), we transform data into **Isometric Log-Ratio (ilr)** coordinates using a specific **Sequential Binary Partition (SBP)** tree (`coda_sbp.py`):
+
+1. Cations ($Ca, Mg, Na, K$) vs Anions ($HCO_3, Cl, SO_4$).
+2. Alkaline Earths ($Ca, Mg$) vs Alkalis ($Na, K$).
+3. $Ca$ vs $Mg$.
+4. $Na$ vs $K$.
+5. $HCO_3$ vs Salinity Ions ($Cl, SO_4$).
+6. $Cl$ vs $SO_4$.
 
 ---
 
-## 8. Data & Outputs
+## 4. Core Module 3: Temporal Dynamics (Residence Time)
 
-### 8.1 Data Layer (`hydrosheaf.data`)
-*   Handles data ingestion, unit conversion (mg/L $\leftrightarrow$ mmol/L), and Quality Control (Charge Balance Error checks).
+The `hydrosheaf.temporal` module estimates groundwater travel times ($\tau$).
 
-### 8.2 Outputs (`hydrosheaf.outputs`)
-*   **`interpret.py`**: Generates text-based "Geochemical Reports" for decision makers.
-*   **`science_plots.py`**: Generates publication-ready figures (Piper diagrams, mixing plots, uncertainty ridges).
-*   **Exports**: Full results available as JSON/CSV for integration with GIS or other tools.
+### 4.1 Cross-Correlation Consensus
+
+Estimates lag between time-series $u(t)$ and $v(t)$ for multiple tracers ($Cl$, $\delta^{18}O$):
+
+1. **Normalize**: Standardize signals ($Z$-score).
+2. **Cross-Correlate**: Calculate $r(\tau) = (u * v)(\tau)$.
+3. **Consensus**: Weighted average of $\tau_{peak}$ from all valid tracers.
+4. **Gating**:
+    * **LMWL Gate**: Rejects isotope lags if samples deviate significantly from the Local Meteoric Water Line (indicating local evaporation, not transport lag).
+    * **Chloride Step Gate**: Rejects lags if $Cl$ shows non-conservative step-changes.
+
+### 4.2 TTD Convolution (NNLS)
+
+Deconvolves the Transit Time Distribution (TTD) from input/output signals:
+$$ v(t) = \int_0^{\infty} u(t - \tau) h(\tau) d\tau $$
+
+* **Solver**: Non-Negative Least Squares (NNLS) to solve for $h(\tau)$.
+* **Constraints**: Smoothness penalty (Tikhonov on 1st derivative) and exponential decay prior.
+
+---
+
+## 5. Core Module 4: Vadose Zone Physics
+
+The `hydrosheaf.vadose` module simulates vertical recharge using the **1D Richards Equation**:
+$$ C(\psi) \frac{\partial \psi}{\partial t} = \frac{\partial}{\partial z} \left[ K(\psi) \left( \frac{\partial \psi}{\partial z} + 1 \right) \right] - S(\psi) $$
+
+* **Solver**: Finite Volume Method (Cell-Centered).
+* **Non-Linearity**: Solved via implicit **Picard Iteration**.
+* **Hydraulic Functions**: Van Genuchten-Mualem ($K(\psi), \theta(\psi)$).
+* **Root Uptake**: Feddes reduction function for transpiration sink $S(\psi)$.
+
+---
+
+## 6. Core Module 5: Calibration (PESTGLM)
+
+The `hydrosheaf.calibration` module implements a custom **Gauss-Levenberg-Marquardt** solver, mimicking PEST++ functionality in pure Python.
+
+* **Objective**: Minimize weighted sum of squared residuals (Phi).
+    $$ \Phi = \sum w_i (Obs_i - Sim_i)^2 + \Phi_{reg} $$
+* **Jacobian**: Calculated via Parallel Finite Differences (`ThreadPoolExecutor`).
+* **Regularization**: Tikhonov regularization ($w_{reg} (p_{curr} - p_{prior}) = 0$) to stabilize ill-posed inversion.
+* **Uncertainty**: Approximates posterior covariance as $\Sigma = \sigma^2 (J^T W J)^{-1}$.
+
+---
+
+## 7. Software Architecture
+
+### 7.1 Directory Map
+
+* `hydrosheaf/inference/`: Core LASSO and Graph solvers (`edge_fit.py`, `network_fit.py`).
+* `hydrosheaf/models/`: Geochemical logic (`reactions.py`, `mixing.py`, `nitrate_isotopes.py`, `gibbs.py`).
+* `hydrosheaf/temporal/`: Time-series analysis (`residence_time.py`, `time_series.py`).
+* `hydrosheaf/vadose/`: Physics-based recharge (`richards1d.py`, `soil.py`).
+* `hydrosheaf/calibration/`: Optimization engines (`glm.py`).
+* `hydrosheaf/graph/`: Topology construction and Head Inference (`head_inference.py`).
+
+### 7.2 Key Dependencies
+
+* **NumPy/SciPy**: Linear algebra, NNLS, Sparse matrices.
+* **Pandas**: Data handling.
+* **PyMC**: Bayesian MCMC sampling (optional).
+* **NetworkX**: Graph theory operations.
+
+---

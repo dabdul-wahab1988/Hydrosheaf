@@ -3,7 +3,6 @@ Tests for MCMC Bayesian Isotope Mixing Model.
 """
 
 import unittest
-import numpy as np
 
 from hydrosheaf.models.nitrate_isotopes import IsotopeSample, SourceIsotopes
 from hydrosheaf.models.nitrate_isotopes_mcmc import (

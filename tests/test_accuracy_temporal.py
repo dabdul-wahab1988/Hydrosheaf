@@ -3,9 +3,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from hydrosheaf.temporal import TimeSeriesSample, TemporalNode
 from hydrosheaf.temporal.interpolation import (
-    interpolate_to_common_times,
     _linear_interp,
-    _spline_interp,
 )
 from hydrosheaf.temporal.temporal_edge_fit import compute_seasonal_decomposition
 from hydrosheaf.temporal.residence_time import estimate_residence_time_with_details

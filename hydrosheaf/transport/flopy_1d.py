@@ -272,10 +272,10 @@ def build_1d_transport_model(
         )
     else:
         # No reaction
-        pass  # _rct is not strictly needed if decay is 0? Or maybe default is no reaction. 
-              # Actually usually if RCT is missing it's fine. 
-              # But let's check old code: `rct = Mt3dRct(mt, isothm=0, ireact=0)` was used else.
-              # I should keep it but prefix.
+        pass  # _rct is not strictly needed if decay is 0? Or maybe default is no reaction.
+        # Actually usually if RCT is missing it's fine.
+        # But let's check old code: `rct = Mt3dRct(mt, isothm=0, ireact=0)` was used else.
+        # I should keep it but prefix.
 
     # GCG - Solver
     _gcg = Mt3dGcg(mt)

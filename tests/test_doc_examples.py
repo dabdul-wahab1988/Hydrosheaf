@@ -1,6 +1,5 @@
 import unittest
 import numpy as np
-from hydrosheaf.models.mixing import fit_evaporation, fit_mixing
 from hydrosheaf.models.reactions import fit_reactions
 
 
@@ -24,7 +23,7 @@ class TestTechnicalDocExamples(unittest.TestCase):
         # Ions: Ca, Mg, Na, HCO3, Cl, SO4, NO3, F
         x_u = np.array([2.0, 1.0, 3.0, 5.0, 1.5, 2.0, 0.5, 0.1])
         x_v = np.array([4.1, 2.0, 6.2, 10.1, 3.1, 4.0, 1.0, 0.2])
-        w = np.ones(8)  # W = I
+        np.ones(8)  # W = I
 
         # 1. Evaporation Hypothesis
         # Formula: gamma = dot(u, v) / dot(u, u)

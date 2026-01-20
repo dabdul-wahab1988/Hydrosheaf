@@ -52,7 +52,6 @@ class TestReactiveTransportAccuracy(unittest.TestCase):
             reference_temp_k=298.15,
         )
 
-        T1 = 25.0
         T2 = 35.0
         T1_K = 298.15
         T2_K = 308.15

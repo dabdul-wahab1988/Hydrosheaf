@@ -1,6 +1,5 @@
 """Tests for CoDA SBP-ilr coordinate system."""
 
-import math
 import unittest
 from hydrosheaf.coda_sbp import ilr_from_sbp, geometric_mean
 

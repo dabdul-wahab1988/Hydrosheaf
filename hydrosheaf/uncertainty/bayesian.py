@@ -256,7 +256,6 @@ def bayesian_reaction_fit(
         # Priors
         xi = pm.Laplace("xi", mu=0, b=laplace_scale, shape=m_reactions)
 
-
         # Apply bounds
         if bounds is not None:
             for j, (lb, ub) in enumerate(bounds):

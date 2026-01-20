@@ -8,7 +8,6 @@ from typing import Dict
 from unittest.mock import MagicMock, patch
 
 from hydrosheaf.calibration.definitions import AdjustableParameter, Observation
-from hydrosheaf.calibration.problem import CalibrationProblem
 from hydrosheaf.calibration.adapters import (
     GenericFunctionAdapter,
     KineticCalibrationAdapter,
@@ -180,7 +179,7 @@ def test_kinetic_adapter_execution(mock_run, capsys):
 
     # Get the call args of the second call
     args, kwargs = mock_run.call_args_list[1]
-    kinetics_block_arg = kwargs.get("kinetics_block", "")
+    kwargs.get("kinetics_block", "")
 
     # Ideally we'd verify the kinetics block contains the new rate,
     # but build_kinetic_block is complex.

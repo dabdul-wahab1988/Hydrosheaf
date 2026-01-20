@@ -1,9 +1,7 @@
-import math
 import unittest
-from pathlib import Path
 
 import pandas as pd
-from hydrosheaf.nitrate_source_v2 import infer_node_posteriors, NitrateSourceResult
+from hydrosheaf.nitrate_source_v2 import infer_node_posteriors
 from hydrosheaf.models import nitrate_isotopes
 
 

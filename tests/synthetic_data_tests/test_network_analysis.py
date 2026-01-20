@@ -1,7 +1,6 @@
 import unittest
 import pandas as pd
 from pathlib import Path
-import json
 
 from hydrosheaf.config import Config
 from hydrosheaf.inference.network_fit import fit_network

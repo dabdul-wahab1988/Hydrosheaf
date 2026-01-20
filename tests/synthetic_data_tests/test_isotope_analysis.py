@@ -55,7 +55,7 @@ class IsotopeAnalysisTests(unittest.TestCase):
         s = self.samples_map["BH1"]
         d18 = s[self.config.isotope_d18o_key]
         d2 = s[self.config.isotope_d2h_key]
-        expected_d_excess = d2 - 8 * d18
+        d2 - 8 * d18
 
         # Hydrosheaf calculates this internally during fitting.
         # We'll run a fit and see if it didn't crash, implying successful isotope handling.

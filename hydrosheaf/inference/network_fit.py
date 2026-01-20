@@ -274,18 +274,18 @@ def fit_network(
                                 u_val = float(ub_v) if ub_v is not None else None
                                 bounds_list.append((l_val, u_val))
                     uq = bayesian_edge_fit(
-                            x_u,
-                            x_v,
-                            reaction_matrix,
-                            reaction_labels,
-                            config_edge,
-                            n_samples=getattr(config_edge, "bayesian_n_samples", 5000),
-                            n_chains=getattr(config_edge, "bayesian_n_chains", 4),
-                            target_accept=getattr(
-                                config_edge, "bayesian_target_accept", 0.95
-                            ),
-                            bounds=bounds_list,
-                        )
+                        x_u,
+                        x_v,
+                        reaction_matrix,
+                        reaction_labels,
+                        config_edge,
+                        n_samples=getattr(config_edge, "bayesian_n_samples", 5000),
+                        n_chains=getattr(config_edge, "bayesian_n_chains", 4),
+                        target_accept=getattr(
+                            config_edge, "bayesian_target_accept", 0.95
+                        ),
+                        bounds=bounds_list,
+                    )
                 else:
                     uq = None
 

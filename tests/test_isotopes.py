@@ -2,7 +2,6 @@ import unittest
 
 from hydrosheaf.isotopes import (
     compute_d_excess,
-    evaporation_index,
     fit_lmwl,
     isotope_penalty,
 )

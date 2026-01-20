@@ -1,5 +1,3 @@
-import pytest
-import numpy as np
 from hydrosheaf.models.redox import classify_redox, get_redox_constraints
 from hydrosheaf.data.minerals import MINERAL_LIBRARY, get_mineral_stoich
 

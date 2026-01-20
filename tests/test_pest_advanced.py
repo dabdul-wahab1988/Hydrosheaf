@@ -5,8 +5,6 @@ Tests parallel consistency, uncertainty quantification accuracy, and boundary ha
 
 import pytest
 import numpy as np
-from typing import Dict
-import time
 
 from hydrosheaf.calibration.definitions import AdjustableParameter, Observation
 from hydrosheaf.calibration.glm import PESTGLM
@@ -20,7 +18,7 @@ def get_linear_problem(n_params=5, noise_level=0.0):
     Creates a linear problem y = sum(p_i * x)
     """
     # True params: all 1.0
-    true_params = {f"p_{i}": 1.0 for i in range(n_params)}
+    {f"p_{i}": 1.0 for i in range(n_params)}
 
     # Obs: y = sum(p) for different coefficients?
     # Simple setup: Obs i depends only on p_i (diagonal Jacobian)
@@ -221,7 +219,7 @@ def test_parallel_failure_recovery():
         # Buggy model fails on perturbation.
         # Residuals for perturbation become huge.
         # Jacobian derivative becomes huge.
-        res = pest.calibrate(max_nfev=2)
+        pest.calibrate(max_nfev=2)
     except Exception as e:
         pytest.fail(f"Optimizer crashed on model failure: {e}")
 

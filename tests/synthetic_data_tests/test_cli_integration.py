@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 import tempfile
 import os
-import csv
 import pandas as pd
 
 SYNTHETIC_DIR = Path(__file__).parents[2] / "hydrosheaf_synthetic_csv"
@@ -113,7 +112,7 @@ class CLIIntegrationTests(unittest.TestCase):
                 if os.path.exists(path):
                     try:
                         os.remove(path)
-                    except:
+                    except OSError:
                         pass
 
 

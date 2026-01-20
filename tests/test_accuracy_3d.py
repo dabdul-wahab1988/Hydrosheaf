@@ -8,7 +8,6 @@ from hydrosheaf.graph3d.distance import (
 )
 from hydrosheaf.graph3d.layers import (
     get_aquitard_probability,
-    compute_layer_probability,
 )
 from hydrosheaf.graph3d.types_3d import Node3D, LayeredAquiferSystem
 

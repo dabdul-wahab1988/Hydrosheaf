@@ -2,7 +2,6 @@
 Test script to verify uncertainty quantification integration.
 """
 
-import numpy as np
 from hydrosheaf.config import Config
 from hydrosheaf.inference.edge_fit import fit_edge
 

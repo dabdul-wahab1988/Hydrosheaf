@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 from pathlib import Path
-from hydrosheaf.config import Config, DEFAULT_ION_ORDER
+from hydrosheaf.config import DEFAULT_ION_ORDER
 from hydrosheaf.data.units import mgL_to_mmolL
 
 SYNTHETIC_DIR = Path(__file__).parents[2] / "hydrosheaf_synthetic_csv"

@@ -95,11 +95,10 @@ class PhreeqcIntegrationTests(unittest.TestCase):
         results = run_phreeqc(self.samples, self.config)
 
         for sample_id in ["GW001", "GW002", "GW003"]:
-            I = results[sample_id]["ionic_strength"]
+            ionic_strength = results[sample_id]["ionic_strength"]
             # Freshwater typically has I between 0.001 and 0.1
-            self.assertGreater(I, 0.001)
-            self.assertGreater(I, 0.001)
-            self.assertLess(I, 1.0)
+            self.assertGreater(ionic_strength, 0.001)
+            self.assertLess(ionic_strength, 1.0)
 
     def test_si_calcite_varies_with_ph(self):
         """Test that calcite SI increases with pH (more supersaturated)."""

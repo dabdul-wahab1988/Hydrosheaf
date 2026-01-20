@@ -1,7 +1,7 @@
 """Tests for dynamic mineral library."""
 
 import unittest
-from hydrosheaf.data.minerals import MINERAL_LIBRARY, get_mineral_stoich, Stoich
+from hydrosheaf.data.minerals import MINERAL_LIBRARY, get_mineral_stoich
 from hydrosheaf.config import Config
 from hydrosheaf.models.reactions import build_reaction_dictionary
 

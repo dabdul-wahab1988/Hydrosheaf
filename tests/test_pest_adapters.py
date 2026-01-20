@@ -2,11 +2,9 @@
 Tests for new PESTGLM Adapters (Vadose & Transport).
 """
 
-import pytest
 import numpy as np
 from unittest.mock import MagicMock, patch
 
-from hydrosheaf.calibration.definitions import AdjustableParameter, Observation
 from hydrosheaf.calibration.glm import PESTGLM
 from hydrosheaf.calibration.adapters import (
     TransportCalibrationAdapter,
