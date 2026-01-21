@@ -110,10 +110,36 @@ def estimate_residence_time_with_details(
         )
     elif method == "gradient":
         tau, uncertainty, used = _estimate_residence_time_gradient(hydraulic_params)
-        return tau, uncertainty, used, {"physics": {"tau_days": tau, "uncertainty_days": uncertainty}}, []
+        return (
+            tau,
+            uncertainty,
+            used,
+            {"physics": {"tau_days": tau, "uncertainty_days": uncertainty}},
+            [],
+        )
     elif method == "tracer_decay":
-        tau, uncertainty, used = _estimate_residence_time_tracer_decay(node_u, node_v, tracer_ion, ion_order)
+        tau, uncertainty, used = _estimate_residence_time_tracer_decay(
+            node_u, node_v, tracer_ion, ion_order
+        )
         return tau, uncertainty, used, {}, []
+    elif method == "recharge_piston":
+        # Placeholder average lag for reporting
+        # Actual variable lag logic is handled in align_time_series_recharge
+        tau = 0.0
+        details = {}
+        if hydraulic_params:
+            storage = hydraulic_params.get("storage_mm", 500.0)
+            avg_recharge = hydraulic_params.get("avg_recharge_mm_day", 2.0)
+            if avg_recharge > 0:
+                tau = storage / avg_recharge
+            # Only store safe summary types
+            details = {
+                "method": "recharge_piston",
+                "storage_mm": float(storage),
+                "avg_recharge_mm_day": float(avg_recharge),
+                "estimated_avg_lag_days": float(tau),
+            }
+        return tau, tau * 0.5, "recharge_piston", details, []
     else:
         raise ValueError(f"Unknown method: {method}")
 
@@ -143,7 +169,9 @@ def _extract_tracer_series(
         except ValueError:
             tracer_idx = None
         if tracer_idx is not None:
-            return np.array([float(s.concentrations[tracer_idx]) for s in node.samples], dtype=float)
+            return np.array(
+                [float(s.concentrations[tracer_idx]) for s in node.samples], dtype=float
+            )
 
     synonyms: List[str] = []
     if tracer in {"18O", "d18O"}:
@@ -171,7 +199,10 @@ def _extract_tracer_series(
 
 
 def _estimate_residence_time_cross_correlation(
-    node_u: TemporalNode, node_v: TemporalNode, tracer_ion: str, ion_order: Optional[List[str]]
+    node_u: TemporalNode,
+    node_v: TemporalNode,
+    tracer_ion: str,
+    ion_order: Optional[List[str]],
 ) -> Tuple[float, float, str]:
     """
     Estimate residence time via cross-correlation of tracer signal.
@@ -196,8 +227,12 @@ def _estimate_residence_time_cross_correlation_detailed(
         return 0.0, 0.0, "cross_correlation_failed", {}
 
     # Use absolute time axis (days since epoch) to avoid origin mismatch between nodes.
-    u_times = np.array([s.timestamp.timestamp() / 86400.0 for s in node_u.samples], dtype=float)
-    v_times = np.array([s.timestamp.timestamp() / 86400.0 for s in node_v.samples], dtype=float)
+    u_times = np.array(
+        [s.timestamp.timestamp() / 86400.0 for s in node_u.samples], dtype=float
+    )
+    v_times = np.array(
+        [s.timestamp.timestamp() / 86400.0 for s in node_v.samples], dtype=float
+    )
 
     u_values = _extract_tracer_series(node_u, tracer_ion, ion_order)
     v_values = _extract_tracer_series(node_v, tracer_ion, ion_order)
@@ -212,7 +247,12 @@ def _estimate_residence_time_cross_correlation_detailed(
     u_std = float(np.std(u_values))
     v_std = float(np.std(v_values))
     if u_std < 1e-6 or v_std < 1e-6:
-        return 0.0, 0.0, f"cross_correlation_no_variation({tracer_ion})", {"u_std": u_std, "v_std": v_std}
+        return (
+            0.0,
+            0.0,
+            f"cross_correlation_no_variation({tracer_ion})",
+            {"u_std": u_std, "v_std": v_std},
+        )
 
     u_norm = (u_values - u_mean) / u_std
     v_norm = (v_values - v_mean) / v_std
@@ -242,7 +282,11 @@ def _estimate_residence_time_cross_correlation_detailed(
     peak_idx = int(np.argmax(corr_arr)) if corr_arr.size else 0
     peak_lag = float(lags[peak_idx]) if lags.size else 0.0
 
-    positive_corr_mask = corr_arr > 0.1 * max_corr if max_corr > 0 else np.zeros_like(corr_arr, dtype=bool)
+    positive_corr_mask = (
+        corr_arr > 0.1 * max_corr
+        if max_corr > 0
+        else np.zeros_like(corr_arr, dtype=bool)
+    )
     if int(np.sum(positive_corr_mask)) < 2:
         best_lag = peak_lag
         uncertainty = 10.0
@@ -252,7 +296,9 @@ def _estimate_residence_time_cross_correlation_detailed(
         sum_weights = float(np.sum(valid_corrs)) or 1.0
         center_of_mass = float(np.sum(valid_lags * valid_corrs) / sum_weights)
         best_lag = center_of_mass
-        variance = float(np.sum(((valid_lags - center_of_mass) ** 2) * valid_corrs) / sum_weights)
+        variance = float(
+            np.sum(((valid_lags - center_of_mass) ** 2) * valid_corrs) / sum_weights
+        )
         uncertainty = float(np.sqrt(max(0.0, variance)))
 
     metrics = {
@@ -263,7 +309,12 @@ def _estimate_residence_time_cross_correlation_detailed(
         "peak_lag": peak_lag,
         "max_lag_days": float(max_lag_days),
     }
-    return float(best_lag), float(uncertainty), f"cross_correlation({tracer_ion})", metrics
+    return (
+        float(best_lag),
+        float(uncertainty),
+        f"cross_correlation({tracer_ion})",
+        metrics,
+    )
 
 
 def _isotope_evaporation_gate(
@@ -303,7 +354,12 @@ def _isotope_evaporation_gate(
         flags.append("isotope_low_d_excess")
         weight *= 0.35
 
-    metrics = {"lmwl_rmse_u": rmse_u, "lmwl_rmse_v": rmse_v, "d_excess_u_med": d_ex_u, "d_excess_v_med": d_ex_v}
+    metrics = {
+        "lmwl_rmse_u": rmse_u,
+        "lmwl_rmse_v": rmse_v,
+        "d_excess_u_med": d_ex_u,
+        "d_excess_v_med": d_ex_v,
+    }
     return weight, flags, metrics
 
 
@@ -389,12 +445,22 @@ def _estimate_residence_time_cross_correlation_consensus(
     )
     if isotope_flags and isotope_flags != ["isotope_missing"]:
         flags.extend(isotope_flags)
-    details["isotope_gate"] = {"weight": isotope_weight, "metrics": isotope_metrics, "flags": isotope_flags}
+    details["isotope_gate"] = {
+        "weight": isotope_weight,
+        "metrics": isotope_metrics,
+        "flags": isotope_flags,
+    }
 
-    cl_weight, cl_flags, cl_metrics = _chloride_nonconservative_gate(node_u, node_v, ion_order=ion_order)
+    cl_weight, cl_flags, cl_metrics = _chloride_nonconservative_gate(
+        node_u, node_v, ion_order=ion_order
+    )
     if cl_flags and cl_flags != ["cl_missing"]:
         flags.extend(cl_flags)
-    details["chloride_gate"] = {"weight": cl_weight, "metrics": cl_metrics, "flags": cl_flags}
+    details["chloride_gate"] = {
+        "weight": cl_weight,
+        "metrics": cl_metrics,
+        "flags": cl_flags,
+    }
 
     accepted: List[Tuple[str, float, float, float]] = []  # (tracer, tau, unc, weight)
     for tracer in tracers:
@@ -407,12 +473,20 @@ def _estimate_residence_time_cross_correlation_consensus(
             candidate_flags.append(used)
         max_corr = float(metrics.get("max_corr", 0.0))
         max_lag_days = float(metrics.get("max_lag_days", 0.0))
-        rel_unc = float(unc) / (float(tau) + 1e-9) if float(tau) > 0 else float("inf") if float(unc) > 0 else 0.0
+        rel_unc = (
+            float(unc) / (float(tau) + 1e-9)
+            if float(tau) > 0
+            else float("inf") if float(unc) > 0 else 0.0
+        )
 
         if ok and max_corr < min_peak_corr:
             ok = False
             candidate_flags.append("low_peak_corr")
-        if ok and (unc > max_unc_days or (max_lag_days > 0 and unc > max_lag_days) or rel_unc > max_rel_unc):
+        if ok and (
+            unc > max_unc_days
+            or (max_lag_days > 0 and unc > max_lag_days)
+            or rel_unc > max_rel_unc
+        ):
             ok = False
             candidate_flags.append("high_uncertainty")
 
@@ -467,23 +541,45 @@ def _estimate_residence_time_cross_correlation_consensus(
         tau_phy, unc_phy, used_phy = _estimate_residence_time_gradient(hydraulic_params)
         if used_phy == "gradient" and tau_phy > 0:
             rel_diff_phy = abs(best_tau - tau_phy) / max(best_tau, tau_phy, 1e-9)
-            details["physics"] = {"tau_days": tau_phy, "uncertainty_days": unc_phy, "rel_diff_best": float(rel_diff_phy)}
+            details["physics"] = {
+                "tau_days": tau_phy,
+                "uncertainty_days": unc_phy,
+                "rel_diff_best": float(rel_diff_phy),
+            }
             if rel_diff_phy > 0.5:
                 flags.append("physics_prior_blend")
                 p_best = 1.0 / max(1e-9, best_unc) ** 2
                 p_phy = 1.0 / max(1e-9, float(unc_phy)) ** 2
-                blended_tau = (best_tau * p_best + float(tau_phy) * p_phy) / (p_best + p_phy)
-                blended_unc = float(np.sqrt(1.0 / (p_best + p_phy) + (0.5 * spread_days) ** 2))
-                return float(blended_tau), float(blended_unc), f"cross_correlation_consensus({best_tracer}+physics)", details, flags
+                blended_tau = (best_tau * p_best + float(tau_phy) * p_phy) / (
+                    p_best + p_phy
+                )
+                blended_unc = float(
+                    np.sqrt(1.0 / (p_best + p_phy) + (0.5 * spread_days) ** 2)
+                )
+                return (
+                    float(blended_tau),
+                    float(blended_unc),
+                    f"cross_correlation_consensus({best_tracer}+physics)",
+                    details,
+                    flags,
+                )
 
-        return best_tau, inflated_unc, f"cross_correlation_consensus({best_tracer})", details, flags
+        return (
+            best_tau,
+            inflated_unc,
+            f"cross_correlation_consensus({best_tracer})",
+            details,
+            flags,
+        )
 
     # Normal case: weighted mean across accepted tracers
     total_w = sum(item[3] for item in accepted) or 1.0
     consensus_tau = sum(item[1] * item[3] for item in accepted) / total_w
     # Uncertainty: weighted RMS of per-tracer uncertainties + inter-tracer spread.
     mean_unc = sum(item[2] * item[3] for item in accepted) / total_w
-    spread = float(np.std(np.array(taus, dtype=float), ddof=0)) if len(taus) > 1 else 0.0
+    spread = (
+        float(np.std(np.array(taus, dtype=float), ddof=0)) if len(taus) > 1 else 0.0
+    )
     consensus_unc = float(np.sqrt(mean_unc**2 + spread**2))
 
     details["consensus"].update(
@@ -494,10 +590,18 @@ def _estimate_residence_time_cross_correlation_consensus(
             "weights": {item[0]: float(item[3]) for item in accepted},
         }
     )
-    return float(consensus_tau), float(consensus_unc), "cross_correlation_consensus", details, flags
+    return (
+        float(consensus_tau),
+        float(consensus_unc),
+        "cross_correlation_consensus",
+        details,
+        flags,
+    )
 
 
-def _build_uniform_grid_overlap(node_u: TemporalNode, node_v: TemporalNode, *, dt_days: float) -> Optional[np.ndarray]:
+def _build_uniform_grid_overlap(
+    node_u: TemporalNode, node_v: TemporalNode, *, dt_days: float
+) -> Optional[np.ndarray]:
     if not node_u.samples or not node_v.samples or dt_days <= 0:
         return None
     u_start = node_u.samples[0].timestamp.timestamp() / 86400.0
@@ -524,7 +628,9 @@ def _resample_on_grid(
     values = _extract_tracer_series(node, tracer, ion_order)
     if values is None:
         return None
-    times = np.array([s.timestamp.timestamp() / 86400.0 for s in node.samples], dtype=float)
+    times = np.array(
+        [s.timestamp.timestamp() / 86400.0 for s in node.samples], dtype=float
+    )
     if times.size != values.size or times.size < 2:
         return None
     return np.interp(grid_days, times, values).astype(float)
@@ -553,7 +659,9 @@ def _fit_ttd_nnls(
 ) -> Tuple[Dict[str, object], List[str]]:
     flags: List[str] = []
     if u.size != v.size or u.size < 10:
-        return {"ok": False, "reason": "ttd_insufficient_data"}, ["ttd_insufficient_data"]
+        return {"ok": False, "reason": "ttd_insufficient_data"}, [
+            "ttd_insufficient_data"
+        ]
 
     v_std = float(np.std(v))
     if v_std < 1e-8:
@@ -689,12 +797,22 @@ def _estimate_residence_time_ttd_convolution_consensus(
     )
     if isotope_flags and isotope_flags != ["isotope_missing"]:
         flags.extend(isotope_flags)
-    details["isotope_gate"] = {"weight": isotope_weight, "metrics": isotope_metrics, "flags": isotope_flags}
+    details["isotope_gate"] = {
+        "weight": isotope_weight,
+        "metrics": isotope_metrics,
+        "flags": isotope_flags,
+    }
 
-    cl_weight, cl_flags, cl_metrics = _chloride_nonconservative_gate(node_u, node_v, ion_order=ion_order)
+    cl_weight, cl_flags, cl_metrics = _chloride_nonconservative_gate(
+        node_u, node_v, ion_order=ion_order
+    )
     if cl_flags and cl_flags != ["cl_missing"]:
         flags.extend(cl_flags)
-    details["chloride_gate"] = {"weight": cl_weight, "metrics": cl_metrics, "flags": cl_flags}
+    details["chloride_gate"] = {
+        "weight": cl_weight,
+        "metrics": cl_metrics,
+        "flags": cl_flags,
+    }
 
     accepted: List[Tuple[str, float, float, float]] = []  # (tracer, tau, unc, weight)
     grid = _build_uniform_grid_overlap(node_u, node_v, dt_days=dt_days)
@@ -703,10 +821,17 @@ def _estimate_residence_time_ttd_convolution_consensus(
         return 0.0, 0.0, "ttd_failed", details, flags
 
     for tracer in tracers:
-        u_res = _resample_on_grid(node_u, tracer=tracer, ion_order=ion_order, grid_days=grid)
-        v_res = _resample_on_grid(node_v, tracer=tracer, ion_order=ion_order, grid_days=grid)
+        u_res = _resample_on_grid(
+            node_u, tracer=tracer, ion_order=ion_order, grid_days=grid
+        )
+        v_res = _resample_on_grid(
+            node_v, tracer=tracer, ion_order=ion_order, grid_days=grid
+        )
         if u_res is None or v_res is None:
-            details["candidates"][tracer] = {"accepted": False, "flags": ["missing_tracer"]}
+            details["candidates"][tracer] = {
+                "accepted": False,
+                "flags": ["missing_tracer"],
+            }
             continue
 
         fit, fit_flags = _fit_ttd_nnls(
@@ -775,22 +900,40 @@ def _estimate_residence_time_ttd_convolution_consensus(
         tau_phy, unc_phy, used_phy = _estimate_residence_time_gradient(hydraulic_params)
         if used_phy == "gradient" and tau_phy > 0:
             rel_diff_phy = abs(best_tau - tau_phy) / max(best_tau, tau_phy, 1e-9)
-            details["physics"] = {"tau_days": tau_phy, "uncertainty_days": unc_phy, "rel_diff_best": float(rel_diff_phy)}
-            blend_threshold = float((hydraulic_params or {}).get("physics_blend_threshold", 0.5))
+            details["physics"] = {
+                "tau_days": tau_phy,
+                "uncertainty_days": unc_phy,
+                "rel_diff_best": float(rel_diff_phy),
+            }
+            blend_threshold = float(
+                (hydraulic_params or {}).get("physics_blend_threshold", 0.5)
+            )
             if rel_diff_phy > blend_threshold:
                 flags.append("physics_prior_blend")
                 p_best = 1.0 / max(1e-9, best_unc) ** 2
                 p_phy = 1.0 / max(1e-9, float(unc_phy)) ** 2
-                blended_tau = (best_tau * p_best + float(tau_phy) * p_phy) / (p_best + p_phy)
-                blended_unc = float(np.sqrt(1.0 / (p_best + p_phy) + (0.5 * spread_days) ** 2))
-                return float(blended_tau), float(blended_unc), f"ttd_consensus({best_tracer}+physics)", details, flags
+                blended_tau = (best_tau * p_best + float(tau_phy) * p_phy) / (
+                    p_best + p_phy
+                )
+                blended_unc = float(
+                    np.sqrt(1.0 / (p_best + p_phy) + (0.5 * spread_days) ** 2)
+                )
+                return (
+                    float(blended_tau),
+                    float(blended_unc),
+                    f"ttd_consensus({best_tracer}+physics)",
+                    details,
+                    flags,
+                )
 
         return best_tau, inflated_unc, f"ttd_consensus({best_tracer})", details, flags
 
     total_w = sum(item[3] for item in accepted) or 1.0
     consensus_tau = sum(item[1] * item[3] for item in accepted) / total_w
     mean_unc = sum(item[2] * item[3] for item in accepted) / total_w
-    spread = float(np.std(np.array(taus, dtype=float), ddof=0)) if len(taus) > 1 else 0.0
+    spread = (
+        float(np.std(np.array(taus, dtype=float), ddof=0)) if len(taus) > 1 else 0.0
+    )
     consensus_unc = float(np.sqrt(mean_unc**2 + spread**2))
 
     details["consensus"].update(
@@ -804,7 +947,9 @@ def _estimate_residence_time_ttd_convolution_consensus(
     return float(consensus_tau), float(consensus_unc), "ttd_consensus", details, flags
 
 
-def _bayes_truncated_normal_prior(log_tau: np.ndarray, mu: float, sigma: float) -> np.ndarray:
+def _bayes_truncated_normal_prior(
+    log_tau: np.ndarray, mu: float, sigma: float
+) -> np.ndarray:
     sigma = max(1e-9, float(sigma))
     return -0.5 * ((log_tau - float(mu)) / sigma) ** 2
 
@@ -841,8 +986,12 @@ def _evaluate_bayesian_lag_posterior(
     min_pairs: int,
 ) -> Tuple[Dict[str, object], List[str]]:
     flags: List[str] = []
-    u_times = np.array([s.timestamp.timestamp() / 86400.0 for s in node_u.samples], dtype=float)
-    v_times = np.array([s.timestamp.timestamp() / 86400.0 for s in node_v.samples], dtype=float)
+    u_times = np.array(
+        [s.timestamp.timestamp() / 86400.0 for s in node_u.samples], dtype=float
+    )
+    v_times = np.array(
+        [s.timestamp.timestamp() / 86400.0 for s in node_v.samples], dtype=float
+    )
     u_values = _extract_tracer_series(node_u, tracer, ion_order)
     v_values = _extract_tracer_series(node_v, tracer, ion_order)
     if u_values is None or v_values is None:
@@ -898,7 +1047,9 @@ def _evaluate_bayesian_lag_posterior(
             log_like[idx] = -0.5 * float(dof) * float(np.log(sse + 1e-12))
 
         # Add prior on tau (truncated normal on [0, max])
-        log_prior = _bayes_truncated_normal_prior(tau_grid, tau_prior_mu, tau_prior_sigma)
+        log_prior = _bayes_truncated_normal_prior(
+            tau_grid, tau_prior_mu, tau_prior_sigma
+        )
         log_joint = log_like + log_prior
 
         # Log-sum-exp across k (marginalize k) by accumulating in log_post
@@ -909,7 +1060,9 @@ def _evaluate_bayesian_lag_posterior(
         finite = np.isfinite(log_joint)
         if np.any(finite):
             idx_best = int(np.argmax(log_joint))
-            details_by_k.append({"k": float(k), "tau_map_days": float(tau_grid[idx_best])})
+            details_by_k.append(
+                {"k": float(k), "tau_map_days": float(tau_grid[idx_best])}
+            )
 
     if not np.any(np.isfinite(log_post)):
         flags.append("bayes_failed")
@@ -930,7 +1083,9 @@ def _evaluate_bayesian_lag_posterior(
 
     idx_map = int(np.argmax(p))
     tau_map = float(tau_grid[idx_map])
-    post_mass_near_map = float(np.sum(p[(tau_grid >= max(0.0, tau_map - 2.0)) & (tau_grid <= tau_map + 2.0)]))
+    post_mass_near_map = float(
+        np.sum(p[(tau_grid >= max(0.0, tau_map - 2.0)) & (tau_grid <= tau_map + 2.0)])
+    )
     if post_mass_near_map < 0.05:
         flags.append("bayes_flat_posterior")
 
@@ -975,21 +1130,44 @@ def _estimate_residence_time_bayesian_lag_consensus(
         try:
             prior_mu = float(tau_prior_mu)
             prior_sigma = float(tau_prior_sigma)
-            details["physics_prior"] = {"tau_mu_days": prior_mu, "tau_sigma_days": prior_sigma, "source": "explicit"}
+            details["physics_prior"] = {
+                "tau_mu_days": prior_mu,
+                "tau_sigma_days": prior_sigma,
+                "source": "explicit",
+            }
         except (TypeError, ValueError):
             prior_mu = 0.0
-            prior_sigma = float((hydraulic_params or {}).get("bayes_lag_max_lag_days", 365.0)) / 2.0
+            prior_sigma = (
+                float((hydraulic_params or {}).get("bayes_lag_max_lag_days", 365.0))
+                / 2.0
+            )
             flags.append("physics_prior_invalid")
-            details["physics_prior"] = {"tau_mu_days": prior_mu, "tau_sigma_days": prior_sigma, "source": "invalid"}
+            details["physics_prior"] = {
+                "tau_mu_days": prior_mu,
+                "tau_sigma_days": prior_sigma,
+                "source": "invalid",
+            }
     elif used_phy == "gradient" and tau_phy > 0:
         prior_mu = float(tau_phy)
-        prior_sigma = float(unc_phy) * float((hydraulic_params or {}).get("bayes_lag_prior_sigma_multiplier", 1.0))
-        details["physics_prior"] = {"tau_mu_days": prior_mu, "tau_sigma_days": prior_sigma, "source": "darcy"}
+        prior_sigma = float(unc_phy) * float(
+            (hydraulic_params or {}).get("bayes_lag_prior_sigma_multiplier", 1.0)
+        )
+        details["physics_prior"] = {
+            "tau_mu_days": prior_mu,
+            "tau_sigma_days": prior_sigma,
+            "source": "darcy",
+        }
     else:
         prior_mu = 0.0
-        prior_sigma = float((hydraulic_params or {}).get("bayes_lag_max_lag_days", 365.0)) / 2.0
+        prior_sigma = (
+            float((hydraulic_params or {}).get("bayes_lag_max_lag_days", 365.0)) / 2.0
+        )
         flags.append("physics_prior_missing")
-        details["physics_prior"] = {"tau_mu_days": prior_mu, "tau_sigma_days": prior_sigma, "source": "none"}
+        details["physics_prior"] = {
+            "tau_mu_days": prior_mu,
+            "tau_sigma_days": prior_sigma,
+            "source": "none",
+        }
 
     dt = float((hydraulic_params or {}).get("bayes_lag_grid_dt_days", 5.0))
     max_lag = float((hydraulic_params or {}).get("bayes_lag_max_lag_days", 365.0))
@@ -1009,12 +1187,22 @@ def _estimate_residence_time_bayesian_lag_consensus(
     )
     if isotope_flags and isotope_flags != ["isotope_missing"]:
         flags.extend(isotope_flags)
-    details["isotope_gate"] = {"weight": isotope_weight, "metrics": isotope_metrics, "flags": isotope_flags}
+    details["isotope_gate"] = {
+        "weight": isotope_weight,
+        "metrics": isotope_metrics,
+        "flags": isotope_flags,
+    }
 
-    cl_weight, cl_flags, cl_metrics = _chloride_nonconservative_gate(node_u, node_v, ion_order=ion_order)
+    cl_weight, cl_flags, cl_metrics = _chloride_nonconservative_gate(
+        node_u, node_v, ion_order=ion_order
+    )
     if cl_flags and cl_flags != ["cl_missing"]:
         flags.extend(cl_flags)
-    details["chloride_gate"] = {"weight": cl_weight, "metrics": cl_metrics, "flags": cl_flags}
+    details["chloride_gate"] = {
+        "weight": cl_weight,
+        "metrics": cl_metrics,
+        "flags": cl_flags,
+    }
 
     accepted: List[Tuple[str, float, float, float]] = []
     tol = float((hydraulic_params or {}).get("agreement_tolerance", 0.4))
@@ -1047,7 +1235,12 @@ def _estimate_residence_time_bayesian_lag_consensus(
             gate_weight *= cl_weight
 
         weight = gate_weight * max(0.0, r2) / (unc + 1.0)
-        details["candidates"][tracer] = {**fit, "accepted": bool(ok), "weight": float(weight), "flags": candidate_flags}
+        details["candidates"][tracer] = {
+            **fit,
+            "accepted": bool(ok),
+            "weight": float(weight),
+            "flags": candidate_flags,
+        }
         if ok and r2 >= min_r2 and weight > 0 and tau > 0:
             accepted.append((tracer, tau, unc, float(weight)))
 
@@ -1070,12 +1263,20 @@ def _estimate_residence_time_bayesian_lag_consensus(
         flags.append("tau_ambiguous")
         spread_days = float(tau_max - tau_min)
         inflated_unc = float(np.sqrt(best_unc**2 + (0.5 * spread_days) ** 2))
-        return best_tau, inflated_unc, f"bayesian_lag_consensus({best_tracer})", details, flags
+        return (
+            best_tau,
+            inflated_unc,
+            f"bayesian_lag_consensus({best_tracer})",
+            details,
+            flags,
+        )
 
     total_w = sum(item[3] for item in accepted) or 1.0
     consensus_tau = sum(item[1] * item[3] for item in accepted) / total_w
     mean_unc = sum(item[2] * item[3] for item in accepted) / total_w
-    spread = float(np.std(np.array(taus, dtype=float), ddof=0)) if len(taus) > 1 else 0.0
+    spread = (
+        float(np.std(np.array(taus, dtype=float), ddof=0)) if len(taus) > 1 else 0.0
+    )
     consensus_unc = float(np.sqrt(mean_unc**2 + spread**2))
     details["consensus"].update(
         {
@@ -1085,10 +1286,18 @@ def _estimate_residence_time_bayesian_lag_consensus(
             "weights": {item[0]: float(item[3]) for item in accepted},
         }
     )
-    return float(consensus_tau), float(consensus_unc), "bayesian_lag_consensus", details, flags
+    return (
+        float(consensus_tau),
+        float(consensus_unc),
+        "bayesian_lag_consensus",
+        details,
+        flags,
+    )
 
 
-def _estimate_residence_time_gradient(hydraulic_params: Optional[Dict[str, float]]) -> Tuple[float, float, str]:
+def _estimate_residence_time_gradient(
+    hydraulic_params: Optional[Dict[str, float]]
+) -> Tuple[float, float, str]:
     """
     Estimate residence time using Darcy's law.
 
@@ -1118,7 +1327,10 @@ def _estimate_residence_time_gradient(hydraulic_params: Optional[Dict[str, float
 
 
 def _estimate_residence_time_tracer_decay(
-    node_u: TemporalNode, node_v: TemporalNode, tracer_ion: str, ion_order: Optional[List[str]]
+    node_u: TemporalNode,
+    node_v: TemporalNode,
+    tracer_ion: str,
+    ion_order: Optional[List[str]],
 ) -> Tuple[float, float, str]:
     """
     Estimate residence time using radioactive tracer decay.

@@ -1,6 +1,6 @@
 """Build reaction bounds from PHREEQC outputs."""
 
-from typing import Dict, Iterable, List, Mapping, Tuple
+from typing import Dict, Iterable, List, Mapping
 
 from ..config import Config
 from ..graph.build import build_edges

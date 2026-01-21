@@ -14,7 +14,14 @@ except Exception:  # pragma: no cover
     spsolve = None
 
 from .contracts import VadoseForcingSample, VadoseProfile, VadoseRunConfig
-from .soil import C_from_psi, K_from_psi, VGParams, feddes_alpha, theta_from_psi, vg_from_texture
+from .soil import (
+    C_from_psi,
+    K_from_psi,
+    VGParams,
+    feddes_alpha,
+    theta_from_psi,
+    vg_from_texture,
+)
 
 
 @dataclass(frozen=True)
@@ -31,7 +38,9 @@ class RichardsSimulation:
     z_m: List[float]  # depth grid (m, positive downward)
     psi_m: List[List[float]]  # pressure head by time, per node
     theta: List[List[float]]  # water content by time, per node
-    q_faces_m_day: List[List[float]]  # Darcy flux profile by time, faces length = n_nodes+1
+    q_faces_m_day: List[
+        List[float]
+    ]  # Darcy flux profile by time, faces length = n_nodes+1
     recharge_m_day: List[float]  # bottom flux (m/day)
     surface_flux_m_day: List[float]  # applied top flux (m/day)
     transpiration_m_day: List[float]  # total transpiration sink (m/day)
@@ -68,7 +77,7 @@ def _layer_params_by_node(profile: VadoseProfile, z_m: np.ndarray) -> List[VGPar
                     alpha_1_m=float(layer.alpha_1_m),
                     n=float(layer.n),
                     ks_m_day=float(layer.ks_m_day),
-                    l=float(layer.l),
+                    pore_connectivity=float(layer.pore_connectivity),
                 )
             )
             continue
@@ -77,7 +86,9 @@ def _layer_params_by_node(profile: VadoseProfile, z_m: np.ndarray) -> List[VGPar
             if p is not None:
                 params.append(p)
                 continue
-        raise ValueError("Vadose layer missing hydraulic params (theta_r/theta_s/alpha/n/ks) and no known texture mapping.")
+        raise ValueError(
+            "Vadose layer missing hydraulic params (theta_r/theta_s/alpha/n/ks) and no known texture mapping."
+        )
     return params
 
 
@@ -99,7 +110,9 @@ def run_richards_column(
     if config is None:
         config = VadoseRunConfig()
     if diags is None or spsolve is None:
-        raise RuntimeError("SciPy is required for the vadose Richards solver (scipy.sparse).")
+        raise RuntimeError(
+            "SciPy is required for the vadose Richards solver (scipy.sparse)."
+        )
 
     if not forcing:
         raise ValueError("forcing is empty")
@@ -115,7 +128,9 @@ def run_richards_column(
     z = np.linspace(0.0, depth_m, n_nodes)
     params_by_node = _layer_params_by_node(profile, z)
 
-    root_depth = float(profile.root_depth_m) if profile.root_depth_m is not None else depth_m
+    root_depth = (
+        float(profile.root_depth_m) if profile.root_depth_m is not None else depth_m
+    )
     root_depth = float(min(max(root_depth, 0.0), depth_m))
     root_w = _root_weights(z, root_depth)
     root_norm = float(np.sum(root_w) * dz) if float(np.sum(root_w)) > 0 else 1.0
@@ -147,14 +162,19 @@ def run_richards_column(
         if i == 0:
             dt_days = 1.0
         else:
-            dt_days = max(1e-9, (sample.timestamp - forcing[i - 1].timestamp).total_seconds() / 86400.0)
+            dt_days = max(
+                1e-9,
+                (sample.timestamp - forcing[i - 1].timestamp).total_seconds() / 86400.0,
+            )
         dt = float(dt_days)
 
         etp_m_day = float(config.kc) * float(sample.et0_mm_day) / 1000.0
         evap_m_day = float(config.evaporation_fraction) * etp_m_day
         transp_m_day = (1.0 - float(config.evaporation_fraction)) * etp_m_day
 
-        infil_m_day = (float(sample.precipitation_mm_day) + float(sample.irrigation_mm_day)) / 1000.0
+        infil_m_day = (
+            float(sample.precipitation_mm_day) + float(sample.irrigation_mm_day)
+        ) / 1000.0
         # Atmospheric top flux (positive downward)
         q_top = infil_m_day - evap_m_day
 
@@ -163,13 +183,23 @@ def run_richards_column(
         if config.lower_boundary == "constant_head_from_wt":
             wt = _wt_at_time(sample.timestamp)
             if wt is None:
-                raise ValueError("lower_boundary=constant_head_from_wt requires water_table_depth_m time series")
+                raise ValueError(
+                    "lower_boundary=constant_head_from_wt requires water_table_depth_m time series"
+                )
             if config.require_wt_deeper_than_profile and wt <= depth_m + 1e-12:
-                raise ValueError("water table depth must be deeper than profile depth when require_wt_deeper_than_profile=True")
+                raise ValueError(
+                    "water table depth must be deeper than profile depth when require_wt_deeper_than_profile=True"
+                )
             # Approximate hydrostatic suction at column bottom: psi ≈ -(wt - depth)
             psi_bottom_bc = float(-(wt - depth_m))
 
-        theta_n = np.array([theta_from_psi(np.array([psi_n[j]]), params_by_node[j])[0] for j in range(n_nodes)], dtype=float)
+        theta_n = np.array(
+            [
+                theta_from_psi(np.array([psi_n[j]]), params_by_node[j])[0]
+                for j in range(n_nodes)
+            ],
+            dtype=float,
+        )
 
         psi_k = psi_n.copy()
         converged = False
@@ -178,12 +208,30 @@ def run_richards_column(
 
         for n_iter in range(1, int(config.max_picard_iter) + 1):
             # Constitutive terms at iterate
-            theta_k = np.array([theta_from_psi(np.array([psi_k[j]]), params_by_node[j])[0] for j in range(n_nodes)], dtype=float)
-            C_k = np.array([C_from_psi(np.array([psi_k[j]]), params_by_node[j])[0] for j in range(n_nodes)], dtype=float)
+            theta_k = np.array(
+                [
+                    theta_from_psi(np.array([psi_k[j]]), params_by_node[j])[0]
+                    for j in range(n_nodes)
+                ],
+                dtype=float,
+            )
+            C_k = np.array(
+                [
+                    C_from_psi(np.array([psi_k[j]]), params_by_node[j])[0]
+                    for j in range(n_nodes)
+                ],
+                dtype=float,
+            )
             # Ensure non-negative capacity
             C_k = np.maximum(C_k, 0.0)
 
-            K_k = np.array([K_from_psi(np.array([psi_k[j]]), params_by_node[j])[0] for j in range(n_nodes)], dtype=float)
+            K_k = np.array(
+                [
+                    K_from_psi(np.array([psi_k[j]]), params_by_node[j])[0]
+                    for j in range(n_nodes)
+                ],
+                dtype=float,
+            )
             # Face conductivities: harmonic mean
             K_face = np.zeros(n_nodes - 1, dtype=float)
             for j in range(n_nodes - 1):
@@ -273,10 +321,22 @@ def run_richards_column(
                 break
 
         psi_np1 = psi_k
-        theta_np1 = np.array([theta_from_psi(np.array([psi_np1[j]]), params_by_node[j])[0] for j in range(n_nodes)], dtype=float)
+        theta_np1 = np.array(
+            [
+                theta_from_psi(np.array([psi_np1[j]]), params_by_node[j])[0]
+                for j in range(n_nodes)
+            ],
+            dtype=float,
+        )
 
         # Fluxes for diagnostics and recharge
-        K_np1 = np.array([K_from_psi(np.array([psi_np1[j]]), params_by_node[j])[0] for j in range(n_nodes)], dtype=float)
+        K_np1 = np.array(
+            [
+                K_from_psi(np.array([psi_np1[j]]), params_by_node[j])[0]
+                for j in range(n_nodes)
+            ],
+            dtype=float,
+        )
         q_faces = np.zeros(n_nodes + 1, dtype=float)
         q_faces[0] = q_top
         for j in range(n_nodes - 1):
@@ -323,4 +383,3 @@ def run_richards_column(
         transpiration_m_day=transpiration,
         diagnostics=diags_out,
     )
-

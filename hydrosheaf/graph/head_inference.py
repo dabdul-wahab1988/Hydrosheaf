@@ -222,7 +222,18 @@ def infer_heads_bayesian_mcmc(
     infer_heads_bayesian_linear instead.
     """
     try:
+        import sys
+        # On Windows, PyMC/ArviZ/Dask stack can cause Access Violations/Heap Corruption.
+        # Since our model is Linear-Gaussian, the exact linear solver is preferred and stable.
+        if sys.platform == "win32":
+            raise ImportError("PyMC MCMC is unstable on Windows; falling back to exact Linear solver.")
+
         import pymc as pm  # type: ignore
+        if sys.platform == "win32":
+            # Fix for PyMC/MKL crash on Windows (Heap Corruption)
+            # Must be set before pymc/numpy BLAS initialization
+            import os
+            os.environ["MKL_THREADING_LAYER"] = "GNU"
     except Exception:
         return infer_heads_bayesian_linear(
             samples,
@@ -239,6 +250,10 @@ def infer_heads_bayesian_mcmc(
             head_prior_mu=head_prior_mu,
             head_prior_sigma=head_prior_sigma,
         )
+
+    # Force single core on Windows to avoid multiprocessing crashes (0xc0000374)
+    if sys.platform == "win32":
+        cores = 1
 
     # Build a consistent node list and observation arrays
     node_ids: List[str] = []

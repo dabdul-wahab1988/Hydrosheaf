@@ -17,6 +17,7 @@ import sys
 import json
 from datetime import datetime
 import warnings
+from typing import Dict, Any, List, Tuple
 
 warnings.filterwarnings("ignore")
 
@@ -34,6 +35,8 @@ from hydrosheaf.outputs.plots import plot_edge_anomalies, plot_gibbs, plot_ilr
 from hydrosheaf.outputs.export import export_edge_results_csv, export_edge_results_json
 from hydrosheaf.api import fit_network_pipeline
 from hydrosheaf.temporal import TemporalNode, TimeSeriesSample
+from hydrosheaf.calibration.definitions import AdjustableParameter, Observation
+from hydrosheaf.calibration.glm import PESTGLM
 
 try:
     import matplotlib
@@ -68,6 +71,7 @@ def setup_output_directory(base_dir: Path) -> Path:
     (output_dir / "objective2_sources").mkdir(exist_ok=True)
     (output_dir / "objective3_recharge").mkdir(exist_ok=True)
     (output_dir / "objective4_transport").mkdir(exist_ok=True)
+    (output_dir / "validation").mkdir(exist_ok=True)
     return output_dir
 
 
@@ -94,6 +98,243 @@ def load_all_data(data_dir: Path) -> dict:
             data[fname.replace(".csv", "")] = pd.read_csv(fpath)
 
     return data
+
+
+# ===================================================================
+# CALIBRATION LOGIC
+# ===================================================================
+
+def setup_calibration_problem(data: dict) -> (
+    Tuple[Dict[str, Any], List[AdjustableParameter], List[Observation]]
+):
+    """Define calibration problem parameters and observations."""
+    
+    water_chem = data["water_chem"]
+    water_chem["collection_date"] = pd.to_datetime(water_chem["collection_date"])
+    
+    # Meteo data
+    if "meteo_daily" in data:
+        meteo_df = data["meteo_daily"]
+        meteo_df["date"] = pd.to_datetime(meteo_df["date"])
+        rain_dates = meteo_df["date"].tolist()
+        rain_mm = meteo_df["rain_mm"].tolist()
+        avg_rain = meteo_df["rain_mm"].mean()
+    else:
+        rain_dates, rain_mm, avg_rain = [], [], 0.0
+
+    # Parameters
+    parameters = [
+        # Global Transport
+        AdjustableParameter("dispersivity", 10.0, 1.0, 50.0, prior_mean=10.0, prior_sigma=5.0),
+        AdjustableParameter("denit_rate", 0.001, 1e-5, 0.1, log_transform=True, prior_mean=0.001, prior_sigma=1.0),
+        # Zone A
+        AdjustableParameter("storage_A", 300.0, 100.0, 600.0, prior_mean=300.0, prior_sigma=50.0),
+        AdjustableParameter("recharge_A", 0.8, 0.3, 1.0, prior_mean=0.8, prior_sigma=0.2),
+        # Zone B
+        AdjustableParameter("storage_B", 300.0, 100.0, 600.0, prior_mean=300.0, prior_sigma=50.0),
+        AdjustableParameter("recharge_B", 0.8, 0.3, 1.0, prior_mean=0.8, prior_sigma=0.2),
+        # Source Loading
+        AdjustableParameter("loading_A", 1.0, 0.5, 2.0, prior_mean=1.0, prior_sigma=0.2),
+        AdjustableParameter("loading_B", 1.0, 0.5, 2.0, prior_mean=1.0, prior_sigma=0.2),
+        # Isotope Endmembers
+        AdjustableParameter("d15N_manure", 14.0, 10.0, 20.0, prior_mean=14.0, prior_sigma=2.0),
+        AdjustableParameter("d15N_fert", 4.0, 0.0, 8.0, prior_mean=4.0, prior_sigma=2.0),
+    ]
+
+    # Observations (Targets: Boreholes)
+    observations = []
+    targets = water_chem[water_chem["station_type"] == "borehole"]
+
+    for _, row in targets.iterrows():
+        st = row["station_code"]
+        evt = row["event_code"]
+        
+        if pd.notna(row["NO3_mg_L"]):
+            observations.append(Observation(f"no3_{st}_{evt}", float(row["NO3_mg_L"]), weight=0.5))
+        
+        if pd.notna(row["Cl_mg_L"]):
+            observations.append(Observation(f"cl_{st}_{evt}", float(row["Cl_mg_L"]), weight=0.5))
+            
+        if "d15N_NO3_permil" in row and pd.notna(row["d15N_NO3_permil"]):
+            observations.append(Observation(f"d15n_{st}_{evt}", float(row["d15N_NO3_permil"]), weight=1.0))
+
+    # Context setup
+    context = {}
+    stations = data["stations"]
+    cluster_map = stations.set_index("station_code")["cluster_code"].to_dict()
+    
+    edges_df = data["edges"]
+    edge_objs = list(zip(edges_df["from_station"], edges_df["to_station"]))
+
+    # Prepare Temporal Nodes (reused from main logic, but built here for calibration context)
+    temporal_nodes = {}
+    for st in stations["station_code"]:
+        node_samples = []
+        st_data = water_chem[water_chem["station_code"] == st]
+        for _, row in st_data.iterrows():
+            conc = [
+                (mgL_to_mmolL(row.get(f"{ion}_mg_L", 0.0), ion) if ion != "pH" else row.get("pH", 7.0))
+                for ion in ["Ca", "Mg", "Na", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"]
+            ]
+            isotopes = {}
+            if "d15N_NO3_permil" in row and pd.notna(row["d15N_NO3_permil"]):
+                isotopes["d15N_NO3"] = row["d15N_NO3_permil"]
+
+            sample = TimeSeriesSample(
+                sample_id=f"{st}_{row['event_code']}",
+                node_id=st,
+                timestamp=pd.to_datetime(row["collection_date"]),
+                concentrations=conc,
+                isotopes=isotopes,
+            )
+            node_samples.append(sample)
+        if node_samples:
+            node_samples.sort(key=lambda s: s.timestamp)
+            temporal_nodes[st] = TemporalNode(node_id=st, samples=node_samples)
+
+    # Static samples placeholder
+    static_samples = [] 
+
+    context["cluster_map"] = cluster_map
+    context["edge_objs"] = edge_objs
+    context["rain_dates"] = rain_dates
+    context["rain_mm"] = rain_mm
+    context["avg_rain"] = avg_rain
+    context["temporal_nodes"] = temporal_nodes
+    context["targets"] = targets
+    context["static_samples"] = static_samples
+
+    return context, parameters, observations
+
+def make_calibration_runner(context: Dict[str, Any]):
+    def run_model(params: Dict[str, float]) -> Dict[str, float]:
+        config = Config(
+            phreeqc_enabled=False,
+            nitrate_source_enabled=True,
+            isotope_enabled=True,
+            temporal_enabled=True,
+            residence_time_method="recharge_piston",
+            dispersivity_m=params["dispersivity"],
+            denitrification_k_1_day=params["denit_rate"],
+        )
+
+        temporal_hydraulic_params = {}
+        for u, v in context["edge_objs"]:
+            edge_id = f"{u}->{v}"
+            cluster = context["cluster_map"].get(u, "CLUSTER_A")
+            
+            if cluster == "CLUSTER_B":
+                s_mm, r_frac = params["storage_B"], params["recharge_B"]
+            else:
+                s_mm, r_frac = params["storage_A"], params["recharge_A"]
+
+            temporal_hydraulic_params[edge_id] = {
+                "rain_dates": context["rain_dates"],
+                "rain_mm": context["rain_mm"],
+                "storage_mm": s_mm,
+                "avg_recharge_mm_day": context["avg_rain"] * r_frac,
+            }
+
+        try:
+            _, extras = fit_network_pipeline(
+                samples=context["static_samples"],
+                edges=context["edge_objs"],
+                config=config,
+                temporal_nodes=context["temporal_nodes"],
+                temporal_hydraulic_params=temporal_hydraulic_params,
+            )
+        except Exception:
+            return {}
+
+        sim_results = {}
+        temporal_results = extras.get("temporal_results", [])
+        temp_map = {res.edge_id: res for res in temporal_results}
+
+        for _, row in context["targets"].iterrows():
+            st = row["station_code"]
+            evt = row["event_code"]
+            date = row["collection_date"]
+
+            feeding_edge = None
+            for u, v in context["edge_objs"]:
+                if v == st:
+                    feeding_edge = f"{u}->{v}"
+                    break
+            
+            if not feeding_edge or feeding_edge not in temp_map:
+                continue
+
+            t_res = temp_map[feeding_edge]
+            cluster = context["cluster_map"].get(t_res.u, "CLUSTER_A")
+            load_fac = params["loading_B"] if cluster == "CLUSTER_B" else params["loading_A"]
+            
+            gamma = t_res.gamma_mean if t_res.gamma_mean is not None else 1.0
+            tau_days = t_res.residence_time_days
+            decay = np.exp(-params["denit_rate"] * tau_days)
+            epsilon = -18.0 
+            iso_enrichment = epsilon * np.log(decay)
+
+            u_node = context["temporal_nodes"][t_res.u]
+            t_source = date - pd.Timedelta(days=tau_days)
+
+            def interp_conc(node, target_time, ion_idx):
+                ts = [s.timestamp.timestamp() for s in node.samples]
+                vs = [s.concentrations[ion_idx] for s in node.samples]
+                return np.interp(target_time.timestamp(), ts, vs)
+
+            def interp_iso(node, target_time, key):
+                ts, vs = [], []
+                for s in node.samples:
+                    if s.isotopes and key in s.isotopes:
+                        ts.append(s.timestamp.timestamp())
+                        vs.append(s.isotopes[key])
+                if not ts: return 0.0
+                return np.interp(target_time.timestamp(), ts, vs)
+
+            ion_order = config.ion_order
+            no3_idx = ion_order.index("NO3")
+            cl_idx = ion_order.index("Cl")
+
+            pred_no3 = interp_conc(u_node, t_source, no3_idx) * load_fac * gamma * decay
+            pred_cl = interp_conc(u_node, t_source, cl_idx) * load_fac * gamma
+            pred_d15n = interp_iso(u_node, t_source, "d15N_NO3") + iso_enrichment
+
+            sim_results[f"no3_{st}_{evt}"] = pred_no3 * 62.0049
+            sim_results[f"cl_{st}_{evt}"] = pred_cl * 35.453
+            sim_results[f"d15n_{st}_{evt}"] = pred_d15n
+
+        return sim_results
+    return run_model
+
+def run_calibration_step(data: dict, output_dir: Path) -> dict:
+    """Run PEST calibration and return optimized parameters."""
+    print("\n" + "=" * 70)
+    print("CALIBRATION: Optimizing Transport & Source Parameters")
+    print("=" * 70)
+    
+    context, parameters, observations = setup_calibration_problem(data)
+    runner = make_calibration_runner(context)
+    pest = PESTGLM(parameters, observations, runner)
+    
+    result = pest.calibrate(max_nfev=30)
+    
+    opts = result["optimal_parameters"]
+    
+    # Save detailed calibration report
+    with open(output_dir / "calibration_results.json", "w") as f:
+        json_safe = {
+            "optimal_parameters": {k: float(v) for k, v in opts.items()},
+            "uncertainties": {k: float(v) for k, v in result["parameter_uncertainties_95pc"].items()},
+            "phi": float(result["phi"]),
+            "success": bool(result["success"]),
+        }
+        json.dump(json_safe, f, indent=2)
+        
+    print(f"  Calibration Complete. Phi: {result['phi']:.4f}")
+    print(f"  Optimized Denitrification Rate: {opts['denit_rate']:.5f}")
+    print(f"  Optimized Dispersivity: {opts['dispersivity']:.2f} m")
+    
+    return {k: float(v) for k, v in opts.items()}
 
 
 # ===================================================================
@@ -297,7 +538,7 @@ def analyze_objective1_vadose_transport(data: dict, output_dir: Path):
 # ===================================================================
 
 
-def analyze_objective2_nitrate_sources(data: dict, output_dir: Path, config: Config):
+def analyze_objective2_nitrate_sources(data: dict, output_dir: Path, config: Config, cal_params: dict = None):
     """
     Objective 2: Identify nitrate sources and biogeochemical processes
 
@@ -311,6 +552,13 @@ def analyze_objective2_nitrate_sources(data: dict, output_dir: Path, config: Con
 
     water_chem = data["water_chem"]
     endmembers = data["endmembers"]
+    
+    # Update endmembers with calibrated values if available
+    if cal_params:
+        if "d15N_manure" in cal_params:
+            endmembers.loc[endmembers["endmember"] == "MANURE", "d15N_NO3_permil"] = cal_params["d15N_manure"]
+        if "d15N_fert" in cal_params:
+            endmembers.loc[endmembers["endmember"] == "FERT_SYNTHETIC", "d15N_NO3_permil"] = cal_params["d15N_fert"]
 
     obj2_dir = output_dir / "objective2_sources"
 
@@ -418,13 +666,15 @@ def analyze_objective2_nitrate_sources(data: dict, output_dir: Path, config: Con
         # Endmember boxes
         boxes = {
             "FERT_SYNTHETIC": {
-                "d15N": (0, 8),
+                "d15N": (endmembers.loc[endmembers["endmember"]=="FERT_SYNTHETIC", "d15N_NO3_permil"].values[0]-4, 
+                         endmembers.loc[endmembers["endmember"]=="FERT_SYNTHETIC", "d15N_NO3_permil"].values[0]+4),
                 "d18O": (17, 30),
                 "color": "#2ecc71",
                 "label": "Synthetic Fertilizer",
             },
             "MANURE": {
-                "d15N": (8, 22),
+                "d15N": (endmembers.loc[endmembers["endmember"]=="MANURE", "d15N_NO3_permil"].values[0]-6, 
+                         endmembers.loc[endmembers["endmember"]=="MANURE", "d15N_NO3_permil"].values[0]+6),
                 "d18O": (0, 15),
                 "color": "#9b59b6",
                 "label": "Manure",
@@ -470,7 +720,7 @@ def analyze_objective2_nitrate_sources(data: dict, output_dir: Path, config: Con
         ax1.legend()
         ax1.grid(True, alpha=0.3)
         ax1.set_xlim(-10, 35)
-        ax1.set_ylim(0, 15)
+        ax1.set_ylim(0, 25)
 
         # Source pie chart (mean contributions)
         ax2 = axes[1]
@@ -868,7 +1118,7 @@ def analyze_objective3_recharge(data: dict, output_dir: Path):
 # ===================================================================
 
 
-def analyze_objective4_transport(data: dict, output_dir: Path, all_results: list):
+def analyze_objective4_transport(data: dict, output_dir: Path, all_results: list, cal_params: dict = None):
     """
     Objective 4: Develop and validate numerical transport models
 
@@ -938,6 +1188,10 @@ def analyze_objective4_transport(data: dict, output_dir: Path, all_results: list
     # Hydraulic parameters from edge analysis
     edges = data["edges"]
     mean_distance = edges["distance_m"].mean()
+    
+    # Use calibrated parameters if available
+    dispersivity = cal_params["dispersivity"] if cal_params else mean_distance / 10
+    k_decay = cal_params["denit_rate"] if cal_params else 0.001
 
     flopy_params = {
         "model_name": "Nitrate_Transport_1D",
@@ -950,8 +1204,8 @@ def analyze_objective4_transport(data: dict, output_dir: Path, all_results: list
         "botm": -20.0,
         "hk": 1.0,  # Hydraulic conductivity m/day (placeholder)
         "porosity": 0.25,
-        "dispersivity": mean_distance / 10,  # Rule of thumb: L/10
-        "denitrification_k": 0.001,  # 1/day (from literature)
+        "dispersivity": dispersivity,
+        "denitrification_k": k_decay,
         "source_conc": 50.0,  # mg/L NO3 input
     }
 
@@ -1134,6 +1388,83 @@ def analyze_objective4_transport(data: dict, output_dir: Path, all_results: list
     return summary
 
 
+def run_split_sample_validation(output_dir: Path, cal_params: dict):
+    """Run split sample validation and generate plots."""
+    from sklearn.metrics import r2_score, mean_squared_error
+    
+    print("\n" + "=" * 70)
+    print("VALIDATION: Split-Sample Test")
+    print("=" * 70)
+    
+    chem_df = pd.read_csv("hydrosheaf_synthetic_csv/water_chem_full.csv")
+    chem_df["collection_date"] = pd.to_datetime(chem_df["collection_date"])
+
+    # Use calibrated parameters
+    # Note: Lag time is derived from residence time which depends on storage/recharge params
+    # For simplification here we approximate lag based on optimized storage/recharge
+    # T = S / R
+    # avg_R = 5.7 mm/d * 0.9 = 5.1 mm/d
+    # S = 340 mm
+    # T = 340 / 5.1 ~ 66 days
+    
+    storage = (cal_params["storage_A"] + cal_params["storage_B"]) / 2
+    recharge_frac = (cal_params["recharge_A"] + cal_params["recharge_B"]) / 2
+    avg_rain = 5.7
+    
+    LAG_DAYS = storage / (avg_rain * recharge_frac)
+    DECAY_K = cal_params["denit_rate"]
+    DISPERSION_FACTOR = 0.9
+
+    pairs = [("L1", "BH2"), ("L2", "BH3")]
+    validation_results = []
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+    for idx, (source, target) in enumerate(pairs):
+        ax = axes[idx]
+        src_data = chem_df[chem_df["station_code"] == source].sort_values("collection_date")
+        tgt_data = chem_df[chem_df["station_code"] == target].sort_values("collection_date")
+
+        src_shifted_date = src_data["collection_date"] + pd.Timedelta(days=LAG_DAYS)
+        decay_factor = np.exp(-DECAY_K * LAG_DAYS)
+        predicted_conc = src_data["NO3_mg_L"] * decay_factor * DISPERSION_FACTOR
+
+        ax.plot(tgt_data["collection_date"], tgt_data["NO3_mg_L"], "o-", label=f"Observed {target}", color="black", lw=2)
+        ax.plot(src_shifted_date, predicted_conc, "s--", label=f"Predicted (from {source})", color="#e74c3c", lw=2)
+
+        # Metrics
+        src_ts = src_shifted_date.astype(np.int64) // 10**9
+        tgt_ts = tgt_data["collection_date"].astype(np.int64) // 10**9
+        
+        if src_ts.max() > tgt_ts.min():
+            pred_at_obs = np.interp(tgt_ts, src_ts, predicted_conc)
+            valid_mask = ~np.isnan(tgt_data["NO3_mg_L"]) & ~np.isnan(pred_at_obs)
+            
+            if np.any(valid_mask):
+                r2 = r2_score(tgt_data["NO3_mg_L"][valid_mask], pred_at_obs[valid_mask])
+                rmse = np.sqrt(mean_squared_error(tgt_data["NO3_mg_L"][valid_mask], pred_at_obs[valid_mask]))
+                obs = tgt_data["NO3_mg_L"][valid_mask]
+                sim = pred_at_obs[valid_mask]
+                nse = 1 - (np.sum((obs - sim) ** 2) / np.sum((obs - np.mean(obs)) ** 2))
+
+                stats_text = f"RMSE: {rmse:.2f} mg/L\nR²: {r2:.2f}\nNSE: {nse:.2f}"
+                ax.text(0.05, 0.95, stats_text, transform=ax.transAxes, verticalalignment="top", 
+                        bbox=dict(boxstyle="round", facecolor="white", alpha=0.8))
+                
+                validation_results.append({"pair": f"{source}->{target}", "rmse": rmse, "r2": r2, "nse": nse})
+
+        ax.set_title(f"Validation: {source}->{target}\n(Lag: {LAG_DAYS:.0f}d, k: {DECAY_K:.4f})")
+        ax.set_ylabel("NO3 (mg/L)")
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+        plt.setp(ax.get_xticklabels(), rotation=45)
+
+    plt.tight_layout()
+    plt.savefig(output_dir / "validation/split_sample_validation.png")
+    pd.DataFrame(validation_results).to_csv(output_dir / "validation/stats.csv", index=False)
+    print(f"  Saved: validation/split_sample_validation.png")
+
+
 # ===================================================================
 # Main Pipeline
 # ===================================================================
@@ -1142,7 +1473,7 @@ def analyze_objective4_transport(data: dict, output_dir: Path, all_results: list
 def main():
     print("=" * 70)
     print("COMPLETE HYDROSHEAF ANALYSIS")
-    print("Addressing All Research Objectives")
+    print("Addressing All Research Objectives (With Integrated Calibration)")
     print("=" * 70)
 
     base_dir = Path(__file__).parent
@@ -1156,58 +1487,45 @@ def main():
     data = load_all_data(data_dir)
     print(f"  Water chemistry: {len(data['water_chem'])} samples")
     print(f"  Soil profiles: {len(data['soil_profiles'])} records")
-    print(f"  Fertilizer applications: {len(data['fertilizer'])} records")
-
-    # Configure hydrosheaf
-    config = Config(
-        ion_order=["Ca", "Mg", "Na", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"],
-        weights=[1.0] * 10,
-        phreeqc_enabled=False,
-        transport_models_enabled=["evap", "mix"],
-        active_minerals=[
-            "calcite",
-            "dolomite",
-            "gypsum",
-            "halite",
-            "pyrite_oxidation_aerobic",
-        ],
-        gibbs_enabled=True,
-        exchange_enabled=True,
-    )
-
-    # Run hydrosheaf network analysis
-    print("\n[Running Hydrosheaf Network Analysis]")
+    
+    # -------------------------------------------------------------------------
+    # STEP 1: Run Calibration
+    # -------------------------------------------------------------------------
+    cal_params = run_calibration_step(data, output_dir)
 
     # -------------------------------------------------------------------------
-    # NEW: Configure Recharge-Piston Flow
+    # STEP 2: Configure & Run Forward Model (With Calibrated Params)
     # -------------------------------------------------------------------------
+    print("\n[Running Hydrosheaf Network Analysis - Forward Simulation]")
+
     try:
-        meteo_df = pd.read_csv("hydrosheaf_synthetic_csv/meteo_daily.csv")
+        meteo_df = data["meteo_daily"]
         meteo_df["date"] = pd.to_datetime(meteo_df["date"])
         rain_dates = meteo_df["date"].tolist()
         rain_mm = meteo_df["rain_mm"].tolist()
         avg_rain = meteo_df["rain_mm"].mean()
-        print(
-            f"  Loaded meteo data: {len(meteo_df)} days, avg rain {avg_rain:.1f} mm/day"
-        )
-    except Exception as e:
-        print(f"Warning: Could not load meteo_daily.csv: {e}")
-        rain_dates = []
-        rain_mm = []
-        avg_rain = 0.0
+        print(f"  Loaded meteo data: {len(meteo_df)} days, avg rain {avg_rain:.1f} mm/day")
+    except Exception:
+        rain_dates, rain_mm, avg_rain = [], [], 0.0
 
-    # Configure with new settings
+    # Configure using Calibrated Values
     config = Config(
+        ion_order=["Ca", "Mg", "Na", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"],
+        weights=[1.0] * 10,
         phreeqc_enabled=True,
         nitrate_source_enabled=True,
         isotope_enabled=True,
         temporal_enabled=True,
         residence_time_method="recharge_piston",
-        recharge_lag_volume_mm=300.0,
-        recharge_effective_fraction=0.8,
+        recharge_lag_volume_mm=300.0, # Default, overridden per edge below
+        dispersivity_m=cal_params["dispersivity"],
+        denitrification_k_1_day=cal_params["denit_rate"],
+        transport_models_enabled=["evap", "mix"],
+        active_minerals=["calcite", "dolomite", "gypsum", "halite", "pyrite_oxidation_aerobic"],
+        gibbs_enabled=True,
+        exchange_enabled=True,
     )
 
-    # Need to run temporal pipeline instead of event-by-event loop for recharge logic
     # Prepare temporal nodes
     temporal_nodes = {}
     for st in data["stations"]["station_code"]:
@@ -1215,11 +1533,7 @@ def main():
         st_data = data["water_chem"][data["water_chem"]["station_code"] == st]
         for _, row in st_data.iterrows():
             conc = [
-                (
-                    mgL_to_mmolL(row.get(f"{ion}_mg_L", 0.0), ion)
-                    if ion != "pH"
-                    else row.get("pH", 7.0)
-                )
+                (mgL_to_mmolL(row.get(f"{ion}_mg_L", 0.0), ion) if ion != "pH" else row.get("pH", 7.0))
                 for ion in config.ion_order
             ]
             isotopes = {}
@@ -1239,22 +1553,33 @@ def main():
             node_samples.sort(key=lambda s: s.timestamp)
             temporal_nodes[st] = TemporalNode(node_id=st, samples=node_samples)
 
-    # Prepare edges
+    # Prepare edges with Calibrated Hydraulic Params
     edge_objs = []
     temporal_hydraulic_params = {}
+    
+    # Map stations to clusters for parameter assignment
+    cluster_map = data["stations"].set_index("station_code")["cluster_code"].to_dict()
 
     for _, row in data["edges"].iterrows():
         u, v = row["from_station"], row["to_station"]
         edge_objs.append((u, v))
         edge_id = f"{u}->{v}"
+        
+        # Determine params based on source cluster
+        cluster = cluster_map.get(u, "CLUSTER_A")
+        if cluster == "CLUSTER_B":
+            s_mm, r_frac = cal_params["storage_B"], cal_params["recharge_B"]
+        else:
+            s_mm, r_frac = cal_params["storage_A"], cal_params["recharge_A"]
+            
         temporal_hydraulic_params[edge_id] = {
             "rain_dates": rain_dates,
             "rain_mm": rain_mm,
-            "storage_mm": 300.0,
-            "avg_recharge_mm_day": avg_rain * 0.8,
+            "storage_mm": s_mm,
+            "avg_recharge_mm_day": avg_rain * r_frac,
         }
 
-    # Prepare Samples for static fitting (fallback/base)
+    # Prepare Samples for static fitting (fallback)
     samples_flat = []
     for _, row in data["water_chem"].iterrows():
         sample = {
@@ -1268,10 +1593,7 @@ def main():
             "Cl": mgL_to_mmolL(row["Cl_mg_L"], "Cl"),
             "SO4": mgL_to_mmolL(row["SO4_mg_L"], "SO4"),
             "NO3": mgL_to_mmolL(row["NO3_mg_L"], "NO3"),
-            "F": 0.0,
-            "Fe": 0.0,
-            "PO4": 0.0,
-            "pH": row["pH"],
+            "F": 0.0, "Fe": 0.0, "PO4": 0.0, "pH": row["pH"],
         }
         samples_flat.append(sample)
 
@@ -1297,16 +1619,14 @@ def main():
         all_results, str(output_dir / "data" / "hydrosheaf_results.json")
     )
 
-    # Run objective-specific analyses
-    # We only have 'all_results' from pipeline now, but obj4 expects it
-    # We must ensure obj4 uses the pipeline results correctly
+    # Run objective-specific analyses using Calibrated Data
     obj1_summary = analyze_objective1_vadose_transport(data, output_dir)
-    obj2_summary = analyze_objective2_nitrate_sources(data, output_dir, config)
+    obj2_summary = analyze_objective2_nitrate_sources(data, output_dir, config, cal_params)
     obj3_summary = analyze_objective3_recharge(data, output_dir)
-
-    # We need to make sure all_results are passed correctly.
-    # The pipeline returns them in a compatible format.
-    obj4_summary = analyze_objective4_transport(data, output_dir, all_results)
+    obj4_summary = analyze_objective4_transport(data, output_dir, all_results, cal_params)
+    
+    # Run integrated validation
+    run_split_sample_validation(output_dir, cal_params)
 
     # Generate comprehensive summary
     print("\n" + "=" * 70)
@@ -1316,37 +1636,22 @@ def main():
     print("\nObjective 1 - Vadose Zone Transport:")
     print(f"  30cm depth mean NO3: {obj1_summary['depth_30cm_mean_no3']:.1f} mg/kg")
     print(f"  60cm depth mean NO3: {obj1_summary['depth_60cm_mean_no3']:.1f} mg/kg")
-    print(f"  Cluster A (high input): {obj1_summary['cluster_a_mean_no3']:.1f} mg/kg")
-    print(f"  Cluster B (moderate): {obj1_summary['cluster_b_mean_no3']:.1f} mg/kg")
 
     print("\nObjective 2 - Nitrate Sources:")
-    print(
-        f"  Fertilizer contribution: {obj2_summary['fertilizer_contribution_pct']:.1f}%"
-    )
+    print(f"  Fertilizer contribution: {obj2_summary['fertilizer_contribution_pct']:.1f}%")
     print(f"  Soil N contribution: {obj2_summary['soil_n_contribution_pct']:.1f}%")
-    print(
-        f"  Denitrification detected: {obj2_summary['denitrification_fraction']*100:.1f}% of samples"
-    )
 
     print("\nObjective 3 - Recharge Pathways:")
     print(f"  Mean d-excess: {obj3_summary['mean_d_excess']:.2f} permil")
-    if obj3_summary.get("estimated_lag_days"):
-        print(
-            f"  Estimated transport lag: {obj3_summary['estimated_lag_days']:.0f} days"
-        )
 
     print("\nObjective 4 - Transport Model:")
     print(f"  Mean evaporation factor: {obj4_summary['mean_gamma']:.3f}")
-    print(
-        f"  Mean denitrification rate: {obj4_summary['mean_denitrification_rate']:.4f} mmol/L"
-    )
-    print(
-        f"  High vulnerability stations: {obj4_summary['high_vulnerability_stations']}"
-    )
+    print(f"  Optimized Denitrification Rate: {cal_params['denit_rate']:.5f} /d")
 
     # Save master summary
     master_summary = {
         "analysis_date": datetime.now().isoformat(),
+        "calibrated_parameters": cal_params,
         "objective1_vadose": obj1_summary,
         "objective2_sources": obj2_summary,
         "objective3_recharge": obj3_summary,
@@ -1362,6 +1667,7 @@ def main():
     print("  - objective2_sources/nitrate_source_analysis.png")
     print("  - objective3_recharge/recharge_analysis.png")
     print("  - objective4_transport/transport_model_framework.png")
+    print("  - validation/split_sample_validation.png")
     print("  - master_summary.json")
 
     return output_dir

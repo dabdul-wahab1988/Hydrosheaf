@@ -5,11 +5,15 @@
 import math
 from typing import Dict, List, Optional
 
+from ..config import Config
 from .distance import classify_edge_type, compute_3d_distance, compute_screen_overlap
 from .layers import assign_layers_to_nodes, get_aquitard_probability
 from .constraints import check_hydraulic_feasibility
 from .types_3d import Edge3D, LayeredAquiferSystem, Network3D, Node3D
-from ..graph.head_inference import infer_heads_bayesian_linear, infer_heads_bayesian_mcmc
+from ..graph.head_inference import (
+    infer_heads_bayesian_linear,
+    infer_heads_bayesian_mcmc,
+)
 
 
 def compute_head_probability(
@@ -128,7 +132,7 @@ def compute_distance_probability(
 
 def infer_edges_3d_probabilistic(
     nodes: List[Node3D],
-    config: "Config",  # type: ignore
+    config: Config,
     layer_system: Optional[LayeredAquiferSystem] = None,
     use_haversine: bool = True,
 ) -> List[Edge3D]:
@@ -290,19 +294,31 @@ def infer_edges_3d_probabilistic(
                 continue
 
             # Determine layer info
-            same_layer = (node_i.aquifer_layer == node_j.aquifer_layer) if node_i.aquifer_layer and node_j.aquifer_layer else True
+            same_layer = (
+                (node_i.aquifer_layer == node_j.aquifer_layer)
+                if node_i.aquifer_layer and node_j.aquifer_layer
+                else True
+            )
 
             # Classify edge type
             edge_type = classify_edge_type(d_xy, d_z, same_layer)
 
             # Compute gradients
             if d_xy > 1e-6:
-                h_grad = (node_i.hydraulic_head - node_j.hydraulic_head) / d_xy if node_i.hydraulic_head and node_j.hydraulic_head else None
+                h_grad = (
+                    (node_i.hydraulic_head - node_j.hydraulic_head) / d_xy
+                    if node_i.hydraulic_head and node_j.hydraulic_head
+                    else None
+                )
             else:
                 h_grad = None
 
             if d_z > 1e-6:
-                v_grad = (node_i.hydraulic_head - node_j.hydraulic_head) / d_z if node_i.hydraulic_head and node_j.hydraulic_head else None
+                v_grad = (
+                    (node_i.hydraulic_head - node_j.hydraulic_head) / d_z
+                    if node_i.hydraulic_head and node_j.hydraulic_head
+                    else None
+                )
             else:
                 v_grad = None
 
@@ -343,7 +359,7 @@ def infer_edges_3d_probabilistic(
 
 def build_network_3d(
     samples: List[Dict[str, object]],
-    config: "Config",  # type: ignore
+    config: Config,
     layer_definition: Optional[Dict[str, object]] = None,
     use_haversine: bool = True,
 ) -> Network3D:
@@ -413,7 +429,9 @@ def build_network_3d(
     nodes_dict: Dict[str, Node3D] = {}
 
     for sample in samples:
-        node_id = sample.get("site_id") or sample.get("node_id") or sample.get("sample_id")
+        node_id = (
+            sample.get("site_id") or sample.get("node_id") or sample.get("sample_id")
+        )
         if node_id in (None, ""):
             continue
         node_id_str = str(node_id)
@@ -445,7 +463,11 @@ def build_network_3d(
             aquifer_layer = int(aquifer_layer)
 
         # Extract concentrations
-        ion_order = getattr(config, "ion_order", ["Ca", "Mg", "Na", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"])
+        ion_order = getattr(
+            config,
+            "ion_order",
+            ["Ca", "Mg", "Na", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"],
+        )
         concentrations = []
         for ion in ion_order:
             conc = sample.get(ion, 0.0)
@@ -461,7 +483,11 @@ def build_network_3d(
             screen_top=screen_top,
             screen_bottom=screen_bottom,
             hydraulic_head=head,
-            head_uncertainty=float(getattr(config, "edge_sigma_meas", 0.5)) if head is not None else float(getattr(config, "edge_sigma_topo", 10.0)),
+            head_uncertainty=(
+                float(getattr(config, "edge_sigma_meas", 0.5))
+                if head is not None
+                else float(getattr(config, "edge_sigma_topo", 10.0))
+            ),
             aquifer_layer=aquifer_layer,
             concentrations=concentrations,
         )
@@ -486,11 +512,17 @@ def build_network_3d(
                 dtw_prior_mu=float(getattr(config, "edge_dtw_prior_mu", 5.0)),
                 dtw_prior_sigma=float(getattr(config, "edge_dtw_prior_sigma", 5.0)),
                 head_prior_mu=float(getattr(config, "edge_head_prior_mu", 0.0)),
-                head_prior_sigma=float(getattr(config, "edge_head_prior_sigma", 1000.0)),
+                head_prior_sigma=float(
+                    getattr(config, "edge_head_prior_sigma", 1000.0)
+                ),
                 mcmc_draws=int(getattr(config, "bayesian_n_samples", 1000)),
                 mcmc_chains=int(getattr(config, "bayesian_n_chains", 2)),
-                mcmc_target_accept=float(getattr(config, "bayesian_target_accept", 0.9)),
-                mcmc_warmup_fraction=float(getattr(config, "bayesian_warmup_fraction", 0.5)),
+                mcmc_target_accept=float(
+                    getattr(config, "bayesian_target_accept", 0.9)
+                ),
+                mcmc_warmup_fraction=float(
+                    getattr(config, "bayesian_warmup_fraction", 0.5)
+                ),
             )
         else:
             posterior = infer_heads_bayesian_linear(
@@ -506,7 +538,9 @@ def build_network_3d(
                 dtw_prior_mu=float(getattr(config, "edge_dtw_prior_mu", 5.0)),
                 dtw_prior_sigma=float(getattr(config, "edge_dtw_prior_sigma", 5.0)),
                 head_prior_mu=float(getattr(config, "edge_head_prior_mu", 0.0)),
-                head_prior_sigma=float(getattr(config, "edge_head_prior_sigma", 1000.0)),
+                head_prior_sigma=float(
+                    getattr(config, "edge_head_prior_sigma", 1000.0)
+                ),
             )
         idx_map = posterior.index()
         for node_id, node in nodes_dict.items():
@@ -514,7 +548,9 @@ def build_network_3d(
             if idx is None:
                 continue
             node.hydraulic_head = float(posterior.head_mean[idx])
-            node.head_uncertainty = float(math.sqrt(float(posterior.head_cov[idx, idx])))
+            node.head_uncertainty = float(
+                math.sqrt(float(posterior.head_cov[idx, idx]))
+            )
 
     # Create layer system if provided
     layer_system = None

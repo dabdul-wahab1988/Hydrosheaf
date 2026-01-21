@@ -205,7 +205,9 @@ def compute_node_statistics(node: TemporalNode, ion_order: List[str]) -> None:
             mean_t = sum(times) / n_samples
             mean_y = mean_conc[j]
 
-            numerator = sum((times[i] - mean_t) * (values[i] - mean_y) for i in range(n_samples))
+            numerator = sum(
+                (times[i] - mean_t) * (values[i] - mean_y) for i in range(n_samples)
+            )
             denominator = sum((times[i] - mean_t) ** 2 for i in range(n_samples))
 
             if denominator > 1e-10:

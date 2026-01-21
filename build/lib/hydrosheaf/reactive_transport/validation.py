@@ -4,6 +4,8 @@ Forward validation of inverse model results using reactive transport.
 
 from typing import Dict, List, Optional
 
+from ..config import Config
+from ..inference.edge_fit import EdgeResult
 from . import KineticParameters, ReactiveTransportResult, ValidationSummary
 from .kinetic_phreeqc import build_kinetic_block, run_phreeqc_kinetic
 from .metrics import (
@@ -14,10 +16,10 @@ from .metrics import (
 
 
 def validate_edge_forward(
-    edge_result: "EdgeResult",  # type: ignore
+    edge_result: EdgeResult,
     x_u: List[float],
     x_v_observed: List[float],
-    config: "Config",  # type: ignore
+    config: Config,
     kinetic_params: Optional[Dict[str, KineticParameters]] = None,
     residence_time_days: Optional[float] = None,
 ) -> ReactiveTransportResult:
@@ -74,13 +76,19 @@ def validate_edge_forward(
     if edge_result.transport_model == "evap" and edge_result.gamma is not None:
         x_transport = [edge_result.gamma * float(x) for x in x_u]
     elif edge_result.transport_model == "mix" and edge_result.f is not None:
-        endmember_id = edge_result.endmember_id or (list(config.mixing_endmembers.keys())[0] if config.mixing_endmembers else None)
+        endmember_id = edge_result.endmember_id or (
+            list(config.mixing_endmembers.keys())[0]
+            if config.mixing_endmembers
+            else None
+        )
         if endmember_id is None:
             x_transport = list(x_u)
         else:
             endmember = config.mixing_endmembers[endmember_id]
             f = float(edge_result.f)
-            x_transport = [(1.0 - f) * float(u) + f * float(e) for u, e in zip(x_u, endmember)]
+            x_transport = [
+                (1.0 - f) * float(u) + f * float(e) for u, e in zip(x_u, endmember)
+            ]
     else:
         x_transport = x_u  # No transport
 
@@ -149,15 +157,23 @@ def validate_edge_forward(
 
         # Compute consistency metrics
         if x_v_forward:
-            metrics = compute_consistency_metrics(x_v_forward, x_v_observed, config.weights)
+            metrics = compute_consistency_metrics(
+                x_v_forward, x_v_observed, config.weights
+            )
             result.rmse = metrics["rmse"]
             result.nse = metrics["nse"]
             result.pbias = metrics["pbias"]
 
             # Per-ion metrics
-            per_ion = compute_per_ion_metrics(x_v_forward, x_v_observed, config.ion_order)
-            result.per_ion_error = [per_ion[ion]["error"] for ion in config.ion_order if ion in per_ion]
-            result.per_ion_bias = [per_ion[ion]["rel_error"] for ion in config.ion_order if ion in per_ion]
+            per_ion = compute_per_ion_metrics(
+                x_v_forward, x_v_observed, config.ion_order
+            )
+            result.per_ion_error = [
+                per_ion[ion]["error"] for ion in config.ion_order if ion in per_ion
+            ]
+            result.per_ion_bias = [
+                per_ion[ion]["rel_error"] for ion in config.ion_order if ion in per_ion
+            ]
 
         # Check thermodynamic consistency
         is_consistent, violations = check_thermodynamic_consistency(
@@ -179,9 +195,9 @@ def validate_edge_forward(
 
 
 def validate_network_forward(
-    edge_results: List["EdgeResult"],  # type: ignore
+    edge_results: List[EdgeResult],
     samples: Dict[str, Dict[str, float]],
-    config: "Config",  # type: ignore
+    config: Config,
     kinetic_params: Optional[Dict[str, KineticParameters]] = None,
 ) -> ValidationSummary:
     """
@@ -250,7 +266,9 @@ def validate_network_forward(
                 x_v_observed=x_v,
                 config=config,
                 kinetic_params=kinetic_params,
-                residence_time_days=getattr(edge_result, "edge_residence_time_days", None),
+                residence_time_days=getattr(
+                    edge_result, "edge_residence_time_days", None
+                ),
             )
 
             validation_results[edge_result.edge_id] = result
@@ -282,7 +300,9 @@ def validate_network_forward(
     inconsistent = [
         edge_id
         for edge_id, result in validation_results.items()
-        if result.rmse >= rmse_threshold or result.nse <= nse_threshold or not result.thermodynamic_consistent
+        if result.rmse >= rmse_threshold
+        or result.nse <= nse_threshold
+        or not result.thermodynamic_consistent
     ]
 
     summary = ValidationSummary(

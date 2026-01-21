@@ -13,7 +13,7 @@ def compute_gibbs_ratios(
 ) -> Tuple[Optional[float], Optional[float], Optional[float]]:
     """
     Compute Gibbs diagram ratios.
-    
+
     Returns:
         Tuple of (TDS, Na/(Na+Ca), Cl/(Cl+HCO3))
         None values if required ions missing
@@ -28,15 +28,15 @@ def compute_gibbs_ratios(
             tds = float(tds)
     except (TypeError, ValueError):
         return None, None, None
-    
+
     # Cation ratio: Na/(Na+Ca)
     cation_sum = na + ca
     ratio_cation = na / cation_sum if cation_sum > 0 else None
-    
+
     # Anion ratio: Cl/(Cl+HCO3)
     anion_sum = cl + hco3
     ratio_anion = cl / anion_sum if anion_sum > 0 else None
-    
+
     return tds, ratio_cation, ratio_anion
 
 
@@ -49,18 +49,18 @@ def classify_gibbs_dominance(
 ) -> str:
     """
     Classify dominant hydrogeochemical process using Gibbs diagram.
-    
+
     Args:
         sample: Sample dictionary with ion concentrations
         tds_precipitation: Upper TDS bound for precipitation dominance (mg/L)
         tds_evaporation: Lower TDS bound for evaporation dominance (mg/L)
         ratio_threshold: Ratio threshold for classification
-        
+
     Returns:
         "precipitation", "rock", or "evaporation"
     """
     tds, ratio_cation, ratio_anion = compute_gibbs_ratios(sample, **kwargs)
-    
+
     if tds is None:
         # Fall back to ratio-based classification
         if ratio_cation is None or ratio_anion is None:
@@ -72,7 +72,7 @@ def classify_gibbs_dominance(
             return "evaporation"
         else:
             return "rock"
-    
+
     # TDS-based classification with ratio confirmation
     if tds < tds_precipitation:
         return "precipitation"
@@ -94,10 +94,10 @@ def gibbs_transport_weights(
 ) -> Dict[str, float]:
     """
     Compute transport model weights based on Gibbs classification.
-    
+
     Returns probability-like weights for transport model selection.
     These weights are used when isotope data is unavailable.
-    
+
     Returns:
         Dict with "evap" and "mix" weights (sum to 1.0)
     """
@@ -107,7 +107,7 @@ def gibbs_transport_weights(
         tds_evaporation=tds_evaporation,
         **kwargs,
     )
-    
+
     if dominance == "evaporation":
         # High evaporation signal -> favor evaporation model
         return {"evap": 0.85, "mix": 0.15}
@@ -127,10 +127,10 @@ def gibbs_evaporation_penalty(
 ) -> float:
     """
     Compute penalty for evaporation model based on Gibbs classification.
-    
+
     Lower penalty means evaporation is more consistent with Gibbs classification.
     This is used to supplement isotope penalties.
-    
+
     Returns:
         Penalty value (0 = consistent with evaporation, higher = inconsistent)
     """
@@ -140,7 +140,7 @@ def gibbs_evaporation_penalty(
         tds_evaporation=tds_evaporation,
         **kwargs,
     )
-    
+
     if dominance == "evaporation":
         return 0.0
     elif dominance == "precipitation":
@@ -155,7 +155,7 @@ def compute_gibbs_metrics(
 ) -> Dict[str, object]:
     """
     Compute all Gibbs-related metrics for a sample.
-    
+
     Returns:
         Dict with TDS, ratios, classification, and weights
     """
@@ -163,7 +163,7 @@ def compute_gibbs_metrics(
     dominance = classify_gibbs_dominance(sample, **kwargs)
     weights = gibbs_transport_weights(sample, **kwargs)
     penalty = gibbs_evaporation_penalty(sample, **kwargs)
-    
+
     return {
         "tds": tds,
         "ratio_na_naca": ratio_cation,

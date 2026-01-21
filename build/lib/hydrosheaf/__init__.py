@@ -31,7 +31,12 @@ from .api import (
 from .physics.priors import PhysicsPrior, apply_physics_priors
 from .temporal import TemporalEdgeResult, TemporalNode, TimeSeriesSample
 from .temporal.time_series import load_time_series_csv
-from .vadose.contracts import VadoseForcingSample, VadoseLinksRow, VadoseProfile, VadoseRunConfig
+from .vadose.contracts import (
+    VadoseForcingSample,
+    VadoseLinksRow,
+    VadoseProfile,
+    VadoseRunConfig,
+)
 
 __all__ = [
     "Config",

@@ -57,7 +57,9 @@ def _prepare_database_copy(db_path: str) -> Path:
         temp_root = Path(tempfile.gettempdir()) / "hydrosheaf_phreeqc"
         temp_root.mkdir(parents=True, exist_ok=True)
         destination = temp_root / source.name
-        if (not destination.exists()) or (source.stat().st_mtime > destination.stat().st_mtime):
+        if (not destination.exists()) or (
+            source.stat().st_mtime > destination.stat().st_mtime
+        ):
             shutil.copy2(source, destination)
         return destination
     except Exception:
@@ -93,7 +95,9 @@ def _build_solution_composition(
     temp_c = sample.get("temp_c")
     if temp_c in (None, ""):
         temp_c = temp_default_c
-    composition: Dict[str, object] = {"units": "mmol/L"}  # Hydrosheaf internal units are mmol/L
+    composition: Dict[str, object] = {
+        "units": "mmol/L"
+    }  # Hydrosheaf internal units are mmol/L
     _add_value(composition, "temp", temp_c)
     _add_value(composition, "pH", sample.get("pH"))
 
@@ -108,7 +112,9 @@ def _build_solution_composition(
     return composition
 
 
-def run_phreeqc(samples: Iterable[Mapping[str, object]], config: Config) -> Dict[str, Dict[str, object]]:
+def run_phreeqc(
+    samples: Iterable[Mapping[str, object]], config: Config
+) -> Dict[str, Dict[str, object]]:
     sample_list = list(samples)
     results: Dict[str, Dict[str, object]] = {}
     for sample in sample_list:
@@ -123,7 +129,9 @@ def run_phreeqc(samples: Iterable[Mapping[str, object]], config: Config) -> Dict
         sample_id = _ensure_sample_id(sample)
         results[sample_id] = _default_result(sample_id, "missing_pH")
 
-    valid_samples = [sample for sample in sample_list if sample.get("pH") not in (None, "")]
+    valid_samples = [
+        sample for sample in sample_list if sample.get("pH") not in (None, "")
+    ]
     if not valid_samples:
         return results
 
@@ -140,7 +148,9 @@ def run_phreeqc(samples: Iterable[Mapping[str, object]], config: Config) -> Dict
         except ImportError:
             for sample in valid_samples:
                 sample_id = _ensure_sample_id(sample)
-                results[sample_id] = _default_result(sample_id, "phreeqpython_unavailable")
+                results[sample_id] = _default_result(
+                    sample_id, "phreeqpython_unavailable"
+                )
             return results
         try:
             if db_path:
@@ -190,7 +200,9 @@ def run_phreeqc(samples: Iterable[Mapping[str, object]], config: Config) -> Dict
     if not config.phreeqc_executable:
         for sample in valid_samples:
             sample_id = _ensure_sample_id(sample)
-            results[sample_id] = _default_result(sample_id, "phreeqc_executable_missing")
+            results[sample_id] = _default_result(
+                sample_id, "phreeqc_executable_missing"
+            )
         return results
 
     with tempfile.TemporaryDirectory() as temp_dir:

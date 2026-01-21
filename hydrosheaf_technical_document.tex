@@ -34,9 +34,9 @@
 \DeclareMathOperator{\prox}{prox}
 
 \title{Sheaf-Theoretic Methods in Groundwater Hydrogeochemistry: \\
-A Mathematical Framework for Inverse Geochemical Modeling}
+A Unified Mathematical Framework for Network Topology Inference, \\ Geochemical Inverse Modeling, and Isotope Source Apportionment}
 
-\author{Dickson Abdul-Wahab \and Ebenezer Aquisman Asare \and Abdul Rashid Dickson}
+\author{Dickson Abdul-Wahab}
 \date{\today}
 
 \begin{document}
@@ -44,7 +44,7 @@ A Mathematical Framework for Inverse Geochemical Modeling}
 \maketitle
 
 \begin{abstract}
-	We present a comprehensive mathematical framework for solving inverse problems in groundwater hydrogeochemistry using sheaf-theoretic principles. The method determines optimal transport processes (evaporation, mixing) and geochemical reactions that explain observed chemical evolution along flow paths in aquifer networks. The framework combines weighted least squares optimization, sparse LASSO regression with coordinate descent, thermodynamic constraints from PHREEQC, and isotope hydrogeology to produce parsimonious, physically consistent models. We establish theoretical results on the optimality of transport models, convergence properties of the coordinate descent algorithm, and probabilistic methods for inferring flow network topology from incomplete hydraulic head data. The framework integrates linear algebra, convex optimization, graph theory, and geochemical thermodynamics into a unified computational approach suitable for practical groundwater management applications. Similar to other open-source projects, the implementation is available at \url{https://github.com/dabdul-wahab1988/Hydrosheaf}.
+	We present a comprehensive mathematical framework for integrated hydrogeochemical analysis in groundwater systems using sheaf-theoretic principles. The framework provides a unified computational approach for: (1) inferring flow network topology and connectivity from incomplete hydraulic head, topographic, and physics-based priors; (2) solving reaction path inverse problems to identify optimal transport processes and parsimonious geochemical reaction sets along network edges; and (3) performing trace-element forensics through Bayesian isotope mixing models and vadose zone travel-time deconvolution. By combining weighted least squares optimization, sparse LASSO regression, thermodynamic constraints from PHREEQC, and Richards equation simulation, the method produces physically consistent, parsimonious models suitable for both reactive transport characterization and contamination source apportionment. We establish theoretical results on the optimality of transport solutions and the convergence of the underlying coordinate descent algorithms. Similar to other open-source projects, the implementation is available at \url{https://github.com/dabdul-wahab1988/Hydrosheaf}.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -138,7 +138,7 @@ The sheaf-theoretic viewpoint interprets the groundwater network as a cellular c
 
 \subsection{Document Roadmap}
 
-The remainder of this document is organized as follows: Section \ref{sec:math_framework} presents the core mathematical framework, including the optimization problem formulation and two-stage solution strategy. Section \ref{sec:graph} develops probabilistic methods for inferring flow network topology from hydraulic head data. Section \ref{sec:transport} establishes theoretical results on optimal transport models (evaporation and mixing). Section \ref{sec:reaction} presents the sparse reaction fitting algorithm using LASSO regression and coordinate descent. Section \ref{sec:thermo} describes thermodynamic constraints derived from saturation indices. Section \ref{sec:isotope} introduces isotope-based penalties for process discrimination. Section \ref{sec:nitrate} presents the specialized module for nitrate source discrimination using compositional data analysis and Bayesian evidence. Section \ref{sec:numerical} summarizes the complete algorithm and computational complexity. Section \ref{sec:results} presents validation methodology and representative applications. Section \ref{sec:comparison} compares our approach to existing commercial software. Section \ref{sec:extensions} discusses advanced extensions including reactive transport, 3D networks, temporal dynamics, and uncertainty quantification. Section \ref{sec:conclusion} concludes with a summary and future perspectives.
+The remainder of this document is organized as follows: Section \ref{sec:math_framework} presents the core mathematical framework, including the optimization problem formulation and two-stage solution strategy. Section \ref{sec:graph} develops probabilistic methods for inferring flow network topology from hydraulic head data. Section \ref{sec:transport} establishes theoretical results on optimal transport models (evaporation and mixing). Section \ref{sec:reaction} presents the sparse reaction fitting algorithm using LASSO regression and coordinate descent. Section \ref{sec:thermo} describes thermodynamic constraints derived from saturation indices. Section \ref{sec:isotope} introduces isotope-based penalties for process discrimination. Section \ref{sec:nitrate} presents the specialized module for nitrate source discrimination using dual-isotope Bayesian mixing and compositional data analysis. Section \ref{sec:numerical} summarizes the complete algorithm and computational complexity. Section \ref{sec:results} presents validation methodology and representative applications. Section \ref{sec:comparison} compares our approach to existing commercial software. Section \ref{sec:extensions} discusses advanced extensions including reactive transport, 3D networks, vadose zone physics, temporal dynamics with TTD methods, physics priors from mesh-based models, and uncertainty quantification. Section \ref{sec:webui} describes the modern web-based user interface for interactive analysis. Section \ref{sec:conclusion} concludes with a summary and future perspectives.
 
 \newpage
 \subsection{Notation}
@@ -188,11 +188,11 @@ Throughout the document, vectors are denoted in boldface (e.g., $\mathbf{x}, \ma
 
 \subsection{Core Optimization Problem}
 
-For each edge $(u,v) \in E$, we solve the following constrained optimization problem:
+For each edge $(u,v) \in E$, we solve the following constrained optimization problem (implementation minimizes the unscaled residual sum of squares):
 
 \begin{equation}\label{eq:master_problem}
 	\begin{aligned}
-		\min_{\boldsymbol{\theta}, \mathbf{z}} \quad & \mathcal{L}(\boldsymbol{\theta}, \mathbf{z}) = \frac{1}{2} \|\mathbf{x}_v - \mathbf{x}_{\text{pred}}\|_{\mathbf{W}}^2 + \lambda \|\mathbf{z}\|_1                                                               \\
+		\min_{\boldsymbol{\theta}, \mathbf{z}} \quad & \mathcal{L}(\boldsymbol{\theta}, \mathbf{z}) = \|\mathbf{x}_v - \mathbf{x}_{\text{pred}}\|_{\mathbf{W}}^2 + \lambda \|\mathbf{z}\|_1                                                                           \\
 		                                             & \quad + \mathcal{P}_{\text{EC/TDS}}(\boldsymbol{\theta}, \mathbf{z}) + \mathcal{P}_{\text{iso}}(\boldsymbol{\theta}) + \mathcal{P}_{\text{Gibbs}}(\boldsymbol{\theta}) + \mathcal{P}_{\text{cons}}(\mathbf{z}) \\
 		\text{subject to} \quad                      & \boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}, \quad \boldsymbol{\theta} \in \Theta
 	\end{aligned}
@@ -241,7 +241,7 @@ Problem \eqref{eq:master_problem} is solved in two stages:
 
 	\item \textbf{Reaction Optimization}: Fix $\boldsymbol{\theta} = \boldsymbol{\theta}^*$, compute residual $\mathbf{r} = \mathbf{x}_v - A(\boldsymbol{\theta}^*)\mathbf{x}_u - \mathbf{b}(\boldsymbol{\theta}^*)$, and solve:
 	      \begin{equation}\label{eq:reaction_opt}
-		      \mathbf{z}^* = \argmin_{\mathbf{z}} \frac{1}{2} \|\mathbf{r} - S\mathbf{z}\|_{\mathbf{W}}^2 + \lambda \|\mathbf{z}\|_1 + \mathcal{P}_{\text{EC/TDS}}(\mathbf{z}) + \mathcal{P}_{\text{cons}}(\mathbf{z}) \quad \text{s.t.} \quad \boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}
+		      \mathbf{z}^* = \argmin_{\mathbf{z}} \|\mathbf{r} - S\mathbf{z}\|_{\mathbf{W}}^2 + \lambda \|\mathbf{z}\|_1 + \mathcal{P}_{\text{EC/TDS}}(\mathbf{z}) + \mathcal{P}_{\text{cons}}(\mathbf{z}) \quad \text{s.t.} \quad \boldsymbol{\ell} \leq \mathbf{z} \leq \mathbf{u}
 	      \end{equation}
 \end{enumerate}
 
@@ -555,7 +555,7 @@ Problem \eqref{eq:lasso} is solved via coordinate descent, which iteratively opt
 		\State Compute partial residual: $\rho_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{r} - \sum_{k \neq j} (\mathbf{s}_j^\top \mathbf{W} \mathbf{s}_k) z_k$
 		\State Compute normalization: $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j$
 		\State Apply soft-thresholding with projection:
-		\State $\tilde{z}_j \leftarrow \mathcal{S}(\rho_j / \nu_j, \lambda / \nu_j)$
+		\State $\tilde{z}_j \leftarrow \mathcal{S}(\rho_j, \lambda/2) / \nu_j$
 		\State $z_j \leftarrow \max\{\ell_j, \min\{\tilde{z}_j, u_j\}\}$
 		\EndFor
 		\State $k \leftarrow k+1$
@@ -577,40 +577,41 @@ Problem \eqref{eq:lasso} is solved via coordinate descent, which iteratively opt
 \end{definition}
 
 \begin{lemma}[Coordinate Update]\label{lem:coord_update}
-	For fixed $z_k$ ($k \neq j$), the optimal update for $z_j$ minimizes the 1D subproblem (derived by completing the square and dividing by $2\nu_j$):
+	For fixed $z_k$ ($k \neq j$), the optimal update for $z_j$ minimizes the 1D subproblem:
 	\begin{equation}
-		\min_{z_j} \frac{1}{2} (z_j - \rho_j/\nu_j)^2 + \frac{\lambda}{\nu_j} |z_j|
+		\min_{z_j} \|\mathbf{r} - S\mathbf{z}\|_{\mathbf{W}}^2 + \lambda |z_j|
+	\end{equation}
+	which can be expanded as:
+	\begin{equation}
+		\min_{z_j} \nu_j z_j^2 - 2 \rho_j z_j + \lambda |z_j|
 	\end{equation}
 	where $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j$ and $\rho_j = \mathbf{s}_j^\top \mathbf{W} (\mathbf{r} - S_{-j}\mathbf{z}_{-j})$. The solution is:
 	\begin{equation}
-		z_j^* = \mathcal{S}(\rho_j/\nu_j, \lambda/\nu_j)
+		z_j^* = \frac{\mathcal{S}(\rho_j, \lambda/2)}{\nu_j}
 	\end{equation}
+	using the soft-thresholding operator $\mathcal{S}(\alpha, \tau) = \sign(\alpha)\max\{|\alpha|-\tau, 0\}$.
 \end{lemma}
 
 \begin{proof}
 	The subproblem for $z_j$ is:
 	\begin{equation}
-		\min_{z_j} \frac{1}{2} \|\mathbf{r} - \sum_{k=1}^m \mathbf{s}_k z_k\|_{\mathbf{W}}^2 + \lambda |z_j|
+		\min_{z_j} \|\mathbf{r} - \sum_{k=1}^m \mathbf{s}_k z_k\|_{\mathbf{W}}^2 + \lambda |z_j|
 	\end{equation}
 	Isolating $z_j$:
 	\begin{equation}
-		\min_{z_j} \frac{1}{2} \left\|\mathbf{r} - \mathbf{s}_j z_j - \sum_{k \neq j} \mathbf{s}_k z_k\right\|_{\mathbf{W}}^2 + \lambda |z_j|
+		\min_{z_j} \left\|\mathbf{r} - \mathbf{s}_j z_j - \sum_{k \neq j} \mathbf{s}_k z_k\right\|_{\mathbf{W}}^2 + \lambda |z_j|
 	\end{equation}
 	Let $\mathbf{r}_j = \mathbf{r} - \sum_{k \neq j} \mathbf{s}_k z_k$ be the partial residual. Expanding:
 	\begin{align}
-		h(z_j) & = \frac{1}{2} (\mathbf{r}_j - \mathbf{s}_j z_j)^\top \mathbf{W} (\mathbf{r}_j - \mathbf{s}_j z_j) + \lambda |z_j|                                                                     \\
-		       & = \frac{1}{2} \mathbf{r}_j^\top \mathbf{W} \mathbf{r}_j - z_j \mathbf{s}_j^\top \mathbf{W} \mathbf{r}_j + \frac{1}{2} z_j^2 \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j + \lambda |z_j| \\
-		       & = \frac{\nu_j}{2} z_j^2 - \rho_j z_j + \lambda |z_j| + \text{const}
+		h(z_j) & = (\mathbf{r}_j - \mathbf{s}_j z_j)^\top \mathbf{W} (\mathbf{r}_j - \mathbf{s}_j z_j) + \lambda |z_j|                                                           \\
+		       & = \mathbf{r}_j^\top \mathbf{W} \mathbf{r}_j - 2 z_j \mathbf{s}_j^\top \mathbf{W} \mathbf{r}_j + z_j^2 \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j + \lambda |z_j| \\
+		       & = \nu_j z_j^2 - 2 \rho_j z_j + \lambda |z_j| + \text{const}
 	\end{align}
-	where $\rho_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{r}_j$ and $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j$. Rescaling by $\nu_j$:
+	where $\rho_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{r}_j$ and $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j$. Taking the subgradient w.r.t $z_j$:
 	\begin{equation}
-		\tilde{h}(z_j) = \frac{1}{2} z_j^2 - \frac{\rho_j}{\nu_j} z_j + \frac{\lambda}{\nu_j} |z_j| = \frac{1}{2}(z_j - \rho_j/\nu_j)^2 + \frac{\lambda}{\nu_j}|z_j| + \text{const}
+		0 \in 2\nu_j z_j - 2\rho_j + \lambda \partial |z_j|
 	\end{equation}
-	This is the standard LASSO subproblem with closed-form solution:
-	\begin{equation}
-		z_j^* = \mathcal{S}(\rho_j/\nu_j, \lambda/\nu_j)
-	\end{equation}
-	Note: In our formulation, the scaling remains consistent with the $\frac{1}{2}\|\cdot\|^2$ convention, leading to the update $\mathcal{S}(\rho_j/\nu_j, \lambda/\nu_j)$.
+	This yields $z_j^* = \frac{1}{2\nu_j} \mathcal{S}(2\rho_j, \lambda) = \frac{1}{\nu_j} \mathcal{S}(\rho_j, \lambda/2)$.
 \end{proof}
 
 \subsection{Convergence Properties}
@@ -843,7 +844,10 @@ Features are z-scored using robust statistics (Median / MAD) to handle outliers:
 \begin{itemize}
 	\item \textbf{NO$_3$/Cl Ratio ($\phi_1$)}: High ratios indicate Fertilizer; Low ratios indicate Manure/Sewage.
 	\item \textbf{NO$_3$/K Ratio ($\phi_2$)}: Manure is rich in Potassium. High NO$_3$/K strongly suggests Fertilizer.
+	\item \textbf{PO$_4$ Indicator ($\phi_3$)}: Elevated phosphate levels (above P90) are typically associated with synthetic fertilizers.
+	\item \textbf{Fe (Reducing) Indicator ($\phi_4$)}: High dissolved Iron suggests reducing conditions often found in manure-impacted anaerobic zones.
 	\item \textbf{Denitrification ($\phi_5$)}: Derived from the LASSO reaction model ($z_{\text{denitrif}}$). Strong denitrification supports Manure (organic carbon donor).
+	\item \textbf{Alkalinity Coupling ($\phi_6$)}: Assesses the stoichiometric coupling between nitrate removal and bicarbonate production ($\Delta \text{HCO}_3 / -\Delta \text{NO}_3 \approx 1$), characteristic of organic-carbon driven denitrification.
 \end{itemize}
 
 \subsubsection{Background Threshold}
@@ -920,7 +924,7 @@ The Hydrosheaf implementation is organized as a modular pipeline. Table \ref{tab
 
 \subsection{Programmatic API}
 
-In addition to the CLI entry point (\texttt{hydrosheaf.cli:main}), the pipeline can be called from Python for integration into notebooks, workflow engines, or custom UIs. The two primary functions are \texttt{infer\_edges} and \texttt{fit\_network} in \texttt{hydrosheaf/inference/network\_fit.py}. Inputs can be a list of row dictionaries (as produced by \texttt{csv.DictReader}) or a Pandas DataFrame, as supported by \texttt{hydrosheaf/data/schema.py}. Web adapters (FastAPI) convert frontend mg/L payloads to mmol/L before invoking the same core functions.
+In addition to the CLI entry point (\texttt{hydrosheaf.cli:main}), the pipeline can be called from Python for integration into notebooks, workflow engines, or custom scripts. The two primary functions are \texttt{infer\_edges} and \texttt{fit\_network} in \texttt{hydrosheaf/inference/network\_fit.py}. Inputs can be a list of row dictionaries (as produced by \texttt{csv.DictReader}) or a Pandas DataFrame, as supported by \texttt{hydrosheaf/data/schema.py}.
 
 
 \begin{verbatim}
@@ -963,8 +967,6 @@ hydrosheaf --samples samples.csv --edges edges.csv \
   --residence-method cross_correlation --output results.json
 \end{verbatim}
 
-The web demo endpoints (FastAPI + React) reuse the same synthetic CSVs and expose objective-specific outputs under \texttt{/api/demo}.
-
 
 \subsection{Computational Complexity}
 
@@ -978,6 +980,62 @@ For an edge with $n$ ions, $m$ reactions, and $|\mathcal{C}|$ transport candidat
 Typically $n=10$ (default), $m=20-30$, $|\mathcal{C}|=5-10$, and $T=50-200$. For a network with $|E|$ edges, total complexity is $O(|E| \cdot (|\mathcal{C}| \cdot n + T \cdot m \cdot n))$, dominated by the LASSO solves. Optional temporal estimation adds per-edge overhead: cross-correlation is $O(N\cdot L)$ for $N$ time points and $L$ lags; the TTD estimator solves a small nonnegative least squares problem on a lag grid; Bayesian lag evaluates a 1D posterior on a $\tau$ grid with a physics-informed prior. Bayesian MCMC (uncertainty and nitrate isotopes) and reactive transport validation can take minutes per edge depending on chain length and kinetic time steps.
 
 \newpage
+\section{Inverse Modeling and Calibration}\label{sec:calibration}
+
+While the core Hydrosheaf framework (Sections \ref{sec:transport}--\ref{sec:reaction}) fits geochemical reactions to individual flow paths, the system-wide parameters (e.g., dispersivity, denitrification rates, recharge fractions) often require calibration against head and concentration targets. We implement a Gaussian-Levenberg-Marquardt (GLM) inversion engine that mimics the functionality of PEST++ \cite{white2020}.
+
+\subsection{Objective Function}
+
+The calibration problem seeks to minimize a weighted least-squares objective function $\Phi(\mathbf{p})$ with respect to a parameter vector $\mathbf{p} \in \mathbb{R}^{N_{\text{par}}}$:
+
+\begin{equation}
+	\Phi(\mathbf{p}) = \Phi_{\text{meas}}(\mathbf{p}) + \Phi_{\text{reg}}(\mathbf{p})
+\end{equation}
+
+The measurement objective term $\Phi_{\text{meas}}$ quantifies the misfit between observations $\mathbf{y}_{\text{obs}}$ and model outputs $f(\mathbf{p})$:
+\begin{equation}
+	\Phi_{\text{meas}}(\mathbf{p}) = \sum_{i=1}^{N_{\text{obs}}} w_i^2 (y_i - f_i(\mathbf{p}))^2 = (\mathbf{y} - f(\mathbf{p}))^\top \mathbf{W} (\mathbf{y} - f(\mathbf{p}))
+\end{equation}
+where $w_i$ are observation weights, typically proportional to the inverse of measurement standard deviation ($1/\sigma_i$).
+
+The regularization term $\Phi_{\text{reg}}$ (Tikhonov regularization) constrains parameters based on prior knowledge:
+\begin{equation}
+	\Phi_{\text{reg}}(\mathbf{p}) = \sum_{j=1}^{N_{\text{par}}} \frac{1}{\sigma_{\text{prior}, j}^2} (p_j - \mu_{\text{prior}, j})^2
+\end{equation}
+where $\mu_{\text{prior}, j}$ and $\sigma_{\text{prior}, j}$ are the prior mean and standard deviation of the $j$-th parameter.
+
+\subsection{Gauss-Levenberg-Marquardt Algorithm}
+
+We implement the GLM algorithm using a trust-region reflective approach (via \texttt{scipy.optimize.least\_squares}). The iterative update $\boldsymbol{\delta}_k$ at step $k$ is found by solving the normal equations augmented with a damping parameter $\lambda_k$:
+
+\begin{equation}
+	(\mathbf{J}_k^\top \mathbf{W} \mathbf{J}_k + \lambda_k \mathbf{D}_k^\top \mathbf{D}_k) \boldsymbol{\delta}_k = \mathbf{J}_k^\top \mathbf{W} \mathbf{r}_k
+\end{equation}
+
+where:
+\begin{itemize}
+	\item $\mathbf{J}_k$ is the Jacobian matrix at step $k$, with entries $J_{ij} = \partial f_i / \partial p_j$.
+	\item $\mathbf{r}_k = \mathbf{y} - f(\mathbf{p}_k)$ is the residual vector.
+	\item $\mathbf{D}_k$ is a scaling matrix (typically square root of the diagonal of $\mathbf{J}^\top \mathbf{W} \mathbf{J}$).
+	\item $\lambda_k$ is the Marquardt damping parameter, adjusted dynamically to ensure descent.
+\end{itemize}
+
+\subsection{Implementation Details}
+
+The calibration engine is implemented in \texttt{hydrosheaf/calibration/glm.py}:
+
+\begin{itemize}
+	\item **Parallel Jacobian**: The calculation of $\mathbf{J}$ is the most computationally expensive step. We implement a finite-difference approximation using parallel worker threads (\texttt{ThreadPoolExecutor}) or processes (\texttt{ProcessPoolExecutor}) to evaluate model perturbations concurrently.
+	\item **Parameter Transformations**: Parameters can be log-transformed (e.g., hydraulic conductivity $K$, decay rates $k$) to ensure positivity and improve linearity. The engine handles the mapping between internal (optimization) space and model space.
+	\item **Uncertainty Quantification**: Upon convergence, the parameter covariance matrix is approximated as:
+	      \begin{equation}
+		      \boldsymbol{\Sigma}_p = s^2 (\mathbf{J}^\top \mathbf{W} \mathbf{J})^{-1}, \quad s^2 = \frac{\Phi(\mathbf{p}^*)}{N_{\text{obs}} - N_{\text{par}}}
+	      \end{equation}
+	      providing 95\% confidence intervals for calibrated parameters.
+\end{itemize}
+
+This module allows Hydrosheaf to move beyond single-edge fitting to system-wide optimization, essential for determining global transport properties (Objective 4).
+
 \section{Applications and Results}\label{sec:results}
 
 This section presents the validation methodology, representative case studies, and computational performance analysis of the framework. The results demonstrate the practical applicability of the theoretical methods developed in Sections \ref{sec:math_framework}--\ref{sec:numerical}.
@@ -1204,6 +1262,10 @@ When hydraulic head data is missing, we infer flow direction probabilities from 
 \end{equation}
 where $\text{erf}$ is the error function. This provides a robust probabilistic fallback for data-sparse regions. As verified in \texttt{tests/test\_constraints.py}, the algorithm correctly computes flow probabilities ranging from $P \approx 1.0$ for mountain-to-valley flow to $P \approx 0.0$ for impossible uphill flow.
 
+\subsubsection{Screen Overlap Bonus}
+
+Wells with overlapping screened intervals are assigned higher connectivity probabilities. The system computes the overlap fraction $f_{overlap} = \text{max}(0, \text{intersection}) / \text{min}(\text{length}_u, \text{length}_v)$ and applies a bonus $P_{screen} = 0.5 + 0.5 \cdot f_{overlap}$ to the edge probability, ensuring that wells drawing from the same vertical depths are prioritized as potential flow partners.
+
 \subsubsection{Optional Mesh-Based Physics Priors (MODFLOW/MODPATH)}
 
 Hydrosheaf's 3D graph inference is mesh-free: it constructs a probabilistic edge set using point observations (wells) and simple 3D constraints. When a calibrated mesh-based flow model is available, its outputs can be imported as \textit{optional physics priors} to improve topology and travel-time realism without replacing the inverse geochemical solver. In particular, MODPATH particle tracking can supply:
@@ -1362,10 +1424,13 @@ We have developed a comprehensive mathematical framework for inverse geochemical
 	\item Thermodynamic constraints from saturation index calculations
 	\item Isotope-based penalties for process discrimination
 	\item Probabilistic graph inference from uncertain hydraulic head data
-	\item Nitrate source discrimination using CoDA and Bayesian evidence
+	\item Dual-isotope nitrate source discrimination using Bayesian mixing models ($\delta^{15}\text{N}$, $\delta^{18}\text{O}_{\text{NO}_3}$) with hydrochemical fallback via CoDA
+	\item Vadose zone physics through 1D Richards equation simulation with TTD priors
+	\item Optional physics priors from MODFLOW/MODPATH particle tracking
+	\item Advanced temporal dynamics including TTD deconvolution and Bayesian lag estimation
 \end{itemize}
 
-The theoretical results (Theorems \ref{thm:evap_optimal}, \ref{thm:mixing_optimal}, \ref{thm:cd_convergence}) establish the optimality and convergence properties of the computational methods. The framework produces interpretable, physically consistent models suitable for groundwater resource management and contamination assessment. Several advanced extensions (Section \ref{sec:extensions}) expand the applicability to time-varying systems, 3D subsurface structures, kinetic validation, and rigorous uncertainty quantification, demonstrating the framework's flexibility and extensibility.
+The theoretical results (Theorems \ref{thm:evap_optimal}, \ref{thm:mixing_optimal}, \ref{thm:cd_convergence}) establish the optimality and convergence properties of the computational methods. The framework produces interpretable, physically consistent models suitable for groundwater resource management and contamination assessment. Several advanced extensions (Section \ref{sec:extensions}) expand the applicability to time-varying systems, 3D subsurface structures, vadose-groundwater connectivity, kinetic validation, and rigorous uncertainty quantification, demonstrating the framework's flexibility and extensibility.
 
 \section*{Acknowledgments}
 This work synthesizes methods from convex optimization, geochemistry, and hydrogeology. The PHREEQC software (USGS) provides essential thermodynamic data. The coordinate descent algorithm follows techniques from Friedman et al. \cite{friedman2007, friedman2010} in statistical learning. Key extensions (Reactive Transport, 3D Networks, Temporal, Uncertainty) rely on NumPy, SciPy, and PyMC libraries.

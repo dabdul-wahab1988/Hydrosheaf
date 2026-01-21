@@ -63,7 +63,9 @@ def print_interpretation_report(results: List[Dict[str, Any]]):
             else:
                 metrics = m_data
             slope = metrics.get("enrichment_slope")
-            if slope is not None and not (isinstance(slope, float) and math.isnan(slope)):
+            if slope is not None and not (
+                isinstance(slope, float) and math.isnan(slope)
+            ):
                 iso_slopes.append(slope)
         iso_penalties.append(r.get("isotope_consistency_penalty", 0) or 0)
 
@@ -116,7 +118,9 @@ def print_interpretation_report(results: List[Dict[str, Any]]):
         else:
             direction = "Reversible/Mixed"
 
-        print(f"{name:<25} | {pct_active:<12.1f} | {direction:<20} | {mean_flux:<15.4f}")
+        print(
+            f"{name:<25} | {pct_active:<12.1f} | {direction:<20} | {mean_flux:<15.4f}"
+        )
 
     print("-" * 80)
     print("\nINTERPRETATION HIGHLIGHTS:")
@@ -128,7 +132,9 @@ def print_interpretation_report(results: List[Dict[str, Any]]):
         1 for r in results if any(abs(r.get(k, 0) or 0) > 1e-4 for k in pyr_keys)
     )
     if pyr_active > 0:
-        print(f"* Oxidative Weathering: Pyrite oxidation detected in {pyr_active} flow paths.")
+        print(
+            f"* Oxidative Weathering: Pyrite oxidation detected in {pyr_active} flow paths."
+        )
         # Check if Siderite acts as sink
         sid_flux = sum(r.get("reaction_siderite", 0) or 0 for r in results)
         if sid_flux < -1e-4:
@@ -142,7 +148,9 @@ def print_interpretation_report(results: List[Dict[str, Any]]):
             )
 
     # Apatite vs Fluorite check
-    apatite_active = sum(1 for r in results if abs(r.get("reaction_apatite", 0) or 0) > 1e-4)
+    apatite_active = sum(
+        1 for r in results if abs(r.get("reaction_apatite", 0) or 0) > 1e-4
+    )
     fluorite_active = sum(
         1 for r in results if abs(r.get("reaction_fluorite", 0) or 0) > 1e-4
     )
@@ -158,13 +166,20 @@ def print_interpretation_report(results: List[Dict[str, Any]]):
     sil_keys = [
         k
         for k in reaction_keys
-        if any(x in k for x in ["albite", "anorthite", "feldspar", "NaSil", "biotite", "chlorite"])
+        if any(
+            x in k
+            for x in ["albite", "anorthite", "feldspar", "NaSil", "biotite", "chlorite"]
+        )
     ]
     sil_flux = sum(sum(r.get(k, 0) or 0 for r in results) for k in sil_keys)
     if sil_flux > 0:
-        print("* Silicate Weathering: Net cation release from silicates (Albite/Feldspars/Biotite).")
+        print(
+            "* Silicate Weathering: Net cation release from silicates (Albite/Feldspars/Biotite)."
+        )
         if any(abs(r.get("reaction_biotite", 0) or 0) > 1e-4 for r in results):
-            print("  - Biotite weathering identified as a potential source of K, Mg, Fe, and Fluoride.")
+            print(
+                "  - Biotite weathering identified as a potential source of K, Mg, Fe, and Fluoride."
+            )
 
     # Redox check
     redox_constrained = 0
@@ -172,14 +187,19 @@ def print_interpretation_report(results: List[Dict[str, Any]]):
         ca_data = r.get("constraints_active")
         if ca_data:
             if isinstance(ca_data, str):
-                try: ca = json.loads(ca_data)
-                except: ca = {}
-            else: ca = ca_data
+                try:
+                    ca = json.loads(ca_data)
+                except json.JSONDecodeError:
+                    ca = {}
+            else:
+                ca = ca_data
             if ca.get("redox") == "active":
                 redox_constrained += 1
-    
+
     if redox_constrained > 0:
-        print(f"* Redox Evolution: {redox_constrained} paths were identified as 'Reducing'. Aerobic oxidation was automatically constrained.")
+        print(
+            f"* Redox Evolution: {redox_constrained} paths were identified as 'Reducing'. Aerobic oxidation was automatically constrained."
+        )
 
     # Exchange check
     exch_keys = ["reaction_CaNa_exch", "reaction_MgNa_exch"]

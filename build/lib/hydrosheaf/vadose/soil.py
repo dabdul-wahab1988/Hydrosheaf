@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-import math
 import numpy as np
 
 
@@ -14,7 +13,7 @@ class VGParams:
     alpha_1_m: float
     n: float
     ks_m_day: float
-    l: float = 0.5
+    pore_connectivity: float = 0.5
 
     @property
     def m(self) -> float:
@@ -25,16 +24,32 @@ class VGParams:
 # Sources: commonly-used tabulated values (e.g., Carsel & Parrish 1988 style tables).
 _TEXTURE_TABLE: Dict[str, VGParams] = {
     "sand": VGParams(theta_r=0.045, theta_s=0.43, alpha_1_m=14.5, n=2.68, ks_m_day=7.1),
-    "loamy_sand": VGParams(theta_r=0.057, theta_s=0.41, alpha_1_m=12.4, n=2.28, ks_m_day=3.5),
-    "sandy_loam": VGParams(theta_r=0.065, theta_s=0.41, alpha_1_m=7.5, n=1.89, ks_m_day=1.1),
+    "loamy_sand": VGParams(
+        theta_r=0.057, theta_s=0.41, alpha_1_m=12.4, n=2.28, ks_m_day=3.5
+    ),
+    "sandy_loam": VGParams(
+        theta_r=0.065, theta_s=0.41, alpha_1_m=7.5, n=1.89, ks_m_day=1.1
+    ),
     "loam": VGParams(theta_r=0.078, theta_s=0.43, alpha_1_m=3.6, n=1.56, ks_m_day=0.25),
-    "silt_loam": VGParams(theta_r=0.067, theta_s=0.45, alpha_1_m=2.0, n=1.41, ks_m_day=0.10),
+    "silt_loam": VGParams(
+        theta_r=0.067, theta_s=0.45, alpha_1_m=2.0, n=1.41, ks_m_day=0.10
+    ),
     "silt": VGParams(theta_r=0.034, theta_s=0.46, alpha_1_m=1.6, n=1.37, ks_m_day=0.06),
-    "sandy_clay_loam": VGParams(theta_r=0.100, theta_s=0.39, alpha_1_m=5.9, n=1.48, ks_m_day=0.32),
-    "clay_loam": VGParams(theta_r=0.095, theta_s=0.41, alpha_1_m=1.9, n=1.31, ks_m_day=0.05),
-    "silty_clay_loam": VGParams(theta_r=0.089, theta_s=0.43, alpha_1_m=1.0, n=1.23, ks_m_day=0.02),
-    "sandy_clay": VGParams(theta_r=0.100, theta_s=0.38, alpha_1_m=2.7, n=1.23, ks_m_day=0.12),
-    "silty_clay": VGParams(theta_r=0.070, theta_s=0.36, alpha_1_m=1.0, n=1.09, ks_m_day=0.01),
+    "sandy_clay_loam": VGParams(
+        theta_r=0.100, theta_s=0.39, alpha_1_m=5.9, n=1.48, ks_m_day=0.32
+    ),
+    "clay_loam": VGParams(
+        theta_r=0.095, theta_s=0.41, alpha_1_m=1.9, n=1.31, ks_m_day=0.05
+    ),
+    "silty_clay_loam": VGParams(
+        theta_r=0.089, theta_s=0.43, alpha_1_m=1.0, n=1.23, ks_m_day=0.02
+    ),
+    "sandy_clay": VGParams(
+        theta_r=0.100, theta_s=0.38, alpha_1_m=2.7, n=1.23, ks_m_day=0.12
+    ),
+    "silty_clay": VGParams(
+        theta_r=0.070, theta_s=0.36, alpha_1_m=1.0, n=1.09, ks_m_day=0.01
+    ),
     "clay": VGParams(theta_r=0.068, theta_s=0.38, alpha_1_m=0.8, n=1.09, ks_m_day=0.01),
 }
 
@@ -106,12 +121,14 @@ def K_from_psi(psi_m: np.ndarray, p: VGParams) -> np.ndarray:
         # Kr = Se^l * [1 - (1 - Se^(1/m))^m]^2
         se_clip = np.clip(se, 0.0, 1.0)
         term = 1.0 - np.power(1.0 - np.power(se_clip, 1.0 / max(1e-12, m)), m)
-        Kr = np.power(se_clip, p.l) * (term * term)
+        Kr = np.power(se_clip, p.pore_connectivity) * (term * term)
         K[unsat] = Ks * Kr
     return K
 
 
-def feddes_alpha(psi_m: np.ndarray, *, h_anoxic_m: float, h_opt_m: float, h_wilt_m: float) -> np.ndarray:
+def feddes_alpha(
+    psi_m: np.ndarray, *, h_anoxic_m: float, h_opt_m: float, h_wilt_m: float
+) -> np.ndarray:
     """Simplified Feddes stress response α(ψ) in [0,1].
 
     - Too wet (anoxic): psi >= h_anoxic -> alpha = 0
@@ -129,5 +146,3 @@ def feddes_alpha(psi_m: np.ndarray, *, h_anoxic_m: float, h_opt_m: float, h_wilt
     if np.any(ramp):
         alpha[ramp] = (psi[ramp] - h_wilt_m) / (h_opt_m - h_wilt_m)
     return np.clip(alpha, 0.0, 1.0)
-
-

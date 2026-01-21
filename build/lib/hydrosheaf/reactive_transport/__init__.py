@@ -9,7 +9,7 @@ with reactive transport simulators:
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 @dataclass
@@ -40,7 +40,9 @@ class ReactiveTransportResult:
 
     # Forward simulation output
     forward_x_v: List[float]
-    forward_si_trajectory: Dict[str, List[float]] = field(default_factory=dict)  # SI vs time for each mineral
+    forward_si_trajectory: Dict[str, List[float]] = field(
+        default_factory=dict
+    )  # SI vs time for each mineral
     forward_time_steps: List[float] = field(default_factory=list)  # time points in days
 
     # Consistency metrics

@@ -2,7 +2,7 @@
 Layer assignment and connectivity for multi-aquifer systems.
 """
 
-from typing import Dict, List
+from typing import Dict
 
 from .types_3d import LayeredAquiferSystem, Node3D
 

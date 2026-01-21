@@ -166,7 +166,58 @@ def load_data_and_setup_problem() -> (
             )  # Higher weight for tracers?
 
     # ... (Context setup) ...
+    context = {}
+
+    # Load Station Data for Cluster Mapping
+    stations = pd.read_csv(data_dir / "stations.csv")
+    cluster_map = stations.set_index("station_code")["cluster_code"].to_dict()
+
+    # Load Edge Data
+    edges_df = pd.read_csv(data_dir / "network_edges.csv")
+    edge_objs = list(zip(edges_df["from_station"], edges_df["to_station"]))
+
+    # Prepare Temporal Nodes
+    temporal_nodes = {}
+    for st in stations["station_code"]:
+        node_samples = []
+        st_data = water_chem[water_chem["station_code"] == st]
+        for _, row in st_data.iterrows():
+            conc = [
+                (
+                    mgL_to_mmolL(row.get(f"{ion}_mg_L", 0.0), ion)
+                    if ion != "pH"
+                    else row.get("pH", 7.0)
+                )
+                for ion in ["Ca", "Mg", "Na", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"]
+            ]
+            isotopes = {}
+            if "d15N_NO3_permil" in row and pd.notna(row["d15N_NO3_permil"]):
+                isotopes["d15N_NO3"] = row["d15N_NO3_permil"]
+
+            sample = TimeSeriesSample(
+                sample_id=f"{st}_{row['event_code']}",
+                node_id=st,
+                timestamp=pd.to_datetime(row["collection_date"]),
+                concentrations=conc,
+                isotopes=isotopes,
+            )
+            node_samples.append(sample)
+        if node_samples:
+            node_samples.sort(key=lambda s: s.timestamp)
+            temporal_nodes[st] = TemporalNode(node_id=st, samples=node_samples)
+
+    # Static Samples (for API compatibility if needed)
+    static_samples = []
+    # ... (omitted for brevity, or reuse logic) ...
+
     context["cluster_map"] = cluster_map
+    context["edge_objs"] = edge_objs
+    context["rain_dates"] = rain_dates
+    context["rain_mm"] = rain_mm
+    context["avg_rain"] = avg_rain
+    context["temporal_nodes"] = temporal_nodes
+    context["targets"] = targets
+    context["static_samples"] = [] # Placeholder if not used strictly by pipeline wrapper here
 
     return context, parameters, observations
 

@@ -83,10 +83,14 @@ def load_physics_priors(path: str) -> List[PhysicsPrior]:
                     u=u,
                     v=v,
                     p_uv=_safe_float(row.get("p_uv")),
-                    tt_mean_days=_safe_float(row.get("tt_mean_days") or row.get("tau_mean_days")),
+                    tt_mean_days=_safe_float(
+                        row.get("tt_mean_days") or row.get("tau_mean_days")
+                    ),
                     tt_p10_days=_safe_float(row.get("tt_p10_days")),
                     tt_p90_days=_safe_float(row.get("tt_p90_days")),
-                    tt_std_days=_safe_float(row.get("tt_std_days") or row.get("tau_std_days")),
+                    tt_std_days=_safe_float(
+                        row.get("tt_std_days") or row.get("tau_std_days")
+                    ),
                     source=str(row.get("source") or "physics"),
                 )
             )
@@ -106,10 +110,16 @@ def load_physics_priors(path: str) -> List[PhysicsPrior]:
                     u=u,
                     v=v,
                     p_uv=_safe_float(row.get("p_uv") or row.get("edge_confidence")),
-                    tt_mean_days=_safe_float(row.get("tt_mean_days") or row.get("tau_mean_days") or row.get("edge_residence_time_days")),
+                    tt_mean_days=_safe_float(
+                        row.get("tt_mean_days")
+                        or row.get("tau_mean_days")
+                        or row.get("edge_residence_time_days")
+                    ),
                     tt_p10_days=_safe_float(row.get("tt_p10_days")),
                     tt_p90_days=_safe_float(row.get("tt_p90_days")),
-                    tt_std_days=_safe_float(row.get("tt_std_days") or row.get("tau_std_days")),
+                    tt_std_days=_safe_float(
+                        row.get("tt_std_days") or row.get("tau_std_days")
+                    ),
                     source=str(row.get("source") or "physics"),
                 )
             )
@@ -153,4 +163,3 @@ def apply_physics_priors(
         edge.attrs = attrs
 
     return list(merged_by_id.values())
-

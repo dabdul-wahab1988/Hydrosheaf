@@ -20,7 +20,9 @@ def predict_tds(values: Iterable[float], config: Config) -> float:
     return a * _sum(values) + b
 
 
-def ec_tds_penalty(values: Iterable[float], obs: Mapping[str, float], config: Config) -> float:
+def ec_tds_penalty(
+    values: Iterable[float], obs: Mapping[str, float], config: Config
+) -> float:
     penalty = 0.0
     if config.eta_ec and "EC" in obs:
         est = predict_ec(values, config)

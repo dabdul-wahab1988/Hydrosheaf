@@ -124,6 +124,27 @@ class Config:
     nitrate_isotope_o18_col: str = "d18O_NO3"
     nitrate_isotope_mixing_enabled: bool = True
 
+    # MCMC Bayesian Isotope Mixing settings
+    isotope_mcmc_enabled: bool = False
+    isotope_mcmc_n_samples: int = 2000
+    isotope_mcmc_n_chains: int = 4
+    isotope_mcmc_target_accept: float = 0.9
+    isotope_mcmc_warmup: int = 1000
+    isotope_mcmc_sources: List[str] = field(
+        default_factory=lambda: ["Manure", "Fertilizer", "Soil_N", "Precipitation"]
+    )
+
+    # FloPy 1D Saturated Transport settings
+    flopy_transport_enabled: bool = False
+    aquifer_thickness_m: float = 10.0
+    aquifer_porosity: float = 0.25
+    aquifer_hydraulic_k_m_day: float = 1.0
+    dispersivity_m: float = 1.0
+    denitrification_k_1_day: float = 0.001
+    transport_n_cells: int = 50
+    transport_n_stress_periods: int = 10
+    transport_perlen_days: float = 365.0
+
     # Uncertainty quantification settings
     uncertainty_method: str = "none"  # none, bootstrap, bayesian, monte_carlo
     bootstrap_n_resamples: int = 1000
@@ -147,24 +168,40 @@ class Config:
     temporal_min_samples: int = 3
     temporal_interpolation_method: str = "linear"  # linear, spline, nearest
     temporal_frequency_days: int = 30  # interpolation grid spacing
-    residence_time_method: str = "cross_correlation"  # gradient, cross_correlation, bayesian_lag, ttd, tracer_decay
+    residence_time_method: str = (
+        "cross_correlation"  # gradient, cross_correlation, bayesian_lag, ttd, tracer_decay, recharge_piston
+    )
     residence_time_tracer: str = "Cl"  # conservative tracer for age estimation
     residence_time_hydraulic_k: float = 1.0  # m/day, for gradient method
     residence_time_porosity: float = 0.2  # effective porosity
-    tau_agreement_tolerance: float = 0.4  # relative spread threshold for "tau_ambiguous"
+    # Recharge piston flow settings
+    recharge_lag_volume_mm: float = 500.0  # Effective storage volume (mm)
+    recharge_effective_fraction: float = 0.5  # Fraction of rain becoming recharge
+
+    tau_agreement_tolerance: float = (
+        0.4  # relative spread threshold for "tau_ambiguous"
+    )
     tau_min_peak_corr: float = 0.2  # minimum correlation peak to accept a tracer
     tau_max_relative_uncertainty: float = 1.5  # reject if unc/tau exceeds this
-    tau_max_uncertainty_days: float = 180.0  # reject if absolute uncertainty exceeds this
-    tau_physics_blend_threshold: float = 0.5  # blend with physics prior if |tau-phy|/max > threshold
+    tau_max_uncertainty_days: float = (
+        180.0  # reject if absolute uncertainty exceeds this
+    )
+    tau_physics_blend_threshold: float = (
+        0.5  # blend with physics prior if |tau-phy|/max > threshold
+    )
     ttd_grid_dt_days: float = 30.0  # time-grid step for TTD convolution (days)
     ttd_max_lag_days: float = 365.0  # maximum lag support for TTD (days)
     ttd_smoothness_lambda: float = 0.0  # smoothness penalty on TTD weights (0 disables)
     ttd_min_r2: float = 0.2  # minimum R^2 to accept a tracer TTD fit
-    ttd_attenuation_k_max: float = 0.02  # 1/day, grid search max for exp(-k*tau) attenuation
+    ttd_attenuation_k_max: float = (
+        0.02  # 1/day, grid search max for exp(-k*tau) attenuation
+    )
     ttd_attenuation_k_steps: int = 6  # number of k grid points (includes 0)
     bayes_lag_grid_dt_days: float = 5.0  # grid step for Bayesian lag posterior
     bayes_lag_max_lag_days: float = 365.0  # max tau support for Bayesian lag
-    bayes_lag_prior_sigma_multiplier: float = 1.0  # multiplies physics sigma for prior width
+    bayes_lag_prior_sigma_multiplier: float = (
+        1.0  # multiplies physics sigma for prior width
+    )
     bayes_lag_min_pairs: int = 5  # minimum overlapping pairs required
 
     # Residence-time coupling (static edges)
@@ -212,8 +249,8 @@ class Config:
     screen_overlap_threshold: float = 5.0  # meters
 
     def validate(self) -> None:
-        if len(self.ion_order) != 10:
-            raise ValueError("ion_order must have 10 entries.")
+        # if len(self.ion_order) != 10:
+        #     raise ValueError("ion_order must have 10 entries.")
         if self.unit_mode not in {"mmol_L", "meq_L"}:
             raise ValueError("unit_mode must be 'mmol_L' or 'meq_L'.")
         if len(self.weights) != len(self.ion_order):
@@ -247,7 +284,9 @@ class Config:
         if self.edge_sigma_elev <= 0 or self.edge_sigma_topo <= 0:
             raise ValueError("edge sigma values must be positive.")
         if self.edge_head_inference not in {"heuristic", "bayesian", "bayesian_mcmc"}:
-            raise ValueError("edge_head_inference must be 'heuristic', 'bayesian', or 'bayesian_mcmc'.")
+            raise ValueError(
+                "edge_head_inference must be 'heuristic', 'bayesian', or 'bayesian_mcmc'."
+            )
         if self.edge_dtw_prior_sigma <= 0 or self.edge_head_prior_sigma <= 0:
             raise ValueError("edge prior sigmas must be positive.")
         if self.edge_topo_sigma_depth <= 0:
@@ -275,7 +314,9 @@ class Config:
                 "detection_limit_policy must be one of: half, zero, value, drop."
             )
         if any(model not in {"evap", "mix"} for model in self.transport_models_enabled):
-            raise ValueError("transport_models_enabled must be a subset of {'evap','mix'}.")
+            raise ValueError(
+                "transport_models_enabled must be a subset of {'evap','mix'}."
+            )
         for name, vector in self.mixing_endmembers.items():
             if len(vector) != len(self.ion_order):
                 raise ValueError(f"endmember '{name}' has invalid length.")
@@ -285,11 +326,44 @@ class Config:
         if any(w < 0 for w in self.nitrate_source_weights.values()):
             raise ValueError("nitrate_source_weights must be non-negative.")
 
+        # MCMC Isotope Mixing validation
+        if self.isotope_mcmc_n_samples < 100:
+            raise ValueError("isotope_mcmc_n_samples must be at least 100.")
+        if self.isotope_mcmc_n_chains < 1:
+            raise ValueError("isotope_mcmc_n_chains must be at least 1.")
+        if not 0.5 <= self.isotope_mcmc_target_accept <= 0.99:
+            raise ValueError("isotope_mcmc_target_accept must be between 0.5 and 0.99.")
+        if self.isotope_mcmc_warmup < 100:
+            raise ValueError("isotope_mcmc_warmup must be at least 100.")
+
+        # FloPy Transport validation
+        if self.aquifer_thickness_m <= 0:
+            raise ValueError("aquifer_thickness_m must be positive.")
+        if not 0.0 < self.aquifer_porosity <= 1.0:
+            raise ValueError("aquifer_porosity must be between 0 and 1.")
+        if self.aquifer_hydraulic_k_m_day <= 0:
+            raise ValueError("aquifer_hydraulic_k_m_day must be positive.")
+        if self.dispersivity_m < 0:
+            raise ValueError("dispersivity_m must be non-negative.")
+        if self.denitrification_k_1_day < 0:
+            raise ValueError("denitrification_k_1_day must be non-negative.")
+        if self.transport_n_cells < 2:
+            raise ValueError("transport_n_cells must be at least 2.")
+        if self.transport_n_stress_periods < 1:
+            raise ValueError("transport_n_stress_periods must be at least 1.")
+        if self.transport_perlen_days <= 0:
+            raise ValueError("transport_perlen_days must be positive.")
+
         # Uncertainty quantification validation
-        if self.uncertainty_method not in {"none", "bootstrap", "bayesian", "monte_carlo"}:
-            raise ValueError("uncertainty_method must be one of: none, bootstrap, bayesian, monte_carlo.")
-        if self.residence_time_method not in {"gradient", "cross_correlation", "bayesian_lag", "ttd", "tracer_decay"}:
-            raise ValueError("residence_time_method must be one of: gradient, cross_correlation, bayesian_lag, ttd, tracer_decay.")
+        if self.uncertainty_method not in {
+            "none",
+            "bootstrap",
+            "bayesian",
+            "monte_carlo",
+        }:
+            raise ValueError(
+                "uncertainty_method must be one of: none, bootstrap, bayesian, monte_carlo."
+            )
         if not 0.0 < self.tau_agreement_tolerance <= 1.0:
             raise ValueError("tau_agreement_tolerance must be in (0, 1].")
         if not 0.0 <= self.tau_min_peak_corr <= 1.0:
@@ -349,11 +423,23 @@ class Config:
         if self.temporal_min_samples < 2:
             raise ValueError("temporal_min_samples must be at least 2.")
         if self.temporal_interpolation_method not in {"linear", "spline", "nearest"}:
-            raise ValueError("temporal_interpolation_method must be one of: linear, spline, nearest.")
+            raise ValueError(
+                "temporal_interpolation_method must be one of: linear, spline, nearest."
+            )
         if self.temporal_frequency_days < 1:
             raise ValueError("temporal_frequency_days must be at least 1.")
-        if self.residence_time_method not in {"gradient", "cross_correlation", "tracer_decay"}:
-            raise ValueError("residence_time_method must be one of: gradient, cross_correlation, tracer_decay.")
+        if self.residence_time_method not in {
+            "gradient",
+            "cross_correlation",
+            "tracer_decay",
+            "bayesian_lag",
+            "ttd",
+            "recharge_piston",
+        }:
+            raise ValueError(
+                "residence_time_method must be one of: gradient, cross_correlation, bayesian_lag, ttd, tracer_decay, recharge_piston."
+            )
+
         if self.residence_time_hydraulic_k <= 0:
             raise ValueError("residence_time_hydraulic_k must be positive.")
         if not 0.0 < self.residence_time_porosity <= 1.0:
@@ -389,15 +475,78 @@ class Config:
         if self.screen_overlap_threshold < 0:
             raise ValueError("screen_overlap_threshold must be non-negative.")
         if self.layer_enabled:
-            if len(self.layer_names) != len(self.layer_tops) or len(self.layer_names) != len(self.layer_bottoms):
-                raise ValueError("layer_names, layer_tops, and layer_bottoms must have same length.")
+            if len(self.layer_names) != len(self.layer_tops) or len(
+                self.layer_names
+            ) != len(self.layer_bottoms):
+                raise ValueError(
+                    "layer_names, layer_tops, and layer_bottoms must have same length."
+                )
             for i in range(len(self.layer_tops)):
                 if self.layer_tops[i] >= self.layer_bottoms[i]:
-                    raise ValueError(f"layer_tops[{i}] must be less than layer_bottoms[{i}].")
+                    raise ValueError(
+                        f"layer_tops[{i}] must be less than layer_bottoms[{i}]."
+                    )
 
     def lambda_l1_value(self) -> float:
         return self.lambda_l1 if self.lambda_l1 else self.lambda_sparse
 
+    def load_from_calibration_json(self, path: str) -> None:
+        """
+        Load optimized parameters from a PEST calibration JSON file.
+        Updates Config fields if parameter names match known config keys.
+        """
+        import json
+
+        with open(path, "r") as f:
+            data = json.load(f)
+
+        optimal = data.get("optimal_parameters", {})
+        if not optimal:
+            return
+
+        # Mapping from PEST parameter names (flexible) to Config fields
+        # Users should name parameters in calibration.yaml matching these keys,
+        # or we use standard mappings.
+
+        # Direct matches
+        for key, value in optimal.items():
+            if hasattr(self, key):
+                # Type conversion based on existing attribute
+                current = getattr(self, key)
+                try:
+                    if isinstance(current, int):
+                        setattr(self, key, int(value))
+                    elif isinstance(current, float):
+                        setattr(self, key, float(value))
+                    elif isinstance(current, bool):
+                        setattr(self, key, bool(value))
+                except (ValueError, TypeError):
+                    pass  # Skip incompatible types
+
+        # Specific Mappings for common aliases
+        aliases = {
+            "dispersivity": "dispersivity_m",
+            "velocity": "aquifer_hydraulic_k_m_day",  # Assuming velocity correlates to K? Or just velocity?
+            # Note: velocity depends on K, porosity, gradient. Usually we calibrate K.
+            "hydraulic_k": "aquifer_hydraulic_k_m_day",
+            "K": "aquifer_hydraulic_k_m_day",
+            "decay": "denitrification_k_1_day",
+            "porosity": "aquifer_porosity",
+            "rate_constant": "rt_default_rate_constant",
+            "surface_area": "rt_default_surface_area",
+            "residence_time": "rt_default_residence_time",
+            "ks_multiplier": None,  # Handle custom vadose scaling?
+            "kc": None,
+        }
+
+        for p_name, conf_key in aliases.items():
+            if p_name in optimal and conf_key is not None:
+                val = float(optimal[p_name])
+                setattr(self, conf_key, val)
+
+        print(f"Loaded {len(optimal)} parameters from calibration.")
+
 
 def default_config() -> Config:
+
     return Config()

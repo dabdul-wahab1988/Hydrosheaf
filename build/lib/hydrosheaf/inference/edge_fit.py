@@ -9,7 +9,7 @@ from ..data.qc import qc_flags
 from ..models.ec_tds import ec_tds_penalty
 from ..models.gibbs import gibbs_evaporation_penalty, compute_gibbs_metrics
 from ..models.reactions import ReactionFit, build_reaction_dictionary, fit_reactions
-from ..models.transport import fit_evaporation, fit_mixing
+from ..models.mixing import fit_evaporation, fit_mixing
 from ..isotopes import extract_isotopes, isotope_penalty
 
 
@@ -118,6 +118,9 @@ class EdgeResult:
     temporal_residence_time_flags: List[str] = field(default_factory=list)
     temporal_residence_time_details: Dict[str, object] = field(default_factory=dict)
 
+    # Full uncertainty result object (for plotting posterior ridges)
+    uncertainty: Optional[object] = None
+
 
 def fit_edge(
     x_u: List[float],
@@ -138,7 +141,9 @@ def fit_edge(
     lb = bounds.get("lb") if bounds else None
     ub = bounds.get("ub") if bounds else None
 
-    candidates: List[Tuple[str, Optional[str], Optional[float], Optional[float], List[float], float]] = []
+    candidates: List[
+        Tuple[str, Optional[str], Optional[float], Optional[float], List[float], float]
+    ] = []
     if "evap" in config.transport_models_enabled:
         gamma, evap_residual, evap_norm = fit_evaporation(x_u, x_v, config.weights)
         candidates.append(("evap", None, gamma, None, evap_residual, evap_norm))
@@ -150,9 +155,19 @@ def fit_edge(
 
     best_result: Optional[EdgeResult] = None
     candidate_entries: List[Dict[str, object]] = []
-    for transport_model, end_id, gamma_value, f_value, residual, transport_norm in candidates:
+    for (
+        transport_model,
+        end_id,
+        gamma_value,
+        f_value,
+        residual,
+        transport_norm,
+    ) in candidates:
         lambda_l1 = config.lambda_l1_value()
-        if getattr(config, "residence_time_coupling_enabled", False) and residence_time_days is not None:
+        if (
+            getattr(config, "residence_time_coupling_enabled", False)
+            and residence_time_days is not None
+        ):
             tau_ref = float(getattr(config, "residence_time_reference_days", 30.0))
             tau = max(1e-9, float(residence_time_days))
             lambda_l1 = lambda_l1 * (tau_ref / tau)
@@ -177,9 +192,18 @@ def fit_edge(
         iso_penalty = 0.0
         iso_metrics: Dict[str, float] = {}
         iso_used = False
-        if config.isotope_enabled and obs_u is not None and obs_v is not None and config.lmwl_defined:
-            iso_u = extract_isotopes(obs_u, config.isotope_d18o_key, config.isotope_d2h_key)
-            iso_v = extract_isotopes(obs_v, config.isotope_d18o_key, config.isotope_d2h_key)
+        if (
+            config.isotope_enabled
+            and obs_u is not None
+            and obs_v is not None
+            and config.lmwl_defined
+        ):
+            iso_u = extract_isotopes(
+                obs_u, config.isotope_d18o_key, config.isotope_d2h_key
+            )
+            iso_v = extract_isotopes(
+                obs_v, config.isotope_d18o_key, config.isotope_d2h_key
+            )
             if iso_u and iso_v:
                 iso_raw, iso_metrics = isotope_penalty(
                     iso_u[0],
@@ -216,12 +240,17 @@ def fit_edge(
                 gibbs_used = True
 
         iso_consistency_penalty = 0.0
-        if transport_model == "evap" and iso_used and obs_u is not None and obs_v is not None:
+        if (
+            transport_model == "evap"
+            and iso_used
+            and obs_u is not None
+            and obs_v is not None
+        ):
             # Cross-check chloride shift vs isotopic enrichment
             cl_idx = -1
             if "Cl" in config.ion_order:
                 cl_idx = config.ion_order.index("Cl")
-            
+
             if cl_idx >= 0:
                 cl_u = x_u[cl_idx]
                 cl_v = x_v[cl_idx]
@@ -236,7 +265,9 @@ def fit_edge(
                     mismatch = abs(cl_ratio - gamma_value)
                     # Only penalize if the mismatch is substantial
                     if mismatch > 0.5:
-                        iso_consistency_penalty = config.isotope_consistency_weight * mismatch
+                        iso_consistency_penalty = (
+                            config.isotope_consistency_weight * mismatch
+                        )
 
         objective = (
             reaction_fit.residual_norm
@@ -303,10 +334,15 @@ def fit_edge(
     transport_probs: Dict[str, float] = {}
     for entry, weight in zip(candidate_entries, weights):
         transport = str(entry["transport_model"])
-        transport_probs[transport] = transport_probs.get(transport, 0.0) + weight / total
+        transport_probs[transport] = (
+            transport_probs.get(transport, 0.0) + weight / total
+        )
 
     qc = qc_flags(x_v, config.ion_order, config.charge_balance_limit)
-    if config.ec_tds_penalty_limit and best_result.ec_tds_penalty > config.ec_tds_penalty_limit:
+    if (
+        config.ec_tds_penalty_limit
+        and best_result.ec_tds_penalty > config.ec_tds_penalty_limit
+    ):
         qc.append("ec_tds_consistency")
     best_result.qc_flags = qc
     best_result.transport_probabilities = transport_probs

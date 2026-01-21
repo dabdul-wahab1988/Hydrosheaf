@@ -37,7 +37,9 @@ def _euclid(a: NodeCoord, x: float, y: float, z: Optional[float] = None) -> floa
     return math.sqrt(dx * dx + dy * dy + dz * dz)
 
 
-def _nearest_node(nodes: Sequence[NodeCoord], x: float, y: float, z: Optional[float], max_dist: float) -> Optional[str]:
+def _nearest_node(
+    nodes: Sequence[NodeCoord], x: float, y: float, z: Optional[float], max_dist: float
+) -> Optional[str]:
     best_id = None
     best_d = float("inf")
     for node in nodes:
@@ -87,7 +89,9 @@ def priors_from_modpath_endpoints(
     try:
         import flopy  # type: ignore
     except Exception as exc:  # pragma: no cover
-        raise RuntimeError("FloPy is required to read MODPATH endpoints. Install flopy to use this feature.") from exc
+        raise RuntimeError(
+            "FloPy is required to read MODPATH endpoints. Install flopy to use this feature."
+        ) from exc
 
     ep = flopy.utils.EndpointFile(endpoints_path)
     data = ep.get_alldata()
@@ -145,4 +149,3 @@ def priors_from_modpath_endpoints(
 
 def edges_from_priors(priors: Iterable[PhysicsPrior]) -> List[Edge]:
     return [Edge(edge_id=p.edge_id(), u=p.u, v=p.v, attrs=p.attrs()) for p in priors]
-

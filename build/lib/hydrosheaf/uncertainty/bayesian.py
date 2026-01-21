@@ -15,6 +15,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
+from ..config import Config
 from . import UncertaintyResult
 
 
@@ -23,7 +24,7 @@ def bayesian_edge_fit(
     x_v: List[float],
     reaction_matrix: List[List[float]],
     reaction_labels: List[str],
-    config: "Config",  # type: ignore
+    config: Config,
     n_samples: int = 5000,
     n_chains: int = 4,
     target_accept: float = 0.95,
@@ -99,8 +100,9 @@ def bayesian_edge_fit(
     prior_sigma_scale = getattr(config, "prior_sigma_scale", 0.1)
 
     # Build model
-    with pm.Model() as model:
+    with pm.Model():
         # Priors for transport parameter (evaporation model)
+
         gamma = pm.TruncatedNormal(
             "gamma", mu=prior_gamma_mu, sigma=prior_gamma_sigma, lower=1.0
         )
@@ -192,11 +194,18 @@ def bayesian_reaction_fit(
     reaction_labels: List[str],
     weights: List[float],
     lambda_l1: float,
-    config: "Config",  # type: ignore
+    config: Config,
     n_samples: int = 5000,
     n_chains: int = 4,
     bounds: Optional[List[Tuple[Optional[float], Optional[float]]]] = None,
-) -> Tuple[List[float], List[float], List[float], List[float], Dict[str, float], Dict[str, float]]:
+) -> Tuple[
+    List[float],
+    List[float],
+    List[float],
+    List[float],
+    Dict[str, float],
+    Dict[str, float],
+]:
     """
     Bayesian inference for reaction extents only (no transport parameter).
 
@@ -243,7 +252,7 @@ def bayesian_reaction_fit(
     # Laplace prior scale from L1 lambda
     laplace_scale = 1.0 / lambda_l1 if lambda_l1 > 0 else 1.0
 
-    with pm.Model() as model:
+    with pm.Model():
         # Priors
         xi = pm.Laplace("xi", mu=0, b=laplace_scale, shape=m_reactions)
 
@@ -334,7 +343,7 @@ def compute_r_hat(chains: np.ndarray) -> float:
 
     # Chain means
     chain_means = np.mean(chains, axis=1)
-    overall_mean = np.mean(chain_means)
+    # overall_mean = np.mean(chain_means)
 
     # Within-chain variance
     chain_variances = np.var(chains, axis=1, ddof=1)

@@ -4,6 +4,7 @@ PHREEQC kinetics integration for forward reactive transport validation.
 
 from typing import Dict, List, Optional
 
+from ..config import Config
 from . import KineticParameters
 from .rate_laws import (
     DEFAULT_KINETIC_PARAMS,
@@ -154,7 +155,7 @@ def run_phreeqc_kinetic(
     initial_solution: Dict[str, float],
     kinetics_block: str,
     residence_time_days: float,
-    config: "Config",  # type: ignore
+    config: Config,
     n_output_steps: int = 100,
 ) -> Dict[str, object]:
     """
@@ -257,7 +258,7 @@ SELECTED_OUTPUT 1
         # Run PHREEQC
         if config.phreeqc_mode == "phreeqpython":
             try:
-                import phreeqpython as pp
+                import phreeqpython as pp  # type: ignore[import-untyped]
 
                 phreeqc = pp.PhreeqPython(database=config.phreeqc_database)
                 output = phreeqc.run_string(input_str)
@@ -273,18 +274,34 @@ SELECTED_OUTPUT 1
 
                     for ion in ion_order:
                         if ion == "HCO3":
-                            final_comp.append(float(final_row.get("Alk(mol/kgw)", 0.0)) * 1000.0)
+                            final_comp.append(
+                                float(final_row.get("Alk(mol/kgw)", 0.0)) * 1000.0
+                            )
                         elif ion == "SO4":
-                            final_comp.append(float(final_row.get("S(6)(mol/kgw)", 0.0)) * 1000.0)
+                            final_comp.append(
+                                float(final_row.get("S(6)(mol/kgw)", 0.0)) * 1000.0
+                            )
                         elif ion == "NO3":
-                            final_comp.append(float(final_row.get("N(5)(mol/kgw)", 0.0)) * 1000.0)
+                            final_comp.append(
+                                float(final_row.get("N(5)(mol/kgw)", 0.0)) * 1000.0
+                            )
                         else:
-                            final_comp.append(float(final_row.get(f"{ion}(mol/kgw)", 0.0)) * 1000.0)
+                            final_comp.append(
+                                float(final_row.get(f"{ion}(mol/kgw)", 0.0)) * 1000.0
+                            )
 
                     result["final_composition"] = final_comp
 
                     # Extract SI series
-                    si_minerals = ["Calcite", "Dolomite", "Gypsum", "Halite", "Fluorite", "Albite", "Anorthite"]
+                    si_minerals = [
+                        "Calcite",
+                        "Dolomite",
+                        "Gypsum",
+                        "Halite",
+                        "Fluorite",
+                        "Albite",
+                        "Anorthite",
+                    ]
                     for mineral in si_minerals:
                         si_col = f"si_{mineral}"
                         if si_col in final_sol.columns:

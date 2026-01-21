@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import csv
 import json
-from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Tuple
 
 from .contracts import VadoseForcingSample, VadoseLayer, VadoseLinksRow, VadoseProfile
 
@@ -138,7 +137,9 @@ def load_profile(path: str) -> VadoseProfile:
     ext = Path(path).suffix.lower()
     if ext in {".yaml", ".yml"}:
         if yaml is None:
-            raise RuntimeError("PyYAML not installed; provide profile as JSON or install pyyaml.")
+            raise RuntimeError(
+                "PyYAML not installed; provide profile as JSON or install pyyaml."
+            )
         with open(path, "r", encoding="utf-8") as handle:
             data = yaml.safe_load(handle)
     else:
@@ -175,5 +176,3 @@ def load_profile(path: str) -> VadoseProfile:
         layers=layers,
         root_depth_m=float(root_depth_m) if root_depth_m is not None else None,
     )
-
-

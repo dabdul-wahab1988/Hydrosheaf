@@ -254,6 +254,10 @@ class Network3D:
 
     def __post_init__(self):
         """Compute summary statistics after initialization."""
-        self.n_horizontal_edges = sum(1 for e in self.edges if e.edge_type == "horizontal")
-        self.n_vertical_edges = sum(1 for e in self.edges if e.edge_type == "vertical_leakage")
+        self.n_horizontal_edges = sum(
+            1 for e in self.edges if e.edge_type == "horizontal"
+        )
+        self.n_vertical_edges = sum(
+            1 for e in self.edges if e.edge_type == "vertical_leakage"
+        )
         self.n_cross_layer_edges = sum(1 for e in self.edges if not e.same_layer)

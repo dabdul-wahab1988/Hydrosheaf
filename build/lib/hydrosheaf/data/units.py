@@ -26,15 +26,16 @@ CHARGE_EQUIV: Dict[str, int] = {
     "SO4": 2,
     "NO3": 1,
     "F": 1,
-    "Fe": 2,    # Assuming Fe(II) for charge balance estimation
-    "PO4": 3,   # Assuming PO4(3-)
+    "Fe": 2,  # Assuming Fe(II) for charge balance estimation
+    "PO4": 3,  # Assuming PO4(3-)
 }
 
 
 def mgL_to_mmolL(value: float, ion: str) -> float:
     if ion not in MOLAR_MASS_G_MOL:
         raise KeyError(f"Unknown ion: {ion}")
-    return value / (MOLAR_MASS_G_MOL[ion] * 1000.0)
+    # g/mol == mg/mmol. value (mg/L) / M (mg/mmol) = mmol/L
+    return value / MOLAR_MASS_G_MOL[ion]
 
 
 def mmolL_to_meqL(value: float, ion: str) -> float:

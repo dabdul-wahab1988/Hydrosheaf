@@ -1,6 +1,7 @@
 """Redox classification and constraint logic."""
 
-from typing import Dict, Iterable, Mapping, Optional, Tuple
+from typing import Dict, Iterable, Mapping, Tuple
+
 
 def classify_redox(sample: Mapping[str, float]) -> str:
     """
@@ -9,7 +10,7 @@ def classify_redox(sample: Mapping[str, float]) -> str:
     """
     no3 = sample.get("NO3", 0.0)
     fe = sample.get("Fe", 0.0)
-    
+
     # Thresholds in mmol/L
     if no3 > 0.05:
         return "oxic"
@@ -18,17 +19,20 @@ def classify_redox(sample: Mapping[str, float]) -> str:
     else:
         return "ambiguous"
 
-def get_redox_constraints(sample_v: Mapping[str, float], labels: Iterable[str]) -> Dict[str, Tuple[float, float]]:
+
+def get_redox_constraints(
+    sample_v: Mapping[str, float], labels: Iterable[str]
+) -> Dict[str, Tuple[float, float]]:
     """
     Determine mineral bounds overrides based on redox state of the downstream sample.
     """
     state = classify_redox(sample_v)
     overrides = {}
-    
+
     if state == "reducing":
         # Prevent aerobic pyrite oxidation if oxygen is likely absent
         for i, label in enumerate(labels):
             if "pyrite_oxidation_aerobic" in label:
                 overrides[label] = (0.0, 0.0)  # Forced 0
-    
+
     return overrides

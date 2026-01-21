@@ -9,13 +9,14 @@ from typing import List, Mapping, Optional
 
 import numpy as np
 
+from ..config import Config
 from . import UncertaintyResult
 
 
 def monte_carlo_propagate(
     x_u: List[float],
     x_v: List[float],
-    config: "Config",  # type: ignore
+    config: Config,
     obs_u: Optional[Mapping[str, float]] = None,
     obs_v: Optional[Mapping[str, float]] = None,
     bounds: Optional[dict] = None,
@@ -68,7 +69,7 @@ def monte_carlo_propagate(
     # Convert to numpy
     x_u_vec = np.array(x_u, dtype=float)
     x_v_vec = np.array(x_v, dtype=float)
-    n_ions = len(x_u_vec)
+    # n_ions = len(x_u_vec)
 
     # Compute standard deviations from relative uncertainty
     sigma_u = (input_uncertainty_pct / 100.0) * x_u_vec
@@ -155,7 +156,7 @@ def monte_carlo_propagate(
 def propagate_variance_decomposition(
     x_u: List[float],
     x_v: List[float],
-    config: "Config",  # type: ignore
+    config: Config,
     input_uncertainty_pct: float = 5.0,
     n_monte_carlo: int = 1000,
     n_bootstrap: int = 1000,
@@ -241,7 +242,9 @@ def propagate_variance_decomposition(
                     "aleatory_variance": var_aleatory,
                     "epistemic_variance": var_epistemic,
                     "total_variance": var_total,
-                    "aleatory_fraction": var_aleatory / var_total if var_total > 0 else 0.0,
+                    "aleatory_fraction": (
+                        var_aleatory / var_total if var_total > 0 else 0.0
+                    ),
                     "total_std": np.sqrt(var_total),
                 }
             )
@@ -252,7 +255,7 @@ def propagate_variance_decomposition(
 def compute_sensitivity_indices(
     x_u: List[float],
     x_v: List[float],
-    config: "Config",  # type: ignore
+    config: Config,
     perturbation_pct: float = 1.0,
 ) -> dict:
     """

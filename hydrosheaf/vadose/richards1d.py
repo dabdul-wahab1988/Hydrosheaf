@@ -77,7 +77,7 @@ def _layer_params_by_node(profile: VadoseProfile, z_m: np.ndarray) -> List[VGPar
                     alpha_1_m=float(layer.alpha_1_m),
                     n=float(layer.n),
                     ks_m_day=float(layer.ks_m_day),
-                    l=float(layer.l),
+                    pore_connectivity=float(layer.pore_connectivity),
                 )
             )
             continue

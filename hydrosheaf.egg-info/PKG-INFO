@@ -1,24 +1,26 @@
 Metadata-Version: 2.4
 Name: hydrosheaf
-Version: 0.3.0
-Summary: Sheaf-style groundwater hydrogeochemistry modeling.
-Author: Dickson Abdul-Wahab, Ebenezer Aquisman Asare, Abdul Rashid Dickson
+Version: 0.1.0
+Summary: Hydrogeochemical analysis and flow network fitting
+Author-email: Hydrosheaf Team <info@hydrosheaf.org>
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: numpy>=1.20
-Requires-Dist: scipy>=1.7
-Requires-Dist: pandas>=1.3
-Requires-Dist: pymc>=5.0
-Requires-Dist: arviz>=0.15
-Requires-Dist: PyYAML>=6.0
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: scipy
+Requires-Dist: networkx
+Requires-Dist: matplotlib
+Requires-Dist: pydantic
+Requires-Dist: typer
 Provides-Extra: plot
-Requires-Dist: matplotlib>=3.7; extra == "plot"
+Requires-Dist: seaborn; extra == "plot"
 Provides-Extra: phreeqc
-Requires-Dist: phreeqpython; extra == "phreeqc"
 Requires-Dist: phreeqpy; extra == "phreeqc"
-Provides-Extra: modpath
-Requires-Dist: flopy>=3.3; extra == "modpath"
+Provides-Extra: all
+Requires-Dist: flopy; extra == "all"
+Requires-Dist: seaborn; extra == "all"
+Requires-Dist: phreeqpy; extra == "all"
 Dynamic: license-file
 
 # Hydrosheaf
@@ -117,7 +119,8 @@ npm install
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173`.
+The frontend will be available at `http://localhost:5173` and expects the backend at `http://localhost:8000` (override with `VITE_API_BASE`).
+
 
 #### Development Roadmap
 
@@ -146,6 +149,9 @@ Open your browser and navigate to `http://localhost:5173` to access the Hydroshe
 - Python >= 3.8
 - PHREEQC (optional, for thermodynamic constraints)
 - Node.js >= 18.x (for web application)
+- Optional: PyMC + ArviZ for Bayesian nitrate isotope mixing and uncertainty quantification
+- Optional: FloPy + MODFLOW/MT3DMS executables for saturated transport coupling
+
 
 ## Usage
 
@@ -163,7 +169,20 @@ hydrosheaf --help
 2. Configure the model parameters (weights, penalties, active minerals).
 3. Run the inference pipeline.
 
+#### Example Scripts
+
+```bash
+python hydrosheaf/examples/demo_small_network.py
+```
+
+```bash
+python examples/demo_research_objectives.py
+```
+
+The research objectives demo expects `hydrosheaf_synthetic_csv/` at the repo root and can run optional MCMC (PyMC) and FloPy transport steps if those dependencies are installed.
+
 ### Web Application
+
 
 The web interface provides:
 

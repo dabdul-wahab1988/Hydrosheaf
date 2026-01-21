@@ -2,7 +2,7 @@
 
 import csv
 import json
-from typing import Iterable, List
+from typing import List
 
 from .tables import edge_results_table
 from ..inference.edge_fit import EdgeResult

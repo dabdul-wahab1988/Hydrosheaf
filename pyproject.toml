@@ -1,3 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hydrosheaf"
+version = "0.1.0"
+description = "Hydrogeochemical analysis and flow network fitting"
+authors = [
+  { name="Hydrosheaf Team", email="info@hydrosheaf.org" },
+]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "networkx",
+    "matplotlib",
+    "pydantic",
+    "typer",
+]
+
+[project.optional-dependencies]
+plot = ["seaborn"]
+phreeqc = ["phreeqpy"]
+all = ["flopy", "seaborn", "phreeqpy"]
+
+[tool.setuptools.packages.find]
+include = ["hydrosheaf*"]
 
 [project.scripts]
 hydrosheaf = "hydrosheaf.cli:main"

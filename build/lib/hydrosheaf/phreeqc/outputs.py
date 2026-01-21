@@ -1,7 +1,7 @@
 """Parsing helpers for PHREEQC outputs."""
 
 import csv
-from typing import Dict, Iterable, List, Mapping, Optional
+from typing import Dict, List, Mapping, Optional
 
 
 def _to_float(value: str) -> Optional[float]:
@@ -16,7 +16,9 @@ def _to_float(value: str) -> Optional[float]:
         return None
 
 
-def parse_selected_output(csv_path: str, id_map: Mapping[str, str]) -> List[Dict[str, object]]:
+def parse_selected_output(
+    csv_path: str, id_map: Mapping[str, str]
+) -> List[Dict[str, object]]:
     rows: List[Dict[str, object]] = []
     with open(csv_path, "r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)

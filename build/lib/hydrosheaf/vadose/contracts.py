@@ -37,7 +37,7 @@ class VadoseLayer:
     alpha_1_m: Optional[float] = None
     n: Optional[float] = None
     ks_m_day: Optional[float] = None
-    l: float = 0.5
+    pore_connectivity: float = 0.5
 
 
 @dataclass(frozen=True)
@@ -79,7 +79,9 @@ class VadoseRunConfig:
     # Travel-time distribution (TTD) kernel construction (gamma mixture approximation)
     ttd_grid_dt_days: float = 5.0
     ttd_max_lag_days: float = 3650.0
-    ttd_default_cv: float = 0.7  # coefficient of variation for gamma kernel around advective mean
+    ttd_default_cv: float = (
+        0.7  # coefficient of variation for gamma kernel around advective mean
+    )
 
 
 @dataclass(frozen=True)
@@ -90,4 +92,3 @@ class VadoseLinksRow:
     v: str
     u_depth_m: float
     p_uv: float = 1.0
-

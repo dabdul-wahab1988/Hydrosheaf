@@ -19,7 +19,7 @@ precision-matrix solve (no PyMC required).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -262,7 +262,11 @@ def infer_heads_bayesian_mcmc(
         dtw = _parse_float(sample, dtw_key)
 
         # Ignore nodes with no usable signal at all
-        if elev is None and head_obs is None and not (elev is not None and dtw is not None):
+        if (
+            elev is None
+            and head_obs is None
+            and not (elev is not None and dtw is not None)
+        ):
             continue
 
         idx = len(node_ids)
@@ -303,8 +307,12 @@ def infer_heads_bayesian_mcmc(
     chains = int(max(1, mcmc_chains))
 
     with pm.Model():
-        mu_dtw = pm.Normal("mu_dtw", mu=float(dtw_prior_mu), sigma=float(dtw_prior_sigma))
-        h = pm.Normal("h", mu=float(head_prior_mu), sigma=float(head_prior_sigma), shape=n)
+        mu_dtw = pm.Normal(
+            "mu_dtw", mu=float(dtw_prior_mu), sigma=float(dtw_prior_sigma)
+        )
+        h = pm.Normal(
+            "h", mu=float(head_prior_mu), sigma=float(head_prior_sigma), shape=n
+        )
 
         # Topographic prior as an observed relationship when elevation exists:
         # elevation_i ~ Normal(h_i + mu_dtw, sigma_topo)

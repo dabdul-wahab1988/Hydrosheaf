@@ -9,13 +9,14 @@ from typing import List, Mapping, Optional, Tuple
 
 import numpy as np
 
+from ..config import Config
 from . import UncertaintyResult
 
 
 def bootstrap_edge_fit(
     x_u: List[float],
     x_v: List[float],
-    config: "Config",  # type: ignore
+    config: Config,
     obs_u: Optional[Mapping[str, float]] = None,
     obs_v: Optional[Mapping[str, float]] = None,
     bounds: Optional[dict] = None,
@@ -66,11 +67,13 @@ def bootstrap_edge_fit(
         np.random.seed(random_state)
 
     # Convert to numpy arrays
-    x_u_vec = np.array(x_u, dtype=float)
+    # x_u_vec = np.array(x_u, dtype=float)
     x_v_vec = np.array(x_v, dtype=float)
 
     # Fit original model
-    original_result = fit_edge(x_u, x_v, config, obs_u=obs_u, obs_v=obs_v, bounds=bounds)
+    original_result = fit_edge(
+        x_u, x_v, config, obs_u=obs_u, obs_v=obs_v, bounds=bounds
+    )
 
     # Compute residuals
     residuals = np.array(original_result.residual_vector, dtype=float)
@@ -79,7 +82,9 @@ def bootstrap_edge_fit(
     # Storage for bootstrap samples
     gamma_samples = []
     f_samples = []
-    m_extents = len(original_result.reaction_fit.extents) if original_result.reaction_fit else 0
+    m_extents = (
+        len(original_result.reaction_fit.extents) if original_result.reaction_fit else 0
+    )
     extents_samples = [[] for _ in range(m_extents)]
 
     # Bootstrap iterations
@@ -154,7 +159,13 @@ def bootstrap_edge_fit(
         # Store all extents samples as 2D array
         if extents_samples[0]:
             result.extents_samples = np.array(
-                [[s[i] if i < len(s) else 0.0 for i in range(len(extents_samples[0]))] for s in extents_samples]
+                [
+                    [
+                        s[i] if i < len(s) else 0.0
+                        for i in range(len(extents_samples[0]))
+                    ]
+                    for s in extents_samples
+                ]
             ).T
 
     return result
@@ -165,7 +176,7 @@ def bootstrap_reaction_fit(
     reaction_matrix: List[List[float]],
     weights: List[float],
     lambda_l1: float,
-    config: "Config",  # type: ignore
+    config: Config,
     n_resamples: int = 1000,
     random_state: Optional[int] = None,
 ) -> Tuple[List[float], List[float], List[float], List[float]]:

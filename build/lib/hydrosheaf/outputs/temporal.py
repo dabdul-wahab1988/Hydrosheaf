@@ -31,5 +31,7 @@ def temporal_edge_result_to_dict(result: TemporalEdgeResult) -> Dict[str, Any]:
     }
 
 
-def temporal_edge_results_to_rows(results: List[TemporalEdgeResult]) -> List[Dict[str, Any]]:
+def temporal_edge_results_to_rows(
+    results: List[TemporalEdgeResult],
+) -> List[Dict[str, Any]]:
     return [temporal_edge_result_to_dict(r) for r in results]

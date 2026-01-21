@@ -37,7 +37,10 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     phi2 = math.radians(lat2)
     d_phi = math.radians(lat2 - lat1)
     d_lambda = math.radians(lon2 - lon1)
-    a = math.sin(d_phi / 2.0) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2.0) ** 2
+    a = (
+        math.sin(d_phi / 2.0) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2.0) ** 2
+    )
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return radius_km * c
 
@@ -74,7 +77,9 @@ def infer_edges_probabilistic(
     mcmc_warmup_fraction: float = 0.5,
 ) -> List[Edge]:
     samples_list = list(samples)
-    node_rows: List[Tuple[str, float, float, Mapping[str, object], float, float, str, Optional[int]]] = []
+    node_rows: List[
+        Tuple[str, float, float, Mapping[str, object], float, float, str, Optional[int]]
+    ] = []
     head_cov = None
     if head_inference in {"bayesian", "bayesian_mcmc"}:
         sample_lookup: Dict[str, Mapping[str, object]] = {}
@@ -130,7 +135,11 @@ def infer_edges_probabilistic(
                 continue
             idx = idx_map[node_id]
             head_mean = float(posterior.head_mean[idx])
-            head_sigma = float(math.sqrt(float(head_cov[idx, idx])) if head_cov is not None else sigma_topo)
+            head_sigma = float(
+                math.sqrt(float(head_cov[idx, idx]))
+                if head_cov is not None
+                else sigma_topo
+            )
             node_rows.append(
                 (
                     node_id,
@@ -178,11 +187,26 @@ def infer_edges_probabilistic(
     edges: List[Edge] = []
     edge_ids = set()
     for node_id, lat, lon, sample, head, sigma, tier, node_idx in node_rows:
-        candidates: List[Tuple[float, float, str, Mapping[str, object], float, float, str, List[str]]] = []
-        for other_id, o_lat, o_lon, other_sample, other_head, other_sigma, other_tier, other_idx in node_rows:
+        candidates: List[
+            Tuple[float, float, str, Mapping[str, object], float, float, str, List[str]]
+        ] = []
+        for (
+            other_id,
+            o_lat,
+            o_lon,
+            other_sample,
+            other_head,
+            other_sigma,
+            other_tier,
+            other_idx,
+        ) in node_rows:
             if other_id == node_id:
                 continue
-            if aquifer_key and sample.get(aquifer_key) and other_sample.get(aquifer_key):
+            if (
+                aquifer_key
+                and sample.get(aquifer_key)
+                and other_sample.get(aquifer_key)
+            ):
                 if sample.get(aquifer_key) != other_sample.get(aquifer_key):
                     continue
             distance = _haversine_km(lat, lon, o_lat, o_lon)
@@ -193,7 +217,11 @@ def infer_edges_probabilistic(
 
             delta_h = head - other_head
             if head_cov is not None and node_idx is not None and other_idx is not None:
-                var_delta = float(head_cov[node_idx, node_idx] + head_cov[other_idx, other_idx] - 2.0 * head_cov[node_idx, other_idx])
+                var_delta = float(
+                    head_cov[node_idx, node_idx]
+                    + head_cov[other_idx, other_idx]
+                    - 2.0 * head_cov[node_idx, other_idx]
+                )
                 sigma_delta = math.sqrt(max(var_delta, 0.0))
             else:
                 sigma_delta = math.sqrt(sigma**2 + other_sigma**2)
@@ -210,7 +238,9 @@ def infer_edges_probabilistic(
                 p_uv = 0.5 + (p_uv - 0.5) * factor
 
             depth_a = sample.get(screen_depth_key) or sample.get(well_depth_key)
-            depth_b = other_sample.get(screen_depth_key) or other_sample.get(well_depth_key)
+            depth_b = other_sample.get(screen_depth_key) or other_sample.get(
+                well_depth_key
+            )
             if depth_a not in (None, "") and depth_b not in (None, ""):
                 if abs(float(depth_a) - float(depth_b)) > depth_mismatch:
                     flags.append("depth_mismatch")
@@ -235,7 +265,16 @@ def infer_edges_probabilistic(
         if max_neighbors > 0:
             candidates = candidates[:max_neighbors]
 
-        for p_uv, distance, other_id, other_sample, delta_h, sigma_delta, tier_pair, flags in candidates:
+        for (
+            p_uv,
+            distance,
+            other_id,
+            other_sample,
+            delta_h,
+            sigma_delta,
+            tier_pair,
+            flags,
+        ) in candidates:
             edge_id = f"{node_id}->{other_id}"
             if edge_id in edge_ids:
                 continue
@@ -269,7 +308,11 @@ def infer_edges_from_coordinates(
     elevation_key: str = "elevation",
 ) -> List[Edge]:
     samples_list = list(samples)
-    sample_map = {str(sample.get("site_id")): sample for sample in samples_list if sample.get("site_id")}
+    sample_map = {
+        str(sample.get("site_id")): sample
+        for sample in samples_list
+        if sample.get("site_id")
+    }
 
     nodes: List[Tuple[str, float, float, Optional[float]]] = []
     for sample in samples_list:
@@ -281,9 +324,13 @@ def infer_edges_from_coordinates(
         elevation = sample.get(head_key)
         if elevation is None:
             elevation = sample.get(elevation_key)
-        nodes.append((str(site_id), float(sample["lat"]), float(sample["lon"]), elevation))
+        nodes.append(
+            (str(site_id), float(sample["lat"]), float(sample["lon"]), elevation)
+        )
 
-    node_lookup = {node_id: (lat, lon, elevation) for node_id, lat, lon, elevation in nodes}
+    node_lookup = {
+        node_id: (lat, lon, elevation) for node_id, lat, lon, elevation in nodes
+    }
     edges: List[Edge] = []
     edge_keys = set()
 
