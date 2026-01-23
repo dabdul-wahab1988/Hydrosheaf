@@ -61,11 +61,24 @@ pip install .[all]
 
 ### Optional Dependencies
 
-For Bayesian MCMC uncertainty quantification:
-
+**For Bayesian MCMC uncertainty quantification:**
 ```bash
 pip install pymc>=5.0 arviz>=0.15
 ```
+
+**For PEST++ Calibration (if you want to compile locally):**
+The repo includes PEST++ source code in `pestpp/`. To compile:
+```bash
+# Windows (requires Visual Studio 2022 Build Tools + CMake + Ninja)
+compile_pestpp.bat
+
+# Or use the USGS pre-compiled binaries instead (recommended for most users)
+# Download from: https://github.com/usgs/pestpp/releases
+```
+
+**Note:** Most users can skip PEST++ compilation and use either:
+1. **Pre-compiled PEST++ binaries** (from USGS releases)
+2. **Hydrosheaf's core inverse modeling** (which works without PEST++)
 
 ### Web Application
 
@@ -140,6 +153,20 @@ Open your browser and navigate to `http://localhost:5173` to access the Hydroshe
 
 ## Quick Start
 
+### ✅ Works Out-of-the-Box (No Compilation Needed)
+
+When you do `pip install .`, you get **full functionality** for:
+- Core inverse geochemical modeling (transport + reactions)
+- PHREEQC thermodynamic constraints
+- Isotope analysis and forensics
+- Nitrate source discrimination (Bayesian MCMC)
+- Network inference and topology refinement
+- 3D flow networks
+- Temporal dynamics and residence time estimation
+- Uncertainty quantification (Bootstrap, MCMC)
+
+**This is sufficient for 95% of use cases!**
+
 ### Python API Usage
 
 The recommended entry point is `fit_network_pipeline()` from `hydrosheaf.api`:
@@ -168,6 +195,31 @@ for edge_result in results:
     print(f"  Reactions: {edge_result.z_labels}")
     print(f"  Reaction extents: {edge_result.z_extents}")
 ```
+
+### ⚙️ Optional: Compilation for Advanced Features
+
+**Only needed if you want PEST++ calibration on your machine:**
+
+#### System Requirements for Compilation
+- Windows 10+ with Visual Studio 2022 Build Tools
+- CMake and Ninja
+- ~500 MB disk space
+
+#### Build PEST++
+```bash
+# Compile from source (usually NOT necessary)
+compile_pestpp.bat
+
+# Or download pre-compiled binaries (RECOMMENDED)
+# From: https://github.com/usgs/pestpp/releases
+# Extract to bin/ or add to PATH
+```
+
+#### Alternative: Use Without Local Compilation
+Most users don't need to compile PEST++:
+1. Use Hydrosheaf's core inverse modeling (which doesn't need PEST++)
+2. Or download PEST++ pre-built binaries from USGS
+3. Config will auto-detect available tools
 
 ### Configuration
 
@@ -259,6 +311,44 @@ For comprehensive reference, see:
 - **[Technical Reference](docs/TECHNICAL_REFERENCE.md)**: Code architecture and module details
 - **[PHREEQC Integration](docs/phreeqc.md)**: Setting up thermodynamic constraints
 - **[Examples](docs/examples.md)**: Walkthroughs of common scenarios
+
+## Troubleshooting & Common Questions
+
+### Q: Do I need to compile anything to use Hydrosheaf?
+**A: No!** Simply run `pip install .` and everything works. Compilation is only optional for PEST++ advanced calibration.
+
+### Q: What if I can't compile PEST++?
+**A: That's fine!** Core hydrosheaf inverse modeling works perfectly without PEST++. Download pre-compiled PEST++ binaries from [USGS/pestpp releases](https://github.com/usgs/pestpp/releases) if needed.
+
+### Q: Will it work on Linux/Mac?
+**A: Yes!** The Python package is cross-platform. The `bin/` directory contains Windows executables, but:
+- Core hydrosheaf works on Windows/Linux/Mac
+- Download Linux/Mac binaries separately if needed
+- Most users don't need the `bin/` files
+
+### Q: Can I use Hydrosheaf without PHREEQC?
+**A: Yes!** It's optional. Core modeling works without it. Install with `pip install .` for basic use, or `pip install .[phreeqc]` for thermodynamic constraints.
+
+### Q: I got an error about missing dependencies
+**A: Install the correct variant:**
+```bash
+# Basic (most common)
+pip install .
+
+# With plotting
+pip install .[plot]
+
+# With PHREEQC thermodynamics
+pip install .[phreeqc]
+
+# Everything
+pip install .[all]
+```
+
+### Q: How do I run the web interface?
+**A: Follow the Web Application section above.** It requires Node.js, but Python setup is the same.
+
+---
 
 ## Authors
 
