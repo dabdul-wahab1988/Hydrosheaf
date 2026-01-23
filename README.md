@@ -47,6 +47,26 @@ To install with plotting dependencies:
 pip install .[plot]
 ```
 
+To install with PHREEQC support:
+
+```bash
+pip install .[phreeqc]
+```
+
+To install everything (recommended):
+
+```bash
+pip install .[all]
+```
+
+### Optional Dependencies
+
+For Bayesian MCMC uncertainty quantification:
+
+```bash
+pip install pymc>=5.0 arviz>=0.15
+```
+
 ### Web Application
 
 The web application provides a modern browser-based interface for Hydrosheaf. It consists of a FastAPI backend and a React frontend.
@@ -96,7 +116,6 @@ npm run dev
 
 The frontend will be available at `http://localhost:5173` and expects the backend at `http://localhost:8000` (override with `VITE_API_BASE`).
 
-
 #### Development Roadmap
 
 For details on the current integration status, known issues, and future plans for the web interface, please refer to the [Integration Roadmap](web/INTEGRATION_ROADMAP.md).
@@ -119,66 +138,127 @@ npm run dev
 
 Open your browser and navigate to `http://localhost:5173` to access the Hydrosheaf web application.
 
-## Requirements
+## Quick Start
 
-- Python >= 3.8
-- PHREEQC (optional, for thermodynamic constraints)
-- Node.js >= 18.x (for web application)
-- Optional: PyMC + ArviZ for Bayesian nitrate isotope mixing and uncertainty quantification
-- Optional: FloPy + MODFLOW/MT3DMS executables for saturated transport coupling
+### Python API Usage
 
+The recommended entry point is `fit_network_pipeline()` from `hydrosheaf.api`:
 
-## Usage
+```python
+from hydrosheaf.api import fit_network_pipeline
+from hydrosheaf.config import Config
 
-### Command-Line Interface (CLI)
+# Load your data
+samples = {...}  # List of sample dictionaries
+edges = [...]    # List of edge definitions
+config = Config()
 
-Hydrosheaf provides a command-line interface for running the modeling pipeline.
+# Run the pipeline
+results, diagnostics = fit_network_pipeline(
+    samples=samples,
+    edges=edges,
+    config=config,
+    auto_disable_missing=True
+)
 
-```bash
-hydrosheaf --help
+# Access results
+for edge_result in results:
+    print(f"Edge {edge_result.u} → {edge_result.v}:")
+    print(f"  Transport model: {edge_result.transport_model}")
+    print(f"  Reactions: {edge_result.z_labels}")
+    print(f"  Reaction extents: {edge_result.z_extents}")
 ```
 
-#### Basic Workflow
+### Configuration
 
-1. Prepare your input data (chemical concentrations, hydraulic heads, coordinates).
-2. Configure the model parameters (weights, penalties, active minerals).
-3. Run the inference pipeline.
+Hydrosheaf uses a central `Config` dataclass. Key settings:
 
-#### Example Scripts
+```python
+from hydrosheaf.config import Config
 
-```bash
-python hydrosheaf/examples/demo_small_network.py
+config = Config(
+    # Chemistry
+    ion_order=["Ca", "Mg", "Na", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"],
+    charge_balance_limit=0.1,
+    
+    # Inference
+    lambda_l1=0.01,  # LASSO penalty
+    transport_models_enabled=["evap", "mix"],
+    
+    # Thermodynamics
+    phreeqc_enabled=True,
+    si_threshold_tau=0.2,
+    
+    # Isotopes & Nitrate
+    isotope_enabled=True,
+    nitrate_source_enabled=True,
+    nitrate_source_isotope_mcmc_enabled=True,
+    
+    # Temporal
+    residence_time_method="bayesian_lag",
+    
+    # 3D Flow
+    network_3d_enabled=False,
+    vertical_anisotropy=0.1,
+)
 ```
 
-```bash
-python examples/demo_research_objectives.py
+For detailed configuration reference, see [HYDROSHEAF_USER_MANUAL.md](HYDROSHEAF_USER_MANUAL.md#16-configuration-reference).
+
+### Data Input Format
+
+Samples should be provided as a list of dictionaries with keys:
+
+```python
+samples = [
+    {
+        "site_id": "W001",
+        "sample_id": "W001_2023-01",
+        "Ca": 80.0,      # mg/L (converted internally to mmol/L)
+        "Mg": 20.0,
+        "Na": 15.0,
+        "K": 2.0,
+        "HCO3": 250.0,
+        "Cl": 30.0,
+        "SO4": 50.0,
+        "NO3": 5.0,
+        "F": 1.0,
+        "Fe": 0.1,
+        "PO4": 0.05,
+        "pH": 7.5,
+        "d18o": -8.5,    # Optional: δ18O (‰)
+        "d2h": -60.0,    # Optional: δ2H (‰)
+        "latitude": 40.5,
+        "longitude": -74.0,
+        "elevation": 50.0,
+        "head": 45.0,    # Optional: hydraulic head (m)
+    },
+    # ... more samples
+]
 ```
 
-The research objectives demo expects `hydrosheaf_synthetic_csv/` at the repo root and can run optional MCMC (PyMC) and FloPy transport steps if those dependencies are installed.
+Edges should specify connectivity:
 
-### Web Application
+```python
+edges = [
+    {"u": "W001", "v": "W002", "distance_km": 2.5, "delta_h": 1.5},
+    {"u": "W002", "v": "W003", "distance_km": 3.0, "delta_h": 2.0},
+]
+```
 
 
-The web interface provides:
-
-- **Dashboard**: Overview of your hydrogeochemistry analysis projects.
-- **Samples**: Upload and manage water sample data.
-- **Network**: Visualize and configure flow network topology.
-- **Analysis**: Run transport and reaction path modeling.
-- **Results**: View and export analysis results.
-- **Projects**: Save, load, and export complete analysis projects as reports.
 
 ## Documentation
 
-**[Technical Document (PDF)](hydrosheaf_technical_document.pdf)**: Comprehensive mathematical theory and proofs.
+For comprehensive reference, see:
 
-Detailed guides are available in the `docs/` directory:
-
-- **[User Guide](docs/USER_GUIDE.md)**: Extended usage instructions and workflows.
-- **[Mathematical Reference](docs/math.md)**: Compact math notes aligned with the codebase implementation.
-- **[Technical Reference](docs/TECHNICAL_REFERENCE.md)**: Deep dive into the code architecture and modules.
-- **[PHREEQC Integration](docs/phreeqc.md)**: Setting up thermodynamic constraints.
-- **[Examples](docs/examples.md)**: Walkthroughs of common modeling scenarios.
+- **[HYDROSHEAF_USER_MANUAL.md](HYDROSHEAF_USER_MANUAL.md)**: Complete technical reference for all modules and functions (v0.1.0)
+- **[Technical Document (PDF)](hydrosheaf_technical_document.pdf)**: Mathematical theory and proofs
+- **[User Guide](docs/USER_GUIDE.md)**: Extended usage instructions and workflows
+- **[Mathematical Reference](docs/math.md)**: Compact math notes aligned with the codebase
+- **[Technical Reference](docs/TECHNICAL_REFERENCE.md)**: Code architecture and module details
+- **[PHREEQC Integration](docs/phreeqc.md)**: Setting up thermodynamic constraints
+- **[Examples](docs/examples.md)**: Walkthroughs of common scenarios
 
 ## Authors
 
