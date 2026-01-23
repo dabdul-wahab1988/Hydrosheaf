@@ -21,6 +21,7 @@ from ..phreeqc.constraints import build_edge_bounds
 from ..phreeqc.runner import run_phreeqc
 from ..models.ec_tds import predict_ec_tds
 from ..models.redox import get_redox_constraints
+from ..sheaf.topology_refine import refine_edges_with_sheaf
 from .edge_fit import EdgeResult, fit_edge
 from ..nitrate_source_v2 import infer_node_posteriors
 import pandas as pd
@@ -327,6 +328,13 @@ def fit_network(
         result.edge_confidence = _get_float("edge_confidence") or _get_float("p_uv")
         result.edge_map_penalty = _get_float("edge_map_penalty")
         result.edge_map_score = _get_float("edge_map_score")
+        result.edge_sheaf_score_local = _get_float("sheaf_score_local")
+        result.edge_sheaf_score_global = _get_float("sheaf_score_global")
+        result.edge_sheaf_residual = _get_float("sheaf_residual_global")
+        result.edge_sheaf_pi_evap = _get_float("sheaf_pi_evap")
+        result.edge_sheaf_cost_iso = _get_float("sheaf_cost_iso")
+        result.edge_sheaf_cost_cl = _get_float("sheaf_cost_cl")
+        result.edge_sheaf_flags = _get_str("sheaf_flags")
         result.edge_distance_km = _get_float("distance_km")
         result.edge_delta_h = _get_float("delta_h")
         result.edge_sigma_delta_h = _get_float("sigma_delta_h")
@@ -421,6 +429,7 @@ def infer_edges(
     method: str = "probabilistic",
     config: Optional[Config] = None,
     edge_attr_overrides: Optional[Mapping[str, Mapping[str, object]]] = None,
+    layer_definition: Optional[Dict[str, object]] = None,
 ) -> List[Edge]:
     if isinstance(samples, Mapping):
         samples_iter = list(samples.values())
@@ -456,9 +465,10 @@ def infer_edges(
             network = build_network_3d(
                 list(samples_iter),
                 config_for_edges,
-                layer_definition=None,
+                layer_definition=layer_definition,
                 use_haversine=True,
             )
+
             edges_3d: List[Edge3D] = network.edges
             converted: List[Edge] = []
             for edge3d in edges_3d:
@@ -575,6 +585,24 @@ def infer_edges(
             for _, edge in scored[: int(config.edge_max_neighbors)]:
                 selected.append(edge)
         return selected
+
+    if method == "probabilistic_sheaf":
+        config.validate()
+        candidate_multiplier = int(
+            getattr(config, "edge_map_candidate_multiplier", 5) or 5
+        )
+        candidate_config = replace(
+            config,
+            edge_p_min=float(getattr(config, "edge_map_p_min", 0.1)),
+            edge_max_neighbors=int(config.edge_max_neighbors) * candidate_multiplier,
+        )
+        candidate_config.validate()
+        candidate_edges = infer_probabilistic_edges_from_config(candidate_config)
+        if not candidate_edges:
+            return []
+
+        refined = refine_edges_with_sheaf(samples_iter, candidate_edges, config)
+        return _apply_overrides(refined)
 
     # Default probabilistic inference (2D or 3D).
     return infer_probabilistic_edges_from_config(config)

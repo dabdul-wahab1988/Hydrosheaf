@@ -29,7 +29,13 @@ class EdgeFitTests(unittest.TestCase):
 
     def test_edge_fit_evap_composite_reactions(self):
         config = Config(lambda_sparse=0.0)
+        # Restore uniform conservative weights for this synthetic test
+        # because we are simulating Halite dissolution (Cl source),
+        # so Cl is NOT conservative here.
+        config.conservative_weights = [1.0] * 10
+        
         reaction_matrix, labels, _ = build_reaction_dictionary(config)
+
         halite_idx = labels.index("halite")
         gypsum_idx = labels.index("gypsum")
         halite = reaction_matrix[halite_idx]
@@ -47,9 +53,12 @@ class EdgeFitTests(unittest.TestCase):
         result = fit_edge(x_u, x_v, config, edge_id="e2", u="A", v="B")
 
         self.assertEqual(result.transport_model, "evap")
-        gamma_expected, _, _ = fit_evaporation(x_u, x_v, config.weights)
+        # Updated to use conservative weights logic
+        transport_weights = getattr(config, "conservative_weights", config.weights)
+        gamma_expected, _, _ = fit_evaporation(x_u, x_v, transport_weights)
         self.assertAlmostEqual(result.gamma, gamma_expected, places=6)
         self.assertGreater(result.z_extents[halite_idx], 0.0)
+
         self.assertGreater(result.z_extents[gypsum_idx], 0.0)
         self.assertLess(result.anomaly_norm, 0.2)
         self.assertAlmostEqual(

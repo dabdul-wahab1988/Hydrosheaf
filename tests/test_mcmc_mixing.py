@@ -3,6 +3,7 @@ Tests for MCMC Bayesian Isotope Mixing Model.
 """
 
 import unittest
+import sys
 
 from hydrosheaf.models.nitrate_isotopes import IsotopeSample, SourceIsotopes
 from hydrosheaf.models.nitrate_isotopes_mcmc import (
@@ -59,7 +60,7 @@ class MCMCMixingTests(unittest.TestCase):
         available = check_pymc_available()
         self.assertIsInstance(available, bool)
 
-    @unittest.skip("PyMC MCMC causes Windows threadpoolctl crash")
+    @unittest.skipIf(not check_pymc_available(), "PyMC not available")
     def test_mcmc_mixing_manure_dominant(self):
         """Test MCMC mixing with manure-like sample."""
         result = run_mcmc_mixing(
@@ -88,7 +89,7 @@ class MCMCMixingTests(unittest.TestCase):
         self.assertLess(result.ci_lower["Manure"], result.source_fractions["Manure"])
         self.assertGreater(result.ci_upper["Manure"], result.source_fractions["Manure"])
 
-    @unittest.skip("PyMC MCMC causes Windows threadpoolctl crash")
+    @unittest.skipIf(not check_pymc_available(), "PyMC not available")
     def test_mcmc_mixing_fertilizer_dominant(self):
         """Test MCMC mixing with fertilizer-like sample."""
         result = run_mcmc_mixing(
@@ -103,7 +104,7 @@ class MCMCMixingTests(unittest.TestCase):
         # Fertilizer should be dominant
         self.assertGreater(result.source_fractions["Fertilizer"], 0.4)
 
-    @unittest.skip("PyMC MCMC causes Windows threadpoolctl crash")
+    @unittest.skipIf(not check_pymc_available(), "PyMC not available")
     def test_mcmc_mixing_diagnostics(self):
         """Test that MCMC diagnostics are computed."""
         result = run_mcmc_mixing(
@@ -125,7 +126,7 @@ class MCMCMixingTests(unittest.TestCase):
         self.assertIsNotNone(result.posterior_samples)
         self.assertEqual(result.posterior_samples.shape[1], len(self.sources))
 
-    @unittest.skip("PyMC MCMC causes Windows threadpoolctl crash")
+    @unittest.skipIf(not check_pymc_available(), "PyMC not available")
     def test_mcmc_convergence_check(self):
         """Test convergence checking logic."""
         result = run_mcmc_mixing(
@@ -142,7 +143,7 @@ class MCMCMixingTests(unittest.TestCase):
         for name, rh in result.r_hat.items():
             self.assertLess(rh, 1.1, f"R-hat for {name} too high: {rh}")
 
-    @unittest.skip("Batch processing causes Windows threading issues")
+    @unittest.skipIf(not check_pymc_available(), "PyMC not available")
     def test_mcmc_batch_processing(self):
         """Test batch processing of multiple samples."""
         samples = [self.manure_sample, self.fertilizer_sample, self.mixed_sample]
@@ -160,7 +161,7 @@ class MCMCMixingTests(unittest.TestCase):
         for result in results:
             self.assertIsInstance(result, MCMCMixingResult)
 
-    @unittest.skip("Uses batch processing which causes Windows threading issues")
+    @unittest.skipIf(not check_pymc_available(), "PyMC not available")
     def test_mcmc_summary(self):
         """Test summarization of multiple MCMC results."""
         samples = [self.manure_sample, self.fertilizer_sample]
@@ -181,7 +182,7 @@ class MCMCMixingTests(unittest.TestCase):
         self.assertIn("mean_fractions", summary)
         self.assertIn("Manure", summary["mean_fractions"])
 
-    @unittest.skip("PyMC MCMC causes Windows threadpoolctl crash")
+    @unittest.skipIf(not check_pymc_available(), "PyMC not available")
     def test_mcmc_with_two_sources(self):
         """Test MCMC works with minimum 2 sources."""
         two_sources = self.sources[:2]  # Just Manure and Fertilizer
@@ -202,7 +203,7 @@ class MCMCMixingTests(unittest.TestCase):
         total = sum(result.source_fractions.values())
         self.assertAlmostEqual(total, 1.0, places=2)
 
-    @unittest.skip("PyMC MCMC causes Windows threadpoolctl crash")
+    @unittest.skipIf(not check_pymc_available(), "PyMC not available")
     def test_insufficient_sources_raises(self):
         """Test that single source raises error."""
         if not check_pymc_available():

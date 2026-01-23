@@ -2,7 +2,9 @@
 
 import argparse
 import csv
-from typing import Dict, Iterable, List, Mapping
+import json
+import yaml
+from typing import Any, Dict, Iterable, List, Mapping, Optional, cast
 
 from .config import Config, DEFAULT_ION_ORDER
 from .data.endmembers import load_endmembers_json
@@ -16,6 +18,7 @@ from .outputs.export import export_edge_results_csv, export_edge_results_json
 from .outputs.interpret import print_interpretation_report
 from .outputs.temporal import temporal_edge_results_to_rows
 from .outputs.plots import plot_gibbs, plot_ilr
+from .outputs.plots_3d import plot_network_3d
 from .outputs.science_plots import (
     plot_ttd_kernel,
     plot_breakthrough,
@@ -24,7 +27,6 @@ from .outputs.science_plots import (
 )
 from .graph.types import Edge
 
-import json
 
 
 def _parse_weights(value: str) -> List[float]:
@@ -52,6 +54,23 @@ def _parse_endmembers(values: Iterable[str]) -> Dict[str, List[float]]:
             raise ValueError(f"endmember '{name}' must have 10 values.")
         endmembers[name] = vector
     return endmembers
+
+
+def _parse_lambda_grid(value: Optional[str]) -> List[float]:
+    if not value:
+        return [1e-4, 3e-4, 1e-3, 3e-3, 1e-2, 3e-2, 1e-1]
+    grid = []
+    for item in value.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        try:
+            grid.append(float(item))
+        except ValueError as exc:
+            raise ValueError(f"Invalid lambda value '{item}'") from exc
+    if not grid:
+        raise ValueError("--tune-lambda-grid must include numeric values.")
+    return grid
 
 
 def _parse_layer_minerals(values: Iterable[str]) -> Dict[int, List[str]]:
@@ -133,21 +152,27 @@ def _convert_samples(
     if unit == "mmol/L":
         return samples
     converted: List[Dict[str, object]] = []
+    # Major ions in ion_order plus K (essential for nitrate source discrimination)
+    ions_to_convert = set(ion_order) | {"K"}
     for entry in samples:
         updated = dict(entry)
-        for ion in ion_order:
+        for ion in ions_to_convert:
             if ion not in updated:
                 continue
             value = updated[ion]
             if value is None:
                 continue
-            value = float(value)
+            try:
+                value = float(value)
+            except (TypeError, ValueError):
+                continue
             if unit == "mg/L":
                 updated[ion] = mgL_to_mmolL(value, ion)
             elif unit == "meq/L":
                 updated[ion] = meqL_to_mmolL(value, ion)
         converted.append(updated)
     return converted
+
 
 
 def _convert_endmembers(
@@ -260,7 +285,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--infer-edges-method",
-        choices=["probabilistic", "probabilistic_map", "simple"],
+        choices=["probabilistic", "probabilistic_map", "probabilistic_sheaf", "simple"],
         default="probabilistic",
         help="Edge inference strategy.",
     )
@@ -335,6 +360,129 @@ def main() -> None:
         default=0.1,
         help="Minimum candidate edge probability for MAP selection.",
     )
+    parser.add_argument(
+        "--sheaf-disable-isotopes",
+        action="store_true",
+        help="Disable isotope terms in probabilistic_sheaf selection.",
+    )
+    parser.add_argument(
+        "--sheaf-disable-cl",
+        action="store_true",
+        help="Disable Cl consistency term in probabilistic_sheaf selection.",
+    )
+    parser.add_argument(
+        "--sheaf-iso-sigma-d18o",
+        type=float,
+        default=0.2,
+        help="Sheaf isotope sigma for d18O (permil).",
+    )
+    parser.add_argument(
+        "--sheaf-iso-sigma-d2h",
+        type=float,
+        default=1.0,
+        help="Sheaf isotope sigma for d2H (permil).",
+    )
+    parser.add_argument(
+        "--sheaf-weight-head",
+        type=float,
+        default=1.0,
+        help="Sheaf weight on -log(p_uv) head prior penalty.",
+    )
+    parser.add_argument(
+        "--sheaf-weight-isotope",
+        type=float,
+        default=1.0,
+        help="Sheaf weight on isotope consistency cost.",
+    )
+    parser.add_argument(
+        "--sheaf-weight-cl",
+        type=float,
+        default=0.5,
+        help="Sheaf weight on log(Cl) consistency cost.",
+    )
+    parser.add_argument(
+        "--sheaf-weight-global",
+        type=float,
+        default=1.0,
+        help="Sheaf weight on global consistency residual.",
+    )
+    parser.add_argument(
+        "--sheaf-shallow-depth",
+        type=float,
+        default=30.0,
+        help="Shallow depth (m) where evaporation gating increases.",
+    )
+    parser.add_argument(
+        "--sheaf-evap-strength",
+        type=float,
+        default=1.0,
+        help="Evaporation gate strength for probabilistic_sheaf.",
+    )
+    parser.add_argument(
+        "--sheaf-max-iter",
+        type=int,
+        default=3,
+        help="Max iterations for sheaf global refinement.",
+    )
+    parser.add_argument(
+        "--tune-reactions",
+        action="store_true",
+        help="Tune L1 sparsity for stable reaction selection.",
+    )
+    parser.add_argument(
+        "--tune-lambda-grid",
+        type=str,
+        default=None,
+        help="Comma-separated lambda values for tuning (e.g. 1e-4,1e-3,1e-2).",
+    )
+    parser.add_argument(
+        "--tune-resamples",
+        type=int,
+        default=200,
+        help="Resamples per lambda for stability tuning.",
+    )
+    parser.add_argument(
+        "--tune-perturbation",
+        choices=["monte_carlo", "bootstrap", "both"],
+        default="monte_carlo",
+        help="Perturbation strategy for reaction stability tuning.",
+    )
+    parser.add_argument(
+        "--tune-input-uncertainty",
+        type=float,
+        default=5.0,
+        help="Input uncertainty percent for tuning perturbations.",
+    )
+    parser.add_argument(
+        "--tune-min-r2",
+        type=float,
+        default=None,
+        help="Minimum median R2 threshold for acceptable lambdas.",
+    )
+    parser.add_argument(
+        "--tune-max-reactions",
+        type=float,
+        default=None,
+        help="Maximum mean reactions per edge for acceptable lambdas.",
+    )
+    parser.add_argument(
+        "--tune-selection-threshold",
+        type=float,
+        default=1e-6,
+        help="Extent magnitude threshold to count a reaction as selected.",
+    )
+    parser.add_argument(
+        "--tune-output",
+        type=str,
+        default=None,
+        help="Path to write tuning report JSON.",
+    )
+    parser.add_argument(
+        "--tune-random-seed",
+        type=int,
+        default=None,
+        help="Random seed for tuning perturbations.",
+    )
     parser.add_argument("--edge-gradient-min", type=float, default=1e-4)
     parser.add_argument("--edge-head-key", type=str, default="head_meas")
     parser.add_argument("--edge-dtw-key", type=str, default="dtw")
@@ -353,8 +501,31 @@ def main() -> None:
     parser.add_argument(
         "--auto-lmwl",
         action="store_true",
-        help="Automatically calibrate LMWL from samples.",
+        help="Deprecated. Use --fit-lmwl with --lmwl-samples instead.",
     )
+    parser.add_argument(
+        "--lmwl-samples",
+        type=str,
+        help="Path to separate precipitation CSV file for fitting LMWL (recommended over fitting from groundwater).",
+    )
+    parser.add_argument(
+        "--lmwl-weight-col",
+        type=str,
+        default=None,
+        help="Column name for precipitation amount weighting (e.g. 'precip_mm').",
+    )
+    parser.add_argument(
+        "--sample-type-col",
+        type=str,
+        default="sample_type",
+        help="Column name to identify sample type (for LMWL fitting). Default: 'sample_type'",
+    )
+    parser.add_argument(
+        "--use-gmwl",
+        action="store_true",
+        help="Use Global Meteoric Water Line (slope=8, intercept=10).",
+    )
+
     parser.add_argument(
         "--iso-consistency-weight",
         type=float,
@@ -847,6 +1018,21 @@ def main() -> None:
         type=str,
         help="Output path/prefix for plots (default: derived from --output).",
     )
+    # 3D Visualization
+    parser.add_argument(
+        "--plot-3d", action="store_true", help="Generate 3D PyVista plot of the network."
+    )
+    parser.add_argument(
+        "--plot-z-exaggeration", 
+        type=float, 
+        default=10.0, 
+        help="Vertical exaggeration for 3D plot (default: 10.0)."
+    )
+    parser.add_argument(
+        "--plot-show", 
+        action="store_true", 
+        help="Open interactive 3D plot window."
+    )
 
     args = parser.parse_args()
 
@@ -1140,6 +1326,17 @@ def main() -> None:
         edge_map_prior_weight=args.edge_map_weight,
         edge_map_candidate_multiplier=args.edge_map_candidate_multiplier,
         edge_map_p_min=args.edge_map_p_min,
+        sheaf_isotope_enabled=not args.sheaf_disable_isotopes,
+        sheaf_cl_enabled=not args.sheaf_disable_cl,
+        sheaf_iso_sigma_d18o=args.sheaf_iso_sigma_d18o,
+        sheaf_iso_sigma_d2h=args.sheaf_iso_sigma_d2h,
+        sheaf_weight_head_prior=args.sheaf_weight_head,
+        sheaf_weight_isotope=args.sheaf_weight_isotope,
+        sheaf_weight_cl=args.sheaf_weight_cl,
+        sheaf_weight_global=args.sheaf_weight_global,
+        sheaf_shallow_depth_m=args.sheaf_shallow_depth,
+        sheaf_evap_gate_strength=args.sheaf_evap_strength,
+        sheaf_max_iter=args.sheaf_max_iter,
         edge_gradient_min=args.edge_gradient_min,
         edge_head_key=args.edge_head_key,
         edge_dtw_key=args.edge_dtw_key,
@@ -1218,6 +1415,14 @@ def main() -> None:
     # Edges / topology
     edges = None
 
+    layer_definition = None
+    if args.layer_file:
+        with open(args.layer_file, "r") as f:
+            if args.layer_file.endswith(".yaml") or args.layer_file.endswith(".yml"):
+                layer_definition = yaml.safe_load(f)
+            else:
+                layer_definition = json.load(f)
+
     if args.edges:
         edges = _read_edges(args.edges)
     elif args.infer_edges:
@@ -1233,7 +1438,9 @@ def main() -> None:
             method=args.infer_edges_method,
             config=config,
             edge_attr_overrides=edge_attr_overrides,
+            layer_definition=layer_definition,
         )
+
     elif physics_priors and args.physics_priors_mode == "only":
         edges = []
     else:
@@ -1301,21 +1508,61 @@ def main() -> None:
         config.lmwl_b = args.lmwl_b
         config.lmwl_defined = True
         config.isotope_enabled = True
-    elif args.fit_lmwl:
-        a, b = fit_lmwl(
-            samples, d18o_key=config.isotope_d18o_key, d2h_key=config.isotope_d2h_key
-        )
-        config.lmwl_a = a
-        config.lmwl_b = b
+    elif args.use_gmwl:
+        from .isotopes import GMWL_SLOPE, GMWL_INTERCEPT
+        config.lmwl_a = GMWL_INTERCEPT
+        config.lmwl_b = GMWL_SLOPE
         config.lmwl_defined = True
         config.isotope_enabled = True
+        print(f"Using GMWL: d2H = {GMWL_SLOPE} * d18O + {GMWL_INTERCEPT}")
+    elif args.fit_lmwl:
+        # Priority: explicit precipitation file
+        target_samples = samples
+        fit_source_desc = "main samples"
+        
+        if args.lmwl_samples:
+            print(f"Loading separate precipitation file: {args.lmwl_samples}")
+            try:
+                target_samples = _read_samples(args.lmwl_samples)
+                fit_source_desc = "provided precipitation file"
+            except Exception as e:
+                raise ValueError(f"Failed to read LMWL samples file: {e}")
+        else:
+            # If no separate file, we MUST rely on filtering or warn heavily
+            print("Warning: Fitting LMWL from main samples file. This is risky unless filtered by type.")
+            if not args.sample_type_col:
+                 print("  Recommendation: Provide --lmwl-samples rain.csv OR use --sample-type-col to filter.")
+
+        try:
+            a, b = fit_lmwl(
+                cast(List[Mapping[str, Any]], target_samples),
+                d18o_key=config.isotope_d18o_key,
+                d2h_key=config.isotope_d2h_key,
+                sample_type_col=args.sample_type_col if not args.lmwl_samples else None,
+                meteoric_types=["Rain", "Precipitation", "Rainwater", "Snow"] if not args.lmwl_samples else None,
+                weight_col=args.lmwl_weight_col
+            )
+            config.lmwl_a = a
+            config.lmwl_b = b
+            config.lmwl_defined = True
+            config.isotope_enabled = True
+            print(f"Fitted LMWL ({fit_source_desc}): d2H = {b:.2f} * d18O + {a:.2f}")
+        except ValueError as e:
+            print(f"Error fitting LMWL: {e}")
+            if args.use_gmwl_fallback: # Hypothetical flag, or we just fail
+                 # We agreed to fail or require GMWL flag explicitly
+                 raise ValueError("LMWL fitting failed. Use --use-gmwl if no local meteoric data is available.") from e
+            else:
+                 raise
 
     if config.isotope_enabled and config.auto_lmwl:
         try:
             intercept, slope = fit_lmwl(
-                samples,
+                cast(List[Mapping[str, Any]], samples),
                 d18o_key=config.isotope_d18o_key,
                 d2h_key=config.isotope_d2h_key,
+                sample_type_col=args.sample_type_col,
+                meteoric_types=["Rain", "Precipitation", "Rainwater", "Snow"]
             )
             config.lmwl_a = intercept
             config.lmwl_b = slope
@@ -1323,6 +1570,7 @@ def main() -> None:
             print(f"Auto-calibrated LMWL: d2H = {slope:.2f} * d18O + {intercept:.2f}")
         except Exception as e:
             print(f"Warning: Failed to auto-calibrate LMWL: {e}")
+
 
     temporal_results = []
     temporal_by_edge = {}
@@ -1476,8 +1724,44 @@ def main() -> None:
             temporal_by_edge[edge.edge_id] = temporal_res
             tau_overrides[edge.edge_id] = temporal_res.residence_time_days
 
+    phreeqc_results = None
+    if args.tune_reactions:
+        from .tuning.reaction_tuning import tune_reaction_hyperparameters
+        if config.phreeqc_enabled:
+            from .phreeqc.runner import run_phreeqc
+
+            phreeqc_results = run_phreeqc(samples, config)
+        lambda_grid = _parse_lambda_grid(args.tune_lambda_grid)
+        report = tune_reaction_hyperparameters(
+            samples,
+            edges or [],
+            config,
+            lambda_grid,
+            n_resamples=args.tune_resamples,
+            perturbation=args.tune_perturbation,
+            input_uncertainty_pct=args.tune_input_uncertainty,
+            selection_threshold=args.tune_selection_threshold,
+            min_r2=args.tune_min_r2,
+            max_reactions=args.tune_max_reactions,
+            random_state=args.tune_random_seed,
+            phreeqc_results=phreeqc_results,
+            residence_time_overrides=tau_overrides,
+        )
+        config.lambda_l1 = report.recommended_lambda_l1
+        print(
+            "Tuning selected lambda_l1="
+            f"{report.recommended_lambda_l1:.4g} using {report.selection_rule}."
+        )
+        if args.tune_output:
+            with open(args.tune_output, "w", encoding="utf-8") as handle:
+                json.dump(report.to_dict(), handle, indent=2)
+
     results = fit_network(
-        samples, edges, config, residence_time_overrides=tau_overrides
+        samples,
+        edges,
+        config,
+        phreeqc_results=phreeqc_results,
+        residence_time_overrides=tau_overrides,
     )
 
     # Attach temporal summaries to the main per-edge output rows (when available).
@@ -1507,7 +1791,17 @@ def main() -> None:
         export_edge_results_json(results, args.output)
 
     # Plotting
-    if args.plot_ilr or args.plot_gibbs:
+    if any(
+        [
+            args.plot_ilr,
+            args.plot_gibbs,
+            args.plot_ttd,
+            args.plot_breakthrough,
+            args.plot_uncertainty,
+            args.plot_rt_validation,
+            args.plot_3d,
+        ]
+    ):
         plot_base = args.plot_output
         if not plot_base:
             base = args.output
@@ -1526,38 +1820,41 @@ def main() -> None:
             plot_gibbs(samples, path=f"{plot_base}_gibbs.png")
             print(f"Generated Gibbs plot: {plot_base}_gibbs.png")
 
-    if args.plot_ttd:
-        plot_ttd_kernel(results, path=f"{args.plot_output or args.output}_ttd.png")
-        print(f"Generated TTD kernel plot: {args.plot_output or args.output}_ttd.png")
+        if args.plot_ttd:
+            plot_ttd_kernel(results, path=f"{plot_base}_ttd.png")
+            print(f"Generated TTD kernel plot: {plot_base}_ttd.png")
 
-    if args.plot_breakthrough:
-        plot_breakthrough(
-            results, path=f"{args.plot_output or args.output}_breakthrough.png"
-        )
-        print(
-            f"Generated breakthrough plot: {args.plot_output or args.output}_breakthrough.png"
-        )
+        if args.plot_breakthrough:
+            plot_breakthrough(results, path=f"{plot_base}_breakthrough.png")
+            print(f"Generated breakthrough plot: {plot_base}_breakthrough.png")
 
-    if args.plot_uncertainty:
-        # Plot ridges for the first 3 edges with uncertainty data
-        for i, res in enumerate([r for r in results if r.uncertainty]):
-            if i >= 3:
-                break
-            plot_posterior_ridges(
-                res,
-                path=f"{args.plot_output or args.output}_ridges_{res.edge_id}.png",
+        if args.plot_uncertainty:
+            # Plot ridges for the first 3 edges with uncertainty data
+            for i, res in enumerate([r for r in results if r.uncertainty]):
+                if i >= 3:
+                    break
+                plot_posterior_ridges(
+                    res,
+                    path=f"{plot_base}_ridges_{res.edge_id}.png",
+                )
+                print(
+                    f"Generated posterior ridges: {plot_base}_ridges_{res.edge_id}.png"
+                )
+
+        if args.plot_rt_validation:
+            plot_reactive_transport_validation(
+                results, path=f"{plot_base}_rt_val.png"
             )
-            print(
-                f"Generated posterior ridges: {args.plot_output or args.output}_ridges_{res.edge_id}.png"
-            )
+            print(f"Generated RT validation plot: {plot_base}_rt_val.png")
 
-    if args.plot_rt_validation:
-        plot_reactive_transport_validation(
-            results, path=f"{args.plot_output or args.output}_rt_val.png"
-        )
-        print(
-            f"Generated RT validation plot: {args.plot_output or args.output}_rt_val.png"
-        )
+        if args.plot_3d:
+            plot_network_3d(
+                nodes=samples,
+                edges=edges,
+                output_path=f"{plot_base}_network_3d.png",
+                z_exaggeration=args.plot_z_exaggeration,
+                show=args.plot_show,
+            )
 
     if args.interpret:
 

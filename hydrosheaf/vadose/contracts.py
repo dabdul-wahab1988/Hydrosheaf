@@ -83,6 +83,12 @@ class VadoseRunConfig:
         0.7  # coefficient of variation for gamma kernel around advective mean
     )
 
+    # Dual-domain / Preferential flow parameters (statistical approximation)
+    preferential_flow_fraction: float = 0.0  # Fraction of flow bypassing matrix (0.0 to 1.0)
+    preferential_velocity_factor: float = 10.0  # How much faster is the preferential path?
+    preferential_cv: float = 1.0  # CV for the preferential component
+
+
 
 @dataclass(frozen=True)
 class VadoseLinksRow:

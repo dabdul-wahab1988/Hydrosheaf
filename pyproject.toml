@@ -22,9 +22,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-plot = ["seaborn"]
+plot = ["seaborn", "pyvista", "vtk"]
 phreeqc = ["phreeqpy"]
-all = ["flopy", "seaborn", "phreeqpy"]
+all = ["flopy", "seaborn", "phreeqpy", "pyvista", "vtk"]
 
 [tool.setuptools.packages.find]
 include = ["hydrosheaf*"]

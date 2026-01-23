@@ -21,22 +21,25 @@ HYDROSHEAF_AVAILABLE = None
 HydrosheafEdge = None
 Config = None
 infer_edges_probabilistic = None
+infer_edges_3d_probabilistic = None
 
 
 def _load_hydrosheaf() -> None:
     """Lazy-load Hydrosheaf to keep backend startup fast."""
-    global HYDROSHEAF_AVAILABLE, HydrosheafEdge, Config, infer_edges_probabilistic
+    global HYDROSHEAF_AVAILABLE, HydrosheafEdge, Config, infer_edges_probabilistic, infer_edges_3d_probabilistic
 
     if HYDROSHEAF_AVAILABLE is not None:
         return
     try:
         from hydrosheaf import (
             infer_edges_probabilistic as hydrosheaf_infer_edges_probabilistic,
+            infer_edges_3d_probabilistic as hydrosheaf_infer_edges_3d_probabilistic,
             Config as HydrosheafConfig,
         )
         from hydrosheaf.graph.types import Edge as HydrosheafEdgeType
 
         infer_edges_probabilistic = hydrosheaf_infer_edges_probabilistic
+        infer_edges_3d_probabilistic = hydrosheaf_infer_edges_3d_probabilistic
         Config = HydrosheafConfig
         HydrosheafEdge = HydrosheafEdgeType
         HYDROSHEAF_AVAILABLE = True
@@ -84,6 +87,12 @@ class NetworkInferenceConfig(BaseModel):
     method: str = Field(default="bayesian", description="heuristic or bayesian")
     radius_km: float = Field(default=10.0, ge=0.1, le=100.0)
     max_neighbors: int = Field(default=3, ge=1, le=10)
+    
+    # 3D settings
+    use_3d: bool = Field(default=False, description="Enable 3D network inference")
+    vertical_anisotropy: float = Field(default=0.1, description="Vertical anisotropy factor (Kh/Kv)")
+    screen_overlap_threshold: float = Field(default=5.0, description="Screen overlap threshold in meters")
+
 
 
 class NetworkInferenceResult(BaseModel):
@@ -213,36 +222,94 @@ async def infer_flow_directions(
                 samples.append(sample)
 
             # Use Hydrosheaf's probabilistic edge inference
-            inferred_edges = infer_edges_probabilistic(
-                samples,
-                radius_km=config.radius_km,
-                max_neighbors=config.max_neighbors,
-                p_min=0.75,
-                head_inference=config.method,
-            )
+            if config.use_3d:
+                # 3D Inference
+                
+                # We need to transform samples into Node3D objects for 3D inference
+                # But infer_edges_3d_probabilistic takes a list of Node3D objects.
+                # However, looking at build_3d.py, there isn't a helper to convert dict samples to Node3D directly exposed.
+                # Actually, build_network_3d takes samples and does the conversion.
+                # But we want just the edges.
+                # Let's import Node3D and create them manually or use build_network_3d internally.
+                
+                # To keep it simple and consistent with how 2D works (which takes samples dicts),
+                # we might need to do some manual conversion or import Node3D.
+                # Let's try to import Node3D inside the try block.
+                from hydrosheaf.graph3d.types_3d import Node3D
+                
+                nodes_3d = []
+                for s in samples:
+                    # Map sample dict to Node3D
+                    node_id = str(s.get("site_id", ""))
+                    if not node_id: continue
+                    
+                    nodes_3d.append(Node3D(
+                        node_id=node_id,
+                        x=float(s.get("lon", 0.0)), # using lon as x
+                        y=float(s.get("lat", 0.0)), # using lat as y
+                        z=float(s.get("elevation", 0.0)), # using elevation as z/depth? 
+                        # Note: 3D model expects z as depth usually, or elevation. 
+                        # Config says z_coordinate_key default is screen_depth.
+                        # We'll assume elevation is what we have.
+                        elevation_m=float(s.get("elevation", 0.0)),
+                        hydraulic_head=float(s.get("head_meas")) if "head_meas" in s else None,
+                        head_uncertainty=0.5 # Default
+                    ))
+                
+                # Create a minimal config object for 3D
+                class MiniConfig:
+                    edge_radius_km = config.radius_km
+                    edge_p_min = 0.75
+                    edge_max_neighbors = config.max_neighbors
+                    vertical_anisotropy = config.vertical_anisotropy
+                    
+                inferred_edges = infer_edges_3d_probabilistic(
+                    nodes_3d,
+                    config=MiniConfig(),
+                    layer_system=None, # Layers not fully supported in simple UI yet
+                    use_haversine=True
+                )
+            else:
+                # 2D Inference
+                inferred_edges = infer_edges_probabilistic(
+                    samples,
+                    radius_km=config.radius_km,
+                    max_neighbors=config.max_neighbors,
+                    p_min=0.75,
+                    head_inference=config.method,
+                )
 
             # Convert to frontend format
             inferred_edges_data = []
             for edge in inferred_edges:
-                # Extract probability from edge metadata if available
-                probability = getattr(edge, "probability", 0.75)
+                # Extract probability
+                if config.use_3d:
+                    probability = getattr(edge, "prob_combined", 0.75)
+                    # 3D edges use u and v
+                    source = edge.u
+                    target = edge.v
+                else:
+                    probability = getattr(edge, "probability", 0.75)
+                    # 2D edges use u and v too? Let's check type.
+                    source = edge.u
+                    target = edge.v
 
-                # Determine flow direction based on edge direction
+                # Determine flow direction
                 inferred_edges_data.append(
                     {
-                        "source": edge.u,
-                        "target": edge.v,
-                        "weight": edge.weight,
+                        "source": source,
+                        "target": target,
+                        "weight": getattr(edge, "weight", 1.0),
                         "flow_probability": probability,
                         "flow_direction": "forward",
-                        "method": "hydrosheaf_probabilistic",
+                        "method": "hydrosheaf_probabilistic_3d" if config.use_3d else "hydrosheaf_probabilistic",
                     }
                 )
 
             return {
                 "network_id": network_id,
                 "inferred_edges": inferred_edges_data,
-                "method": f"hydrosheaf_{config.method}",
+                "method": f"hydrosheaf_{config.method}_{'3d' if config.use_3d else '2d'}",
                 "hydrosheaf_used": True,
             }
 
@@ -265,7 +332,7 @@ async def infer_flow_directions(
         if source_node and target_node:
             source_head = source_node.get("hydraulic_head")
             target_head = target_node.get("hydraulic_head")
-            if source_head and target_head:
+            if source_head is not None and target_head is not None:
                 head_diff = source_head - target_head
                 # Flow probability based on head gradient
                 probability = min(1.0, max(0.0, 0.5 + head_diff * 0.1))

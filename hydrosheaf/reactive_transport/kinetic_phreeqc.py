@@ -246,7 +246,24 @@ def run_phreeqc_kinetic(
         input_str += "\n"
 
         # Add SELECTED_OUTPUT
-        input_str += """
+        # In subprocess mode we must explicitly write to a known file.
+        selected_output_file = None
+        if config.phreeqc_mode == "subprocess":
+            selected_output_file = "selected_output.csv"
+
+        if selected_output_file:
+            input_str += f"""
+SELECTED_OUTPUT 1
+    -reset false
+    -time true
+    -csv true
+    -file {selected_output_file}
+    -totals Ca Mg Na K Cl S(6) N(5) Alkalinity F Fe P
+    -si Calcite Dolomite Gypsum Halite Fluorite Albite Anorthite
+    -step true
+"""
+        else:
+            input_str += """
 SELECTED_OUTPUT 1
     -reset false
     -time true
@@ -317,11 +334,103 @@ SELECTED_OUTPUT 1
                 return result
 
         else:
-            # Subprocess mode not implemented for kinetics
-            result["error_message"] = "Subprocess mode not supported for kinetics"
-            return result
+            # Subprocess mode for kinetic simulation
+            import csv
+            import subprocess
+            import tempfile
+            from pathlib import Path
+
+            if not config.phreeqc_executable:
+                result["error_message"] = "phreeqc_executable not configured"
+                return result
+
+            if not selected_output_file:
+                result["error_message"] = "Internal error: selected_output_file not set for subprocess mode"
+                return result
+
+            try:
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    temp_dir_path = Path(temp_dir)
+                    input_path = temp_dir_path / "input.pqi"
+                    output_path = temp_dir_path / "output.txt"
+                    selected_path = temp_dir_path / selected_output_file
+
+                    input_path.write_text(input_str, encoding="utf-8")
+
+                    subprocess.run(
+                        [config.phreeqc_executable, str(input_path), str(output_path)],
+                        cwd=str(temp_dir_path),
+                        check=True,
+                        capture_output=True,
+                    )
+
+                    if not selected_path.exists():
+                        result["error_message"] = f"Selected output not generated: {selected_output_file}"
+                        return result
+
+                    with open(selected_path, "r", encoding="utf-8", newline="") as handle:
+                        reader = csv.DictReader(handle)
+                        rows = list(reader)
+
+                    if not rows:
+                        result["error_message"] = "Selected output file is empty"
+                        return result
+
+                    final_row = rows[-1]
+                    ion_order = config.ion_order
+
+                    mapping = {
+                        "Ca": "Ca(mol/kgw)",
+                        "Mg": "Mg(mol/kgw)",
+                        "Na": "Na(mol/kgw)",
+                        "K": "K(mol/kgw)",
+                        "Cl": "Cl(mol/kgw)",
+                        "SO4": "S(6)(mol/kgw)",
+                        "NO3": "N(5)(mol/kgw)",
+                        "HCO3": "Alk(mol/kgw)",
+                        "F": "F(mol/kgw)",
+                        "Fe": "Fe(mol/kgw)",
+                        "PO4": "P(mol/kgw)",
+                    }
+
+                    final_comp = []
+                    for ion in ion_order:
+                        col = mapping.get(ion, f"{ion}(mol/kgw)")
+                        raw = final_row.get(col)
+                        try:
+                            val_mol = float(raw) if raw not in (None, "") else 0.0
+                        except ValueError:
+                            val_mol = 0.0
+                        final_comp.append(val_mol * 1000.0)
+
+                    result["final_composition"] = final_comp
+
+                    # SI columns are typically named like si_Calcite
+                    for key, raw in final_row.items():
+                        if not key.startswith("si_"):
+                            continue
+                        mineral = key[3:]
+                        try:
+                            result["si_series"].setdefault(mineral, []).append(float(raw))
+                        except (TypeError, ValueError):
+                            continue
+
+                    result["success"] = True
+                    return result
+
+            except FileNotFoundError:
+                result["error_message"] = f"PHREEQC executable not found: {config.phreeqc_executable}"
+                return result
+            except subprocess.CalledProcessError as exc:
+                stderr = exc.stderr.decode("utf-8", errors="ignore") if exc.stderr else ""
+                result["error_message"] = f"PHREEQC subprocess failed: {stderr.strip()}"
+                return result
+            except Exception as e:
+                result["error_message"] = f"Subprocess error: {str(e)}"
+                return result
 
     except Exception as e:
+
         result["error_message"] = f"Error building kinetic input: {str(e)}"
 
     return result

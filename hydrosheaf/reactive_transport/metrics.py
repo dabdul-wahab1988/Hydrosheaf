@@ -292,3 +292,34 @@ def compute_reaction_rate_from_extent(
         return 0.0
 
     return extent_mmol_L / residence_time_days
+
+
+def compute_damkohler_number(
+    rate_tst: float, residence_time_days: float, concentration_eq: float
+) -> float:
+    """
+    Compute Damköhler number (Da) to assess equilibrium validity.
+
+    Parameters
+    ----------
+    rate_tst : float
+        Theoretical TST rate (mmol/L/day) at far-from-equilibrium conditions.
+    residence_time_days : float
+        Residence time (days).
+    concentration_eq : float
+        Equilibrium concentration or characteristic scale (mmol/L).
+
+    Returns
+    -------
+    float
+        Da = (R_TST * tau) / C_eq
+
+    Interpretation
+    --------------
+    Da >> 1: Reaction is fast relative to transport (Equilibrium assumption valid).
+    Da << 1: Reaction is kinetically limited (Equilibrium assumption invalid).
+    """
+    if concentration_eq <= 0:
+        return float("inf") if rate_tst > 0 else 0.0
+    return (rate_tst * residence_time_days) / concentration_eq
+

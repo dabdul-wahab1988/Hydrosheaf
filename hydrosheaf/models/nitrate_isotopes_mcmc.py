@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 
 import numpy as np
+import sys
 
 from .nitrate_isotopes import IsotopeSample, SourceIsotopes
 
@@ -151,6 +152,11 @@ def run_mcmc_mixing(
 
         # Sample
         try:
+            # On Windows + MKL, default threading settings can cause crashes.
+            # We explicitly disable BLAS thread limiting on Windows to prevent this.
+            blas_cores = None if sys.platform.startswith("win") else "auto"
+            cores = 1 if sys.platform.startswith("win") else None
+
             trace = pm.sample(
                 draws=n_samples,
                 tune=warmup,
@@ -159,6 +165,8 @@ def run_mcmc_mixing(
                 random_seed=random_seed,
                 return_inferencedata=True,
                 progressbar=False,
+                cores=cores,
+                blas_cores=blas_cores,
             )
         except Exception as e:
             warnings_list.append(f"Sampling error: {str(e)}")

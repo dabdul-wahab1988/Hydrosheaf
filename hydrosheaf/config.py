@@ -17,7 +17,13 @@ class Config:
     unit: str = "mmol/L"
     unit_mode: str = "mmol_L"
     weights: List[float] = field(default_factory=lambda: [1.0] * 10)
+    # Weights for conservative mixing (should prioritize Cl, Br, Isotopes)
+    # Default: Cl (index 4) = 1.0, others = 0.01 (small weight for stability)
+    conservative_weights: List[float] = field(
+        default_factory=lambda: [0.01, 0.01, 0.01, 0.01, 1.0, 0.01, 0.01, 0.01, 0.01, 0.01]
+    )
     lambda_sparse: float = 0.0
+
     lambda_l1: float = 0.0
     reaction_max_iter: int = 300
     reaction_tol: float = 1e-6
@@ -60,6 +66,17 @@ class Config:
     edge_map_prior_weight: float = 0.0
     edge_map_candidate_multiplier: int = 5
     edge_map_p_min: float = 0.1
+    sheaf_isotope_enabled: bool = True
+    sheaf_cl_enabled: bool = True
+    sheaf_iso_sigma_d18o: float = 0.2
+    sheaf_iso_sigma_d2h: float = 1.0
+    sheaf_weight_head_prior: float = 1.0
+    sheaf_weight_isotope: float = 1.0
+    sheaf_weight_cl: float = 0.5
+    sheaf_weight_global: float = 1.0
+    sheaf_shallow_depth_m: float = 30.0
+    sheaf_evap_gate_strength: float = 1.0
+    sheaf_max_iter: int = 3
     edge_gradient_min: float = 1e-4
     edge_head_key: str = "head_meas"
     edge_dtw_key: str = "dtw"
@@ -255,9 +272,14 @@ class Config:
             raise ValueError("unit_mode must be 'mmol_L' or 'meq_L'.")
         if len(self.weights) != len(self.ion_order):
             raise ValueError("weights must match ion_order length.")
+        if len(self.conservative_weights) != len(self.ion_order):
+            raise ValueError("conservative_weights must match ion_order length.")
         if any(w < 0 for w in self.weights):
             raise ValueError("weights must be non-negative.")
+        if any(w < 0 for w in self.conservative_weights):
+            raise ValueError("conservative_weights must be non-negative.")
         if self.lambda_sparse < 0 or self.lambda_l1 < 0:
+
             raise ValueError("lambda penalties must be non-negative.")
         if self.reaction_max_iter <= 0:
             raise ValueError("reaction_max_iter must be positive.")
@@ -299,6 +321,22 @@ class Config:
             raise ValueError("edge_map_candidate_multiplier must be at least 1.")
         if not 0.0 <= self.edge_map_p_min <= 1.0:
             raise ValueError("edge_map_p_min must be between 0 and 1.")
+        if self.sheaf_iso_sigma_d18o <= 0 or self.sheaf_iso_sigma_d2h <= 0:
+            raise ValueError("sheaf isotope sigmas must be positive.")
+        if self.sheaf_weight_head_prior < 0:
+            raise ValueError("sheaf_weight_head_prior must be non-negative.")
+        if self.sheaf_weight_isotope < 0:
+            raise ValueError("sheaf_weight_isotope must be non-negative.")
+        if self.sheaf_weight_cl < 0:
+            raise ValueError("sheaf_weight_cl must be non-negative.")
+        if self.sheaf_weight_global < 0:
+            raise ValueError("sheaf_weight_global must be non-negative.")
+        if self.sheaf_shallow_depth_m < 0:
+            raise ValueError("sheaf_shallow_depth_m must be non-negative.")
+        if self.sheaf_evap_gate_strength < 0:
+            raise ValueError("sheaf_evap_gate_strength must be non-negative.")
+        if self.sheaf_max_iter < 1:
+            raise ValueError("sheaf_max_iter must be at least 1.")
         if self.edge_gradient_min < 0:
             raise ValueError("edge_gradient_min must be non-negative.")
         if self.edge_depth_mismatch < 0:

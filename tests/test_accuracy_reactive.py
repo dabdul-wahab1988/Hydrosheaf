@@ -8,8 +8,10 @@ from hydrosheaf.reactive_transport.rate_laws import (
 from hydrosheaf.reactive_transport.metrics import (
     compute_consistency_metrics,
     check_thermodynamic_consistency,
+    compute_damkohler_number,
 )
 from hydrosheaf.reactive_transport.kinetic_phreeqc import build_kinetic_block
+
 
 
 class TestReactiveTransportAccuracy(unittest.TestCase):
@@ -156,3 +158,25 @@ class TestReactiveTransportAccuracy(unittest.TestCase):
         self.assertIn("-m0", block)  # Should calculate initial moles
         self.assertIn("-steps", block)
         self.assertIn("8.640000e+05", block)  # 10 days in seconds
+
+    def test_damkohler_number(self):
+        """
+        Test Da calculation.
+        Da = (R_TST * tau) / C_eq
+        """
+        # Case 1: Fast reaction (Da >> 1)
+        r_tst = 1.0  # mmol/L/day
+        tau = 100.0  # days
+        c_eq = 2.0   # mmol/L
+        da = compute_damkohler_number(r_tst, tau, c_eq)
+        self.assertAlmostEqual(da, 50.0)
+        self.assertTrue(da > 1.0)  # Equilibrium valid
+
+        # Case 2: Slow reaction (Da << 1)
+        r_tst = 0.001
+        tau = 10.0
+        c_eq = 5.0
+        da = compute_damkohler_number(r_tst, tau, c_eq)
+        self.assertAlmostEqual(da, 0.002)
+        self.assertTrue(da < 1.0)  # Kinetic control
+

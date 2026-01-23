@@ -12,20 +12,28 @@ from .definitions import AdjustableParameter, Observation
 
 @dataclass
 class CalibrationConfig:
-    problem_type: str  # "kinetic", "transport", "vadose"
+    problem_type: str  # "kinetic", "transport", "vadose", "composite"
     n_workers: int = 1
     max_nfev: int = 50
     output_dir: str = "calibration_results"
+    
+    # Engine configuration
+    engine: str = "internal"  # "internal" (PESTGLM), "pestpp-glm", "pestpp-ies"
+    work_dir: Optional[str] = None # Workspace for PEST++ files
+    ies_settings: Dict[str, Any] = field(default_factory=dict) # IES specific settings (n_ensemble, etc)
 
-    # Generic Parameter Definitions
+    # Generic Parameter Definitions (for simple/generic problems)
     parameters: List[AdjustableParameter] = field(default_factory=list)
 
     # File paths for specific adapters
     observations_file: Optional[str] = None
     model_config_file: Optional[str] = None  # e.g. vadose_profile.json
-
-    # Model specific settings
+    
+    # Model specific settings (single model)
     adapter_settings: Dict[str, Any] = field(default_factory=dict)
+    
+    # Composite configuration (list of model definitions)
+    sub_models: List[Dict[str, Any]] = field(default_factory=list)
 
 
 def load_calibration_config(path: str) -> CalibrationConfig:
@@ -33,20 +41,23 @@ def load_calibration_config(path: str) -> CalibrationConfig:
         data = yaml.safe_load(f)
 
     cal_section = data.get("calibration", data)
+    settings = cal_section.get("settings", {})
 
     config = CalibrationConfig(
         problem_type=cal_section.get("type", "generic"),
-        n_workers=cal_section.get("settings", {}).get("n_workers", 1),
-        max_nfev=cal_section.get("settings", {}).get("max_iterations", 50),
-        output_dir=cal_section.get("settings", {}).get(
-            "output_dir", "calibration_results"
-        ),
+        n_workers=settings.get("n_workers", 1),
+        max_nfev=settings.get("max_iterations", 50),
+        output_dir=settings.get("output_dir", "calibration_results"),
+        engine=settings.get("engine", "internal"),
+        work_dir=settings.get("work_dir"),
+        ies_settings=settings.get("ies", {}),
         observations_file=cal_section.get("observations", {}).get("file"),
         model_config_file=cal_section.get("model", {}).get("config_file"),
         adapter_settings=cal_section.get("model", {}),
+        sub_models=cal_section.get("sub_models", [])
     )
 
-    # Parse Parameters
+    # Parse Parameters (Global/Generic)
     for p_def in cal_section.get("parameters", []):
         config.parameters.append(
             AdjustableParameter(
@@ -61,6 +72,7 @@ def load_calibration_config(path: str) -> CalibrationConfig:
         )
 
     return config
+
 
 
 def load_observations_from_csv(path: str) -> List[Observation]:
