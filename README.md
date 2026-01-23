@@ -305,6 +305,7 @@ edges = [
 For comprehensive reference, see:
 
 - **[HYDROSHEAF_USER_MANUAL.md](HYDROSHEAF_USER_MANUAL.md)**: Complete technical reference for all modules and functions (v0.1.0)
+- **[DEVELOPMENT.md](DEVELOPMENT.md)**: For developers and contributors (building from source, running tests, contributing)
 - **[Technical Document (PDF)](hydrosheaf_technical_document.pdf)**: Mathematical theory and proofs
 - **[User Guide](docs/USER_GUIDE.md)**: Extended usage instructions and workflows
 - **[Mathematical Reference](docs/math.md)**: Compact math notes aligned with the codebase

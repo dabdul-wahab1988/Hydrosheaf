@@ -72,3 +72,5 @@ hydrosheaf_technical_document.bak25
 hydrosheaf_technical_document.bak26
 hydrosheaf_technical_document.log
 hydrosheaf_technical_document.out
+# Build scripts (for developers only, see DEVELOPMENT.md)
+compile_pestpp.bat
