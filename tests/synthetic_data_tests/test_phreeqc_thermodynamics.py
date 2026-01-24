@@ -21,7 +21,7 @@ except ImportError:
     except ImportError:
         PHREEQC_INSTALLED = False
 
-SYNTHETIC_DIR = Path(__file__).parents[2] / "hydrosheaf_synthetic_csv"
+SYNTHETIC_DIR = Path(__file__).parents[2] / "data/synthetic"
 
 
 class PhreeqcThermodynamicsTests(unittest.TestCase):

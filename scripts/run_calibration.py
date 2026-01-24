@@ -16,7 +16,7 @@ from typing import Dict, Any, List, Tuple
 from pathlib import Path
 
 # Add project root to path
-sys.path.insert(0, os.path.abspath("."))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from hydrosheaf.config import Config
 from hydrosheaf.api import fit_network_pipeline
@@ -32,7 +32,7 @@ def load_data_and_setup_problem() -> (
     """Load data and define calibration problem."""
 
     # 1. Load Data
-    data_dir = Path("hydrosheaf_synthetic_csv")
+    data_dir = Path(__file__).parent.parent / "data/synthetic"
     water_chem = pd.read_csv(data_dir / "water_chem_full.csv")
     water_chem["collection_date"] = pd.to_datetime(water_chem["collection_date"])
 

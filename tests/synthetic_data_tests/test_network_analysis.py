@@ -7,7 +7,7 @@ from hydrosheaf.inference.network_fit import fit_network
 from hydrosheaf.data.units import mgL_to_mmolL
 from hydrosheaf.graph.types import Edge
 
-SYNTHETIC_DIR = Path(__file__).parents[2] / "hydrosheaf_synthetic_csv"
+SYNTHETIC_DIR = Path(__file__).parents[2] / "data/synthetic"
 
 
 class NetworkAnalysisTests(unittest.TestCase):

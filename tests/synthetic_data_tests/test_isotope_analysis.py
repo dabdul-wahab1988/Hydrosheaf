@@ -9,7 +9,7 @@ from hydrosheaf.data.units import mgL_to_mmolL
 from hydrosheaf.data.schema import vector_from_sample
 from hydrosheaf.graph.types import Edge
 
-SYNTHETIC_DIR = Path(__file__).parents[2] / "hydrosheaf_synthetic_csv"
+SYNTHETIC_DIR = Path(__file__).parents[2] / "data/synthetic"
 
 
 class IsotopeAnalysisTests(unittest.TestCase):

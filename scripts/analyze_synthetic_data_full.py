@@ -22,7 +22,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # Add hydrosheaf to path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from hydrosheaf import (
     Config,
@@ -1340,7 +1340,7 @@ def main():
 
     # Setup paths
     base_dir = Path(__file__).parent
-    data_dir = base_dir / "hydrosheaf_synthetic_csv"
+    data_dir = base_dir / "../data/synthetic"
     output_dir = setup_output_directory(base_dir)
 
     print(f"\nOutput directory: {output_dir}")

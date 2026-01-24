@@ -17,7 +17,7 @@ from pathlib import Path
 import sys
 
 # Add hydrosheaf to path if needed
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from hydrosheaf import (
     Config,
@@ -382,7 +382,7 @@ def main():
     print("=" * 60)
 
     # Data directory
-    data_dir = Path(__file__).parent / "hydrosheaf_synthetic_csv"
+    data_dir = Path(__file__).parent / "../data/synthetic"
 
     # Load data
     data = load_synthetic_data(data_dir)

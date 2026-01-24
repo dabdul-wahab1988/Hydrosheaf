@@ -9,7 +9,7 @@ from hydrosheaf.nitrate_source_v2 import (
 )
 from hydrosheaf.data.units import mgL_to_mmolL
 
-SYNTHETIC_DIR = Path(__file__).parents[2] / "hydrosheaf_synthetic_csv"
+SYNTHETIC_DIR = Path(__file__).parents[2] / "data/synthetic"
 
 
 class NitrateDiscriminationTests(unittest.TestCase):

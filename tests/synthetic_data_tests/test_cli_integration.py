@@ -7,7 +7,7 @@ import tempfile
 import os
 import pandas as pd
 
-SYNTHETIC_DIR = Path(__file__).parents[2] / "hydrosheaf_synthetic_csv"
+SYNTHETIC_DIR = Path(__file__).parents[2] / "data/synthetic"
 
 
 class CLIIntegrationTests(unittest.TestCase):
