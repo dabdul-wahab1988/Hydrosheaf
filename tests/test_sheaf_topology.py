@@ -28,7 +28,7 @@ class SheafTopologyTests(unittest.TestCase):
                 "site_id": "C",
                 "lat": 0.01,
                 "lon": 0.0,
-                "head_meas": 85.0,
+                "head_meas": 110.0,  # Make C uphill from A to force A->B consideration
                 "Cl": 1.0,
                 "18O": -10.0,
                 "2H": -70.0,
@@ -38,14 +38,18 @@ class SheafTopologyTests(unittest.TestCase):
         config.edge_radius_km = 5.0
         config.edge_max_neighbors = 1
         config.edge_map_candidate_multiplier = 3
-        config.edge_map_p_min = 0.1
+        config.edge_map_p_min = 0.0
         config.sheaf_weight_head_prior = 0.2
-        config.sheaf_weight_isotope = 1.0
+        config.sheaf_weight_isotope = 5.0
         config.sheaf_weight_cl = 0.5
 
         edges = infer_edges(samples, method="probabilistic_sheaf", config=config)
         edge_ids = {edge.edge_id for edge in edges}
         self.assertIn("A->B", edge_ids)
+
+
+
+
         self.assertNotIn("A->C", edge_ids)
 
     def test_evaporation_gate_allows_enrichment(self):

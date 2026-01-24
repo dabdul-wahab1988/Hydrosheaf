@@ -28,6 +28,9 @@ class RegressionSmallNetworkTests(unittest.TestCase):
             expected["transport_residual_norm"],
             places=6,
         )
+
+
+
         self.assertAlmostEqual(result.anomaly_norm, expected["anomaly_norm"], places=6)
         self.assertAlmostEqual(
             result.objective_score, expected["objective_score"], places=6
