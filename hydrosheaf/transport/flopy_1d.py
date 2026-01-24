@@ -33,6 +33,9 @@ except ImportError:
     flopy = None
     FLOPY_AVAILABLE = False
 
+from .binaries import get_executable_path
+
+
 
 @dataclass
 class TransportResult:
@@ -173,7 +176,8 @@ def build_1d_transport_model(
     steady = [False] * nper
 
     # --- Build MODFLOW model ---
-    mf = Modflow(model_name, exe_name="mf2005", model_ws=str(ws_path))
+    mf_exe = get_executable_path("mf2005")
+    mf = Modflow(model_name, exe_name=mf_exe, model_ws=str(ws_path))
 
     # Discretization
     _dis = ModflowDis(
@@ -222,10 +226,11 @@ def build_1d_transport_model(
     _lmt = ModflowLmt(mf)
 
     # --- Build MT3DMS model ---
+    mt_exe = get_executable_path("mt3dms")
     mt = Mt3dms(
         modelname=model_name,
         model_ws=str(ws_path),
-        exe_name="mt3dms",
+        exe_name=mt_exe,
         modflowmodel=mf,
     )
 

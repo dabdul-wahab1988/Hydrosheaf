@@ -66,19 +66,15 @@ pip install .[all]
 pip install pymc>=5.0 arviz>=0.15
 ```
 
-**For PEST++ Calibration (if you want to compile locally):**
-The repo includes PEST++ source code in `pestpp/`. To compile:
-```bash
-# Windows (requires Visual Studio 2022 Build Tools + CMake + Ninja)
-compile_pestpp.bat
+**For PEST++ Calibration (Auto-handled):**
+Hydrosheaf now automatically manages external dependencies for advanced calibration.
+When you run a calibration routine that requires PEST++, MODFLOW, or MT3DMS, the necessary binaries will be **automatically downloaded** and configured for your operating system (Windows, Linux, or macOS).
 
-# Or use the USGS pre-compiled binaries instead (recommended for most users)
-# Download from: https://github.com/usgs/pestpp/releases
-```
+No manual compilation or download is required.
 
-**Note:** Most users can skip PEST++ compilation and use either:
-1. **Pre-compiled PEST++ binaries** (from USGS releases)
-2. **Hydrosheaf's core inverse modeling** (which works without PEST++)
+**Note:**
+1. **Core inverse modeling** works entirely within Python and needs no external tools.
+2. **Advanced calibration** (using PEST++) triggers the auto-download on first use.
 
 ### Web Application
 
@@ -153,7 +149,7 @@ Open your browser and navigate to `http://localhost:5173` to access the Hydroshe
 
 ## Quick Start
 
-### ✅ Works Out-of-the-Box (No Compilation Needed)
+### ✅ Works Out-of-the-Box
 
 When you do `pip install .`, you get **full functionality** for:
 - Core inverse geochemical modeling (transport + reactions)
@@ -164,6 +160,7 @@ When you do `pip install .`, you get **full functionality** for:
 - 3D flow networks
 - Temporal dynamics and residence time estimation
 - Uncertainty quantification (Bootstrap, MCMC)
+- **Advanced Calibration (PEST++)**: Binaries are auto-downloaded when needed.
 
 **This is sufficient for 95% of use cases!**
 
@@ -196,9 +193,9 @@ for edge_result in results:
     print(f"  Reaction extents: {edge_result.z_extents}")
 ```
 
-### ⚙️ Optional: Compilation for Advanced Features
+### ⚙️ Optional: Manual Compilation
 
-**Only needed if you want PEST++ calibration on your machine:**
+**Only needed if you want to modify PEST++ source code:**
 
 #### System Requirements for Compilation
 - Windows 10+ with Visual Studio 2022 Build Tools
@@ -207,19 +204,9 @@ for edge_result in results:
 
 #### Build PEST++
 ```bash
-# Compile from source (usually NOT necessary)
+# Compile from source (NOT necessary for standard usage)
 compile_pestpp.bat
-
-# Or download pre-compiled binaries (RECOMMENDED)
-# From: https://github.com/usgs/pestpp/releases
-# Extract to bin/ or add to PATH
 ```
-
-#### Alternative: Use Without Local Compilation
-Most users don't need to compile PEST++:
-1. Use Hydrosheaf's core inverse modeling (which doesn't need PEST++)
-2. Or download PEST++ pre-built binaries from USGS
-3. Config will auto-detect available tools
 
 ### Configuration
 

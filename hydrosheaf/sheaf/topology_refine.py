@@ -5,16 +5,20 @@ import math
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from ..config import Config
-from ..data.schema import parse_numeric
+from ..data.schema import parse_numeric, vector_from_sample
 from ..graph.types import Edge
 from ..isotopes import extract_isotopes, isotope_penalty
+from .directed_section import (
+    build_edge_maps,
+    compute_edge_section_residuals,
+    solve_directed_section,
+)
 from .isotope_metrics import (
     IsotopeStats,
     compute_evaporation_probability,
     compute_isotope_stats,
     sample_depth_m,
 )
-from .solve import compute_edge_residuals, solve_isotope_field
 
 
 @dataclass
@@ -191,6 +195,22 @@ def _build_node_info(
     return node_info
 
 
+def _build_node_vectors(
+    sample_map: Mapping[str, Mapping[str, object]],
+    config: Config,
+) -> Dict[str, Optional[List[float]]]:
+    node_vectors: Dict[str, Optional[List[float]]] = {}
+    for node_id, sample in sample_map.items():
+        values, _ = vector_from_sample(
+            sample,
+            config.ion_order,
+            config.missing_policy,
+            config.detection_limit_policy,
+        )
+        node_vectors[node_id] = values
+    return node_vectors
+
+
 def _score_candidates(
     candidates: Iterable[Edge],
     node_info: Mapping[str, NodeIsotopeInfo],
@@ -288,38 +308,51 @@ def refine_edges_with_sheaf(
 
     global_weight = float(getattr(config, "sheaf_weight_global", 1.0))
     max_iter = int(getattr(config, "sheaf_max_iter", 3))
-    sigma_d18o = float(getattr(config, "sheaf_iso_sigma_d18o", 0.2))
-    sigma_d2h = float(getattr(config, "sheaf_iso_sigma_d2h", 1.0))
 
-    has_isotopes = any(
-        info.d18o is not None and info.d2h is not None
-        for info in node_info.values()
+    node_vectors = _build_node_vectors(sample_map, config)
+    node_ids = list(
+        {node_id for node_id in node_vectors}
+        | {edge.u for edge in candidate_list}
+        | {edge.v for edge in candidate_list}
     )
-    node_estimates: Dict[str, Tuple[float, float]] = {}
 
-    for _ in range(max_iter if has_isotopes else 0):
-        edge_weights: Dict[str, float] = {}
-        for edge in selected:
-            score_obj = scores.get(edge.edge_id)
-            if score_obj is None:
-                continue
-            weight = max(0.0, 1.0 - score_obj.pi_evap)
-            weight = weight / (1.0 + score_obj.cons_cost)
-            edge_weights[edge.edge_id] = weight
+    has_chemistry = any(values is not None for values in node_vectors.values())
+    node_estimates: Dict[str, List[float]] = {
+        node_id: values
+        for node_id, values in node_vectors.items()
+        if values is not None
+    }
 
-        node_obs = {
-            node_id: (info.d18o, info.d2h) for node_id, info in node_info.items()
-        }
-        node_estimates = solve_isotope_field(
-            node_info.keys(),
-            selected,
-            node_obs,
-            edge_weights,
+    for _ in range(max_iter if has_chemistry else 0):
+        edge_maps = build_edge_maps(
+            candidate_list,
+            node_estimates,
+            config,
+            prior_weight=float(getattr(config, "sheaf_weight_head_prior", 1.0)),
+        )
+        if not edge_maps:
+            break
+
+        selected_maps = [edge_maps[e.edge_id] for e in selected if e.edge_id in edge_maps]
+        if not selected_maps:
+            break
+
+        node_estimates = solve_directed_section(
+            node_ids,
+            selected_maps,
+            node_vectors,
             obs_weight=1.0,
             diag_eps=1e-6,
         )
-        residuals = compute_edge_residuals(
-            candidate_list, node_estimates, sigma_d18o, sigma_d2h
+
+        edge_maps = build_edge_maps(
+            candidate_list,
+            node_estimates,
+            config,
+            prior_weight=float(getattr(config, "sheaf_weight_head_prior", 1.0)),
+        )
+        residuals = compute_edge_section_residuals(
+            edge_maps, node_estimates, config.weights
         )
 
         updated = _select_by_score(
@@ -331,9 +364,15 @@ def refine_edges_with_sheaf(
         selected = updated
 
     final_residuals: Dict[str, float] = {}
-    if has_isotopes and node_estimates:
-        final_residuals = compute_edge_residuals(
-            selected, node_estimates, sigma_d18o, sigma_d2h
+    if has_chemistry and node_estimates:
+        edge_maps = build_edge_maps(
+            selected,
+            node_estimates,
+            config,
+            prior_weight=float(getattr(config, "sheaf_weight_head_prior", 1.0)),
+        )
+        final_residuals = compute_edge_section_residuals(
+            edge_maps, node_estimates, config.weights
         )
 
     for edge in selected:
