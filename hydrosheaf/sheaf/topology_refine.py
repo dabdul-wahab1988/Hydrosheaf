@@ -5,7 +5,11 @@ import math
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from ..config import Config
+from ..log import get_logger
 from ..data.schema import parse_numeric, vector_from_sample
+
+logger = get_logger("sheaf.topology_refine")
+
 from ..graph.types import Edge
 from ..isotopes import extract_isotopes, isotope_penalty
 from .directed_section import (
@@ -266,6 +270,7 @@ def _select_by_score(
     max_neighbors: int,
     global_residuals: Optional[Mapping[str, float]] = None,
     global_weight: float = 0.0,
+    soft_beta: float = 2.0,
 ) -> List[Edge]:
     selected: List[Edge] = []
     for _, edge_ids in candidate_groups.items():
@@ -279,9 +284,33 @@ def _select_by_score(
                 residual = float(global_residuals.get(edge_id, 0.0))
             total = score_obj.local_score + global_weight * residual
             scored.append((total, score_obj.edge))
-        scored.sort(key=lambda item: item[0])
-        for _, edge in scored[: max_neighbors or 0]:
-            selected.append(edge)
+        
+        if not scored:
+            continue
+
+        # Softmax weighting (lower score is better)
+        # We negate scores and multiply by beta (sharpness)
+        vals = [-s * soft_beta for s, _ in scored]
+        max_val = max(vals)
+        exps = [math.exp(v - max_val) for v in vals]
+        sum_exps = sum(exps)
+        
+        for (score, edge), weight_factor in zip(scored, exps):
+            # Normalized weight
+            prob = weight_factor / sum_exps if sum_exps > 0 else 0.0
+            
+            # Update edge attributes for the solver
+            attrs = edge.attrs or {}
+            attrs["sheaf_weight"] = prob
+            # Update edge_confidence so build_edge_maps uses it naturally
+            attrs["edge_confidence"] = prob
+            edge.attrs = attrs
+            
+            # Keep edge if it has significant weight or if we want to keep all
+            # Pruning very small weights helps performance
+            if prob > 0.001:
+                selected.append(edge)
+
     return selected
 
 
@@ -304,7 +333,15 @@ def refine_edges_with_sheaf(
         grouped.setdefault(edge.u, []).append(edge.edge_id)
 
     max_neighbors = int(getattr(config, "edge_max_neighbors", 1))
-    selected = _select_by_score(scores, grouped, max_neighbors)
+    # Higher beta means sharper selection (closer to argmax)
+    soft_beta = float(getattr(config, "sheaf_soft_beta", 2.0))
+
+    selected = _select_by_score(
+        scores, 
+        grouped, 
+        max_neighbors, 
+        soft_beta=soft_beta
+    )
 
     global_weight = float(getattr(config, "sheaf_weight_global", 1.0))
     max_iter = int(getattr(config, "sheaf_max_iter", 3))
@@ -323,17 +360,21 @@ def refine_edges_with_sheaf(
         if values is not None
     }
 
-    for _ in range(max_iter if has_chemistry else 0):
+    for iter_idx in range(max_iter if has_chemistry else 0):
+        logger.info(f"Sheaf Refinement Iteration {iter_idx + 1}/{max_iter}")
         edge_maps = build_edge_maps(
-            candidate_list,
+            candidate_list, # Always use all candidates for building map potential
             node_estimates,
             config,
             prior_weight=float(getattr(config, "sheaf_weight_head_prior", 1.0)),
         )
         if not edge_maps:
             break
-
-        selected_maps = [edge_maps[e.edge_id] for e in selected if e.edge_id in edge_maps]
+            
+        # Filter edge_maps by 'selected' logic (which now contains all weighted edges > 0.001)
+        selected_ids = {e.edge_id for e in selected}
+        selected_maps = [m for eid, m in edge_maps.items() if eid in selected_ids]
+        
         if not selected_maps:
             break
 
@@ -344,6 +385,15 @@ def refine_edges_with_sheaf(
             obs_weight=1.0,
             diag_eps=1e-6,
         )
+        
+        # Log global residual energy for tracking convergence
+        current_energy = sum(
+            (node_estimates[nid][d] - (val[d] if val else 0.0))**2 
+            for nid, val in node_vectors.items() 
+            if val is not None
+            for d in range(len(val))
+        )
+        logger.science(f"Iter {iter_idx+1}: Global Section Energy = {current_energy:.4f}")
 
         edge_maps = build_edge_maps(
             candidate_list,
@@ -356,11 +406,14 @@ def refine_edges_with_sheaf(
         )
 
         updated = _select_by_score(
-            scores, grouped, max_neighbors, residuals, global_weight
+            scores, 
+            grouped, 
+            max_neighbors, 
+            residuals, 
+            global_weight,
+            soft_beta=soft_beta
         )
-        if {edge.edge_id for edge in updated} == {edge.edge_id for edge in selected}:
-            selected = updated
-            break
+        
         selected = updated
 
     final_residuals: Dict[str, float] = {}

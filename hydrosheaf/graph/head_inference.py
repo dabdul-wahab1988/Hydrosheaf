@@ -19,10 +19,18 @@ precision-matrix solve (no PyMC required).
 from __future__ import annotations
 
 from dataclasses import dataclass
+
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
+import pymc as pm
+import sys
+import os
 
+if sys.platform == "win32":
+    # Fix for PyMC/MKL crash on Windows (Heap Corruption)
+    # Must be set before pymc/numpy BLAS initialization
+    os.environ["MKL_THREADING_LAYER"] = "GNU"
 
 @dataclass(frozen=True)
 class HeadPosterior:
@@ -221,39 +229,11 @@ def infer_heads_bayesian_mcmc(
     when PyMC is available. If PyMC import fails, this uses
     infer_heads_bayesian_linear instead.
     """
-    try:
-        import sys
-        # On Windows, PyMC/ArviZ/Dask stack can cause Access Violations/Heap Corruption.
-        # Since our model is Linear-Gaussian, the exact linear solver is preferred and stable.
-        if sys.platform == "win32":
-            raise ImportError("PyMC MCMC is unstable on Windows; falling back to exact Linear solver.")
-
-        import pymc as pm  # type: ignore
-        if sys.platform == "win32":
-            # Fix for PyMC/MKL crash on Windows (Heap Corruption)
-            # Must be set before pymc/numpy BLAS initialization
-            import os
-            os.environ["MKL_THREADING_LAYER"] = "GNU"
-    except Exception:
-        return infer_heads_bayesian_linear(
-            samples,
-            node_id_key=node_id_key,
-            head_key=head_key,
-            dtw_key=dtw_key,
-            elevation_key=elevation_key,
-            sigma_meas=sigma_meas,
-            sigma_dtw=sigma_dtw,
-            sigma_elev=sigma_elev,
-            sigma_topo=sigma_topo,
-            dtw_prior_mu=dtw_prior_mu,
-            dtw_prior_sigma=dtw_prior_sigma,
-            head_prior_mu=head_prior_mu,
-            head_prior_sigma=head_prior_sigma,
-        )
-
     # Force single core on Windows to avoid multiprocessing crashes (0xc0000374)
     if sys.platform == "win32":
         cores = 1
+
+
 
     # Build a consistent node list and observation arrays
     node_ids: List[str] = []

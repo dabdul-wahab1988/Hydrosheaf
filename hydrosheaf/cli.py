@@ -7,6 +7,7 @@ import yaml
 from typing import Any, Dict, Iterable, List, Mapping, Optional, cast
 
 from .config import Config, DEFAULT_ION_ORDER
+from .log import setup_logging, get_logger
 from .data.endmembers import load_endmembers_json
 from .data.minerals import MINERAL_LIBRARY
 from .data.schema import build_endmember_vectors, normalize_samples
@@ -1035,6 +1036,10 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+
+    setup_logging(verbose=args.verbose, log_file=args.log_file)
+    logger = get_logger("cli")
+    logger.info(f"Hydrosheaf CLI started. Arguments: {vars(args)}")
 
     if args.list_minerals:
         print("Available Minerals in Library:")

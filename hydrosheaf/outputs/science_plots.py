@@ -9,19 +9,17 @@ This module provides publication-quality figures for:
 
 from typing import List, Optional
 import numpy as np
-
-try:
-    import matplotlib.pyplot as plt
-    import scipy.stats as stats
-except ImportError:
-    plt = None
+import matplotlib.pyplot as plt
+import scipy.stats as stats
 
 from ..inference.edge_fit import EdgeResult
 
 
+
+
 def _check_mpl():
-    if plt is None:
-        raise ImportError("matplotlib and scipy are required for scientific plotting.")
+    pass
+
 
 
 def plot_ttd_kernel(
@@ -31,9 +29,9 @@ def plot_ttd_kernel(
 
     Visualizes the probability density of travel times for edges with temporal data.
     """
-    _check_mpl()
-
     # Filter for edges with temporal TTD data
+
+
     valid_edges = [
         r
         for r in edge_results
@@ -88,9 +86,9 @@ def plot_breakthrough(
     Shows how the input signal (Upstream) is smoothed and delayed to match the
     output signal (Downstream).
     """
-    _check_mpl()
-
     # Filter for edges with temporal TTD data
+
+
     valid_edges = [
         r
         for r in edge_results
@@ -156,9 +154,9 @@ def plot_posterior_ridges(
         edge_result: The edge result containing uncertainty samples.
         param_type: 'extents' (reaction rates) or 'transport' (gamma/f).
     """
-    _check_mpl()
-
     if not edge_result.uncertainty or not edge_result.uncertainty.extents_samples:
+
+
         print(f"Warning: No Bayesian samples found for edge {edge_result.edge_id}")
         return
 
@@ -248,9 +246,9 @@ def plot_reactive_transport_validation(
     edge_results: List[EdgeResult], path: Optional[str] = None
 ) -> None:
     """Plot modeled vs observed concentrations from forward RT validation."""
-    _check_mpl()
-
     # Filter validated edges
+
+
     valid_edges = [
         r
         for r in edge_results

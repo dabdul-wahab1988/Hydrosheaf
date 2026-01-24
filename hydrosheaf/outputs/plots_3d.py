@@ -4,8 +4,11 @@
 
 from typing import Dict, List, Optional, Tuple, Union
 import logging
+import pyvista as pv
+import numpy as np
 
 from ..graph3d.types_3d import Network3D, Node3D, Edge3D
+
 from ..graph.types import Edge
 
 logger = logging.getLogger(__name__)

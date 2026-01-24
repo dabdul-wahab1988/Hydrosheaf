@@ -10,19 +10,10 @@ from typing import Dict, List, Optional, Any
 
 import numpy as np
 import sys
+import pymc as pm
+import arviz as az
 
 from .nitrate_isotopes import IsotopeSample, SourceIsotopes
-
-# Try to import PyMC and ArviZ
-try:
-    import pymc as pm
-    import arviz as az
-
-    PYMC_AVAILABLE = True
-except ImportError:
-    pm = None
-    az = None
-    PYMC_AVAILABLE = False
 
 
 @dataclass
@@ -54,12 +45,8 @@ class MCMCMixingResult:
     warnings: List[str] = field(default_factory=list)
 
 
-def check_pymc_available() -> bool:
-    """Check if PyMC is available for MCMC sampling."""
-    return PYMC_AVAILABLE
-
-
 def run_mcmc_mixing(
+
     sample: IsotopeSample,
     sources: List[SourceIsotopes],
     n_samples: int = 2000,
@@ -105,14 +92,9 @@ def run_mcmc_mixing(
     MCMCMixingResult
         MCMC results with posterior samples and diagnostics
     """
-    if not PYMC_AVAILABLE:
-        raise ImportError(
-            "PyMC is required for MCMC isotope mixing. "
-            "Install with: pip install pymc>=5.0 arviz>=0.15"
-        )
-
     if len(sources) < 2:
         raise ValueError("At least 2 sources required for mixing model.")
+
 
     n_sources = len(sources)
     source_names = [s.name for s in sources]

@@ -4,7 +4,11 @@ import math
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence
 
 from ..config import Config
+from ..log import get_logger
 from dataclasses import replace
+
+logger = get_logger("inference.network_fit")
+
 
 from ..data.schema import normalize_sample, vector_from_sample
 from ..graph.build import (
@@ -115,9 +119,13 @@ def fit_network(
 ) -> List[EdgeResult]:
     sample_map = _sample_map(samples)
     built_edges = build_edges(edges)
+    
+    logger.info(f"Fitting network with {len(built_edges)} edges and {len(sample_map)} samples.")
 
     if config.phreeqc_enabled and phreeqc_results is None:
+        logger.info("Running global PHREEQC speciation...")
         phreeqc_results = run_phreeqc(sample_map.values(), config)
+
 
     results: List[EdgeResult] = []
     for edge in built_edges:
@@ -225,7 +233,13 @@ def fit_network(
             obs_u=sample_u_norm,
             residence_time_days=tau_edge,
         )
+        
+        # Log significant findings (Science Level)
+        if result.transport_model != "mix": # Just an example filter
+             logger.science(f"Edge {edge.edge_id}: Selected model '{result.transport_model}' (obj={result.objective_score:.4f})")
+
         result.edge_residence_time_days = tau_edge
+
 
         # Optional uncertainty quantification (per-edge)
         if getattr(config_edge, "uncertainty_method", "none") != "none":

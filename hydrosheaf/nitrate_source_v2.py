@@ -1,3 +1,4 @@
+
 import math
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,14 +13,9 @@ from .data.units import mgL_to_mmolL
 from .models import nitrate_isotopes
 from .models.nitrate_isotopes_mcmc import (
     MCMCMixingResult,
-    check_pymc_available,
     run_mcmc_mixing,
 )
-
-try:
-    import yaml  # type: ignore
-except ModuleNotFoundError:  # pragma: no cover
-    yaml = None
+import yaml
 
 # Default config path
 DEFAULT_CONFIG_PATH = Path(__file__).parent / "config" / "nitrate_source_v2.yaml"
@@ -64,14 +60,13 @@ class NitrateStats:
     alk_ratio_median: float = 0.0
     alk_ratio_mad: float = 1.0
 
-
 def load_nitrate_config(path: Path = DEFAULT_CONFIG_PATH) -> dict:
     if not path.exists():
         return {}
-    if yaml is None:
-        return {}
     with open(path, "r") as f:
         return yaml.safe_load(f)
+
+
 
 
 def _safe_log_ratio(num: float, den: float, eps: float = 1e-12) -> float:
@@ -315,8 +310,9 @@ def infer_node_posteriors(
     mcmc_warmup = 1000
 
     if config is not None:
-        mcmc_enabled = config.isotope_mcmc_enabled and check_pymc_available()
+        mcmc_enabled = config.isotope_mcmc_enabled
         mcmc_n_samples = config.isotope_mcmc_n_samples
+
         mcmc_n_chains = config.isotope_mcmc_n_chains
         mcmc_target_accept = config.isotope_mcmc_target_accept
         mcmc_warmup = config.isotope_mcmc_warmup

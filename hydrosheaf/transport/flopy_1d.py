@@ -12,28 +12,21 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 
 import numpy as np
-
-# Try to import FloPy
-try:
-    import flopy
-    from flopy.modflow import (
-        Modflow,
-        ModflowDis,
-        ModflowBas,
-        ModflowLpf,
-        ModflowWel,
-        ModflowOc,
-        ModflowPcg,
-        ModflowLmt,
-    )
-    from flopy.mt3d import Mt3dms, Mt3dBtn, Mt3dAdv, Mt3dDsp, Mt3dSsm, Mt3dGcg, Mt3dRct
-
-    FLOPY_AVAILABLE = True
-except ImportError:
-    flopy = None
-    FLOPY_AVAILABLE = False
+import flopy
+from flopy.modflow import (
+    Modflow,
+    ModflowDis,
+    ModflowBas,
+    ModflowLpf,
+    ModflowWel,
+    ModflowOc,
+    ModflowPcg,
+    ModflowLmt,
+)
+from flopy.mt3d import Mt3dms, Mt3dBtn, Mt3dAdv, Mt3dDsp, Mt3dSsm, Mt3dGcg, Mt3dRct
 
 from .binaries import get_executable_path
+
 
 
 
@@ -71,7 +64,8 @@ class TransportResult:
 
 def check_flopy_available() -> bool:
     """Check if FloPy is available for transport modeling."""
-    return FLOPY_AVAILABLE
+    return True
+
 
 
 def build_1d_transport_model(

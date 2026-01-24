@@ -11,6 +11,8 @@ from .rate_laws import (
     RATE_LAW_TEMPLATES,
     apply_temperature_correction,
 )
+import phreeqpython as pp
+
 
 
 def build_kinetic_block(
@@ -275,12 +277,11 @@ SELECTED_OUTPUT 1
         # Run PHREEQC
         if config.phreeqc_mode == "phreeqpython":
             try:
-                import phreeqpython as pp  # type: ignore[import-untyped]
-
                 phreeqc = pp.PhreeqPython(database=config.phreeqc_database)
                 output = phreeqc.run_string(input_str)
 
                 # Extract final composition
+
                 final_sol = output.selected_output()
                 if final_sol and len(final_sol) > 0:
                     final_row = final_sol.iloc[-1]

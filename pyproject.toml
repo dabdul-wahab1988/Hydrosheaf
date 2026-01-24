@@ -19,12 +19,17 @@ dependencies = [
     "matplotlib",
     "pydantic",
     "typer",
+    "flopy",
+    "seaborn",
+    "phreeqpy",
+    "pyvista",
+    "vtk",
+    "pymc",
+    "PyYAML",
 ]
 
 [project.optional-dependencies]
-plot = ["seaborn", "pyvista", "vtk"]
-phreeqc = ["phreeqpy"]
-all = ["flopy", "seaborn", "phreeqpy", "pyvista", "vtk"]
+dev = ["pytest", "black", "mypy"]
 
 [tool.setuptools.packages.find]
 include = ["hydrosheaf*"]

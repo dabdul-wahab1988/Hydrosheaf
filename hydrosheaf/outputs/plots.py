@@ -2,21 +2,22 @@
 
 from typing import List, Optional, Dict, Any, Union
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 from ..inference.edge_fit import EdgeResult
+
+
 from ..data.units import MOLAR_MASS_G_MOL, CHARGE_EQUIV
 
 
 def _ensure_dataframe(data: Union[List[Dict[str, Any]], Any]) -> Any:
     """Ensure input is a pandas DataFrame."""
-    try:
-        import pandas as pd
-    except ImportError as exc:
-        raise ImportError("pandas is required for plotting.") from exc
-
     if isinstance(data, pd.DataFrame):
         return data
     return pd.DataFrame(data)
+
+
 
 
 def _calculate_meq(df: Any) -> Any:
@@ -126,15 +127,12 @@ def classify_water_type(
 
 
 def plot_edge_anomalies(results: List[EdgeResult], path: Optional[str] = None) -> None:
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError as exc:
-        raise ImportError("matplotlib is required for plotting.") from exc
-
     edge_ids = [result.edge_id for result in results]
     values = [result.anomaly_norm for result in results]
 
     fig, ax = plt.subplots(figsize=(max(6.0, len(edge_ids) * 0.6), 4.0))
+
+
     ax.bar(edge_ids, values, color="#4C72B0")
     ax.set_xlabel("Edge")
     ax.set_ylabel("Anomaly norm")
@@ -153,13 +151,10 @@ def plot_gibbs(
     data: Union[List[Dict[str, Any]], Any], path: Optional[str] = None
 ) -> None:
     """Create Gibbs plots (TDS vs Na/(Na+Ca) and Cl/(Cl+HCO3))."""
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError as exc:
-        raise ImportError("matplotlib is required for plotting.") from exc
-
     df = _ensure_dataframe(data)
     df_meq = _calculate_meq(df)
+
+
 
     tds = df_meq["TDS"]
     # Avoid division by zero
@@ -234,13 +229,10 @@ def plot_ilr(
     data: Union[List[Dict[str, Any]], Any], path: Optional[str] = None
 ) -> None:
     """Create Isometric Log-Ratio (ILR) plot for hydrochemical facies."""
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError as exc:
-        raise ImportError("matplotlib is required for plotting.") from exc
-
     df = _ensure_dataframe(data)
     df_meq = _calculate_meq(df)
+
+
 
     # Classify water types for coloring
     df_meq["water_type"] = df_meq.apply(classify_water_type, axis=1)

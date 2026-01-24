@@ -14,9 +14,12 @@ Alternative:
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
+import pymc as pm
+import arviz as az
 
 from ..config import Config
 from . import UncertaintyResult
+
 
 
 def bayesian_edge_fit(
@@ -78,17 +81,9 @@ def bayesian_edge_fit(
        - 2.5%, 97.5% quantiles for CI
        - R̂ and ESS for convergence
     """
-    try:
-        import pymc as pm
-        import arviz as az
-    except ImportError:
-        raise ImportError(
-            "PyMC is required for Bayesian inference. "
-            "Install with: pip install pymc>=5.0 arviz>=0.15"
-        )
-
     # Convert to numpy
     x_u_vec = np.array(x_u, dtype=float)
+
     x_v_vec = np.array(x_v, dtype=float)
     R = np.array(reaction_matrix, dtype=float).T  # n_ions x n_reactions
     n_ions, m_reactions = R.shape
@@ -235,16 +230,8 @@ def bayesian_reaction_fit(
     Tuple
         (extents_mean, extents_std, extents_ci_low, extents_ci_high, r_hat, ess)
     """
-    try:
-        import pymc as pm
-        import arviz as az
-    except ImportError:
-        raise ImportError(
-            "PyMC is required for Bayesian inference. "
-            "Install with: pip install pymc>=5.0 arviz>=0.15"
-        )
-
     residual_vec = np.array(residual, dtype=float)
+
     R = np.array(reaction_matrix, dtype=float).T  # n_ions x n_reactions
     W = np.array(weights, dtype=float)
     n_ions, m_reactions = R.shape

@@ -138,12 +138,18 @@ def build_edge_maps(
     return maps
 
 
+try:
+    from scipy.optimize import nnls
+except ImportError:
+    raise ImportError("Hydrosheaf requires scipy.optimize.nnls for accurate scientific calculation.")
+
 def solve_directed_section(
     node_ids: Iterable[str],
     edge_maps: Iterable[DirectedEdgeMap],
     node_obs: Mapping[str, Optional[Sequence[float]]],
     obs_weight: float = 1.0,
     diag_eps: float = 1e-6,
+    non_negative: bool = True,
 ) -> Dict[str, List[float]]:
     nodes = list(node_ids)
     if not nodes:
@@ -202,10 +208,59 @@ def solve_directed_section(
         for i in range(n):
             mat[i, i] += diag_eps
 
-        try:
-            sol = np.linalg.solve(mat, vec)
-        except np.linalg.LinAlgError:
-            sol = np.linalg.lstsq(mat, vec, rcond=None)[0]
+        if non_negative:
+            # Strictly use scipy.optimize.nnls for scientific accuracy
+            # NNLS solves min ||Ax - b||_2. We have the normal equations Mx = y (where M = A^T A).
+            # However, `nnls` expects A and b.
+            # Since we constructed the normal equations M and vec directly for efficiency,
+            # we can't directly use standard nnls without decomposing M.
+            #
+            # BUT, to maintain strict scientific standards as requested, we should prioritize
+            # correctness over the legacy custom solver.
+            #
+            # Since standard NNLS solvers (like Lawson-Hanson in scipy) take A and b,
+            # and we have M (approx Hessian) and vec (gradient), we have two options:
+            # 1. Use a QP solver that takes H (mat) and f (vec).
+            # 2. Decompose M (Cholesky) to get A, if M is positive definite.
+            #
+            # The previous custom solver was a Coordinate Descent implementation.
+            # We will replace it with a call to scipy.optimize.nnls or equivalent that matches the task.
+            #
+            # Since we have the Normal Equations (M * x = vec), this is equivalent to minimizing
+            # 0.5 * x.T * M * x - vec.T * x s.t. x >= 0.
+            #
+            # Note: scipy.optimize.nnls solves min ||Ax - b||^2.
+            # It does NOT solve the QP form directly given H and f.
+            #
+            # However, we can use `scipy.optimize.lsq_linear` which handles bounds and can solve linear systems.
+            # Or we can use `scipy.optimize.minimize` with 'L-BFGS-B' or 'SLSQP'.
+            #
+            # Given the request for "strict accuracy", `lsq_linear` is robust.
+            # But `lsq_linear` also takes A and b for ||Ax - b||.
+            #
+            # The most direct replacement for M*x = vec subject to x >= 0 is to use `scipy.optimize.minimize`
+            # with the quadratic objective. This is slower but correct.
+            #
+            # Objective: f(x) = 0.5 * x.T * mat * x - vec.T * x
+            # Gradient:  g(x) = mat * x - vec
+            from scipy.optimize import minimize
+
+            def objective(x):
+                return 0.5 * np.dot(x, np.dot(mat, x)) - np.dot(vec, x)
+
+            def jacobian(x):
+                return np.dot(mat, x) - vec
+
+            bounds = [(0.0, None) for _ in range(n)]
+            # Use L-BFGS-B which handles bounds efficiently for large systems
+            res = minimize(objective, np.zeros(n), method='L-BFGS-B', jac=jacobian, bounds=bounds, tol=1e-8)
+            sol = res.x
+
+        else:
+            try:
+                sol = np.linalg.solve(mat, vec)
+            except np.linalg.LinAlgError:
+                sol = np.linalg.lstsq(mat, vec, rcond=None)[0]
 
         for node_id, i in idx.items():
             results[node_id][d] = float(sol[i])
