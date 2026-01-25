@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hydrosheaf"
-version = "0.1.0"
+version = "0.5.0"
 description = "Hydrogeochemical analysis and flow network fitting"
 authors = [
   { name="Hydrosheaf Team", email="info@hydrosheaf.org" },

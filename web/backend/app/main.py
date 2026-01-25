@@ -105,7 +105,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Hydrosheaf API",
     description="REST API for Hydrosheaf Groundwater Hydrogeochemistry Framework",
-    version="1.0.0",
+    version="0.5.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     lifespan=lifespan,

@@ -428,7 +428,7 @@ def run_analysis_task(job_id: str, request: AnalysisRequest):
 
         # Add metadata
         frontend_results["metadata"] = {
-            "hydrosheaf_version": "0.3.0",
+            "hydrosheaf_version": "0.5.0",
             "analysis_engine": "Hydrosheaf Core",
             "mock_data": False,
             "edges_analyzed": len(edge_results),

@@ -109,7 +109,7 @@ function Layout({ children }) {
                         </div>
                     </div>
                     <div className="version-info">
-                        <span className="version-badge">v1.0.0</span>
+                        <span className="version-badge">v0.5.0</span>
                         <span className="version-text">Sheaf-Theoretic Method</span>
                     </div>
                 </div>
