@@ -408,16 +408,7 @@ def run_analysis_task(job_id: str, request: AnalysisRequest):
         # Generate plots
         logger.info(f"Job {job_id}: Generating scientific plots...")
         try:
-            # We need the HydrosheafAdapter class itself, not just ConfigAdapter/SampleAdapter
-            # Since we didn't import it fully, we'll access generate_plots via the ConfigAdapter's module or import it
-            from ..hydrosheaf_adapter import ConfigAdapter as CA
-            
-            # Since generate_plots is a static method on ConfigAdapter (Wait, no, I added it to ConfigAdapter class? 
-            # No, I added it to the END of ConfigAdapter class in my previous edit? 
-            # Let me check where I put it. I think I added it to ConfigAdapter because I didn't see the full file.
-            # Let's check hydrosheaf_adapter.py again to be sure where generate_plots lives.)
-            
-            plot_files = CA.generate_plots(
+            plot_files = ConfigAdapter.generate_plots(
                 edge_results, 
                 hydrosheaf_samples, 
                 f"static/plots/{job_id}",

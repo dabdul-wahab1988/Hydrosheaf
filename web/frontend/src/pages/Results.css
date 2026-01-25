@@ -296,7 +296,19 @@
 }
 
 @media (max-width: 1024px) {
-    .results-layout {
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.header-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.results-layout {
         grid-template-columns: 1fr;
     }
 

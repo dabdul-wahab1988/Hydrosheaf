@@ -83,6 +83,9 @@ class ConfigAdapter:
         Generate scientific plots using the Hydrosheaf core plotting engine.
         Returns a dictionary mapping plot types to their file paths (relative to static dir).
         """
+        import logging
+        logger = logging.getLogger("hydrosheaf_adapter")
+        
         try:
             from hydrosheaf.outputs.plots import plot_ilr, plot_gibbs, plot_edge_anomalies
             from hydrosheaf.outputs.science_plots import plot_ttd_kernel, plot_breakthrough, plot_posterior_ridges
@@ -90,21 +93,30 @@ class ConfigAdapter:
             from hydrosheaf.outputs.utils import PlotConfig
             import os
             from pathlib import Path
-        except ImportError:
+        except ImportError as e:
+            logger.error(f"Failed to import plotting modules: {e}")
             return {}
 
         # Create output directory
         out_path = Path(output_dir)
-        out_path.mkdir(parents=True, exist_ok=True)
+        try:
+            out_path.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            logger.error(f"Failed to create output directory {output_dir}: {e}")
+            return {}
         
         # Prepare plot config
-        plot_cfg = PlotConfig(
-            style=config.get("plot_style", "seaborn-v0_8-whitegrid"),
-            palette=config.get("plot_palette", "colorblind"),
-            font_scale=config.get("plot_font_scale", 1.0),
-            dpi=150, # Web-friendly DPI
-            file_format="png"
-        )
+        try:
+            plot_cfg = PlotConfig(
+                style=config.get("plot_style", "seaborn-v0_8-whitegrid"),
+                palette=config.get("plot_palette", "colorblind"),
+                font_scale=config.get("plot_font_scale", 1.0),
+                dpi=150, # Web-friendly DPI
+                file_format="png"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to create PlotConfig, using default: {e}")
+            plot_cfg = PlotConfig()
 
         generated_plots = {}
 
@@ -117,7 +129,7 @@ class ConfigAdapter:
                 if filepath.exists():
                     return filename
             except Exception as e:
-                print(f"Failed to generate plot {name}: {e}")
+                logger.error(f"Failed to generate plot {name}: {e}")
             return None
 
         # 1. Standard Hydrochemistry
@@ -163,7 +175,7 @@ class ConfigAdapter:
                  z_exaggeration=config.get("vertical_anisotropy", 10.0)
              )
 
-        return generated_plots
+        return {k: v for k, v in generated_plots.items() if v is not None}
 
 
 

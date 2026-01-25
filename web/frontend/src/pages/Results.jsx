@@ -74,6 +74,27 @@ function Results() {
             fullMark: 100
         })) : []
 
+    const handleDownload = async (format) => {
+        if (!selectedJob) return
+        try {
+            const res = await fetch(`${API_BASE}/analysis/export/${selectedJob}?format=${format}`)
+            if (res.ok) {
+                const data = await res.json()
+                const blob = new Blob([data.content], { type: format === 'csv' ? 'text/csv' : 'application/json' })
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = data.filename
+                document.body.appendChild(a)
+                a.click()
+                window.URL.revokeObjectURL(url)
+                document.body.removeChild(a)
+            }
+        } catch (error) {
+            console.error('Download failed:', error)
+        }
+    }
+
     return (
         <div className="results-page">
             <header className="page-header">
@@ -83,6 +104,16 @@ function Results() {
                         View and interpret hydrogeochemical modeling outputs
                     </p>
                 </div>
+                {selectedJob && (
+                    <div className="header-actions">
+                        <button className="btn btn-secondary" onClick={() => handleDownload('json')}>
+                            📥 JSON
+                        </button>
+                        <button className="btn btn-secondary" onClick={() => handleDownload('csv')}>
+                            📥 CSV
+                        </button>
+                    </div>
+                )}
             </header>
 
             <div className="results-layout">
