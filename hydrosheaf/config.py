@@ -77,6 +77,7 @@ class Config:
     sheaf_shallow_depth_m: float = 30.0
     sheaf_evap_gate_strength: float = 1.0
     sheaf_max_iter: int = 3
+    sheaf_soft_beta: float = 1.0  # Soft selection sharpness (inverse temperature)
     edge_gradient_min: float = 1e-4
     edge_head_key: str = "head_meas"
     edge_dtw_key: str = "dtw"

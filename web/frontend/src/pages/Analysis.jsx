@@ -57,7 +57,15 @@ const initialConfig = {
     // Gibbs & Exchange
     enable_gibbs: true,
     gibbs_weight: 0.5,
-    enable_exchange: true
+    enable_exchange: true,
+
+    // Topology Refinement
+    sheaf_soft_beta: 1.0,
+
+    // Visualization
+    plot_style: 'seaborn-v0_8-whitegrid',
+    plot_palette: 'colorblind',
+    plot_font_scale: 1.0
 }
 
 // Initial state for the reducer
@@ -634,6 +642,59 @@ function Analysis() {
                             <span className="toggle-slider"></span>
                             <span className="toggle-label">Enable Ion Exchange Detection</span>
                         </label>
+                    </div>
+
+                    <div className="divider"></div>
+                    <h4 className="section-title">Topology Refinement</h4>
+                    
+                    <div className="form-group">
+                        <label className="form-label">
+                            Sheaf Soft Selection Beta: {formData.config.sheaf_soft_beta}
+                        </label>
+                        <input
+                            type="range"
+                            className="form-range"
+                            min="0.1"
+                            max="10.0"
+                            step="0.1"
+                            value={formData.config.sheaf_soft_beta}
+                            onChange={(e) => updateConfig('sheaf_soft_beta', parseFloat(e.target.value))}
+                            disabled={running}
+                        />
+                        <span className="range-hint">Controls sharpness of flow path selection (Higher = stricter)</span>
+                    </div>
+
+                    <div className="divider"></div>
+                    <h4 className="section-title">Visualization Settings</h4>
+
+                    <div className="form-group">
+                        <label className="form-label">Plot Style</label>
+                        <select
+                            className="form-select"
+                            value={formData.config.plot_style}
+                            onChange={(e) => updateConfig('plot_style', e.target.value)}
+                            disabled={running}
+                        >
+                            <option value="seaborn-v0_8-whitegrid">Seaborn Whitegrid (Clean)</option>
+                            <option value="ggplot">ggplot (Gray)</option>
+                            <option value="fivethirtyeight">FiveThirtyEight (Bold)</option>
+                            <option value="bmh">Bayesian Methods (Professional)</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">Color Palette</label>
+                        <select
+                            className="form-select"
+                            value={formData.config.plot_palette}
+                            onChange={(e) => updateConfig('plot_palette', e.target.value)}
+                            disabled={running}
+                        >
+                            <option value="colorblind">Colorblind Friendly (Accessible)</option>
+                            <option value="viridis">Viridis (Sequential)</option>
+                            <option value="plasma">Plasma (High Contrast)</option>
+                            <option value="deep">Seaborn Deep (Muted)</option>
+                        </select>
                     </div>
 
                     <div className="divider"></div>

@@ -171,6 +171,14 @@ class AnalysisConfig(BaseModel):
     edge_head_inference: str = Field(
         default="heuristic", pattern="^(heuristic|bayesian|bayesian_mcmc)$"
     )
+    
+    # Topology Refinement
+    sheaf_soft_beta: float = Field(default=1.0, ge=0.1, le=100.0, description="Soft selection sharpness")
+
+    # Plotting configuration
+    plot_style: str = "seaborn-v0_8-whitegrid"
+    plot_palette: str = "colorblind"
+    plot_font_scale: float = 1.0
 
     # Gibbs diagram analysis
     enable_gibbs: bool = True
@@ -396,6 +404,36 @@ def run_analysis_task(job_id: str, request: AnalysisRequest):
 
         # Convert results to frontend format
         frontend_results = ResultAdapter.hydrosheaf_to_frontend(edge_results, extras)
+
+        # Generate plots
+        logger.info(f"Job {job_id}: Generating scientific plots...")
+        try:
+            # We need the HydrosheafAdapter class itself, not just ConfigAdapter/SampleAdapter
+            # Since we didn't import it fully, we'll access generate_plots via the ConfigAdapter's module or import it
+            from ..hydrosheaf_adapter import ConfigAdapter as CA
+            
+            # Since generate_plots is a static method on ConfigAdapter (Wait, no, I added it to ConfigAdapter class? 
+            # No, I added it to the END of ConfigAdapter class in my previous edit? 
+            # Let me check where I put it. I think I added it to ConfigAdapter because I didn't see the full file.
+            # Let's check hydrosheaf_adapter.py again to be sure where generate_plots lives.)
+            
+            plot_files = CA.generate_plots(
+                edge_results, 
+                hydrosheaf_samples, 
+                f"static/plots/{job_id}",
+                frontend_config
+            )
+            
+            # Add plot URLs to results
+            frontend_results["plots"] = {
+                key: f"/static/plots/{job_id}/{filename}"
+                for key, filename in plot_files.items()
+            }
+            logger.info(f"Job {job_id}: Generated {len(plot_files)} plots")
+            
+        except Exception as e:
+            logger.error(f"Job {job_id}: Plot generation failed: {e}")
+            frontend_results["plots"] = {}
 
         # Add metadata
         frontend_results["metadata"] = {

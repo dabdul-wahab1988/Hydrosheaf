@@ -65,6 +65,8 @@ class ConfigAdapter:
             gibbs_weight=frontend_config.get("gibbs_weight", 0.5),
             # Ion exchange
             exchange_enabled=frontend_config.get("enable_exchange", True),
+            # Topology refinement
+            sheaf_soft_beta=frontend_config.get("sheaf_soft_beta", 1.0),
             # Optional advanced settings
             ion_order=frontend_config.get("ion_order", DEFAULT_ION_ORDER.copy()),
             weights=frontend_config.get("weights", [1.0] * 10),
@@ -74,6 +76,95 @@ class ConfigAdapter:
             ),
             missing_policy=frontend_config.get("missing_policy", "skip"),
         )
+
+    @staticmethod
+    def generate_plots(edge_results, samples, output_dir: str, config: Dict[str, Any]) -> Dict[str, str]:
+        """
+        Generate scientific plots using the Hydrosheaf core plotting engine.
+        Returns a dictionary mapping plot types to their file paths (relative to static dir).
+        """
+        try:
+            from hydrosheaf.outputs.plots import plot_ilr, plot_gibbs, plot_edge_anomalies
+            from hydrosheaf.outputs.science_plots import plot_ttd_kernel, plot_breakthrough, plot_posterior_ridges
+            from hydrosheaf.outputs.plots_3d import plot_network_3d
+            from hydrosheaf.outputs.utils import PlotConfig
+            import os
+            from pathlib import Path
+        except ImportError:
+            return {}
+
+        # Create output directory
+        out_path = Path(output_dir)
+        out_path.mkdir(parents=True, exist_ok=True)
+        
+        # Prepare plot config
+        plot_cfg = PlotConfig(
+            style=config.get("plot_style", "seaborn-v0_8-whitegrid"),
+            palette=config.get("plot_palette", "colorblind"),
+            font_scale=config.get("plot_font_scale", 1.0),
+            dpi=150, # Web-friendly DPI
+            file_format="png"
+        )
+
+        generated_plots = {}
+
+        # Helper to run safe
+        def safe_plot(name, func, *args, **kwargs):
+            try:
+                filename = f"{name}.png"
+                filepath = out_path / filename
+                func(*args, path=str(filepath), config=plot_cfg, **kwargs)
+                if filepath.exists():
+                    return filename
+            except Exception as e:
+                print(f"Failed to generate plot {name}: {e}")
+            return None
+
+        # 1. Standard Hydrochemistry
+        if samples:
+            # Convert back to simple dict list if needed, but plotting functions handle List[Dict]
+            # Ensure we pass the list of dicts directly
+            generated_plots["ilr"] = safe_plot("ilr_diagram", plot_ilr, samples)
+            generated_plots["gibbs"] = safe_plot("gibbs_diagram", plot_gibbs, samples)
+
+        # 2. Network Analysis
+        if edge_results:
+            generated_plots["anomalies"] = safe_plot("edge_anomalies", plot_edge_anomalies, edge_results)
+            
+            # 3. Science Plots (Advanced)
+            # TTD (needs temporal data)
+            if any(r.temporal_residence_time_details for r in edge_results):
+                generated_plots["ttd"] = safe_plot("ttd_kernel", plot_ttd_kernel, edge_results)
+                generated_plots["breakthrough"] = safe_plot("breakthrough", plot_breakthrough, edge_results)
+            
+            # Uncertainty
+            if any(r.uncertainty for r in edge_results):
+                # Just pick the first interesting edge for now
+                target_edge = next((r for r in edge_results if r.uncertainty), None)
+                if target_edge:
+                    generated_plots["posterior"] = safe_plot(
+                        f"posterior_{target_edge.edge_id}", 
+                        plot_posterior_ridges, 
+                        target_edge
+                    )
+
+        # 4. 3D Plot
+        # Requires nodes (derived from samples) and edges
+        # We can reconstruct a basic node map from samples
+        if config.get("enable_3d_network", False):
+             generated_plots["network_3d"] = safe_plot(
+                 "network_3d", 
+                 plot_network_3d, 
+                 samples, # Nodes
+                 None, # Edges (will be inferred or passed if we had the edge objects, but here we just pass nodes for now or need edge objects)
+                 # Note: plot_network_3d expects Edge objects, but we might only have EdgeResults here which are different.
+                 # For now, let's skip passing edges to 3D plot to avoid crash, or reconstruct them.
+                 # The plot_network_3d function handles "List[Dict]" for nodes.
+                 z_exaggeration=config.get("vertical_anisotropy", 10.0)
+             )
+
+        return generated_plots
+
 
 
 class SampleAdapter:

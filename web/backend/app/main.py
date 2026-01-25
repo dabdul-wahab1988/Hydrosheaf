@@ -130,6 +130,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files for plots
+static_dir = Path("static")
+static_dir.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Include routers
 app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
 app.include_router(network.router, prefix="/api/network", tags=["Network"])

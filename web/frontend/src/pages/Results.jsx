@@ -166,6 +166,31 @@ function Results() {
                                 </div>
                             </div>
 
+                            {/* Scientific Plots Gallery */}
+                            {results.plots && Object.keys(results.plots).length > 0 && (
+                                <div className="card mt-lg plots-gallery">
+                                    <div className="card-header">
+                                        <h3 className="card-title">Scientific Visualization</h3>
+                                        <span className="badge badge-primary">Generated</span>
+                                    </div>
+                                    <div className="plots-grid">
+                                        {Object.entries(results.plots).map(([key, url]) => (
+                                            <div key={key} className="plot-item">
+                                                <h4>{key.replace('_', ' ').toUpperCase()}</h4>
+                                                <a href={`${API_BASE}${url}`} target="_blank" rel="noopener noreferrer">
+                                                    <img 
+                                                        src={`${API_BASE}${url}`} 
+                                                        alt={`${key} plot`} 
+                                                        className="scientific-plot"
+                                                        onError={(e) => {e.target.style.display='none'}}
+                                                    />
+                                                </a>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Transport Model */}
                             <div className="card mt-lg">
                                 <div className="card-header">
