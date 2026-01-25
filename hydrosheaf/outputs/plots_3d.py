@@ -4,12 +4,10 @@
 
 from typing import Dict, List, Optional, Tuple, Union
 import logging
-import pyvista as pv
 import numpy as np
-
 from ..graph3d.types_3d import Network3D, Node3D, Edge3D
-
 from ..graph.types import Edge
+from .utils import PlotConfig
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +34,7 @@ def plot_network_3d(
     z_exaggeration: float = 10.0,
     show: bool = False,
     convert_latlon: bool = True,
+    config: Optional[PlotConfig] = None
 ):
     """
     Create 3D plot of the flow network.
@@ -54,6 +53,8 @@ def plot_network_3d(
         If True, open interactive window.
     convert_latlon : bool
         If True, attempts to convert lat/lon to local meters.
+    config: PlotConfig
+        Configuration for styling and output.
     """
     try:
         import pyvista as pv
@@ -62,6 +63,9 @@ def plot_network_3d(
         logger.warning("PyVista not installed. Skipping 3D plot.")
         print("Error: PyVista is required for 3D plotting. Install with 'pip install pyvista'.")
         return
+        
+    if config is None:
+        config = PlotConfig()
 
     # Normalize inputs
     node_map: Dict[str, Node3D] = {}
@@ -123,6 +127,8 @@ def plot_network_3d(
     if len(coords) > 1:
         span = np.max(coords, axis=0) - np.min(coords, axis=0)
         radius = max(span[0], span[1]) / 100.0
+        # Add bounds box if span is significant
+        plotter.add_bounding_box(color='black', line_width=1.0)
     else:
         radius = 10.0
     
@@ -173,8 +179,13 @@ def plot_network_3d(
         
         plotter.add_mesh(line, color=color, line_width=width)
 
+    # Enhanced Context
     plotter.add_axes()
     plotter.add_text(f"3D Flow Network (Z-Exag: {z_exaggeration}x)", font_size=10)
+    plotter.show_grid()  # Show grid lines for spatial reference
+    
+    # Add scale bar
+    plotter.add_scale_bar(title="Scale (m)", color="black")
     
     if output_path:
         plotter.screenshot(output_path)

@@ -13,25 +13,28 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 
 from ..inference.edge_fit import EdgeResult
-
-
+from .utils import PlotConfig, save_with_metadata
 
 
 def _check_mpl():
     pass
 
 
-
 def plot_ttd_kernel(
-    edge_results: List[EdgeResult], max_tau: float = 365.0, path: Optional[str] = None
+    edge_results: List[EdgeResult], 
+    max_tau: float = 365.0, 
+    path: Optional[str] = None,
+    config: Optional[PlotConfig] = None
 ) -> None:
     """Plot the Transit Time Distribution (TTD) kernel g(tau).
 
     Visualizes the probability density of travel times for edges with temporal data.
     """
+    if config is None:
+        config = PlotConfig(figsize=(10, 6))
+    config.apply()
+
     # Filter for edges with temporal TTD data
-
-
     valid_edges = [
         r
         for r in edge_results
@@ -43,10 +46,13 @@ def plot_ttd_kernel(
         print("Warning: No edges with TTD data found for plotting.")
         return
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=config.figsize)
 
     # Plot each edge's kernel
-    colors = plt.cm.viridis(np.linspace(0, 1, len(valid_edges)))
+    try:
+         colors = plt.cm.viridis(np.linspace(0, 1, len(valid_edges)))
+    except Exception:
+         colors = plt.cm.get_cmap("viridis")(np.linspace(0, 1, len(valid_edges)))
 
     for i, res in enumerate(valid_edges):
         details = res.temporal_residence_time_details
@@ -60,35 +66,40 @@ def plot_ttd_kernel(
         ax.plot(tau_grid, g, lw=2, label=label, color=colors[i], alpha=0.8)
         ax.fill_between(tau_grid, g, alpha=0.1, color=colors[i])
 
-    ax.set_xlabel("Transit Time $\\tau$ (days)", fontsize=12)
-    ax.set_ylabel("Probability Density $g(\\tau)$", fontsize=12)
-    ax.set_title("Aquifer Memory: Transit Time Distributions", fontsize=14)
+    ax.set_xlabel("Transit Time $\\tau$ (days)", fontsize=12*config.font_scale)
+    ax.set_ylabel("Probability Density $g(\\tau)$", fontsize=12*config.font_scale)
+    ax.set_title("Aquifer Memory: Transit Time Distributions", fontsize=14*config.font_scale)
     ax.set_xlim(0, max_tau)
     ax.grid(True, alpha=0.3)
 
     if len(valid_edges) < 15:
-        ax.legend(frameon=True, fontsize=9)
+        ax.legend(frameon=True, fontsize=9*config.font_scale)
 
     plt.tight_layout()
 
     if path:
-        plt.savefig(path, dpi=300)
+        save_with_metadata(fig, path, config, extra_metadata={"n_edges": len(valid_edges)})
         plt.close(fig)
     else:
         plt.show()
 
 
 def plot_breakthrough(
-    edge_results: List[EdgeResult], tracer: str = "Cl", path: Optional[str] = None
+    edge_results: List[EdgeResult], 
+    tracer: str = "Cl", 
+    path: Optional[str] = None,
+    config: Optional[PlotConfig] = None
 ) -> None:
     """Plot input vs. output breakthrough curves (convolution visualization).
 
     Shows how the input signal (Upstream) is smoothed and delayed to match the
     output signal (Downstream).
     """
+    if config is None:
+        config = PlotConfig() # Default figsize is handled per subplot logic below if needed, or overridden
+    config.apply()
+
     # Filter for edges with temporal TTD data
-
-
     valid_edges = [
         r
         for r in edge_results
@@ -102,7 +113,11 @@ def plot_breakthrough(
 
     # Limit to first few edges to avoid clutter, or create subplots
     n_plots = min(len(valid_edges), 4)
-    fig, axes = plt.subplots(n_plots, 1, figsize=(10, 3 * n_plots), sharex=False)
+    
+    # Calculate figure size based on plots
+    figsize = (config.figsize[0], 3 * n_plots)
+    
+    fig, axes = plt.subplots(n_plots, 1, figsize=figsize, sharex=False)
     if n_plots == 1:
         axes = [axes]
 
@@ -130,23 +145,26 @@ def plot_breakthrough(
         ax.plot(dates, v_series, "bo", alpha=0.5, ms=4, label="Observed (Downstream)")
         ax.plot(dates, pred_series, "r-", lw=2, label="Model (TTD Convolution)")
 
-        ax.set_title(f"Edge: {res.edge_id} ($R^2$={details.get('ttd_r2', 0):.2f})")
+        ax.set_title(f"Edge: {res.edge_id} ($R^2$={details.get('ttd_r2', 0):.2f})", fontsize=10*config.font_scale)
         ax.set_ylabel(f"Normalized {tracer}")
         ax.grid(True, alpha=0.3)
         if i == 0:
-            ax.legend(loc="best", fontsize=9)
+            ax.legend(loc="best", fontsize=9*config.font_scale)
 
     plt.tight_layout()
 
     if path:
-        plt.savefig(path, dpi=300)
+        save_with_metadata(fig, path, config, extra_metadata={"edges": [e.edge_id for e in valid_edges[:n_plots]]})
         plt.close(fig)
     else:
         plt.show()
 
 
 def plot_posterior_ridges(
-    edge_result: EdgeResult, param_type: str = "extents", path: Optional[str] = None
+    edge_result: EdgeResult, 
+    param_type: str = "extents", 
+    path: Optional[str] = None,
+    config: Optional[PlotConfig] = None
 ) -> None:
     """Plot Bayesian posterior distributions (Ridge Plot).
 
@@ -154,9 +172,11 @@ def plot_posterior_ridges(
         edge_result: The edge result containing uncertainty samples.
         param_type: 'extents' (reaction rates) or 'transport' (gamma/f).
     """
-    if not edge_result.uncertainty or not edge_result.uncertainty.extents_samples:
+    if config is None:
+        config = PlotConfig()
+    config.apply()
 
-
+    if not edge_result.uncertainty or not getattr(edge_result.uncertainty, "extents_samples", None):
         print(f"Warning: No Bayesian samples found for edge {edge_result.edge_id}")
         return
 
@@ -183,13 +203,21 @@ def plot_posterior_ridges(
         return
 
     n_active = len(active_indices)
+    
+    # Dynamic height
+    figsize = (8, max(4, n_active * 1.2))
+    
     fig, axes = plt.subplots(
-        n_active, 1, figsize=(8, max(4, n_active * 1.2)), sharex=False
+        n_active, 1, figsize=figsize, sharex=False
     )
     if n_active == 1:
         axes = [axes]
 
-    colors = plt.cm.plasma(np.linspace(0, 0.8, n_active))
+    try:
+        colors = plt.cm.plasma(np.linspace(0, 0.8, n_active))
+    except Exception:
+        colors = plt.cm.get_cmap("plasma")(np.linspace(0, 0.8, n_active))
+
 
     for idx, param_idx in enumerate(active_indices):
         ax = axes[idx]
@@ -211,7 +239,7 @@ def plot_posterior_ridges(
 
         ax.axvline(mean_val, color="k", ls="--", alpha=0.5, lw=1)
         ax.text(
-            0.02, 0.8, f"{lbl}", transform=ax.transAxes, fontweight="bold", fontsize=10
+            0.02, 0.8, f"{lbl}", transform=ax.transAxes, fontweight="bold", fontsize=10*config.font_scale
         )
         ax.text(
             0.98,
@@ -219,7 +247,7 @@ def plot_posterior_ridges(
             f"Mean: {mean_val:.4f}\n95% CI: [{ci_low:.4f}, {ci_high:.4f}]",
             transform=ax.transAxes,
             ha="right",
-            fontsize=9,
+            fontsize=9*config.font_scale,
             va="top",
         )
 
@@ -230,25 +258,29 @@ def plot_posterior_ridges(
 
     ax.set_xlabel("Parameter Value (mmol/L or factor)")
     fig.suptitle(
-        f"Bayesian Posterior Distributions: {edge_result.edge_id}", fontsize=14
+        f"Bayesian Posterior Distributions: {edge_result.edge_id}", fontsize=14*config.font_scale
     )
     plt.tight_layout()
     plt.subplots_adjust(hspace=0.5)
 
     if path:
-        plt.savefig(path, dpi=300)
+        save_with_metadata(fig, path, config, extra_metadata={"edge_id": edge_result.edge_id})
         plt.close(fig)
     else:
         plt.show()
 
 
 def plot_reactive_transport_validation(
-    edge_results: List[EdgeResult], path: Optional[str] = None
+    edge_results: List[EdgeResult], 
+    path: Optional[str] = None,
+    config: Optional[PlotConfig] = None
 ) -> None:
     """Plot modeled vs observed concentrations from forward RT validation."""
+    if config is None:
+        config = PlotConfig(figsize=(12, 5))
+    config.apply()
+    
     # Filter validated edges
-
-
     valid_edges = [
         r
         for r in edge_results
@@ -263,7 +295,7 @@ def plot_reactive_transport_validation(
     nses = [r.rt_validation.get("nse", -999) for r in valid_edges]
     ids = [r.edge_id for r in valid_edges]
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=config.figsize)
 
     # RMSE Bar Plot
     ax1.bar(ids, rmses, color="indianred", alpha=0.7)
@@ -285,7 +317,7 @@ def plot_reactive_transport_validation(
     plt.tight_layout()
 
     if path:
-        plt.savefig(path, dpi=300)
+        save_with_metadata(fig, path, config, extra_metadata={"n_edges": len(valid_edges)})
         plt.close(fig)
     else:
         plt.show()
