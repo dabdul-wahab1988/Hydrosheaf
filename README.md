@@ -41,30 +41,7 @@ cd Hydrosheaf
 pip install .
 ```
 
-To install with plotting dependencies:
-
-```bash
-pip install .[plot]
-```
-
-To install with PHREEQC support:
-
-```bash
-pip install .[phreeqc]
-```
-
-To install everything (recommended):
-
-```bash
-pip install .[all]
-```
-
-### Optional Dependencies
-
-**For Bayesian MCMC uncertainty quantification:**
-```bash
-pip install pymc>=5.0 arviz>=0.15
-```
+### External Dependencies
 
 **For PEST++ Calibration (Auto-handled):**
 Hydrosheaf now automatically manages external dependencies for advanced calibration.
@@ -315,23 +292,10 @@ For comprehensive reference, see:
 - Most users don't need the `bin/` files
 
 ### Q: Can I use Hydrosheaf without PHREEQC?
-**A: Yes!** It's optional. Core modeling works without it. Install with `pip install .` for basic use, or `pip install .[phreeqc]` for thermodynamic constraints.
+**A: Yes!** While the PHREEQC library is installed by default, you can disable thermodynamic constraints in your configuration if you don't need them.
 
 ### Q: I got an error about missing dependencies
-**A: Install the correct variant:**
-```bash
-# Basic (most common)
-pip install .
-
-# With plotting
-pip install .[plot]
-
-# With PHREEQC thermodynamics
-pip install .[phreeqc]
-
-# Everything
-pip install .[all]
-```
+**A:** Ensure you have installed the package using `pip install .`. All necessary dependencies are now included by default.
 
 ### Q: How do I run the web interface?
 **A: Follow the Web Application section above.** It requires Node.js, but Python setup is the same.

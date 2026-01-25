@@ -1,13 +1,13 @@
 """Reaction dictionary and sparse fitting."""
 
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Sequence, Tuple
+from typing import Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from ..config import Config, DEFAULT_ION_ORDER
 from ..data.minerals import get_mineral_stoich
 
 
-def _vector_from_coeffs(coeffs: dict, ion_order: Iterable[str]) -> List[float]:
+def _vector_from_coeffs(coeffs: Mapping[str, float], ion_order: Iterable[str]) -> List[float]:
     return [float(coeffs.get(ion, 0.0)) for ion in ion_order]
 
 
@@ -17,7 +17,7 @@ def build_reaction_dictionary(
     ion_order = config.ion_order or DEFAULT_ION_ORDER
     kappa = config.denit_kappa
 
-    reactions: List[Tuple[str, dict, bool]] = []
+    reactions: List[Tuple[str, Mapping[str, float], bool]] = []
 
     # 1. Add User-Selected Minerals
     for name in config.active_minerals:
@@ -150,6 +150,7 @@ def fit_reactions(
 
     z = [0.0] * m
     converged = False
+    iteration = 0
     for iteration in range(1, max_iter + 1):
         max_delta = 0.0
         for j in range(m):

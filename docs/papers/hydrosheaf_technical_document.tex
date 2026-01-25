@@ -44,7 +44,7 @@ A Unified Mathematical Framework for Network Topology Inference, \\ Geochemical 
 \maketitle
 
 \begin{abstract}
-	We present a comprehensive mathematical framework for integrated hydrogeochemical analysis in groundwater systems using sheaf-theoretic principles. The framework provides a unified computational approach for: (1) inferring flow network topology and connectivity from incomplete hydraulic head, topographic, and physics-based priors; (2) solving reaction path inverse problems to identify optimal transport processes and parsimonious geochemical reaction sets along network edges; and (3) performing trace-element forensics through Bayesian isotope mixing models and vadose zone travel-time deconvolution. By combining weighted least squares optimization, sparse LASSO regression, thermodynamic constraints from PHREEQC, and Richards equation simulation, the method produces physically consistent, parsimonious models suitable for both reactive transport characterization and contamination source apportionment. We establish theoretical results on the optimality of transport solutions and the convergence of the underlying coordinate descent algorithms. Similar to other open-source projects, the implementation is available at \url{https://github.com/dabdul-wahab1988/Hydrosheaf}.
+	We present a comprehensive mathematical framework for integrated hydrogeochemical analysis in groundwater systems using sheaf-theoretic principles. The framework provides a unified computational approach for: (1) inferring flow network topology and connectivity from incomplete hydraulic head, topographic, and physics-based priors; (2) solving reaction path inverse problems to identify optimal transport processes and parsimonious geochemical reaction sets along network edges; and (3) performing trace-element forensics through Bayesian isotope mixing models and vadose zone travel-time deconvolution. By combining weighted least squares optimization with non-negativity constraints, sparse LASSO regression, thermodynamic constraints from PHREEQC, and Richards equation simulation, the method produces physically consistent, parsimonious models suitable for both reactive transport characterization and contamination source apportionment. We establish theoretical results on the optimality of transport solutions and the convergence of the underlying coordinate descent algorithms. Similar to other open-source projects, the implementation is available at \url{https://github.com/dabdul-wahab1988/Hydrosheaf}.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -142,21 +142,21 @@ The sheaf-theoretic viewpoint interprets the groundwater network as a cellular c
 We make this notion explicit for topology refinement by defining a linear cellular sheaf on the inferred directed graph $G=(V,E)$. For isotope-aware edge selection, each node $v$ carries a stalk $\mathcal{F}(v)=\mathbb{R}^2$ containing water isotope ratios $(\delta^{18}O,\delta^2H)$, and each edge $e=(u\to v)$ carries a stalk $\mathcal{F}(e)=\mathbb{R}^2$. Conservative restriction maps are identity, while potentially evaporative edges are down-weighted by a gating factor $1-\pi_{uv}$ derived from LMWL deviation, $d$-excess, and shallow depth indicators. Given observed isotope values $\mathbf{s}_v$ (when present), we compute a best global section $\mathbf{x}$ by minimizing the sheaf energy:
 \begin{equation}
 	\label{eq:sheaf_energy}
-	\mathcal{E}_{\text{sheaf}}(\mathbf{x}) = \sum_{v\in V} \|\mathbf{x}_v - \mathbf{s}_v\|_{Q_v}^2 + \sum_{(u,v)\in E} w_{uv}\, \|\mathbf{x}_v - \mathbf{x}_u\|_{W}^2,
+	\mathcal{E}_{\text{sheaf}}(\mathbf{x}) = \sum_{v\in V} \|\mathbf{x}_v - \mathbf{s}_v\|_{Q_v}^2 + \sum_{(u,v)\in E} w_{uv}\, \|\mathbf{x}_v - \mathbf{x}_u\|_{W}^2 \quad \text{subject to} \quad \mathbf{x}_v \ge 0,
 \end{equation}
-where $w_{uv}=1-\pi_{uv}$ encodes the conservative-versus-evaporative weight and $Q_v$ is zero when isotope data are missing. This quadratic form corresponds to a sheaf Laplacian solve and yields global inconsistency scores that localize contradictions in the network.
+where $w_{uv}=1-\pi_{uv}$ encodes the conservative-versus-evaporative weight and $Q_v$ is zero when isotope data are missing. This quadratic form corresponds to a sheaf Laplacian solve and yields global inconsistency scores that localize contradictions in the network. The non-negativity constraint is enforced via a Projected Coordinate Descent solver (or Non-Negative Least Squares if available) to ensure physical plausibility (no negative concentrations).
 
-We combine the sheaf consistency signal with the probabilistic head prior for candidate edge selection. The local sheaf score for a candidate edge $(u\to v)$ is
+We combine the sheaf consistency signal with the probabilistic head prior for candidate edge selection. To ensure convergence in bistable networks (where multiple flow paths are equally plausible), we implement a \textit{soft selection} mechanism. Rather than discretely selecting the top-$k$ edges, we assign continuous probability weights $w_{uv} \in [0,1]$ via a Softmax function over the local sheaf scores $J_{uv}^{\text{sheaf}}$:
+\begin{equation}
+	\label{eq:sheaf_soft_weight}
+	w_{uv} = \frac{\exp(-\beta J_{uv}^{\text{sheaf}})}{\sum_{(u,v') \in E_u} \exp(-\beta J_{uv'}^{\text{sheaf}})},
+\end{equation}
+where $\beta$ controls the selection sharpness (inverse temperature). The local score is defined as:
 \begin{equation}
 	\label{eq:sheaf_local_score}
 	J_{uv}^{\text{sheaf}} = w_h\left[-\log(p_{uv}+\varepsilon)\right] + w_{\text{iso}} C_{\text{iso}}(u,v) + w_{\text{Cl}} C_{\text{Cl}}(u,v),
 \end{equation}
-with
-\begin{equation}
-	\label{eq:sheaf_iso_mix}
-	C_{\text{iso}}(u,v) = -\log\left((1-\pi_{uv})e^{-C_{\text{cons}}} + \pi_{uv}e^{-C_{\text{evap}}}\right),
-\end{equation}
-where $C_{\text{cons}}$ is the conservative isotope misfit and $C_{\text{evap}}$ is the evaporative-direction penalty. The chloride term uses the log-ratio magnitude $C_{\text{Cl}}=|\log(\text{Cl}_v/\text{Cl}_u)|$ with evaporation-weighted directionality. Hydrosheaf iterates local ranking with the global sheaf solve to refine topology, invoked by \texttt{--infer-edges-method probabilistic\_sheaf} and parameters \texttt{--sheaf-*}.
+with $C_{\text{iso}}$ and $C_{\text{Cl}}$ penalizing isotopic and chloride mismatches respectively. Hydrosheaf iterates these soft weights with the global sheaf solve to robustly estimate flow fractions, invoked by \texttt{--infer-edges-method probabilistic\_sheaf} and tuned with \texttt{--sheaf-soft-beta} (sharpness).
 
 \subsection{Document Roadmap}
 
@@ -343,7 +343,9 @@ and keep the top-$k$ edges per upstream node minimizing $J^{MAP}_{uv}$. This is 
 
 \subsection{Sheaf-Consistent Edge Refinement}
 
-When isotope data are available, Hydrosheaf refines candidate edges using a sheaf-consistency score that blends head priors, isotope compatibility, and conservative tracer behavior (Cl). The local score $J^{\text{sheaf}}_{uv}$ and global energy $\mathcal{E}_{\text{sheaf}}$ are defined in Equations (\ref{eq:sheaf_local_score})--(\ref{eq:sheaf_energy}). The algorithm first ranks edges locally using $J^{\text{sheaf}}_{uv}$, then solves the sheaf Laplacian to compute global inconsistency residuals and re-ranks edges to reduce contradictions. This procedure is invoked via \nolinkurl{--infer-edges-method probabilistic_sheaf} and tuned with \nolinkurl{--sheaf-*} parameters (e.g., \nolinkurl{--sheaf-weight-head}, \nolinkurl{--sheaf-weight-isotope}, \nolinkurl{--sheaf-weight-cl}, \nolinkurl{--sheaf-shallow-depth}).
+When isotope data are available, Hydrosheaf refines candidate edges using a sheaf-consistency score that blends head priors, isotope compatibility, and conservative tracer behavior (Cl). The local score $J^{\text{sheaf}}_{uv}$ and global energy $\mathcal{E}_{\text{sheaf}}$ are defined in Equations (\ref{eq:sheaf_local_score}) and (\ref{eq:sheaf_energy}).
+
+To avoid oscillation in ambiguous network topologies (e.g., bistable flow paths), the algorithm employs a \textbf{Soft Selection} strategy (Expectation-Maximization). In the E-step, the global sheaf Laplacian is solved to determine consistent chemical potentials given current edge weights. In the M-step, edge weights are updated via a Softmax distribution over the combined local and global residuals (Equation \ref{eq:sheaf_soft_weight}). This relaxes the discrete topology inference into a continuous optimization problem, ensuring convergence to a stable probabilistic flow network. This procedure is invoked via \nolinkurl{--infer-edges-method probabilistic_sheaf} and tuned with \nolinkurl{--sheaf-soft-beta} (sharpness).
 
 \subsection{Optional Physics Priors for Edges and Travel Time}
 
@@ -953,7 +955,7 @@ The Hydrosheaf implementation is organized as a modular pipeline. Table \ref{tab
 		Head inference (Bayesian)            & \texttt{hydrosheaf/graph/head\_inference.py}                                                         & \texttt{--edge-head-inference bayesian/bayesian\_mcmc}                             \\
 		Edge inference (3D)                  & \texttt{hydrosheaf/graph3d/build\_3d.py}                                                             & \texttt{--3d}, \texttt{--z-key}, \texttt{--anisotropy}                             \\
 		MAP edge selection                   & \texttt{hydrosheaf/inference/network\_fit.py} (\texttt{infer\_edges}, \texttt{fit\_network})         & \texttt{--infer-edges-method probabilistic\_map}, \texttt{--edge-map-*}            \\
-		Sheaf topology refinement            & \texttt{hydrosheaf/sheaf/*}, \texttt{hydrosheaf/inference/network\_fit.py}                           & \texttt{--infer-edges-method probabilistic\_sheaf}, \texttt{--sheaf-*}             \\
+		Sheaf topology refinement            & \texttt{hydrosheaf/sheaf/*}, \texttt{hydrosheaf/inference/network\_fit.py}                           & \texttt{--infer-edges-method probabilistic\_sheaf}, \texttt{--sheaf-soft-beta}     \\
 		Physics priors (file)                & \texttt{hydrosheaf/physics/priors.py}                                                                & \texttt{--physics-priors}, \texttt{--physics-priors-mode}                          \\
 		Physics priors (MODPATH)             & \texttt{hydrosheaf/physics/modpath.py} (FloPy)                                                       & \texttt{--modpath-endpoints}, \texttt{--modpath-*}                                 \\
 		Vadose travel-time priors (Richards) & \texttt{hydrosheaf/vadose/*} (inc. \texttt{ttd.py}, \texttt{diagnostics.py})                         & \nolinkurl{--vadose-enabled}, \nolinkurl{--vadose-*}                               \\
@@ -1496,6 +1498,7 @@ For non-parametric uncertainty, we employ the Bias-Corrected Accelerated (BCa) b
 We have developed a comprehensive mathematical framework for inverse geochemical modeling in groundwater networks, integrating:
 \begin{itemize}
 	\item Weighted least squares optimization with analytic solutions for transport models
+	\item Global Sheaf Laplacian solver with non-negativity constraints for network consistency
 	\item Sparse LASSO regression with coordinate descent for parsimonious reaction fitting
 	\item Thermodynamic constraints from saturation index calculations
 	\item Isotope-based penalties for process discrimination

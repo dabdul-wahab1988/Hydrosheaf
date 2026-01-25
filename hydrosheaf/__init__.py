@@ -14,7 +14,6 @@ from .inference.network_fit import (
 )
 from .models.ec_tds import calibrate_ec_tds, predict_ec_tds
 from .models.reactions import build_reaction_dictionary
-from .models.sheaf import edge_residual
 from .phreeqc.constraints import build_edge_bounds
 from .phreeqc.runner import run_phreeqc
 from .isotopes import compute_d_excess, evaporation_index, fit_lmwl
@@ -57,7 +56,6 @@ __all__ = [
     "calibrate_ec_tds",
     "predict_ec_tds",
     "build_reaction_dictionary",
-    "edge_residual",
     "run_phreeqc",
     "build_edge_bounds",
     "compute_d_excess",
