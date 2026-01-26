@@ -59,7 +59,8 @@ Consider a groundwater flow network represented as a directed graph $G = (V, E)$
 
 The framework takes as input:
 \begin{itemize}
-	\item A samples CSV containing observed ion concentrations $\{\mathbf{x}_v\}_{v \in V}$ (mmol/L) at each node, with nodes identified by a unique \texttt{site\_id} (and optional \texttt{sample\_id}). For steady-state analysis, each \texttt{site\_id} should appear exactly once; multiple observations per site should be moved to the temporal time-series CSV. The default ion vector uses $n=10$ columns (\texttt{Ca, Mg, Na, HCO3, Cl, SO4, NO3, F, Fe, PO4}) as defined in \texttt{hydrosheaf/config.py} and validated by the CLI schema in \texttt{hydrosheaf/cli.py}. The order can be overridden with \texttt{--ion-order} (must provide exactly 10 comma-separated ion names). The CLI can also convert \texttt{mg/L} or \texttt{meq/L} to mmol/L, including auxiliary components like Potassium (\texttt{K}).
+	The default ion vector uses $n=11$ columns (\texttt{Ca, Mg, Na, K, HCO3, Cl, SO4, NO3, F, Fe, PO4}) as defined in \texttt{hydrosheaf/config.py} and validated by the CLI schema in \texttt{hydrosheaf/cli.py}. The order can be overridden with \texttt{--ion-order}. The CLI can also convert \texttt{mg/L} or \texttt{meq/L} to mmol/L.
+
 
 	\item Supporting bulk water fields used for diagnostics and penalties: \texttt{EC}, \texttt{TDS}, and \texttt{pH} (\textit{required by the current CLI schema in} \texttt{hydrosheaf/cli.py}).
 
@@ -405,10 +406,11 @@ where $\gamma$ is the concentration factor. Physically, $\gamma$ represents the 
 	\begin{equation}
 		\frac{d^2f}{d\gamma^2} = 2 \mathbf{x}_u^\top \mathbf{W} \mathbf{x}_u > 0
 	\end{equation}
-	confirms this is a minimum. Enforcing the constraint $\gamma \geq 1$ (evaporation cannot dilute):
+	confirms this is a minimum. Enforcing the constraint $\gamma \geq 1$ (evaporation cannot dilute) and a physical upper bound $\gamma \le 1000$ (to prevent numerical artifacts from runaway evaporation):
 	\begin{equation}
-		\gamma^* = \max\{1, \gamma_{\text{unconstrained}}\}
+		\gamma^* = \min(1000, \max\{1, \gamma_{\text{unconstrained}}\})
 	\end{equation}
+
 \end{proof}
 
 \subsection{Single-Endmember Mixing Model}
@@ -449,9 +451,10 @@ where $\mathbf{x}_{\text{end}} \in \mathbb{R}^n$ is the endmember composition an
 	\end{equation}
 	Setting to zero:
 	\begin{equation}
-		f_{\text{unconstrained}} = \frac{\mathbf{d}^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u)}{\mathbf{d}^\top \mathbf{W} \mathbf{d}}
+		f_{\text{unconstrained}} = \frac{\mathbf{d}^\top \mathbf{W} (\mathbf{x}_v - \mathbf{x}_u)}{\mathbf{d}^\top \mathbf{W} \mathbf{d} + \epsilon}
 	\end{equation}
-	The second derivative $\frac{d^2g}{df^2} = 2\mathbf{d}^\top \mathbf{W} \mathbf{d} > 0$ confirms this is a minimum. Projecting onto $[0,1]$:
+	where $\epsilon \approx 10^{-15}$ ensures numerical stability when $\mathbf{d} \approx \mathbf{0}$. The second derivative $\frac{d^2g}{df^2} = 2\mathbf{d}^\top \mathbf{W} \mathbf{d} > 0$ confirms this is a minimum. Projecting onto $[0,1]$:
+
 	\begin{equation}
 		f^* = \begin{cases}
 			0                        & \text{if } f_{\text{unconstrained}} < 0       \\
@@ -600,9 +603,10 @@ Problem \eqref{eq:lasso} is solved via coordinate descent, which iteratively opt
 		\Repeat
 		\For{$j = 1$ to $m$}
 		\State Compute partial residual: $\rho_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{r} - \sum_{k \neq j} (\mathbf{s}_j^\top \mathbf{W} \mathbf{s}_k) z_k$
-		\State Compute normalization: $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j$
+		\State Compute normalization: $\nu_j = \mathbf{s}_j^\top \mathbf{W} \mathbf{s}_j + \epsilon_{\text{ridge}}$ (adaptive ridge for stability)
 		\State Apply soft-thresholding with projection:
 		\State $\tilde{z}_j \leftarrow \mathcal{S}(\rho_j, \lambda/2) / \nu_j$
+
 		\State $z_j \leftarrow \max\{\ell_j, \min\{\tilde{z}_j, u_j\}\}$
 		\EndFor
 		\State $k \leftarrow k+1$
@@ -1493,7 +1497,10 @@ We estimate the posterior distribution of reaction extents $P(\mathbf{z}|\mathbf
 
 For non-parametric uncertainty, we employ the Bias-Corrected Accelerated (BCa) bootstrap. We resample residuals $\mathbf{r}^*$ to generate pseudo-data $\mathbf{x}^*$, refit the model $B$ times, and compute confidence intervals that correct for skewness and bias in the estimator. As verified in \texttt{tests/test\_accuracy\_uncertainty.py}, the bootstrap implementation correctly recovers theoretical confidence bounds (e.g., $[-1.96, +1.96]$ for $\mathcal{N}(0,1)$) and adapts to asymmetry for skewed distributions.
 \newpage
+\input{../webui_section}
+
 \section{Conclusion}\label{sec:conclusion}
+
 
 We have developed a comprehensive mathematical framework for inverse geochemical modeling in groundwater networks, integrating:
 \begin{itemize}

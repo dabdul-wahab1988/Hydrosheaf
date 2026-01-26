@@ -74,9 +74,14 @@ def parse_numeric(value: object, detection_policy: str) -> Optional[float]:
             return 0.5 * limit if prefix == "<" else limit
         return limit
     try:
-        return float(text)
+        val = float(text)
+        if val < 0:
+            # Negative concentrations are physically impossible. Treat as invalid/missing.
+            return None
+        return val
     except ValueError:
         return None
+
 
 
 def normalize_sample(
@@ -84,7 +89,8 @@ def normalize_sample(
     ion_order: Iterable[str],
     detection_policy: str,
 ) -> dict:
-    numeric_keys = set(ion_order) | {"EC", "TDS", "pH", "K"}
+    numeric_keys = set(ion_order) | {"EC", "TDS", "pH"}
+
     normalized: dict = {}
     for key, value in sample.items():
         if key in numeric_keys:

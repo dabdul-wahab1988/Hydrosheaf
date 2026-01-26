@@ -113,11 +113,13 @@ app = FastAPI(
 
 # Rate limiting setup
 if RATE_LIMITING_AVAILABLE:
-    limiter = Limiter(key_func=get_remote_address)
+    # Apply global default limit to protect all endpoints
+    limiter = Limiter(key_func=get_remote_address, app=app, default_limits=["200/minute"])
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-    print("[Startup] Rate limiting enabled")
+    print("[Startup] Rate limiting enabled with default limit 200/minute")
 else:
+
     limiter = None
     print("[Startup] Rate limiting disabled (slowapi not installed)")
 

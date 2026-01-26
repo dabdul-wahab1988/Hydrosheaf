@@ -29,12 +29,15 @@ def fit_evaporation(
     weights: Iterable[float],
 ) -> Tuple[float, List[float], float]:
     denom = _weighted_norm_sq(x_u, weights)
-    if denom == 0:
+    if denom < 1e-15:
         gamma = 1.0
     else:
         gamma = _weighted_dot(x_u, x_v, weights) / denom
-    gamma = max(1.0, gamma)
+    # Constrain gamma to physical bounds [1.0, 1000.0]
+    # Upper bound prevents runaway evaporation in numerical artifacts
+    gamma = max(1.0, min(1000.0, gamma))
     x_pred = [gamma * x for x in x_u]
+
     residual = _residual(x_v, x_pred)
     return gamma, residual, _norm_sq(residual, weights)
 
@@ -48,11 +51,12 @@ def fit_mixing(
     delta = [e - u for e, u in zip(x_end, x_u)]
     num = _weighted_dot(delta, [v - u for v, u in zip(x_v, x_u)], weights)
     denom = _weighted_norm_sq(delta, weights)
-    if denom == 0:
+    if denom < 1e-15:
         f = 0.0
     else:
         f = num / denom
     f = max(0.0, min(1.0, f))
+
     x_pred = [u + f * d for u, d in zip(x_u, delta)]
     residual = _residual(x_v, x_pred)
     return f, residual, _norm_sq(residual, weights)

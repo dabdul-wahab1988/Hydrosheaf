@@ -4,7 +4,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-DEFAULT_ION_ORDER = ["Ca", "Mg", "Na", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"]
+DEFAULT_ION_ORDER = ["Ca", "Mg", "Na", "K", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"]
+
 
 
 def default_phreeqc_database() -> str:
@@ -16,12 +17,13 @@ class Config:
     ion_order: List[str] = field(default_factory=lambda: DEFAULT_ION_ORDER.copy())
     unit: str = "mmol/L"
     unit_mode: str = "mmol_L"
-    weights: List[float] = field(default_factory=lambda: [1.0] * 10)
+    weights: List[float] = field(default_factory=lambda: [1.0] * 11)
     # Weights for conservative mixing (should prioritize Cl, Br, Isotopes)
-    # Default: Cl (index 4) = 1.0, others = 0.01 (small weight for stability)
+    # Default: Cl (index 5) = 1.0, others = 0.01 (small weight for stability)
     conservative_weights: List[float] = field(
-        default_factory=lambda: [0.01, 0.01, 0.01, 0.01, 1.0, 0.01, 0.01, 0.01, 0.01, 0.01]
+        default_factory=lambda: [0.01, 0.01, 0.01, 0.01, 0.01, 1.0, 0.01, 0.01, 0.01, 0.01, 0.01]
     )
+
     lambda_sparse: float = 0.0
 
     lambda_l1: float = 0.0

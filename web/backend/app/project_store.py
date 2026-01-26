@@ -22,7 +22,15 @@ def _now_iso() -> str:
 
 
 def _project_path(project_id: str) -> Path:
-    return PROJECTS_DIR / f"{project_id}.json"
+    # Security: Ensure project_id is safe (alphanumeric + dashes)
+    # This prevents path traversal attacks
+    clean_id = "".join(c for c in project_id if c.isalnum() or c == "-")
+    if not clean_id or clean_id != project_id:
+        # Fallback for legacy or invalid IDs: hash them or reject
+        # For now, reject to be safe
+        raise ValueError("Invalid project_id")
+    return PROJECTS_DIR / f"{clean_id}.json"
+
 
 
 def _normalize_project(project: Dict[str, Any]) -> Dict[str, Any]:

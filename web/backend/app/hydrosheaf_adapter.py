@@ -183,19 +183,9 @@ class SampleAdapter:
     """Convert frontend sample format to Hydrosheaf format"""
 
     # Molecular weights for unit conversion (mg/L to mmol/L)
-    ION_MOLECULAR_WEIGHTS = {
-        "Ca": 40.078,
-        "Mg": 24.305,
-        "Na": 22.990,
-        "K": 39.098,
-        "HCO3": 61.017,
-        "SO4": 96.064,
-        "Cl": 35.453,
-        "NO3": 62.005,
-        "F": 18.998,
-        "Fe": 55.845,
-        "PO4": 94.971,
-    }
+    # Imported from core to ensure consistency
+    from hydrosheaf.data.units import MOLAR_MASS_G_MOL as ION_MOLECULAR_WEIGHTS
+
 
     @staticmethod
     def mgL_to_mmolL(mg_l: float, molecular_weight: float) -> float:
@@ -266,10 +256,20 @@ class SampleAdapter:
                         hydrosheaf_sample[ion_capital] = mmol_l_value
 
             # Direct copy for non-concentration fields
-            direct_copy_fields = ["ph", "temperature", "ec", "tds", "date"]
-            for field in direct_copy_fields:
-                if field in sample:
-                    hydrosheaf_sample[field] = sample[field]
+            # Map frontend lowercase keys to Core uppercase keys where needed
+            field_map = {
+                "ph": "pH",
+                "ec": "EC",
+                "tds": "TDS",
+                "temperature": "temperature",
+                "date": "date"
+            }
+            for field_lower, field_core in field_map.items():
+                if field_lower in sample:
+                    hydrosheaf_sample[field_core] = sample[field_lower]
+                elif field_core in sample: # Handle case where input is already correct
+                    hydrosheaf_sample[field_core] = sample[field_core]
+
 
             # Isotope fields (already in per-mil, no conversion needed)
             if "d18o" in sample:
