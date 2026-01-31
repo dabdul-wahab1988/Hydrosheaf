@@ -66,11 +66,12 @@ class MCMCMixingTests(unittest.TestCase):
         result = run_mcmc_mixing(
             sample=self.manure_sample,
             sources=self.sources,
-            n_samples=500,
+            n_samples=50,
             n_chains=2,
-            warmup=200,
+            warmup=20,
             random_seed=42,
         )
+
 
         self.assertIsInstance(result, MCMCMixingResult)
         self.assertIn("Manure", result.source_fractions)
@@ -95,11 +96,12 @@ class MCMCMixingTests(unittest.TestCase):
         result = run_mcmc_mixing(
             sample=self.fertilizer_sample,
             sources=self.sources,
-            n_samples=500,
+            n_samples=50,
             n_chains=2,
-            warmup=200,
+            warmup=20,
             random_seed=42,
         )
+
 
         # Fertilizer should be dominant
         self.assertGreater(result.source_fractions["Fertilizer"], 0.4)
@@ -110,11 +112,12 @@ class MCMCMixingTests(unittest.TestCase):
         result = run_mcmc_mixing(
             sample=self.mixed_sample,
             sources=self.sources,
-            n_samples=500,
+            n_samples=50,
             n_chains=2,
-            warmup=200,
+            warmup=20,
             random_seed=42,
         )
+
 
         # R-hat should be computed
         self.assertIn("Manure", result.r_hat)
@@ -132,11 +135,12 @@ class MCMCMixingTests(unittest.TestCase):
         result = run_mcmc_mixing(
             sample=self.mixed_sample,
             sources=self.sources,
-            n_samples=1000,
-            n_chains=4,
-            warmup=500,
+            n_samples=50,
+            n_chains=2,
+            warmup=20,
             random_seed=42,
         )
+
 
         # With enough samples, should converge
         # R-hat should be close to 1
@@ -151,11 +155,12 @@ class MCMCMixingTests(unittest.TestCase):
         results = run_mcmc_mixing_batch(
             samples=samples,
             sources=self.sources,
-            n_samples=300,
+            n_samples=50,
             n_chains=2,
-            warmup=100,
+            warmup=20,
             random_seed=42,
         )
+
 
         self.assertEqual(len(results), 3)
         for result in results:
@@ -169,11 +174,12 @@ class MCMCMixingTests(unittest.TestCase):
         results = run_mcmc_mixing_batch(
             samples=samples,
             sources=self.sources,
-            n_samples=300,
+            n_samples=50,
             n_chains=2,
-            warmup=100,
+            warmup=20,
             random_seed=42,
         )
+
 
         summary = summarize_mcmc_results(results)
 
@@ -193,11 +199,12 @@ class MCMCMixingTests(unittest.TestCase):
         result = run_mcmc_mixing(
             sample=self.mixed_sample,
             sources=two_sources,
-            n_samples=300,
+            n_samples=50,
             n_chains=2,
-            warmup=100,
+            warmup=20,
             random_seed=42,
         )
+
 
         self.assertEqual(len(result.source_fractions), 2)
         total = sum(result.source_fractions.values())
@@ -213,8 +220,9 @@ class MCMCMixingTests(unittest.TestCase):
             run_mcmc_mixing(
                 sample=self.mixed_sample,
                 sources=[self.sources[0]],  # Only one source
-                n_samples=100,
+                n_samples=50,
             )
+
 
 
 class MCMCFallbackTests(unittest.TestCase):

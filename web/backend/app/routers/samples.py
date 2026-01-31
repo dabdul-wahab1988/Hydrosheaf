@@ -132,7 +132,11 @@ def parse_csv_samples(content: bytes, filename: str) -> List[Dict]:
         "tds": ["tds", "total_dissolved_solids"],
         "x": ["x", "longitude", "lon", "easting", "x_coord"],
         "y": ["y", "latitude", "lat", "northing", "y_coord"],
+        "tritium": ["tritium", "3h", "h3", "h-3", "tritium_tu"],
+        "c14": ["c14", "14c", "carbon14", "carbon-14", "pmc"],
+        "kr85": ["kr85", "85kr", "krypton85", "krypton-85"],
     }
+
 
     # Build reverse mapping from actual column names to standard names
     def find_standard_name(col_name: str) -> Optional[str]:
@@ -353,7 +357,9 @@ async def get_dataset_capabilities(dataset_id: str):
     # Define field categories
     ion_fields = ["ca", "mg", "na", "k", "hco3", "so4", "cl", "no3", "f", "fe", "po4"]
     isotope_fields = ["d18o", "d2h"]
+    nuclear_fields = ["tritium", "c14", "kr85", "3h", "14c", "85kr"]
     nitrate_isotope_fields = ["d15n", "d18o_no3"]
+
     spatial_fields = ["x", "y", "longitude", "latitude", "lon", "lat"]
     depth_fields = ["z", "screen_depth", "well_depth", "elevation"]
     temporal_fields = ["date", "datetime", "sample_date"]
@@ -382,11 +388,13 @@ async def get_dataset_capabilities(dataset_id: str):
     # Detect available fields
     available_ions = get_present_fields(ion_fields)
     available_isotopes = get_present_fields(isotope_fields)
+    available_nuclear = get_present_fields(nuclear_fields)
     available_nitrate_isotopes = get_present_fields(nitrate_isotope_fields)
     available_spatial = get_present_fields(spatial_fields)
     available_depth = get_present_fields(depth_fields)
     available_temporal = get_present_fields(temporal_fields)
     available_field_params = get_present_fields(field_param_fields)
+
 
     # Minimum requirements for each analysis
     has_major_ions = (
@@ -394,7 +402,9 @@ async def get_dataset_capabilities(dataset_id: str):
     )
     has_coordinates = len(available_spatial) >= 2
     has_isotopes = len(available_isotopes) >= 2
+    has_nuclear = len(available_nuclear) > 0
     has_nitrate_isotopes = len(available_nitrate_isotopes) >= 2
+
     has_nitrate = "no3" in available_ions
     has_temporal = len(available_temporal) > 0
     has_depth = len(available_depth) > 0
@@ -417,7 +427,9 @@ async def get_dataset_capabilities(dataset_id: str):
         "vadose_zone": has_nitrate and has_depth,
         "reactive_transport": has_major_ions,
         "uncertainty": has_major_ions,
+        "nuclear_aging": has_nuclear and has_coordinates,
     }
+
 
     # Generate warnings for unavailable analyses
     warnings = []
@@ -448,12 +460,14 @@ async def get_dataset_capabilities(dataset_id: str):
         "available_fields": {
             "ions": available_ions,
             "isotopes": available_isotopes,
+            "nuclear": available_nuclear,
             "nitrate_isotopes": available_nitrate_isotopes,
             "spatial": available_spatial,
             "depth": available_depth,
             "temporal": available_temporal,
             "field_params": available_field_params,
         },
+
         "available_analyses": available_analyses,
         "warnings": warnings,
         "recommendations": {

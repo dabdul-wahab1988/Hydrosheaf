@@ -25,6 +25,7 @@ dependencies = [
     "pyvista",
     "vtk",
     "pymc",
+    "nutpie",
     "PyYAML",
 ]
 

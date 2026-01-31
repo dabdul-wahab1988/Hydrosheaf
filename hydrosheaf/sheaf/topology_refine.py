@@ -24,6 +24,16 @@ from .isotope_metrics import (
     sample_depth_m,
 )
 
+try:
+    from hydrosheaf.nuclear.invert import infer_age_from_tracer
+    from hydrosheaf.nuclear.nuclides import get_nuclide, TRITIUM
+    _NUCLEAR_AVAILABLE = True
+except ImportError:
+    _NUCLEAR_AVAILABLE = False
+    infer_age_from_tracer = None
+    get_nuclide = None
+    TRITIUM = None
+
 
 @dataclass
 class NodeIsotopeInfo:
@@ -35,6 +45,9 @@ class NodeIsotopeInfo:
     cl: Optional[float]
     depth_m: Optional[float]
     p_evap: float
+    age_years: Optional[float] = None
+    age_sigma_years: Optional[float] = None
+
 
 
 @dataclass
@@ -43,13 +56,15 @@ class EdgeSheafScore:
     prior_penalty: float
     iso_cost: float
     cl_cost: float
+    age_cost: float
     cons_cost: float
     pi_evap: float
     flags: List[str]
 
     @property
     def local_score(self) -> float:
-        return self.prior_penalty + self.iso_cost + self.cl_cost
+        return self.prior_penalty + self.iso_cost + self.cl_cost + self.age_cost
+
 
 
 def _sample_map(samples: object) -> Dict[str, Mapping[str, object]]:
@@ -110,6 +125,38 @@ def _edge_cl_cost(
     return (1.0 - pi_evap) * cons_cost + pi_evap * evap_cost, ratio
 
 
+def _edge_age_cost(
+    node_u: NodeIsotopeInfo,
+    node_v: NodeIsotopeInfo,
+) -> Tuple[float, List[str]]:
+    flags: List[str] = []
+    if node_u.age_years is None or node_v.age_years is None:
+        return 0.0, flags
+        
+    diff = node_v.age_years - node_u.age_years
+    
+    # Calculate uncertainty
+    sigma_u = node_u.age_sigma_years or 1.0
+    sigma_v = node_v.age_sigma_years or 1.0
+    sigma_diff = math.sqrt(sigma_u**2 + sigma_v**2)
+    
+    # Check if age decreases significantly
+    # User said: penalize if A_v < A_u beyond uncertainty
+    # A_v - A_u >= -k * sigma -> Cost = 0
+    # Otherwise -> Cost = ((A_u - A_v) / sigma)^2
+    
+    k = 1.0 # Tolerance factor (1 sigma)
+    
+    if diff >= -k * sigma_diff:
+        return 0.0, flags
+    
+    cost = ((node_u.age_years - node_v.age_years) / sigma_diff) ** 2
+    flags.append("age_reversal")
+    
+    return cost, flags
+
+
+
 def _edge_iso_cost(
     node_u: NodeIsotopeInfo,
     node_v: NodeIsotopeInfo,
@@ -135,17 +182,37 @@ def _edge_iso_cost(
     cons_cost = ((node_v.d18o - node_u.d18o) / sigma_d18o) ** 2
     cons_cost += ((node_v.d2h - node_u.d2h) / sigma_d2h) ** 2
 
+    # Compute evaporation probability pi_evap based on physical proxies
+    # Base pi_evap is derived from isotope stats (LMWL departure)
     pi_evap = 0.5 * (node_u.p_evap + node_v.p_evap)
+    
+    # Physical Heuristic 1: Depth constraint
+    # Evaporation occurs at or near the surface. Groundwater at depth (>30m) 
+    # is unlikely to experience direct evaporative enrichment unless it was 
+    # recharged recently through an open surface water body.
     shallow_depth = float(getattr(config, "sheaf_shallow_depth_m", 30.0))
     if node_v.depth_m is not None and shallow_depth > 0 and node_v.depth_m > shallow_depth:
         pi_evap *= shallow_depth / node_v.depth_m
+        
+    # Physical Heuristic 2: Thermodynamic Directionality
+    # Evaporation always increases enrichment (more positive delta values) 
+    # and increases the "Evaporation Index" (departure from LMWL).
+    # If the downstream sample is LESS enriched/deviated than upstream, 
+    # the process is likely mixing/dilution, not evaporation.
     if node_u.evap_index is not None and node_v.evap_index is not None:
         if abs(node_v.evap_index) <= abs(node_u.evap_index) + 1e-6:
             pi_evap *= 0.5
+            
+    # Physical Heuristic 3: d-Excess Signature
+    # Kinetic fractionation during evaporation uniquely decreases d-excess.
+    # If d-excess increases along a flow path, it strongly suggests a different 
+    # water source (e.g. mountain-front recharge or different precip regime).
     if node_u.d_excess is not None and node_v.d_excess is not None:
         if node_v.d_excess > node_u.d_excess + 0.5:
             pi_evap *= 0.5
+            
     pi_evap = min(0.8, max(0.0, pi_evap))
+
     if pi_evap > 0.3:
         flags.append("evap_candidate")
 
@@ -168,6 +235,8 @@ def _build_node_info(
     stats: IsotopeStats,
     config: Config,
 ) -> Dict[str, NodeIsotopeInfo]:
+    import datetime
+    
     node_info: Dict[str, NodeIsotopeInfo] = {}
     for node_id, sample in sample_map.items():
         isotopes = extract_isotopes(
@@ -186,6 +255,59 @@ def _build_node_info(
         depth_m = sample_depth_m(sample, config)
         p_evap = compute_evaporation_probability(evap_index, d_excess, depth_m, stats, config)
 
+        # Nuclear age inference
+        age_years = None
+        age_sigma = None
+        
+        # Check for pre-calculated age
+        if "mean_age_years" in sample:
+             age_years = parse_numeric(sample["mean_age_years"], config.detection_limit_policy)
+        
+        # If no pre-calculated age, try to infer from Tritium
+        if age_years is None and _NUCLEAR_AVAILABLE and infer_age_from_tracer is not None and get_nuclide is not None:
+            t_keys = ["3H", "tritium", "H3", "H3_TU", "tritium_TU", "Tritium"]
+            t_val = None
+            for k in t_keys:
+                if k in sample:
+                    t_val = parse_numeric(sample[k], config.detection_limit_policy)
+                    if t_val is not None: break
+            
+            if t_val is not None:
+                # Try to get date
+                date_val = sample.get("date") or sample.get("timestamp") or sample.get("sample_date")
+                year_fraction = None
+                if date_val:
+                    # Simple parser (assume YYYY-MM-DD or similar string, or year float)
+                    try:
+                        if isinstance(date_val, (int, float)):
+                            if 1900 < date_val < 2100:
+                                year_fraction = float(date_val)
+                        else:
+                            # Assume ISO format YYYY-MM-DD
+                            d_str = str(date_val).strip()
+                            if len(d_str) >= 4:
+                                dt = datetime.datetime.fromisoformat(d_str.replace("Z", "+00:00"))
+                                start = datetime.datetime(dt.year, 1, 1, tzinfo=dt.tzinfo)
+                                year_fraction = dt.year + (dt - start).total_seconds() / (365.25 * 86400)
+                    except Exception:
+                        pass
+                
+                if year_fraction is not None:
+                    # Infer
+                    sigma_val = max(0.5, t_val * 0.1)
+                    try:
+                        nuclide = get_nuclide("3H") or TRITIUM
+                        if nuclide:
+                            res = infer_age_from_tracer(
+                                t_val, sigma_val, year_fraction, 
+                                nuclide=nuclide, 
+                                model="PFM"
+                            )
+                            age_years = res["tau_map_years"]
+                            age_sigma = (res["tau_ci_high_years"] - res["tau_ci_low_years"]) / 4.0
+                    except Exception:
+                        pass
+
         node_info[node_id] = NodeIsotopeInfo(
             node_id=node_id,
             d18o=d18o,
@@ -195,8 +317,11 @@ def _build_node_info(
             cl=cl_val,
             depth_m=depth_m,
             p_evap=p_evap,
+            age_years=age_years,
+            age_sigma_years=age_sigma,
         )
     return node_info
+
 
 
 def _build_node_vectors(
@@ -225,6 +350,7 @@ def _score_candidates(
     weight_head = float(getattr(config, "sheaf_weight_head_prior", 1.0))
     weight_iso = float(getattr(config, "sheaf_weight_isotope", 1.0))
     weight_cl = float(getattr(config, "sheaf_weight_cl", 0.5))
+    weight_age = float(getattr(config, "sheaf_weight_age", 2.0))
 
     for edge in candidates:
         node_u = node_info.get(edge.u)
@@ -251,17 +377,26 @@ def _score_candidates(
             cl_cost *= weight_cl
             if cl_ratio is None:
                 flags.append("cl_missing")
+        
+        age_cost = 0.0
+        if getattr(config, "sheaf_age_enabled", True):
+            age_c, age_flags = _edge_age_cost(node_u, node_v)
+            age_cost = age_c * weight_age
+            if age_flags:
+                flags.extend(age_flags)
 
         scores[edge.edge_id] = EdgeSheafScore(
             edge=edge,
             prior_penalty=prior_penalty,
             iso_cost=iso_cost,
             cl_cost=cl_cost,
+            age_cost=age_cost,
             cons_cost=cons_cost,
             pi_evap=pi_evap,
             flags=flags,
         )
     return scores
+
 
 
 def _select_by_score(

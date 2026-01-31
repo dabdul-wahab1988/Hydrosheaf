@@ -15,6 +15,9 @@ from .inference.network_fit import fit_network
 from .physics.priors import PhysicsPrior, apply_physics_priors
 from .temporal import TemporalEdgeResult, TemporalNode
 from .temporal.temporal_edge_fit import fit_temporal_edge
+from .nuclear.network_aging import infer_network_ages_bayesian
+from .nuclear.nuclides import get_nuclide
+
 from .vadose.contracts import (
     VadoseForcingSample,
     VadoseLinksRow,
@@ -288,7 +291,9 @@ def fit_network_pipeline(
 
     temporal_results: List[TemporalEdgeResult] = []
     residence_time_overrides: Optional[Dict[str, float]] = None
+    graph = None
     if temporal_nodes is not None:
+
         temporal_results, residence_time_overrides = fit_temporal_edges(
             temporal_nodes,
             built_edges,
@@ -306,9 +311,54 @@ def fit_network_pipeline(
     if temporal_results:
         attach_temporal_results(results, temporal_results)
 
+    # 3. Nuclear Aging (Network-Enhanced Bayesian)
+    nuclear_results = None
+    if getattr(config, "sheaf_age_enabled", False):
+        # Build DiGraph for the aging solver
+        import networkx as nx
+        graph = nx.DiGraph()
+        for edge in built_edges:
+            graph.add_edge(edge.u, edge.v, length_m=edge.attrs.get("length_m", 1.0))
+        
+        # Prepare observations
+        node_obs = {}
+        # Nuclear Tracer: default to Tritium if not specified
+        tracer_name = getattr(config, "residence_time_tracer", "3H")
+        
+        sample_list = _sample_list(samples)
+        sample_map = {s.get("site_id") or s.get("sample_id"): s for s in sample_list}
+        
+        for node_id, sample in sample_map.items():
+            val = parse_numeric(sample.get(tracer_name), config.detection_limit_policy)
+            if val is not None:
+                node_obs[node_id] = val
+        
+        if node_obs:
+            try:
+                # Use current year as default sample date if not in data
+                sample_date = 2024.0 
+                # Try to get mean date from samples if available
+                
+                nuclide = get_nuclide(tracer_name)
+                if nuclide:
+                    nuclear_results = infer_network_ages_bayesian(
+                        graph,
+                        node_obs,
+                        {}, # sigmas auto-calculated if empty
+                        sample_date,
+                        nuclide=nuclide,
+                        model_type=getattr(config, "nuclear_model", "PFM")
+                    )
+            except Exception as e:
+                # Log or handle error? For now, just skip if it fails
+                pass
+
     extras = {
         "edges": built_edges,
         "temporal_results": temporal_results,
         "residence_time_overrides": residence_time_overrides or {},
+        "nuclear_results": nuclear_results,
+        "graph": locals().get("graph") # pass graph for plotting
     }
     return results, extras
+

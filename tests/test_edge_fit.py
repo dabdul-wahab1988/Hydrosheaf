@@ -9,6 +9,13 @@ from hydrosheaf.models.mixing import fit_evaporation
 class EdgeFitTests(unittest.TestCase):
     def test_edge_fit_evap_and_halite(self):
         config = Config(lambda_sparse=0.0)
+        # Fix: Halite releases Cl, so Cl is not conservative in this synthetic case.
+        # We must adjust conservative_weights to ignore Cl (index 5) and rely on others.
+        # Default is Cl=1.0, others=0.01. We invert this or just set Cl=0.
+        weights = [1.0] * 11
+        weights[5] = 0.0  # Ignore Cl
+        config.conservative_weights = weights
+        
         reaction_matrix, labels, _ = build_reaction_dictionary(config)
         halite_idx = labels.index("halite")
         halite = reaction_matrix[halite_idx]

@@ -1,0 +1,81 @@
+\contentsline {section}{List of Main Variables}{5}{section*.5}%
+\contentsline {section}{\numberline {1}Introduction}{6}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Overview}{6}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Comparison with Existing Tools}{6}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}System Architecture: Sheaf-Theoretic Perspective}{7}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Input-Output Contract}{7}{subsection.1.4}%
+\contentsline {section}{\numberline {2}Governing Mathematical Framework}{9}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Graph-Theoretic Foundation}{9}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}Probabilistic Edge Weights}{9}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}Hydraulic Gradient Guard}{9}{subsubsection.2.1.2}%
+\contentsline {subsubsection}{\numberline {2.1.3}Three-Dimensional Extensions}{9}{subsubsection.2.1.3}%
+\contentsline {subsubsection}{\numberline {2.1.4}Sheaf Consistency and the Laplacian}{9}{subsubsection.2.1.4}%
+\contentsline {subsection}{\numberline {2.2}Transport Processes}{9}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Evaporation Model}{10}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Mixing Model}{10}{subsubsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.3}Geochemical Reactions}{10}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}Sparse Reaction Formulation (LASSO)}{10}{subsubsection.2.3.1}%
+\contentsline {paragraph}{Derivation of the Coordinate Update}{10}{section*.7}%
+\contentsline {subsubsection}{\numberline {2.3.2}Thermodynamic Constraints and Stoichiometry}{11}{subsubsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.4}Isotope Hydrogeology}{11}{subsection.2.4}%
+\contentsline {subsubsection}{\numberline {2.4.1}Local Meteoric Water Line}{11}{subsubsection.2.4.1}%
+\contentsline {subsubsection}{\numberline {2.4.2}Isotope-Based Penalties}{11}{subsubsection.2.4.2}%
+\contentsline {subsubsection}{\numberline {2.4.3}Nitrate Source Discrimination}{11}{subsubsection.2.4.3}%
+\contentsline {subsection}{\numberline {2.5}Vadose Zone Physics}{11}{subsection.2.5}%
+\contentsline {subsubsection}{\numberline {2.5.1}Numerical Discretization}{12}{subsubsection.2.5.1}%
+\contentsline {subsubsection}{\numberline {2.5.2}Quasi-2D Extensions (Tensor Anisotropy and Seepage Face)}{12}{subsubsection.2.5.2}%
+\contentsline {subsubsection}{\numberline {2.5.3}Transverse Dispersion via Lateral Topology}{12}{subsubsection.2.5.3}%
+\contentsline {section}{\numberline {3}Numerical Solution Strategy}{13}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Network Optimization Algorithm}{13}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Solution of Reaction Equations}{13}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Graph Inference Algorithms}{13}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Bayesian Head Estimation}{13}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Sheaf-Consistent Edge Refinement}{14}{subsubsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.4}Temporal Deconvolution}{14}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Inverse Modeling and Parameter Estimation}{15}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Definition of the Objective Function}{15}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Optimization Algorithms}{15}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Uncertainty Quantification}{15}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Bayesian MCMC Formulation}{15}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}Residual Bootstrap}{15}{subsubsection.4.3.2}%
+\contentsline {section}{\numberline {5}Problem Definition and Program Implementation}{16}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Implementation Map}{16}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Programmatic API}{16}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Computational Complexity}{16}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Extension Capabilities}{16}{subsection.5.4}%
+\contentsline {section}{\numberline {6}Example Problems and Validation}{17}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Validation Methodology}{17}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Representative Case Studies}{17}{subsection.6.2}%
+\contentsline {subsubsection}{\numberline {6.2.1}Salinization in Irrigated Aquifers}{17}{subsubsection.6.2.1}%
+\contentsline {subsubsection}{\numberline {6.2.2}Nitrate Contamination and Denitrification}{17}{subsubsection.6.2.2}%
+\contentsline {subsection}{\numberline {6.3}Benchmarks}{17}{subsection.6.3}%
+\contentsline {section}{\numberline {7}Input Data Reference}{18}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Command Line Interface}{18}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Data Schemas}{18}{subsection.7.2}%
+\contentsline {section}{\numberline {8}Output Data Reference}{19}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Output Files}{19}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Result Tables Structure}{19}{subsection.8.2}%
+\contentsline {section}{\numberline {9}Web-Based User Interface}{20}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Architecture Overview}{20}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Frontend Features}{20}{subsection.9.2}%
+\contentsline {subsubsection}{\numberline {9.2.1}Interactive Dashboard}{20}{subsubsection.9.2.1}%
+\contentsline {subsubsection}{\numberline {9.2.2}Sample Data Manager}{20}{subsubsection.9.2.2}%
+\contentsline {subsubsection}{\numberline {9.2.3}Network Visualization}{21}{subsubsection.9.2.3}%
+\contentsline {subsubsection}{\numberline {9.2.4}Analysis Configuration Panel}{21}{subsubsection.9.2.4}%
+\contentsline {subsubsection}{\numberline {9.2.5}Real-Time Analysis Monitor}{21}{subsubsection.9.2.5}%
+\contentsline {subsubsection}{\numberline {9.2.6}Results Dashboard}{22}{subsubsection.9.2.6}%
+\contentsline {subsection}{\numberline {9.3}Backend API}{22}{subsection.9.3}%
+\contentsline {subsubsection}{\numberline {9.3.1}Project Management Endpoints}{22}{subsubsection.9.3.1}%
+\contentsline {subsubsection}{\numberline {9.3.2}Sample Data Endpoints}{22}{subsubsection.9.3.2}%
+\contentsline {subsubsection}{\numberline {9.3.3}Security Architecture}{22}{subsubsection.9.3.3}%
+\contentsline {subsubsection}{\numberline {9.3.4}Network Endpoints}{23}{subsubsection.9.3.4}%
+\contentsline {subsubsection}{\numberline {9.3.5}Analysis Endpoints}{23}{subsubsection.9.3.5}%
+\contentsline {subsubsection}{\numberline {9.3.6}Data Transformation Layer}{23}{subsubsection.9.3.6}%
+\contentsline {subsection}{\numberline {9.4}Deployment and Scalability}{23}{subsection.9.4}%
+\contentsline {subsubsection}{\numberline {9.4.1}Development Mode}{23}{subsubsection.9.4.1}%
+\contentsline {subsubsection}{\numberline {9.4.2}Production Deployment}{24}{subsubsection.9.4.2}%
+\contentsline {subsubsection}{\numberline {9.4.3}Performance Considerations}{24}{subsubsection.9.4.3}%
+\contentsline {subsection}{\numberline {9.5}Integration with Existing Workflows}{24}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Accessibility and Usability}{25}{subsection.9.6}%
+\contentsline {subsection}{\numberline {9.7}Future Development}{25}{subsection.9.7}%
+\contentsline {subsection}{\numberline {9.8}Open-Source Licensing and Contributions}{25}{subsection.9.8}%

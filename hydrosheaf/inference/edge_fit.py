@@ -142,6 +142,7 @@ def fit_edge(
     bounds: Optional[Dict[str, object]] = None,
     obs_u: Optional[Mapping[str, float]] = None,
     residence_time_days: Optional[float] = None,
+    extra_endmembers: Optional[Dict[str, List[float]]] = None,
 ) -> EdgeResult:
     config.validate()
 
@@ -173,10 +174,16 @@ def fit_edge(
         candidates.append(("evap", None, gamma, None, evap_residual, evap_norm))
 
     if "mix" in config.transport_models_enabled:
+        # Standard configuration endmembers
         for end_id, endmember in config.mixing_endmembers.items():
             f, mix_residual, mix_norm = fit_mixing(x_u, x_v, endmember, transport_weights)
             candidates.append(("mix", end_id, None, f, mix_residual, mix_norm))
-
+            
+        # Extra endmembers (e.g. lateral neighbors for transverse dispersion)
+        if extra_endmembers:
+            for end_id, endmember in extra_endmembers.items():
+                f, mix_residual, mix_norm = fit_mixing(x_u, x_v, endmember, transport_weights)
+                candidates.append(("mix", end_id, None, f, mix_residual, mix_norm))
 
     best_result: Optional[EdgeResult] = None
     candidate_entries: List[Dict[str, object]] = []
@@ -386,7 +393,12 @@ def fit_edge(
     if best_result is None:
         raise RuntimeError("No transport candidates evaluated.")
 
-    scores = [entry["objective_score"] for entry in candidate_entries]
+    # Cast to float to satisfy mypy
+    scores = [float(entry["objective_score"]) for entry in candidate_entries if entry.get("objective_score") is not None]
+    if not scores:
+        # Fallback if somehow scores are empty but best_result is not None (should not happen)
+        scores = [0.0]
+        
     min_score = min(scores)
     weights = [math.exp(-(score - min_score)) for score in scores]
     total = sum(weights) or 1.0

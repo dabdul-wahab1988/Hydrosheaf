@@ -122,13 +122,30 @@ def fit_network(
     
     logger.info(f"Fitting network with {len(built_edges)} edges and {len(sample_map)} samples.")
 
+    # Pre-process lateral edges to build neighbor lookup
+    # Lateral edges are those marked type="lateral" (flat gradient dispersion candidates)
+    # We map u -> [neighbor_id]
+    lateral_neighbors: Dict[str, List[str]] = {}
+    
+    # Filter built_edges to only process primary edges for fitting
+    primary_edges: List[Edge] = []
+    
+    for edge in built_edges:
+        if edge.type == "lateral":
+            lateral_neighbors.setdefault(edge.u, []).append(edge.v)
+        else:
+            primary_edges.append(edge)
+            
+    # Also considering bidirectional lateral relations if graph building was unidirectional
+    # But usually build_edges creates directed candidates.
+
     if config.phreeqc_enabled and phreeqc_results is None:
         logger.info("Running global PHREEQC speciation...")
         phreeqc_results = run_phreeqc(sample_map.values(), config)
 
 
     results: List[EdgeResult] = []
-    for edge in built_edges:
+    for edge in primary_edges:
         if edge.u not in sample_map or edge.v not in sample_map:
             continue
         sample_u = sample_map[edge.u]
@@ -221,6 +238,27 @@ def fit_network(
             assert isinstance(ca_dict, dict)
             ca_dict["redox"] = "active"
 
+        # Prepare extra endmembers from lateral neighbors (Transverse Dispersion)
+        # For edge u->v, we look for neighbors of u (lateral to flow) that could mix into the stream
+        extra_endmembers: Dict[str, List[float]] = {}
+        
+        # Look up lateral neighbors of u
+        neighbors_of_u = lateral_neighbors.get(edge.u, [])
+        for neighbor_id in neighbors_of_u:
+            if neighbor_id not in sample_map:
+                continue
+            # Get neighbor vector
+            n_sample = sample_map[neighbor_id]
+            x_n, _ = vector_from_sample(
+                 n_sample, 
+                 config.ion_order, 
+                 config.missing_policy, 
+                 config.detection_limit_policy
+            )
+            if x_n is not None:
+                # Add as candidate endmember
+                extra_endmembers[f"lateral_{neighbor_id}"] = x_n
+
         result = fit_edge(
             x_u,
             x_v,
@@ -232,6 +270,7 @@ def fit_network(
             bounds=edge_bounds,
             obs_u=sample_u_norm,
             residence_time_days=tau_edge,
+            extra_endmembers=extra_endmembers,
         )
         
         # Log significant findings (Science Level)

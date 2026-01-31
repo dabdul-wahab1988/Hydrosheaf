@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: hydrosheaf
-Version: 0.1.0
+Version: 0.5.0
 Summary: Hydrogeochemical analysis and flow network fitting
 Author-email: Hydrosheaf Team <info@hydrosheaf.org>
 Requires-Python: >=3.8
@@ -13,14 +13,18 @@ Requires-Dist: networkx
 Requires-Dist: matplotlib
 Requires-Dist: pydantic
 Requires-Dist: typer
-Provides-Extra: plot
-Requires-Dist: seaborn; extra == "plot"
-Provides-Extra: phreeqc
-Requires-Dist: phreeqpy; extra == "phreeqc"
-Provides-Extra: all
-Requires-Dist: flopy; extra == "all"
-Requires-Dist: seaborn; extra == "all"
-Requires-Dist: phreeqpy; extra == "all"
+Requires-Dist: flopy
+Requires-Dist: seaborn
+Requires-Dist: phreeqpy
+Requires-Dist: pyvista
+Requires-Dist: vtk
+Requires-Dist: pymc
+Requires-Dist: nutpie
+Requires-Dist: PyYAML
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: black; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
 Dynamic: license-file
 
 # Hydrosheaf
@@ -66,11 +70,17 @@ cd Hydrosheaf
 pip install .
 ```
 
-To install with plotting dependencies:
+### External Dependencies
 
-```bash
-pip install .[plot]
-```
+**For PEST++ Calibration (Auto-handled):**
+Hydrosheaf now automatically manages external dependencies for advanced calibration.
+When you run a calibration routine that requires PEST++, MODFLOW, or MT3DMS, the necessary binaries will be **automatically downloaded** and configured for your operating system (Windows, Linux, or macOS).
+
+No manual compilation or download is required.
+
+**Note:**
+1. **Core inverse modeling** works entirely within Python and needs no external tools.
+2. **Advanced calibration** (using PEST++) triggers the auto-download on first use.
 
 ### Web Application
 
@@ -121,7 +131,6 @@ npm run dev
 
 The frontend will be available at `http://localhost:5173` and expects the backend at `http://localhost:8000` (override with `VITE_API_BASE`).
 
-
 #### Development Roadmap
 
 For details on the current integration status, known issues, and future plans for the web interface, please refer to the [Integration Roadmap](web/INTEGRATION_ROADMAP.md).
@@ -144,66 +153,183 @@ npm run dev
 
 Open your browser and navigate to `http://localhost:5173` to access the Hydrosheaf web application.
 
-## Requirements
+## Quick Start
 
-- Python >= 3.8
-- PHREEQC (optional, for thermodynamic constraints)
-- Node.js >= 18.x (for web application)
-- Optional: PyMC + ArviZ for Bayesian nitrate isotope mixing and uncertainty quantification
-- Optional: FloPy + MODFLOW/MT3DMS executables for saturated transport coupling
+### ✅ Works Out-of-the-Box
 
+When you do `pip install .`, you get **full functionality** for:
+- Core inverse geochemical modeling (transport + reactions)
+- PHREEQC thermodynamic constraints
+- Isotope analysis and forensics
+- Nitrate source discrimination (Bayesian MCMC)
+- Network inference and topology refinement
+- 3D flow networks
+- Temporal dynamics and residence time estimation
+- Uncertainty quantification (Bootstrap, MCMC)
+- **Advanced Calibration (PEST++)**: Binaries are auto-downloaded when needed.
 
-## Usage
+**This is sufficient for 95% of use cases!**
 
-### Command-Line Interface (CLI)
+### Python API Usage
 
-Hydrosheaf provides a command-line interface for running the modeling pipeline.
+The recommended entry point is `fit_network_pipeline()` from `hydrosheaf.api`:
 
-```bash
-hydrosheaf --help
+```python
+from hydrosheaf.api import fit_network_pipeline
+from hydrosheaf.config import Config
+
+# Load your data
+samples = {...}  # List of sample dictionaries
+edges = [...]    # List of edge definitions
+config = Config()
+
+# Run the pipeline
+results, diagnostics = fit_network_pipeline(
+    samples=samples,
+    edges=edges,
+    config=config,
+    auto_disable_missing=True
+)
+
+# Access results
+for edge_result in results:
+    print(f"Edge {edge_result.u} → {edge_result.v}:")
+    print(f"  Transport model: {edge_result.transport_model}")
+    print(f"  Reactions: {edge_result.z_labels}")
+    print(f"  Reaction extents: {edge_result.z_extents}")
 ```
 
-#### Basic Workflow
+### ⚙️ Optional: Manual Compilation
 
-1. Prepare your input data (chemical concentrations, hydraulic heads, coordinates).
-2. Configure the model parameters (weights, penalties, active minerals).
-3. Run the inference pipeline.
+**Only needed if you want to modify PEST++ source code:**
 
-#### Example Scripts
+#### System Requirements for Compilation
+- Windows 10+ with Visual Studio 2022 Build Tools
+- CMake and Ninja
+- ~500 MB disk space
 
+#### Build PEST++
 ```bash
-python hydrosheaf/examples/demo_small_network.py
+# Compile from source (NOT necessary for standard usage)
+compile_pestpp.bat
 ```
 
-```bash
-python examples/demo_research_objectives.py
+### Configuration
+
+Hydrosheaf uses a central `Config` dataclass. Key settings:
+
+```python
+from hydrosheaf.config import Config
+
+config = Config(
+    # Chemistry
+    ion_order=["Ca", "Mg", "Na", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"],
+    charge_balance_limit=0.1,
+    
+    # Inference
+    lambda_l1=0.01,  # LASSO penalty
+    transport_models_enabled=["evap", "mix"],
+    
+    # Thermodynamics
+    phreeqc_enabled=True,
+    si_threshold_tau=0.2,
+    
+    # Isotopes & Nitrate
+    isotope_enabled=True,
+    nitrate_source_enabled=True,
+    nitrate_source_isotope_mcmc_enabled=True,
+    
+    # Temporal
+    residence_time_method="bayesian_lag",
+    
+    # 3D Flow
+    network_3d_enabled=False,
+    vertical_anisotropy=0.1,
+)
 ```
 
-The research objectives demo expects `hydrosheaf_synthetic_csv/` at the repo root and can run optional MCMC (PyMC) and FloPy transport steps if those dependencies are installed.
+For detailed configuration reference, see [HYDROSHEAF_USER_MANUAL.md](HYDROSHEAF_USER_MANUAL.md#16-configuration-reference).
 
-### Web Application
+### Data Input Format
+
+Samples should be provided as a list of dictionaries with keys:
+
+```python
+samples = [
+    {
+        "site_id": "W001",
+        "sample_id": "W001_2023-01",
+        "Ca": 80.0,      # mg/L (converted internally to mmol/L)
+        "Mg": 20.0,
+        "Na": 15.0,
+        "K": 2.0,
+        "HCO3": 250.0,
+        "Cl": 30.0,
+        "SO4": 50.0,
+        "NO3": 5.0,
+        "F": 1.0,
+        "Fe": 0.1,
+        "PO4": 0.05,
+        "pH": 7.5,
+        "d18o": -8.5,    # Optional: δ18O (‰)
+        "d2h": -60.0,    # Optional: δ2H (‰)
+        "latitude": 40.5,
+        "longitude": -74.0,
+        "elevation": 50.0,
+        "head": 45.0,    # Optional: hydraulic head (m)
+    },
+    # ... more samples
+]
+```
+
+Edges should specify connectivity:
+
+```python
+edges = [
+    {"u": "W001", "v": "W002", "distance_km": 2.5, "delta_h": 1.5},
+    {"u": "W002", "v": "W003", "distance_km": 3.0, "delta_h": 2.0},
+]
+```
 
 
-The web interface provides:
-
-- **Dashboard**: Overview of your hydrogeochemistry analysis projects.
-- **Samples**: Upload and manage water sample data.
-- **Network**: Visualize and configure flow network topology.
-- **Analysis**: Run transport and reaction path modeling.
-- **Results**: View and export analysis results.
-- **Projects**: Save, load, and export complete analysis projects as reports.
 
 ## Documentation
 
-**[Technical Document (PDF)](hydrosheaf_technical_document.pdf)**: Comprehensive mathematical theory and proofs.
+For comprehensive reference, see:
 
-Detailed guides are available in the `docs/` directory:
+- **[HYDROSHEAF_USER_MANUAL.md](HYDROSHEAF_USER_MANUAL.md)**: Complete technical reference for all modules and functions (v0.1.0)
+- **[DEVELOPMENT.md](DEVELOPMENT.md)**: For developers and contributors (building from source, running tests, contributing)
+- **[Technical Document (PDF)](docs/papers/hydrosheaf_technical_document.pdf)**: Mathematical theory and proofs
+- **[User Guide](docs/USER_GUIDE.md)**: Extended usage instructions and workflows
+- **[Mathematical Reference](docs/math.md)**: Compact math notes aligned with the codebase
+- **[Technical Reference](docs/TECHNICAL_REFERENCE.md)**: Code architecture and module details
+- **[PHREEQC Integration](docs/phreeqc.md)**: Setting up thermodynamic constraints
+- **[Examples](docs/examples.md)**: Walkthroughs of common scenarios
 
-- **[User Guide](docs/USER_GUIDE.md)**: Extended usage instructions and workflows.
-- **[Mathematical Reference](docs/math.md)**: Compact math notes aligned with the codebase implementation.
-- **[Technical Reference](docs/TECHNICAL_REFERENCE.md)**: Deep dive into the code architecture and modules.
-- **[PHREEQC Integration](docs/phreeqc.md)**: Setting up thermodynamic constraints.
-- **[Examples](docs/examples.md)**: Walkthroughs of common modeling scenarios.
+## Troubleshooting & Common Questions
+
+### Q: Do I need to compile anything to use Hydrosheaf?
+**A: No!** Simply run `pip install .` and everything works. Compilation is only optional for PEST++ advanced calibration.
+
+### Q: What if I can't compile PEST++?
+**A: That's fine!** Core hydrosheaf inverse modeling works perfectly without PEST++. Download pre-compiled PEST++ binaries from [USGS/pestpp releases](https://github.com/usgs/pestpp/releases) if needed.
+
+### Q: Will it work on Linux/Mac?
+**A: Yes!** The Python package is cross-platform. The `bin/` directory contains Windows executables, but:
+- Core hydrosheaf works on Windows/Linux/Mac
+- Download Linux/Mac binaries separately if needed
+- Most users don't need the `bin/` files
+
+### Q: Can I use Hydrosheaf without PHREEQC?
+**A: Yes!** While the PHREEQC library is installed by default, you can disable thermodynamic constraints in your configuration if you don't need them.
+
+### Q: I got an error about missing dependencies
+**A:** Ensure you have installed the package using `pip install .`. All necessary dependencies are now included by default.
+
+### Q: How do I run the web interface?
+**A: Follow the Web Application section above.** It requires Node.js, but Python setup is the same.
+
+---
 
 ## Authors
 

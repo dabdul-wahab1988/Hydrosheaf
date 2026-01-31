@@ -67,6 +67,14 @@ class ConfigAdapter:
             exchange_enabled=frontend_config.get("enable_exchange", True),
             # Topology refinement
             sheaf_soft_beta=frontend_config.get("sheaf_soft_beta", 1.0),
+            # Nuclear dating
+            sheaf_age_enabled=frontend_config.get("enable_nuclear_aging", False),
+            sheaf_weight_age=frontend_config.get("nuclear_age_weight", 2.0),
+            # Optional: these might need to be passed to the specific solver later, 
+            # but for now we ensure they exist in config if we added them to core Config.
+            # Actually, core Config doesn't have nuclear_region etc. yet as global fields.
+            # They are parameters to infer_network_ages_bayesian.
+            # However, we can store them in Config for persistence.
             # Optional advanced settings
             ion_order=frontend_config.get("ion_order", DEFAULT_ION_ORDER.copy()),
             weights=frontend_config.get("weights", [1.0] * 10),
@@ -78,7 +86,7 @@ class ConfigAdapter:
         )
 
     @staticmethod
-    def generate_plots(edge_results, samples, output_dir: str, config: Dict[str, Any]) -> Dict[str, str]:
+    def generate_plots(edge_results, samples, output_dir: str, config: Dict[str, Any], extras: Optional[Dict] = None) -> Dict[str, str]:
         """
         Generate scientific plots using the Hydrosheaf core plotting engine.
         Returns a dictionary mapping plot types to their file paths (relative to static dir).
@@ -169,11 +177,34 @@ class ConfigAdapter:
                  plot_network_3d, 
                  samples, # Nodes
                  None, # Edges (will be inferred or passed if we had the edge objects, but here we just pass nodes for now or need edge objects)
-                 # Note: plot_network_3d expects Edge objects, but we might only have EdgeResults here which are different.
-                 # For now, let's skip passing edges to 3D plot to avoid crash, or reconstruct them.
-                 # The plot_network_3d function handles "List[Dict]" for nodes.
                  z_exaggeration=config.get("vertical_anisotropy", 10.0)
              )
+
+        # 5. Nuclear Aging Plots
+        if extras and "nuclear_results" in extras:
+            from hydrosheaf.nuclear.plots import plot_network_ages, plot_age_vs_distance, plot_modern_probability
+            # We need a graph for some plots
+            import networkx as nx
+            graph = extras.get("graph")
+            if graph:
+                generated_plots["network_ages"] = safe_plot(
+                    "network_ages",
+                    plot_network_ages,
+                    graph,
+                    extras["nuclear_results"]
+                )
+                generated_plots["age_gradient"] = safe_plot(
+                    "age_gradient",
+                    plot_age_vs_distance,
+                    graph,
+                    extras["nuclear_results"]
+                )
+            
+            generated_plots["modern_prob"] = safe_plot(
+                "modern_prob",
+                plot_modern_probability,
+                extras["nuclear_results"]
+            )
 
         return {k: v for k, v in generated_plots.items() if v is not None}
 
@@ -280,6 +311,19 @@ class SampleAdapter:
                 hydrosheaf_sample["15N_NO3"] = sample["d15n"]
             if "d18o_no3" in sample:
                 hydrosheaf_sample["18O_NO3"] = sample["d18o_no3"]
+
+            # Nuclear Tracers
+            if "tritium" in sample:
+                hydrosheaf_sample["3H"] = sample["tritium"]
+            elif "h3" in sample:
+                hydrosheaf_sample["3H"] = sample["h3"]
+            
+            if "c14" in sample:
+                hydrosheaf_sample["14C"] = sample["c14"]
+            
+            if "kr85" in sample:
+                hydrosheaf_sample["85Kr"] = sample["kr85"]
+
 
             # Spatial coordinates
             for field in ["x", "y", "z", "latitude", "longitude", "elevation"]:
@@ -431,4 +475,19 @@ class ResultAdapter:
                 ]
             }
 
+        # Add nuclear results if available
+        if extras and "nuclear_results" in extras and extras["nuclear_results"]:
+            nuclear = extras["nuclear_results"]
+            # Summarize
+            total_age = sum(n["mean_age_years"] for n in nuclear.values() if isinstance(n, dict))
+            count = len([n for n in nuclear.values() if isinstance(n, dict)])
+            avg_age = total_age / count if count > 0 else 0
+            
+            frontend_result["nuclear_aging"] = {
+                "average_age_years": avg_age,
+                "nodes": {k: v for k, v in nuclear.items() if k != "_diagnostics"},
+                "diagnostics": nuclear.get("_diagnostics")
+            }
+
         return frontend_result
+

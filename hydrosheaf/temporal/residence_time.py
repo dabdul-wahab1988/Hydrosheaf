@@ -10,6 +10,14 @@ import numpy as np
 
 from . import TemporalNode
 
+try:
+    from hydrosheaf.nuclear.invert import infer_age_from_tracer
+    from hydrosheaf.nuclear.nuclides import get_nuclide
+    _NUCLEAR_AVAILABLE = True
+except ImportError:
+    _NUCLEAR_AVAILABLE = False
+
+
 
 def estimate_residence_time(
     node_u: TemporalNode,
@@ -178,6 +186,13 @@ def _extract_tracer_series(
         synonyms = ["18O", "d18O"]
     elif tracer in {"2H", "d2H"}:
         synonyms = ["2H", "d2H"]
+    elif tracer in {"3H", "tritium", "H3"}:
+        synonyms = ["3H", "tritium", "H3", "H-3"]
+    elif tracer in {"14C", "C14", "carbon14"}:
+        synonyms = ["14C", "C14", "carbon14", "C-14"]
+    else:
+        synonyms = [tracer]
+
 
     values: List[float] = []
     for sample in node.samples:
@@ -1334,19 +1349,92 @@ def _estimate_residence_time_tracer_decay(
 ) -> Tuple[float, float, str]:
     """
     Estimate residence time using radioactive tracer decay.
-
-    τ = -(t_1/2 / ln(2)) * ln(C_v / C_u)
-
-    For tritium: t_1/2 = 12.32 years = 4498 days
+    
+    Infers Mean Residence Time (MRT) at each node using a lumped parameter model
+    (default PFM) and input history, then computes travel time as difference.
     """
+    if not _NUCLEAR_AVAILABLE:
+        return 0.0, 0.0, "tracer_decay_module_missing"
+
     if not node_u.samples or not node_v.samples:
         return 0.0, 0.0, "tracer_decay_no_data"
 
-    # Find tracer index (assume tritium is in isotopes dict)
-    # This is a placeholder - would need actual tritium data
-    # For now, return error
+    # Identify nuclide
+    nuclide = get_nuclide(tracer_ion)
+    if nuclide is None:
+         return 0.0, 0.0, f"tracer_decay_unknown_nuclide({tracer_ion})"
+    
+    # Extract data
+    u_vals = _extract_tracer_series(node_u, tracer_ion, ion_order)
+    v_vals = _extract_tracer_series(node_v, tracer_ion, ion_order)
+    
+    if u_vals is None or v_vals is None:
+        return 0.0, 0.0, "tracer_decay_missing_values"
 
-    return 0.0, 0.0, "tracer_decay_not_implemented"
+    import datetime
+
+    def get_mean_date_val(node, vals):
+        if vals.size == 0: return None, None
+        ts = np.array([s.timestamp.timestamp() for s in node.samples])
+        # Use mean timestamp and value
+        mean_ts = np.mean(ts)
+        mean_val = np.mean(vals)
+        
+        # Convert to fractional year
+        dt = datetime.datetime.fromtimestamp(mean_ts)
+        # simplistic fractional year
+        start_of_year = datetime.datetime(dt.year, 1, 1)
+        year_fraction = (dt - start_of_year).total_seconds() / (365.25 * 24 * 3600)
+        year = dt.year + year_fraction
+        return year, mean_val
+
+    u_year, u_conc = get_mean_date_val(node_u, u_vals)
+    v_year, v_conc = get_mean_date_val(node_v, v_vals)
+    
+    if u_year is None or v_year is None:
+        return 0.0, 0.0, "tracer_decay_no_dates"
+
+    # Infer ages
+    # Default error approx: 10% or 0.5 units
+    u_sigma = max(0.5, u_conc * 0.1)
+    v_sigma = max(0.5, v_conc * 0.1)
+    
+    # Infer MRT at each node
+    # Using PFM is robust baseline as requested
+    res_u = infer_age_from_tracer(u_conc, u_sigma, u_year, nuclide, model="PFM") 
+    res_v = infer_age_from_tracer(v_conc, v_sigma, v_year, nuclide, model="PFM")
+    
+    age_u = res_u["tau_map_years"]
+    age_v = res_v["tau_map_years"]
+    
+    # Travel time = difference in ages
+    tau_years = age_v - age_u
+    
+    # Uncertainty propagation
+    sigma_age_u = (res_u["tau_ci_high_years"] - res_u["tau_ci_low_years"]) / 4.0
+    sigma_age_v = (res_v["tau_ci_high_years"] - res_v["tau_ci_low_years"]) / 4.0
+    sigma_tau_years = np.sqrt(sigma_age_u**2 + sigma_age_v**2)
+    
+    # Convert to days
+    tau_days = tau_years * 365.25
+    sigma_tau_days = sigma_tau_years * 365.25
+    
+    method_str = f"tracer_decay({nuclide.symbol})"
+    flags = []
+    if res_u.get("multimodal") or res_v.get("multimodal"):
+        flags.append("multimodal")
+    
+    if tau_days < 0:
+        # Negative travel time implies downstream is younger than upstream
+        # This conflicts with flow direction unless mixing with recent water occurred.
+        tau_days = 0.0
+        flags.append("neg_age_diff")
+        
+    if flags:
+        method_str += f"_{'_'.join(flags)}"
+
+    return float(tau_days), float(sigma_tau_days), method_str
+
 
 
 def compute_residence_time_from_velocity(

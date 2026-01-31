@@ -189,6 +189,16 @@ function Results() {
                                     </div>
                                 </div>
                                 <div className="summary-card">
+                                    <span className="summary-icon">⏳</span>
+                                    <div className="summary-info">
+                                        <span className="summary-value">
+                                            {results.nuclear_aging?.average_age_years ? 
+                                                `${results.nuclear_aging.average_age_years.toFixed(1)}y` : 'N/A'}
+                                        </span>
+                                        <span className="summary-label">Average Age</span>
+                                    </div>
+                                </div>
+                                <div className="summary-card">
                                     <span className="summary-icon">📈</span>
                                     <div className="summary-info">
                                         <span className="summary-value">{results.uncertainty?.confidence_level ? `${(results.uncertainty.confidence_level * 100).toFixed(0)}%` : 'N/A'}</span>
@@ -222,42 +232,85 @@ function Results() {
                                 </div>
                             )}
 
-                            {/* Transport Model */}
-                            <div className="card mt-lg">
-                                <div className="card-header">
-                                    <h3 className="card-title">Transport Model</h3>
-                                    <span className="badge badge-primary">{results.transport_model?.dominant_process}</span>
-                                </div>
-                                <div className="transport-grid">
-                                    <div className="transport-item">
-                                        <span className="transport-label">Evaporation Fraction</span>
-                                        <div className="transport-bar">
-                                            <div
-                                                className="transport-fill evap"
-                                                style={{ width: `${(results.transport_model?.evaporation_fraction || 0) * 100}%` }}
-                                            ></div>
-                                        </div>
-                                        <span className="transport-value">
-                                            {((results.transport_model?.evaporation_fraction || 0) * 100).toFixed(1)}%
-                                        </span>
-                                    </div>
+                             {/* Transport Model */}
+                             <div className="card mt-lg">
+                                 {/* ... existing transport model code ... */}
+                             </div>
 
-                                    {results.transport_model?.mixing_fractions &&
-                                        Object.entries(results.transport_model.mixing_fractions).map(([key, value]) => (
-                                            <div key={key} className="transport-item">
-                                                <span className="transport-label">{key.replace('_', ' ')} Mixing</span>
-                                                <div className="transport-bar">
-                                                    <div
-                                                        className="transport-fill mix"
-                                                        style={{ width: `${value * 100}%` }}
-                                                    ></div>
-                                                </div>
-                                                <span className="transport-value">{(value * 100).toFixed(1)}%</span>
-                                            </div>
-                                        ))
-                                    }
-                                </div>
-                            </div>
+                             {/* Nuclear Dating Results */}
+                             {results.nuclear_aging && (
+                                 <div className="card mt-lg">
+                                     <div className="card-header">
+                                         <h3 className="card-title">Network-Enhanced Nuclear Dating</h3>
+                                         <span className="badge badge-success">Bayesian MCMC</span>
+                                     </div>
+                                     <div className="nuclear-results-grid">
+                                         <div className="table-container">
+                                             <table className="nuclear-table">
+                                                 <thead>
+                                                     <tr>
+                                                         <th>Node</th>
+                                                         <th>Mean Age (y)</th>
+                                                         <th>95% CI (y)</th>
+                                                         <th>Modern Prob.</th>
+                                                         <th>Status</th>
+                                                     </tr>
+                                                 </thead>
+                                                 <tbody>
+                                                     {Object.entries(results.nuclear_aging.nodes || {}).map(([id, data]) => (
+                                                         <tr key={id}>
+                                                             <td className="node-id">{id}</td>
+                                                             <td>{data.mean_age_years.toFixed(1)}</td>
+                                                             <td className="text-muted text-small">
+                                                                 [{data.age_95_low.toFixed(1)}, {data.age_95_high.toFixed(1)}]
+                                                             </td>
+                                                             <td>
+                                                                 <div className="prob-pill-container">
+                                                                     <div 
+                                                                         className="prob-pill-fill" 
+                                                                         style={{ 
+                                                                             width: `${data.p_modern * 100}%`,
+                                                                             backgroundColor: data.p_modern > 0.7 ? '#22c55e' : (data.p_modern > 0.3 ? '#eab308' : '#ef4444')
+                                                                         }}
+                                                                     ></div>
+                                                                     <span className="prob-text">{(data.p_modern * 100).toFixed(0)}%</span>
+                                                                 </div>
+                                                             </td>
+                                                             <td>
+                                                                 <span className={`badge badge-${data.p_modern > 0.5 ? 'success' : 'warning'}`}>
+                                                                     {data.p_modern > 0.5 ? 'Modern' : 'Sub-modern'}
+                                                                 </span>
+                                                             </td>
+                                                         </tr>
+                                                     ))}
+                                                 </tbody>
+                                             </table>
+                                         </div>
+                                         {results.nuclear_aging.diagnostics && (
+                                             <div className="nuclear-diagnostics mt-md">
+                                                 <h4>Inferred Global Parameters</h4>
+                                                 <div className="diag-metrics">
+                                                     <div className="diag-item">
+                                                         <span className="label">Input Scaling</span>
+                                                         <span className="value">{results.nuclear_aging.diagnostics.inferred_input_scale.toFixed(2)}</span>
+                                                     </div>
+                                                     <div className="diag-item">
+                                                         <span className="label">Mean Velocity</span>
+                                                         <span className="value">{results.nuclear_aging.diagnostics.inferred_velocity_m_y.toFixed(1)} m/y</span>
+                                                     </div>
+                                                     {results.nuclear_aging.diagnostics.inferred_c14_a0_global > 0 && (
+                                                         <div className="diag-item">
+                                                             <span className="label">C14 A0 (Global)</span>
+                                                             <span className="value">{results.nuclear_aging.diagnostics.inferred_c14_a0_global.toFixed(1)} pmc</span>
+                                                         </div>
+                                                     )}
+                                                 </div>
+                                             </div>
+                                         )}
+                                     </div>
+                                 </div>
+                             )}
+
 
                             {/* Edge Network Visualization */}
                             {results.edge_results && results.edge_results.length > 0 && (

@@ -987,6 +987,10 @@ def main() -> None:
         help="Path to calibration results JSON (optimal parameters override config).",
     )
 
+    # Logging
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
+    parser.add_argument("--log-file", type=str, help="Path to log file")
+
     # Plotting Options
     parser.add_argument(
         "--plot-ilr", action="store_true", help="Generate ILR plot of samples."

@@ -137,6 +137,20 @@ def fit_reactions(
         [_dot(weighted_matrix[i], weighted_matrix[j]) for j in range(m)]
         for i in range(m)
     ]
+
+    # Compute condition number for multicollinearity warning
+    trace_gram = sum(gram[i][i] for i in range(m))
+    frob_sq = sum(gram[i][j]**2 for i in range(m) for j in range(m))
+    # Approximate condition number using trace/Frobenius ratio
+    if trace_gram > 1e-12:
+        approx_cond = (frob_sq**0.5) / (trace_gram / m)
+        if approx_cond > 30:
+            import warnings
+            warnings.warn(
+                f"Reaction matrix may be ill-conditioned (approx. κ={approx_cond:.1f}). "
+                "Consider reducing active minerals or enabling exchange reactions."
+            )
+
     s_r = [_dot(weighted_matrix[i], weighted_residual) for i in range(m)]
 
     if lb is not None and ub is not None:

@@ -5,7 +5,8 @@ This module implements Bayesian inference using MCMC (Hamiltonian Monte Carlo / 
 to estimate posterior distributions of transport parameters and reaction extents.
 
 Requirements:
-    pip install pymc>=5.0 arviz>=0.15
+    pip install pymc>=5.0 arviz>=0.15 nutpie>=0.13
+
 
 Alternative:
     pip install numpyro>=0.12 jax>=0.4
@@ -103,17 +104,25 @@ def bayesian_edge_fit(
         )
 
         # Priors for reaction extents (Laplace for sparsity)
-        xi = pm.Laplace("xi", mu=0, b=prior_xi_scale, shape=m_reactions)
-
-        # Apply thermodynamic bounds if provided
+        # Apply thermodynamic bounds using Truncated distributions for numerical stability
         if bounds is not None:
+            xi_list = []
             for j, (lb, ub) in enumerate(bounds):
-                if lb is not None:
-                    pm.Potential(f"lb_{j}", pm.math.switch(xi[j] < lb, -1e10, 0))
-                if ub is not None:
-                    pm.Potential(f"ub_{j}", pm.math.switch(xi[j] > ub, -1e10, 0))
+                # Ensure lb/ub are floats or None
+                l = float(lb) if lb is not None else -np.inf
+                u = float(ub) if ub is not None else np.inf
+                
+                # Use Truncated Laplace dist
+                xi_j = pm.Truncated("xi_" + str(j), 
+                                   pm.Laplace.dist(mu=0, b=prior_xi_scale),
+                                   lower=l, upper=u)
+                xi_list.append(xi_j)
+            xi = pm.math.stack(xi_list)
+        else:
+            xi = pm.Laplace("xi", mu=0, b=prior_xi_scale, shape=m_reactions)
 
         # Predicted downstream concentration
+
         x_pred = gamma * x_u_vec + pm.math.dot(R, xi)
 
         # Likelihood with heteroscedastic noise
@@ -121,16 +130,18 @@ def bayesian_edge_fit(
         pm.Normal("x_v_obs", mu=x_pred, sigma=sigma, observed=x_v_vec)
 
         # Sample
-        trace = pm.sample(
+        import nutpie
+        compiled = nutpie.compile_pymc_model(pm.Model.get_context())
+        trace = nutpie.sample(
+            compiled,
             draws=n_samples,
             chains=n_chains,
-            cores=min(n_chains, 4),
-            target_accept=target_accept,
-            return_inferencedata=True,
-            progressbar=False,
+            seed=None,
+            progress_bar=False,
         )
 
     # Extract posterior samples
+
     gamma_samples = trace.posterior["gamma"].values.flatten()
     xi_samples = trace.posterior["xi"].values  # shape: (chains, draws, m_reactions)
     xi_samples = xi_samples.reshape(-1, m_reactions)
@@ -241,17 +252,22 @@ def bayesian_reaction_fit(
 
     with pm.Model():
         # Priors
-        xi = pm.Laplace("xi", mu=0, b=laplace_scale, shape=m_reactions)
-
-        # Apply bounds
+        # Apply thermodynamic bounds using Truncated distributions
         if bounds is not None:
+            xi_list = []
             for j, (lb, ub) in enumerate(bounds):
-                if lb is not None:
-                    pm.Potential(f"lb_{j}", pm.math.switch(xi[j] < lb, -1e10, 0))
-                if ub is not None:
-                    pm.Potential(f"ub_{j}", pm.math.switch(xi[j] > ub, -1e10, 0))
+                l = float(lb) if lb is not None else -np.inf
+                u = float(ub) if ub is not None else np.inf
+                xi_j = pm.Truncated("xi_" + str(j), 
+                                   pm.Laplace.dist(mu=0, b=laplace_scale),
+                                   lower=l, upper=u)
+                xi_list.append(xi_j)
+            xi = pm.math.stack(xi_list)
+        else:
+            xi = pm.Laplace("xi", mu=0, b=laplace_scale, shape=m_reactions)
 
         # Predicted residual (should be near zero after reaction fit)
+
         residual_pred = pm.math.dot(R, xi)
 
         # Weighted likelihood
@@ -259,16 +275,18 @@ def bayesian_reaction_fit(
         pm.Normal("residual_obs", mu=residual_pred, sigma=sigma, observed=residual_vec)
 
         # Sample
-        trace = pm.sample(
+        import nutpie
+        compiled = nutpie.compile_pymc_model(pm.Model.get_context())
+        trace = nutpie.sample(
+            compiled,
             draws=n_samples,
             chains=n_chains,
-            cores=min(n_chains, 4),
-            target_accept=0.95,
-            return_inferencedata=True,
-            progressbar=False,
+            seed=None,
+            progress_bar=False,
         )
 
     # Extract samples
+
     xi_samples = trace.posterior["xi"].values.reshape(-1, m_reactions)
 
     # Compute statistics

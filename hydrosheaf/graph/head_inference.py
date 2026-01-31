@@ -337,18 +337,19 @@ def infer_heads_bayesian_mcmc(
                 observed=dtw_obs_vals_arr,
             )
 
-        idata = pm.sample(
+        import nutpie
+        compiled = nutpie.compile_pymc_model(pm.Model.get_context())
+        idata = nutpie.sample(
+            compiled,
             draws=draws,
             tune=tune,
             chains=chains,
-            target_accept=float(mcmc_target_accept),
-            random_seed=random_seed,
-            cores=int(max(1, cores)),
-            progressbar=False,
-            compute_convergence_checks=False,
+            seed=random_seed,
+            progress_bar=False,
         )
 
     # Extract posterior draws and compute mean/cov
+
     h_draws = idata.posterior["h"].values  # (chain, draw, n)
     h_samples = h_draws.reshape(-1, n)
     head_mean = np.mean(h_samples, axis=0)

@@ -1,4 +1,5 @@
 import unittest
+import sys
 
 from hydrosheaf.graph.build import infer_edges_probabilistic
 
@@ -52,6 +53,7 @@ class GraphProbabilisticTests(unittest.TestCase):
         edge_ids = {edge.edge_id for edge in edges}
         self.assertIn("A->B", edge_ids)
 
+    @unittest.skipIf(sys.platform.startswith("win"), "PyMC MCMC causes heap corruption on Windows CI")
     def test_probabilistic_edges_bayesian_mcmc_fallback(self):
         samples = [
             {"site_id": "A", "lat": 0.0, "lon": 0.0, "elevation": 100.0},

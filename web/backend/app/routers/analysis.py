@@ -187,6 +187,15 @@ class AnalysisConfig(BaseModel):
     # Ion exchange
     enable_exchange: bool = True
 
+    # Nuclear dating
+    enable_nuclear_aging: bool = False
+    nuclear_age_weight: float = Field(default=2.0, ge=0.1, le=10.0)
+    nuclear_region: str = Field(default="global", pattern="^(global|tropical|coastal|northern_continental)$")
+    nuclear_model: str = Field(default="PFM", pattern="^(PFM|EM)$")
+    c14_initial_mu: float = Field(default=85.0, ge=10, le=110)
+    c14_initial_sigma: float = Field(default=10.0, ge=1, le=50)
+
+
 
 class AnalysisRequest(BaseModel):
     """Request model for starting an analysis"""
@@ -412,7 +421,8 @@ def run_analysis_task(job_id: str, request: AnalysisRequest):
                 edge_results, 
                 hydrosheaf_samples, 
                 f"static/plots/{job_id}",
-                frontend_config
+                frontend_config,
+                extras=extras
             )
             
             # Add plot URLs to results

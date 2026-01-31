@@ -65,7 +65,15 @@ const initialConfig = {
     // Visualization
     plot_style: 'seaborn-v0_8-whitegrid',
     plot_palette: 'colorblind',
-    plot_font_scale: 1.0
+    plot_font_scale: 1.0,
+
+    // Nuclear dating
+    enable_nuclear_aging: false,
+    nuclear_age_weight: 2.0,
+    nuclear_region: 'global',
+    nuclear_model: 'PFM',
+    c14_initial_mu: 85.0,
+    c14_initial_sigma: 10.0
 }
 
 // Initial state for the reducer
@@ -534,7 +542,14 @@ function Analysis() {
                                         <span className="field-values">{capabilities.available_fields.isotopes.join(', ')}</span>
                                     </div>
                                 )}
+                                {capabilities.available_fields.nuclear.length > 0 && (
+                                    <div className="field-group">
+                                        <span className="field-label">Nuclear:</span>
+                                        <span className="field-values">{capabilities.available_fields.nuclear.join(', ')}</span>
+                                    </div>
+                                )}
                                 {capabilities.available_fields.spatial.length > 0 && (
+
                                     <div className="field-group">
                                         <span className="field-label">Spatial:</span>
                                         <span className="field-values">{capabilities.available_fields.spatial.join(', ')}</span>
@@ -663,6 +678,97 @@ function Analysis() {
                         />
                         <span className="range-hint">Controls sharpness of flow path selection (Higher = stricter)</span>
                     </div>
+
+                    <div className="divider"></div>
+                    <h4 className="section-title">Nuclear Dating (3H / 14C)</h4>
+                    
+                    <div className={`toggle-group ${capabilities && !capabilities.available_fields.isotopes.some(i => ['3H', 'tritium', 'H3', '14C', 'C14'].includes(i)) ? 'toggle-disabled' : ''}`}>
+                        <label className="toggle">
+                            <input
+                                type="checkbox"
+                                checked={formData.config.enable_nuclear_aging}
+                                onChange={(e) => updateConfig('enable_nuclear_aging', e.target.checked)}
+                                disabled={running || (capabilities && !capabilities.available_fields.isotopes.some(i => ['3H', 'tritium', 'H3', '14C', 'C14'].includes(i)))}
+                            />
+                            <span className="toggle-slider"></span>
+                            <span className="toggle-label">
+                                Enable Network-Enhanced Nuclear Dating
+                                {capabilities && !capabilities.available_fields.isotopes.some(i => ['3H', 'tritium', 'H3', '14C', 'C14'].includes(i)) && (
+                                    <span className="toggle-warning" title="Requires Tritium or Radiocarbon data">⚠️ No nuclear tracers</span>
+                                )}
+                            </span>
+                        </label>
+                    </div>
+
+                    {formData.config.enable_nuclear_aging && (
+                        <div className="sub-config-panel">
+                            <div className="form-group">
+                                <label className="form-label">Regional Scaling (Tritium)</label>
+                                <select 
+                                    className="form-select"
+                                    value={formData.config.nuclear_region}
+                                    onChange={(e) => updateConfig('nuclear_region', e.target.value)}
+                                    disabled={running}
+                                >
+                                    <option value="global">Global / Northern Continental</option>
+                                    <option value="tropical">Tropical / Coastal (Dampened Peak)</option>
+                                    <option value="northern_continental">Standard Northern Hemisphere</option>
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Aging Model</label>
+                                <select 
+                                    className="form-select"
+                                    value={formData.config.nuclear_model}
+                                    onChange={(e) => updateConfig('nuclear_model', e.target.value)}
+                                    disabled={running}
+                                >
+                                    <option value="PFM">Piston Flow Model (Simple)</option>
+                                    <option value="EM">Exponential Mixing (More Realistic)</option>
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">
+                                    Topology Weight: {formData.config.nuclear_age_weight}
+                                </label>
+                                <input
+                                    type="range"
+                                    className="form-range"
+                                    min="0.1"
+                                    max="10"
+                                    step="0.1"
+                                    value={formData.config.nuclear_age_weight}
+                                    onChange={(e) => updateConfig('nuclear_age_weight', parseFloat(e.target.value))}
+                                    disabled={running}
+                                />
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">C14 A0 Mean</label>
+                                    <input 
+                                        type="number"
+                                        className="form-input"
+                                        value={formData.config.c14_initial_mu}
+                                        onChange={(e) => updateConfig('c14_initial_mu', parseFloat(e.target.value))}
+                                        disabled={running}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">C14 A0 Sigma</label>
+                                    <input 
+                                        type="number"
+                                        className="form-input"
+                                        value={formData.config.c14_initial_sigma}
+                                        onChange={(e) => updateConfig('c14_initial_sigma', parseFloat(e.target.value))}
+                                        disabled={running}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="divider"></div>
                     <h4 className="section-title">Visualization Settings</h4>

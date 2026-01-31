@@ -8,13 +8,30 @@ Stoich = Mapping[str, float]
 # Complete Mineral Library (IUPAC/Phreeqc Compliant Standards)
 MINERAL_LIBRARY: Dict[str, Stoich] = {
     # Carbonates
-    "calcite": {
+    # Open System (Infinite CO2): CaCO3 + CO2 + H2O -> Ca++ + 2HCO3-
+    "calcite_open": {
         "Ca": 1,
         "HCO3": 2,
-    },  # CaCO3 (Alkalinity balanced: Ca + CO3 + H = Ca + HCO3)
-    "aragonite": {"Ca": 1, "HCO3": 2},  # CaCO3 polymorph
-    "dolomite": {"Ca": 1, "Mg": 1, "HCO3": 4},  # CaMg(CO3)2
-    "magnesite": {"Mg": 1, "HCO3": 2},  # MgCO3
+    },
+    # Closed System (Limited CO2): CaCO3 + H+ -> Ca++ + HCO3- (consumes acidity)
+    # Or strictly: CaCO3 -> Ca++ + CO3--. In most groundwater (pH 6-8), this equilibrates to HCO3.
+    "calcite_closed": {
+        "Ca": 1,
+        "HCO3": 1,
+    },
+    "calcite": {"Ca": 1, "HCO3": 2},  # Default kept as open system for compatibility
+    "aragonite": {"Ca": 1, "HCO3": 2},
+    
+    # Dolomite Open: CaMg(CO3)2 + 2CO2 + 2H2O -> Ca++ + Mg++ + 4HCO3-
+    "dolomite_open": {"Ca": 1, "Mg": 1, "HCO3": 4},
+    # Dolomite Closed: CaMg(CO3)2 + 2H+ -> Ca++ + Mg++ + 2HCO3-
+    "dolomite_closed": {"Ca": 1, "Mg": 1, "HCO3": 2},
+    "dolomite": {"Ca": 1, "Mg": 1, "HCO3": 4},
+    
+    "magnesite_open": {"Mg": 1, "HCO3": 2},
+    "magnesite_closed": {"Mg": 1, "HCO3": 1},
+    "magnesite": {"Mg": 1, "HCO3": 2},
+
     "siderite": {"Fe": 1, "HCO3": 2},  # FeCO3
     # Evaporites
     "gypsum": {"Ca": 1, "SO4": 1},  # CaSO4:2H2O

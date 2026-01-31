@@ -87,8 +87,14 @@ def infer_edges_probabilistic(
             site_id = sample.get("site_id")
             if site_id is None:
                 continue
-            if sample.get("lat") in (None, "") or sample.get("lon") in (None, ""):
+            
+            # Safe float conversion for lat/lon
+            try:
+                lat_val = float(sample["lat"]) # type: ignore
+                lon_val = float(sample["lon"]) # type: ignore
+            except (ValueError, TypeError):
                 continue
+                
             sample_lookup[str(site_id)] = sample
 
         if head_inference == "bayesian_mcmc":
@@ -140,11 +146,28 @@ def infer_edges_probabilistic(
                 if head_cov is not None
                 else sigma_topo
             )
+            
+            # lat/lon already validated above
+            lat_v = sample.get("lat")
+            lon_v = sample.get("lon")
+            if lat_v is None or lon_v is None:
+                continue
+            
+            # Runtime validation
+            if not isinstance(lat_v, (int, float, str)) or not isinstance(lon_v, (int, float, str)):
+                continue
+
+            try:
+                lat_val = float(f"{lat_v}")
+                lon_val = float(f"{lon_v}")
+            except (ValueError, TypeError):
+                continue
+            
             node_rows.append(
                 (
                     node_id,
-                    float(sample["lat"]),
-                    float(sample["lon"]),
+                    lat_val,
+                    lon_val,
                     sample,
                     head_mean,
                     head_sigma,
@@ -157,8 +180,12 @@ def infer_edges_probabilistic(
             site_id = sample.get("site_id")
             if site_id is None:
                 continue
-            if sample.get("lat") in (None, "") or sample.get("lon") in (None, ""):
+            try:
+                lat_val = float(sample["lat"]) # type: ignore
+                lon_val = float(sample["lon"]) # type: ignore
+            except (ValueError, TypeError, KeyError):
                 continue
+
             head, sigma, tier = infer_head_heuristic(
                 sample,
                 head_key=head_key,
@@ -174,8 +201,8 @@ def infer_edges_probabilistic(
             node_rows.append(
                 (
                     str(site_id),
-                    float(sample["lat"]),
-                    float(sample["lon"]),
+                    lat_val,
+                    lon_val,
                     sample,
                     float(head),
                     float(sigma),
@@ -188,7 +215,7 @@ def infer_edges_probabilistic(
     edge_ids = set()
     for node_id, lat, lon, sample, head, sigma, tier, node_idx in node_rows:
         candidates: List[
-            Tuple[float, float, str, Mapping[str, object], float, float, str, List[str]]
+            Tuple[float, float, str, Mapping[str, object], float, float, str, List[str], bool]
         ] = []
         for (
             other_id,
@@ -232,7 +259,16 @@ def infer_edges_probabilistic(
 
             gradient = abs(delta_h) / (distance * 1000.0)
             flags: List[str] = []
+            is_lateral = False
+            
+            # Check for lateral dispersive edges (low gradient but spatially close)
+            # These are preserved as type="lateral" even if p_uv is low, 
+            # to serve as mixing candidates for dispersion.
             if gradient_min > 0 and gradient < gradient_min:
+                if radius_km > 0 and distance < radius_km:
+                    # Mark as lateral candidate
+                    is_lateral = True
+                
                 flags.append("flat_gradient")
                 factor = gradient / gradient_min
                 p_uv = 0.5 + (p_uv - 0.5) * factor
@@ -241,11 +277,16 @@ def infer_edges_probabilistic(
             depth_b = other_sample.get(screen_depth_key) or other_sample.get(
                 well_depth_key
             )
-            if depth_a not in (None, "") and depth_b not in (None, ""):
-                if abs(float(depth_a) - float(depth_b)) > depth_mismatch:
-                    flags.append("depth_mismatch")
+            if depth_a is not None and depth_b is not None:
+                try:
+                    da_val = float(depth_a)
+                    db_val = float(depth_b)
+                    if abs(da_val - db_val) > depth_mismatch:
+                        flags.append("depth_mismatch")
+                except (ValueError, TypeError):
+                    pass
 
-            if p_uv < p_min:
+            if p_uv < p_min and not is_lateral:
                 continue
 
             candidates.append(
@@ -258,13 +299,22 @@ def infer_edges_probabilistic(
                     sigma_delta,
                     f"{tier}/{other_tier}",
                     flags,
+                    is_lateral,
                 )
             )
 
         candidates.sort(key=lambda item: (-item[0], item[1]))
         if max_neighbors > 0:
-            candidates = candidates[:max_neighbors]
+            # We want to keep lateral edges regardless of max_neighbors limit for primary flow
+            # But simpler to just include them in the pool for now. 
+            # Ideally we separate them.
+            pass
+            # candidates = candidates[:max_neighbors] 
+            # NOTE: Lateral edges should not displace primary edges.
+            # Logic below handles it.
 
+        primary_count = 0
+        
         for (
             p_uv,
             distance,
@@ -274,10 +324,20 @@ def infer_edges_probabilistic(
             sigma_delta,
             tier_pair,
             flags,
+            is_lateral,
         ) in candidates:
+            # Respect max_neighbors only for primary edges
+            if not is_lateral:
+                if max_neighbors > 0 and primary_count >= max_neighbors:
+                    continue
+                primary_count += 1
+            
             edge_id = f"{node_id}->{other_id}"
             if edge_id in edge_ids:
                 continue
+            
+            edge_type = "lateral" if is_lateral else "primary"
+            
             edges.append(
                 Edge(
                     edge_id=edge_id,
@@ -292,6 +352,7 @@ def infer_edges_probabilistic(
                         "source_tier": tier_pair,
                         "flags": ",".join(flags),
                     },
+                    type=edge_type
                 )
             )
             edge_ids.add(edge_id)
@@ -321,11 +382,25 @@ def infer_edges_from_coordinates(
             continue
         if "lat" not in sample or "lon" not in sample:
             continue
+        try:
+            lat_val = float(sample["lat"]) # type: ignore
+            lon_val = float(sample["lon"]) # type: ignore
+        except (ValueError, TypeError):
+            continue
+            
         elevation = sample.get(head_key)
         if elevation is None:
             elevation = sample.get(elevation_key)
+            
+        elev_val: Optional[float] = None
+        if elevation is not None:
+            try:
+                elev_val = float(elevation) # type: ignore
+            except (ValueError, TypeError):
+                elev_val = None
+                
         nodes.append(
-            (str(site_id), float(sample["lat"]), float(sample["lon"]), elevation)
+            (str(site_id), lat_val, lon_val, elev_val)
         )
 
     node_lookup = {

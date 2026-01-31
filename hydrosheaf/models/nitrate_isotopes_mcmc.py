@@ -16,6 +16,16 @@ import arviz as az
 from .nitrate_isotopes import IsotopeSample, SourceIsotopes
 
 
+
+def check_pymc_available() -> bool:
+    """Check if PyMC and Nutpie are available and working."""
+    try:
+        import pymc
+        import nutpie
+        return True
+    except ImportError:
+        return False
+
 @dataclass
 class MCMCMixingResult:
     """Result of MCMC Bayesian isotope mixing analysis."""
@@ -134,21 +144,17 @@ def run_mcmc_mixing(
 
         # Sample
         try:
-            # On Windows + MKL, default threading settings can cause crashes.
-            # We explicitly disable BLAS thread limiting on Windows to prevent this.
-            blas_cores = None if sys.platform.startswith("win") else "auto"
-            cores = 1 if sys.platform.startswith("win") else None
-
-            trace = pm.sample(
+            import nutpie
+            # Compile and sample using Nutpie (Numba-based NUTS sampler)
+            compiled_model = nutpie.compile_pymc_model(pm.Model.get_context())
+            
+            trace = nutpie.sample(
+                compiled_model,
                 draws=n_samples,
                 tune=warmup,
                 chains=n_chains,
-                target_accept=target_accept,
-                random_seed=random_seed,
-                return_inferencedata=True,
-                progressbar=False,
-                cores=cores,
-                blas_cores=blas_cores,
+                seed=random_seed,
+                progress_bar=False,
             )
         except Exception as e:
             warnings_list.append(f"Sampling error: {str(e)}")
@@ -159,6 +165,7 @@ def run_mcmc_mixing(
                 converged=False,
                 warnings=warnings_list,
             )
+
 
     # Extract posterior samples
     posterior_samples = trace.posterior["fractions"].values

@@ -16,3 +16,5 @@ class Edge:
     u: str
     v: str
     attrs: Dict[str, object] = field(default_factory=dict)
+    type: str = "primary"  # "primary" or "lateral"
+

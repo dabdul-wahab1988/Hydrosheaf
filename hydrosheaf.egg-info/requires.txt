@@ -5,14 +5,16 @@ networkx
 matplotlib
 pydantic
 typer
-
-[all]
 flopy
 seaborn
 phreeqpy
+pyvista
+vtk
+pymc
+nutpie
+PyYAML
 
-[phreeqc]
-phreeqpy
-
-[plot]
-seaborn
+[dev]
+pytest
+black
+mypy
