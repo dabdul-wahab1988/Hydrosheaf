@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hydrosheaf Comprehensive Analysis Report</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f0f4f8; }
+        .header { background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%); color: white; padding: 40px; border-radius: 12px; margin-bottom: 30px; }
+        .header h1 { margin: 0; font-size: 2.5em; }
+        .section { background: white; padding: 30px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .section h2 { color: #1a365d; border-bottom: 3px solid #4299e1; padding-bottom: 10px; }
+        .section h3 { color: #2c5282; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
+        th { background: #2c5282; color: white; }
+        tr:nth-child(even) { background: #f7fafc; }
+        tr:hover { background: #edf2f7; }
+        .plot-container { text-align: center; margin: 25px 0; }
+        .plot-container img { max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin: 25px 0; }
+        .stat-card { background: linear-gradient(135deg, #4299e1 0%, #667eea 100%); color: white; padding: 25px; border-radius: 12px; text-align: center; }
+        .stat-card .value { font-size: 2.5em; font-weight: bold; }
+        .stat-card .label { font-size: 0.95em; opacity: 0.9; margin-top: 5px; }
+        .finding { background: #ebf8ff; border-left: 5px solid #4299e1; padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .reaction-tag { display: inline-block; padding: 5px 12px; border-radius: 20px; margin: 3px; font-size: 0.9em; }
+        .reaction-positive { background: #c6f6d5; color: #22543d; }
+        .reaction-negative { background: #fed7d7; color: #822727; }
+        .plot-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 900px) { .plot-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Hydrosheaf Groundwater Analysis Report</h1>
+    <p>Comprehensive hydrochemical and isotopic analysis with reaction pathway modeling</p>
+    <p>Generated: 2026-02-03 04:21:35</p>
+</div>
+
+<div class="section">
+    <h2>1. Executive Summary</h2>
+    <div class="stats-grid">
+        <div class="stat-card"><div class="value">42</div><div class="label">Water Samples</div></div>
+        <div class="stat-card"><div class="value">6</div><div class="label">Monitoring Stations</div></div>
+        <div class="stat-card"><div class="value">7</div><div class="label">Sampling Events</div></div>
+        <div class="stat-card"><div class="value">35</div><div class="label">Flow Edges Analyzed</div></div>
+    </div>
+    
+    <div class="finding">
+        <strong>Key Finding:</strong> All analyzed flow paths show evaporation-dominated transport (gamma > 1.0). 
+        Denitrification is the most significant geochemical reaction, particularly along vadose-to-groundwater 
+        pathways during wet season events. Rock weathering (halite, gypsum, calcite dissolution) and ion exchange 
+        processes are consistently active across the flow network.
+    </div>
+</div>
+
+<div class="section">
+    <h2>2. Network Configuration</h2>
+    <div class="plot-container">
+        <img src="plots/network_schematic.png" alt="Network Diagram">
+        <p><em>Figure 1: Groundwater flow network showing lysimeters (blue circles) and boreholes (red squares)</em></p>
+    </div>
+    
+    <h3>Station Details</h3>
+    <table>
+        <tr><th>Station</th><th>Type</th><th>Cluster</th><th>Input Intensity</th><th>N Target (kg/ha)</th></tr>
+<tr><td>L1</td><td>lysimeter</td><td>CLUSTER_A</td><td>high</td><td>250-300</td></tr>
+<tr><td>L2</td><td>lysimeter</td><td>CLUSTER_B</td><td>moderate</td><td>100-150</td></tr>
+<tr><td>BH1</td><td>borehole</td><td>CLUSTER_A</td><td>high</td><td>250-300</td></tr>
+<tr><td>BH2</td><td>borehole</td><td>CLUSTER_A</td><td>high</td><td>250-300</td></tr>
+<tr><td>BH3</td><td>borehole</td><td>CLUSTER_B</td><td>moderate</td><td>100-150</td></tr>
+<tr><td>BH4</td><td>borehole</td><td>CLUSTER_B</td><td>moderate</td><td>100-150</td></tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>3. Hydrochemical Facies Analysis</h2>
+    <p>Using Hydrosheaf's advanced Isometric Log-Ratio (ILR) approach for water type classification.</p>
+    
+    <div class="plot-container">
+        <img src="plots/ilr_plot.png" alt="ILR Hydrochemical Facies">
+        <p><em>Figure 2: ILR diagram showing hydrochemical facies classification with cation and anion fields</em></p>
+    </div>
+    
+    <div class="plot-container">
+        <img src="plots/gibbs_diagram.png" alt="Gibbs Diagram">
+        <p><em>Figure 3: Gibbs diagram showing dominant hydrochemical processes</em></p>
+    </div>
+    
+    <h3>Major Ion Statistics (mg/L)</h3>
+    <table>
+        <tr><th>Ion</th><th>Mean</th><th>Std</th><th>Min</th><th>Max</th><th>Median</th></tr>
+<tr><td>Ca</td><td>46.18</td><td>12.57</td><td>25.92</td><td>68.64</td><td>46.28</td></tr>
+<tr><td>Mg</td><td>16.20</td><td>4.56</td><td>8.40</td><td>23.83</td><td>16.97</td></tr>
+<tr><td>Na</td><td>23.21</td><td>7.90</td><td>9.79</td><td>36.86</td><td>24.87</td></tr>
+<tr><td>K</td><td>5.88</td><td>1.02</td><td>3.78</td><td>7.82</td><td>5.98</td></tr>
+<tr><td>HCO3</td><td>222.55</td><td>57.91</td><td>123.72</td><td>307.94</td><td>228.06</td></tr>
+<tr><td>Cl</td><td>32.21</td><td>9.29</td><td>17.23</td><td>48.19</td><td>32.37</td></tr>
+<tr><td>SO4</td><td>34.46</td><td>10.16</td><td>16.41</td><td>52.07</td><td>33.78</td></tr>
+<tr><td>NO3</td><td>37.50</td><td>16.36</td><td>9.26</td><td>81.73</td><td>35.86</td></tr>
+    </table>
+    
+    <div class="finding">
+        <strong>Water Type:</strong> The groundwater is predominantly Ca-Mg-HCO3 type, indicating carbonate rock weathering 
+        as the dominant process. Samples plot in the rock weathering dominance zone of the Gibbs diagram.
+    </div>
+</div>
+
+<div class="section">
+    <h2>4. Stable Isotope Analysis</h2>
+    
+    <div class="plot-row">
+        <div class="plot-container">
+            <img src="plots/water_isotopes.png" alt="Water Isotopes">
+            <p><em>Figure 4: Water isotopes relative to GMWL and local LMWL</em></p>
+        </div>
+        <div class="plot-container">
+            <img src="plots/nitrate_sources.png" alt="Nitrate Sources">
+            <p><em>Figure 5: Nitrate isotope source identification</em></p>
+        </div>
+    </div>
+    
+    <div class="finding">
+        <strong>Isotope Interpretation:</strong> Water samples cluster near the LMWL, indicating limited evaporative 
+        enrichment during recharge. Nitrate isotopes suggest mixed sources dominated by synthetic fertilizer 
+        and soil organic nitrogen, consistent with agricultural land use.
+    </div>
+</div>
+
+<div class="section">
+    <h2>5. Temporal and Seasonal Patterns</h2>
+    <div class="plot-container">
+        <img src="plots/temporal_patterns.png" alt="Temporal Patterns">
+        <p><em>Figure 6: Temporal trends in nitrate and EC with seasonal context</em></p>
+    </div>
+    
+    <h3>Seasonal NO3 Statistics</h3>
+    <table>
+        <tr><th>Season</th><th>Mean NO3 (mg/L)</th><th>Std Dev</th><th>n</th></tr>
+<tr><td>Dry</td><td>24.1</td><td>9.6</td><td>12</td></tr>
+<tr><td>Transition</td><td>33.9</td><td>7.0</td><td>6</td></tr>
+<tr><td>Wet</td><td>45.1</td><td>16.3</td><td>24</td></tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>6. Hydrosheaf Network Analysis</h2>
+    <p>Edge-based hydrochemical evolution modeling with transport and reaction pathway inference.</p>
+    
+    <div class="plot-container">
+        <img src="plots/edge_anomalies.png" alt="Edge Anomalies">
+        <p><em>Figure 7: Anomaly norms by flow edge (lower = better fit)</em></p>
+    </div>
+    
+    <div class="plot-row">
+        <div class="plot-container">
+            <img src="plots/transport_parameters.png" alt="Transport Parameters">
+            <p><em>Figure 8: Evaporation factors and model fit quality</em></p>
+        </div>
+        <div class="plot-container">
+            <img src="plots/reaction_summary.png" alt="Reaction Summary">
+            <p><em>Figure 9: Reaction pathway analysis</em></p>
+        </div>
+    </div>
+    
+    <h3>Event-by-Event Results</h3>
+    <h4>Event: E1</h4>
+    <table>
+        <tr><th>Edge</th><th>Transport</th><th>Gamma</th><th>Objective</th><th>Key Reactions</th></tr>
+<tr><td>L1 → BH2</td><td>evap</td><td>1.587</td><td>0.2110</td><td><span class="reaction-tag reaction-positive">halite: +0.098</span> <span class="reaction-tag reaction-positive">gypsum: +0.083</span> <span class="reaction-tag reaction-positive">CaNa_exch: +0.063</span></td></tr>
+<tr><td>L2 → BH3</td><td>evap</td><td>1.965</td><td>0.1806</td><td><span class="reaction-tag reaction-positive">denit: +0.142</span> <span class="reaction-tag reaction-positive">halite: +0.097</span> <span class="reaction-tag reaction-positive">CaNa_exch: +0.064</span></td></tr>
+<tr><td>BH1 → BH2</td><td>evap</td><td>1.095</td><td>0.2430</td><td><span class="reaction-tag reaction-positive">NO3src: +0.044</span> <span class="reaction-tag reaction-positive">calcite: +0.039</span> <span class="reaction-tag reaction-positive">gypsum: +0.029</span></td></tr>
+<tr><td>BH2 → BH3</td><td>evap</td><td>1.118</td><td>0.1579</td><td><span class="reaction-tag reaction-positive">halite: +0.169</span> <span class="reaction-tag reaction-positive">MgNa_exch: +0.107</span> <span class="reaction-tag reaction-positive">NO3src: +0.090</span></td></tr>
+<tr><td>BH3 → BH4</td><td>evap</td><td>1.014</td><td>0.1890</td><td><span class="reaction-tag reaction-positive">halite: +0.176</span> <span class="reaction-tag reaction-positive">gypsum: +0.128</span> <span class="reaction-tag reaction-positive">NO3src: +0.036</span></td></tr>
+    </table>
+    <h4>Event: E2</h4>
+    <table>
+        <tr><th>Edge</th><th>Transport</th><th>Gamma</th><th>Objective</th><th>Key Reactions</th></tr>
+<tr><td>L1 → BH2</td><td>evap</td><td>1.282</td><td>0.5111</td><td><span class="reaction-tag reaction-positive">denit: +0.608</span> <span class="reaction-tag reaction-positive">halite: +0.373</span> <span class="reaction-tag reaction-positive">gypsum: +0.119</span></td></tr>
+<tr><td>L2 → BH3</td><td>evap</td><td>1.587</td><td>0.5355</td><td><span class="reaction-tag reaction-positive">denit: +1.028</span> <span class="reaction-tag reaction-positive">halite: +0.175</span> <span class="reaction-tag reaction-positive">gypsum: +0.114</span></td></tr>
+<tr><td>BH1 → BH2</td><td>evap</td><td>1.072</td><td>0.1824</td><td><span class="reaction-tag reaction-positive">halite: +0.133</span> <span class="reaction-tag reaction-positive">pyrite_oxidation_aerobic: +0.038</span></td></tr>
+<tr><td>BH2 → BH3</td><td>evap</td><td>1.261</td><td>0.1879</td><td><span class="reaction-tag reaction-positive">NO3src: +0.182</span> <span class="reaction-tag reaction-positive">CaNa_exch: +0.137</span> <span class="reaction-tag reaction-positive">denit: +0.132</span></td></tr>
+<tr><td>BH3 → BH4</td><td>evap</td><td>1.062</td><td>0.2224</td><td><span class="reaction-tag reaction-positive">halite: +0.264</span> <span class="reaction-tag reaction-positive">NO3src: +0.059</span></td></tr>
+    </table>
+    <h4>Event: E3</h4>
+    <table>
+        <tr><th>Edge</th><th>Transport</th><th>Gamma</th><th>Objective</th><th>Key Reactions</th></tr>
+<tr><td>L1 → BH2</td><td>evap</td><td>1.484</td><td>0.4384</td><td><span class="reaction-tag reaction-positive">denit: +0.426</span> <span class="reaction-tag reaction-positive">gypsum: +0.157</span> <span class="reaction-tag reaction-positive">halite: +0.127</span></td></tr>
+<tr><td>L2 → BH3</td><td>evap</td><td>1.522</td><td>0.3255</td><td><span class="reaction-tag reaction-positive">denit: +0.466</span> <span class="reaction-tag reaction-positive">gypsum: +0.093</span> <span class="reaction-tag reaction-positive">halite: +0.078</span></td></tr>
+<tr><td>BH1 → BH2</td><td>evap</td><td>1.084</td><td>0.1595</td><td><span class="reaction-tag reaction-positive">halite: +0.262</span> <span class="reaction-tag reaction-positive">NO3src: +0.093</span> <span class="reaction-tag reaction-positive">CaNa_exch: +0.063</span></td></tr>
+<tr><td>BH2 → BH3</td><td>evap</td><td>1.112</td><td>0.1761</td><td><span class="reaction-tag reaction-positive">NO3src: +0.110</span> <span class="reaction-tag reaction-positive">halite: +0.060</span></td></tr>
+<tr><td>BH3 → BH4</td><td>evap</td><td>1.162</td><td>0.1617</td><td><span class="reaction-tag reaction-positive">gypsum: +0.040</span> <span class="reaction-tag reaction-positive">denit: +0.012</span></td></tr>
+    </table>
+    <h4>Event: E4</h4>
+    <table>
+        <tr><th>Edge</th><th>Transport</th><th>Gamma</th><th>Objective</th><th>Key Reactions</th></tr>
+<tr><td>L1 → BH2</td><td>evap</td><td>1.734</td><td>0.3706</td><td><span class="reaction-tag reaction-positive">denit: +0.180</span> <span class="reaction-tag reaction-positive">pyrite_oxidation_aerobic: +0.031</span> <span class="reaction-tag reaction-positive">halite: +0.015</span></td></tr>
+<tr><td>L2 → BH3</td><td>evap</td><td>1.811</td><td>0.3059</td><td><span class="reaction-tag reaction-positive">denit: +0.258</span> <span class="reaction-tag reaction-positive">halite: +0.132</span> <span class="reaction-tag reaction-positive">MgNa_exch: +0.038</span></td></tr>
+<tr><td>BH1 → BH2</td><td>evap</td><td>1.069</td><td>0.1644</td><td><span class="reaction-tag reaction-positive">NO3src: +0.136</span> <span class="reaction-tag reaction-positive">CaNa_exch: +0.102</span> <span class="reaction-tag reaction-positive">gypsum: +0.021</span></td></tr>
+<tr><td>BH2 → BH3</td><td>evap</td><td>1.186</td><td>0.1903</td><td><span class="reaction-tag reaction-positive">halite: +0.220</span> <span class="reaction-tag reaction-positive">MgNa_exch: +0.054</span></td></tr>
+<tr><td>BH3 → BH4</td><td>evap</td><td>1.096</td><td>0.1614</td><td><span class="reaction-tag reaction-positive">gypsum: +0.077</span> <span class="reaction-tag reaction-positive">denit: +0.016</span></td></tr>
+    </table>
+    <h4>Event: E5</h4>
+    <table>
+        <tr><th>Edge</th><th>Transport</th><th>Gamma</th><th>Objective</th><th>Key Reactions</th></tr>
+<tr><td>L1 → BH2</td><td>evap</td><td>1.555</td><td>0.2623</td><td><span class="reaction-tag reaction-positive">halite: +0.278</span> <span class="reaction-tag reaction-positive">gypsum: +0.087</span> <span class="reaction-tag reaction-positive">denit: +0.023</span></td></tr>
+<tr><td>L2 → BH3</td><td>evap</td><td>1.786</td><td>0.3992</td><td><span class="reaction-tag reaction-positive">denit: +0.470</span> <span class="reaction-tag reaction-positive">halite: +0.315</span></td></tr>
+<tr><td>BH1 → BH2</td><td>evap</td><td>1.093</td><td>0.1648</td><td><span class="reaction-tag reaction-positive">halite: +0.156</span> <span class="reaction-tag reaction-positive">NO3src: +0.032</span> <span class="reaction-tag reaction-positive">pyrite_oxidation_aerobic: +0.018</span></td></tr>
+<tr><td>BH2 → BH3</td><td>evap</td><td>1.233</td><td>0.1750</td><td><span class="reaction-tag reaction-positive">NO3src: +0.114</span> <span class="reaction-tag reaction-positive">denit: +0.073</span> <span class="reaction-tag reaction-positive">MgNa_exch: +0.032</span></td></tr>
+<tr><td>BH3 → BH4</td><td>evap</td><td>1.038</td><td>0.1697</td><td><span class="reaction-tag reaction-positive">gypsum: +0.156</span> <span class="reaction-tag reaction-positive">NO3src: +0.112</span> <span class="reaction-tag reaction-positive">halite: +0.025</span></td></tr>
+    </table>
+    <h4>Event: E6</h4>
+    <table>
+        <tr><th>Edge</th><th>Transport</th><th>Gamma</th><th>Objective</th><th>Key Reactions</th></tr>
+<tr><td>L1 → BH2</td><td>evap</td><td>1.595</td><td>0.4609</td><td><span class="reaction-tag reaction-positive">denit: +0.668</span> <span class="reaction-tag reaction-positive">halite: +0.157</span></td></tr>
+<tr><td>L2 → BH3</td><td>evap</td><td>1.775</td><td>0.4479</td><td><span class="reaction-tag reaction-positive">denit: +0.530</span> <span class="reaction-tag reaction-positive">halite: +0.170</span></td></tr>
+<tr><td>BH1 → BH2</td><td>evap</td><td>1.118</td><td>0.2306</td><td><span class="reaction-tag reaction-positive">NO3src: +0.176</span> <span class="reaction-tag reaction-positive">denit: +0.096</span> <span class="reaction-tag reaction-positive">MgNa_exch: +0.010</span></td></tr>
+<tr><td>BH2 → BH3</td><td>evap</td><td>1.244</td><td>0.1907</td><td><span class="reaction-tag reaction-positive">denit: +0.076</span> <span class="reaction-tag reaction-positive">NO3src: +0.067</span> <span class="reaction-tag reaction-positive">MgNa_exch: +0.048</span></td></tr>
+<tr><td>BH3 → BH4</td><td>evap</td><td>1.046</td><td>0.1627</td><td><span class="reaction-tag reaction-positive">gypsum: +0.123</span> <span class="reaction-tag reaction-positive">NO3src: +0.061</span> <span class="reaction-tag reaction-positive">CaNa_exch: +0.042</span></td></tr>
+    </table>
+    <h4>Event: E7</h4>
+    <table>
+        <tr><th>Edge</th><th>Transport</th><th>Gamma</th><th>Objective</th><th>Key Reactions</th></tr>
+<tr><td>L1 → BH2</td><td>evap</td><td>1.689</td><td>0.4049</td><td><span class="reaction-tag reaction-positive">denit: +0.997</span> <span class="reaction-tag reaction-positive">halite: +0.064</span></td></tr>
+<tr><td>L2 → BH3</td><td>evap</td><td>1.296</td><td>0.5662</td><td><span class="reaction-tag reaction-positive">denit: +0.419</span> <span class="reaction-tag reaction-positive">halite: +0.311</span> <span class="reaction-tag reaction-positive">gypsum: +0.179</span></td></tr>
+<tr><td>BH1 → BH2</td><td>evap</td><td>1.098</td><td>0.1650</td><td><span class="reaction-tag reaction-positive">NO3src: +0.073</span> <span class="reaction-tag reaction-positive">denit: +0.026</span> <span class="reaction-tag reaction-positive">MgNa_exch: +0.019</span></td></tr>
+<tr><td>BH2 → BH3</td><td>evap</td><td>1.035</td><td>0.2020</td><td><span class="reaction-tag reaction-positive">gypsum: +0.147</span> <span class="reaction-tag reaction-positive">NO3src: +0.085</span> <span class="reaction-tag reaction-positive">halite: +0.044</span></td></tr>
+<tr><td>BH3 → BH4</td><td>evap</td><td>1.190</td><td>0.1732</td><td><span class="reaction-tag reaction-positive">NO3src: +0.087</span> <span class="reaction-tag reaction-positive">denit: +0.064</span> <span class="reaction-tag reaction-positive">pyrite_oxidation_aerobic: +0.022</span></td></tr>
+    </table>
+
+</div>
+
+<div class="section">
+    <h2>7. Conclusions and Recommendations</h2>
+    
+    <h3>Key Findings</h3>
+    <ul>
+        <li><strong>Evaporative Concentration:</strong> All flow paths show gamma > 1.0, indicating evaporation is a significant process in water chemistry evolution.</li>
+        <li><strong>Active Denitrification:</strong> Substantial denitrification occurs along vadose-to-groundwater pathways, particularly during wet season when nitrate inputs are highest.</li>
+        <li><strong>Mineral Dissolution:</strong> Halite, gypsum, and calcite dissolution consistently increase TDS along flow paths.</li>
+        <li><strong>Ion Exchange:</strong> Ca-Na and Mg-Na exchange reactions modify cation ratios, indicating clay mineral interactions.</li>
+        <li><strong>Seasonal Dynamics:</strong> Wet season shows highest NO3 concentrations linked to fertilizer leaching; dry season shows natural attenuation.</li>
+    </ul>
+    
+    <h3>Recommendations</h3>
+    <ol>
+        <li>Implement fertilizer timing management to reduce wet season leaching peaks</li>
+        <li>Monitor denitrification capacity in the vadose zone as a natural attenuation buffer</li>
+        <li>Consider additional age tracers (CFCs, SF6) to constrain residence time estimates</li>
+        <li>Evaluate reactive barriers if nitrate attenuation needs enhancement</li>
+    </ol>
+</div>
+
+<div class="section" style="text-align: center; color: #718096; padding: 20px;">
+    <p><strong>Report generated using Hydrosheaf Groundwater Analysis Package v0.1.0</strong></p>
+    <p>Analysis Date: 2026-02-03</p>
+    <p>All plots and data exported to the analysis_results directory</p>
+</div>
+
+</body>
+</html>

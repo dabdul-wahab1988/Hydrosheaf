@@ -14,6 +14,10 @@
 \usepackage{longtable}
 \newcolumntype{C}{>{\centering\arraybackslash}X}
 
+\makeatletter
+\renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
+\makeatother
+
 \geometry{margin=1in}
 
 \theoremstyle{plain}
@@ -46,6 +50,32 @@ A Unified Mathematical Framework for Network Topology Inference, \\ Geochemical 
 
 % FRONT MATTER
 \section*{Disclaimer}
+
+\section*{Definitions \& Defaults}
+\begin{table}[htbp]
+\caption{Core Definitions and Defaults}
+\begin{tabularx}{\textwidth}{@{} l X @{}}
+\toprule
+Item & Default/Description \\
+\midrule
+Ion vector dimension ($n$) & $n = \texttt{len(ion\_order)}$ (default 11: Ca, Mg, Na, K, HCO$_3$, Cl, SO$_4$, NO$_3$, F, Fe, PO$_4$) \\
+Required sample columns & sample\_id, site\_id, all ions in ion\_order, EC, TDS, pH \\
+Units & mmol/L for ions (auto-converted from mg/L or meq/L if specified), $\mu$S/cm for EC, mg/L for TDS \\
+Optional columns & Coordinates (x,y or latitude,longitude), elevation/z, head, isotopes, nuclear tracers, temporal fields \\
+CLI reference & Run \texttt{hydrosheaf --help} for authoritative options \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section*{Troubleshooting (Common Input Issues)}
+\begin{itemize}
+	\item \textbf{Missing required columns:} Ensure sample\_id, site\_id, all ions, EC, TDS, and pH are present and named exactly.
+	\item \textbf{Wrong units:} Confirm ion concentrations are in mmol/L, or specify units for auto-conversion. EC must be in $\mu$S/cm, TDS in mg/L.
+	\item \textbf{Mismatched site/sample IDs:} Each sample\_id MUST be unique; site\_id may repeat for multiple samples per site.
+	\item \textbf{Missing EC/TDS/pH:} These fields are required for CLI validation and must be present.
+	\item \textbf{Ions not matching ion\_order:} The ion columns MUST match the order and names in ion\_order; check config and input file for consistency.
+\end{itemize}
+
 The software and methods described in this document are provided "as is" without warranty of any kind. The authors and contributors assume no responsibility for errors or omissions in the software or documentation, or for damages resulting from the use of the information contained herein.
 
 \begin{abstract}
@@ -62,39 +92,32 @@ The software and methods described in this document are provided "as is" without
 \section*{List of Main Variables}
 \addcontentsline{toc}{section}{List of Main Variables}
 
-\begin{longtable}{@{} l p{0.75\textwidth} @{}}
+{\small
+\begin{longtable}{@{} p{0.24\textwidth} p{0.71\textwidth} @{} }
 	\toprule
-	\textbf{Symbol}                                           & \textbf{Description}                                                                                                         \\
-	\midrule
-	$G = (V, E)$                                              & Directed graph representing flow network (vertices = wells, edges = flow paths)                                              \\
-	$\mathbf{x}_v \in \mathbb{R}^n$                           & Ion concentration vector at node $v$ (implementation default $n=10$: Ca, Mg, Na, HCO$_3$, Cl, SO$_4$, NO$_3$, F, Fe, PO$_4$) \\
-	$\boldsymbol{\theta}$                                     & Transport model parameters ($\gamma$ for evaporation, $f$ for mixing)                                                        \\
-	$\gamma \geq 1$                                           & Evaporation concentration factor                                                                                             \\
-	$f \in [0,1]$                                             & Mixing fraction with endmember $\mathbf{x}_{\text{end}}$                                                                     \\
-	$S \in \mathbb{R}^{n \times m}$                           & Stoichiometric matrix ($m$ reactions, $n$ ions)                                                                              \\
-	$\mathbf{z} \in \mathbb{R}^m$                             & Reaction extent vector (positive = dissolution, negative = precipitation)                                                    \\
-	$\mathbf{W} = \diag(w_1, \ldots, w_n)$                    & Diagonal weight matrix (typically inverse variance)                                                                          \\
-	$\lambda > 0$                                             & L1 regularization parameter (controls sparsity)                                                                              \\
-	$\boldsymbol{\ell}, \mathbf{u} \in \mathbb{R}^m$          & Lower and upper bounds on reaction extents (from saturation indices)                                                         \\
-	$A(\boldsymbol{\theta}), \mathbf{b}(\boldsymbol{\theta})$ & Affine transformation representing transport process                                                                         \\
-	$\mathbf{r} \in \mathbb{R}^n$                             & Residual vector after transport ($\mathbf{x}_v - A\mathbf{x}_u - \mathbf{b}$)                                                \\
-	$\mathcal{P}_*$                                           & Penalty functions (isotope, EC/TDS, charge balance, thermodynamic)                                                           \\
-	$\text{SI}$                                               & Saturation index $= \log_{10}(\text{IAP}/K_{sp})$                                                                            \\
-	$h_i, h_j$                                                & Hydraulic heads at nodes $i, j$                                                                                              \\
-	$p(i \to j)$                                              & Probability of flow from node $i$ to $j$                                                                                     \\
-	$\pi_{uv}$                                                & Evaporation gate for sheaf topology refinement (0 = conservative, 1 = evaporative)                                           \\
-	$\mathcal{E}_{\text{sheaf}}$                              & Sheaf consistency energy used for isotope-based topology refinement                                                          \\
-	$\delta^{18}\text{O}, \delta^2\text{H}$                   & Stable water isotope ratios (permil relative to VSMOW)                                                                       \\
-	$d = \delta^2\text{H} - 8 \cdot \delta^{18}\text{O}$      & Deuterium excess (permil)                                                                                                    \\
-	$\mathcal{S}(\alpha, \tau)$                               & Soft-thresholding operator for LASSO                                                                                         \\
-	$T$                                                       & Number of coordinate descent iterations to convergence                                                                       \\
-	$|\mathcal{C}|$                                           & Number of candidate transport models                                                                                         \\
-	$\mathcal{A} = \{j : z_j^* \neq 0\}$                      & Active set of reactions (non-zero extents)                                                                                   \\
-	$R^2$                                                     & Coefficient of determination (fit quality metric)                                                                            \\
-	\bottomrule
+	\textbf{Symbol} & \textbf{Description} \\
+\midrule
+$n$ & Number of ions in the canonical vector (default 11: Ca, Mg, Na, K, HCO$_3$, Cl, SO$_4$, NO$_3$, F, Fe, PO$_4$) \\
+$\mathbf{x}_v$ & Ion concentration vector at node $v$ (mmol/L) \\
+$\mathbf{z}$ & Sparse reaction vector (extent of mineral reactions) \\
+$S$ & Stoichiometry matrix (ions $\times$ reactions) \\
+$\mathbf{W}$ & Weight matrix (typically diagonal, prioritizing conservative tracers) \\
+$\gamma$ & Evaporation factor (scaling) \\
+$f$ & Mixing fraction (0--1) \\
+$\lambda$ & LASSO regularization parameter \\
+$\ell, u$ & Lower/upper bounds for reaction extents (from SI) \\
+$J^{\text{sheaf}}_{uv}$ & Sheaf-consistency score for edge $(u,v)$ \\
+$\beta$ & Softmax sharpness parameter (\texttt{sheaf\_soft\_beta}) \\
+\texttt{sheaf\_\allowbreak max\_\allowbreak iter} & Max outer iterations for refinement \\
+\texttt{sheaf\_\allowbreak age\_\allowbreak enabled} & Enable age coherence in refinement \\
+\texttt{sheaf\_\allowbreak weight\_\allowbreak age} & Weight for age cost in edge scoring \\
+\texttt{sheaf\_\allowbreak weight\_\allowbreak global} & Weight applied to global residual term in edge scoring \\
+\texttt{sheaf\_\allowbreak weight} & Soft selection weight stored on each retained edge (edge attribute) \\
+\bottomrule
 \end{longtable}
+}
+\textbf{Note:} The canonical ion vector is $n=11$ (Ca, Mg, Na, K, HCO$_3$, Cl, SO$_4$, NO$_3$, F, Fe, PO$_4$), matching the default $\texttt{ion\_order}$ in code. Some routines (e.g., nitrate source discrimination, unit conversion) treat K specially; see schema and conversion notes below.
 
-Throughout the document, vectors are denoted in boldface (e.g., $\mathbf{x}, \mathbf{z}$), scalars in italic (e.g., $\gamma, \lambda$), and matrices in boldface uppercase (e.g., $\mathbf{W}, S$). All concentration units are mmol/L unless otherwise specified.
 
 \newpage
 
@@ -104,13 +127,12 @@ Throughout the document, vectors are denoted in boldface (e.g., $\mathbf{x}, \ma
 \subsection{Overview}\label{sec:overview}
 Groundwater hydrogeochemistry seeks to understand the chemical evolution of water as it flows through aquifer systems. The inverse problem---determining which combination of transport processes (mixing, evaporation) and geochemical reactions (mineral dissolution/precipitation, redox reactions, ion exchange) explains observed chemical changes---is fundamental to aquifer characterization, contamination assessment, and water resource management.
 
-Consider a groundwater flow network represented as a directed graph $G = (V, E)$, where vertices $V$ represent sampling locations (wells) and edges $E$ represent inferred flow connections. At each vertex $v \in V$, we observe a vector of ion concentrations $\mathbf{x}_v \in \mathbb{R}^n$ (default $n=10$ columns: Ca, Mg, Na, HCO$_3$, Cl, SO$_4$, NO$_3$, F, Fe, PO$_4$ in mmol/L).
+Consider a groundwater flow network represented as a directed graph $G = (V, E)$, where vertices $V$ represent sampling locations (wells) and edges $E$ represent inferred flow connections. At each vertex $v \in V$, we observe a vector of ion concentrations $\mathbf{x}_v \in \mathbb{R}^n$ (default $n=11$ columns: Ca, Mg, Na, K, HCO$_3$, Cl, SO$_4$, NO$_3$, F, Fe, PO$_4$ in mmol/L; $n = \texttt{len(ion\_order)}$ by default, and K is included in $\texttt{ion\_order}$).
 
 For each directed edge $(u,v) \in E$, we seek to determine:
 \begin{enumerate}
-	\item The dominant transport process (evaporation or mixing with an endmember)
-	\item The extent of mineral reactions that explain residual chemical changes
-	\item The consistency of this explanation with thermodynamic, isotopic, and mass balance constraints
+	\item A transport hypothesis (evaporation scaling $\gamma$ or mixing fraction $f$, plus an endmember identifier if mixing is used).
+	\item A sparse reaction explanation $\mathbf{z}$ consistent with thermodynamic constraints.
 \end{enumerate}
 
 To obtain meaningful, physically plausible solutions, we employ three complementary strategies:
@@ -151,30 +173,83 @@ The framework presented in this document differs from existing tools in several 
 The sheaf-theoretic viewpoint interprets the groundwater network as a cellular complex where local data (ion concentrations at wells) must satisfy global consistency conditions (mass balance, charge balance, thermodynamic equilibrium). While we do not develop full sheaf cohomology here, the computational framework enforces consistency through residual minimization along edges, analogous to minimizing the discrepancy in sheaf-theoretic data structures.
 
 \subsection{Input-Output Contract}\label{sec:io_contract}
-The framework takes as input:
+
+\textbf{Input:}
 \begin{itemize}
-	\item Ion concentration vectors (default $n=11$ columns: Ca, Mg, Na, K, HCO3, Cl, SO4, NO3, F, Fe, PO4).
-	\item Supporting bulk water fields: EC, TDS, and pH.
-	\item Optional isotope data ($\delta^{18}$O, $\delta^2$H, $\delta^{15}$N--NO$_3$, $\delta^{18}$O--NO$_3$).
-	\item Hydraulic head measurements or topographic elevations for network inference.
-	\item Candidate mineral reactions and endmember compositions.
-	\item Optional temporal time-series CSV when \texttt{--temporal-enabled} is used.
+	\item \textbf{Samples CSV (CLI)}: Must contain \texttt{sample\_id}, \texttt{site\_id}, all ions in \texttt{ion\_order}, and bulk fields \texttt{EC}, \texttt{TDS}, \texttt{pH}. 
+	Optional columns unlock features: coordinates (\texttt{x,y} or \texttt{latitude,longitude}) for automatic edge inference; head/topo keys for head priors; isotopes for sheaf refinement; conservative tracers (e.g., \texttt{Cl}); nuclear tracers (\texttt{3H}, etc.) for age coherence.
+	\item Ion concentration vectors: default $n=11$ columns (Ca, Mg, Na, K, HCO$_3$, Cl, SO$_4$, NO$_3$, F, Fe, PO$_4$), matching $\texttt{ion\_order}$ in code. 
 	\item Optional physics priors from mesh-based flow/particle tracking (FloPy/MODPATH).
 \end{itemize}
 
-The framework produces as output:
+\textbf{Units and Conversion:}
 \begin{itemize}
-	\item For each edge $(u,v) \in E$: the optimal transport model (evaporation factor $\gamma$ or mixing fraction $f$).
-	\item A sparse set of active reactions with quantified extents $\mathbf{z}$.
-	\item Model fit quality metrics ($R^2$, residual norms).
-	\item Diagnostic flags (charge balance errors, thermodynamic violations).
-	\item Optional temporal summaries and uncertainty intervals.
+	\item Accepted input units: \texttt{mmol/L}, \texttt{mg/L}, \texttt{meq/L} (if exposed in CLI/config). The CLI supports automatic conversion to mmol/L, including K even if not in $\texttt{ion\_order}$.
 \end{itemize}
 
-\newpage
+\textbf{Output:}
+\begin{itemize}
+	\item For each edge $(u,v) \in E$: the optimal transport model (evaporation factor $\gamma$ or mixing fraction $f$).
+	\item For each edge: sparse reaction vector $\mathbf{z}$, reaction set, and diagnostics (LASSO solution, bounds, SI, etc.).
+	\item For each node: inferred head, isotope, and age estimates (if enabled).
+\end{itemize}
 
-% SECTION 2
+\textbf{Samples CSV Schema}
+
+\begin{table}[htbp]
+\caption{Required Columns (MUST be present)}
+\begin{tabularx}{\textwidth}{@{} l l l X @{}}
+	\toprule
+Column Name & Type & Units & Description \\
+\midrule
+sample\_id & string & -- & Unique sample identifier \\
+site\_id & string & -- & Site/well identifier (may repeat for multiple samples per site) \\
+Ions in \texttt{ion\_order} & float & mmol/L (or convertible) & Ion concentrations; columns MUST match the configured \texttt{ion\_order} (default: Ca, Mg, Na, K, HCO$_3$, Cl, SO$_4$, NO$_3$, F, Fe, PO$_4$) \\
+EC & float & $\mu$S/cm & Electrical conductivity \\
+TDS & float & mg/L & Total dissolved solids \\
+pH & float & -- & pH value \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+\caption{Optional Columns (unlock features)}
+\begin{tabularx}{\textwidth}{@{} l X @{}}
+	\toprule
+Column Name(s) & Feature Unlocked \\
+\midrule
+x, y \textbar{} latitude, longitude & Automatic edge inference (spatial) \\
+elevation \textbar{} z & Head/topo priors \\
+head & Hydraulic head prior \\
+$\delta^{18}$O, $\delta^2$H, $\delta^{15}$N, $\delta^{18}$O-NO$_3$ & Isotope-based refinement \\
+Cl (if not in ion\_order) & Conservative tracer for refinement \\
+3H, tritium, age\_years & Age coherence (nuclear tracer) \\
+temporal fields & Time-series analysis (if enabled) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Minimal Valid Example}
+\begin{quote}\ttfamily\small\raggedright
+sample\_id,\allowbreak site\_id,\allowbreak Ca,\allowbreak Mg,\allowbreak Na,\allowbreak K,\allowbreak HCO3,\allowbreak Cl,\allowbreak SO4,\allowbreak NO3,\allowbreak F,\allowbreak Fe,\allowbreak PO4,\allowbreak EC,\allowbreak TDS,\allowbreak pH\\
+S1,\allowbreak WellA,\allowbreak 1.00,\allowbreak 0.50,\allowbreak 0.80,\allowbreak 0.10,\allowbreak 2.50,\allowbreak 1.20,\allowbreak 0.60,\allowbreak 0.05,\allowbreak 0.01,\allowbreak 0.00,\allowbreak 0.00,\allowbreak 700,\allowbreak 450,\allowbreak 7.2\\
+S2,\allowbreak WellB,\allowbreak 1.10,\allowbreak 0.55,\allowbreak 0.82,\allowbreak 0.10,\allowbreak 2.60,\allowbreak 1.30,\allowbreak 0.62,\allowbreak 0.05,\allowbreak 0.01,\allowbreak 0.00,\allowbreak 0.00,\allowbreak 720,\allowbreak 470,\allowbreak 7.1
+\end{quote}
+
+\textit{Note:} All required columns MUST be present and named exactly. Units are converted automatically if specified in config/CLI. Optional columns MAY be included to enable advanced features.
+
 \section{Governing Mathematical Framework}\label{sec:math_framework}
+
+\subsection{Mathematical objects and notation}\label{sec:notation}
+The main body defines the minimum mathematical objects needed to make the implementation unambiguous and reproducible.
+\begin{itemize}
+	\item \textbf{Graph:} The groundwater network is a directed graph $G=(V,E)$; each edge $e=(u\to v)$ is a candidate flow connection.
+	\item \textbf{Node feature vector:} Each node $v$ has an ion vector $\mathbf{x}_v\in\mathbb{R}^n$, where $n=\texttt{len(ion\_order)}$. The default is $n=11$.
+	\item \textbf{Stalks:} The sheaf stalk at each node MUST be $\mathcal{F}(v)=\mathbb{R}^n$. A global assignment (section estimate) is $\mathbf{X}=\{\mathbf{x}_v\}_{v\in V}$.
+	\item \textbf{Restriction/transport map:} For each directed edge $e=(u\to v)$, the implementation fits an affine map
+	$\rho_e(\mathbf{x}_u)=\alpha_e\mathbf{x}_u+\mathbf{b}_e$ that predicts downstream chemistry from upstream chemistry under the selected transport+reaction explanation.
+	\item \textbf{Soft edge weight:} The refinement procedure assigns a nonnegative soft weight $w_e$ per edge, stored in the edge attribute \texttt{sheaf\_\allowbreak weight} (also mirrored into \texttt{edge\_\allowbreak confidence}) and used by the directed section solver.
+\end{itemize}
 
 \subsection{Graph-Theoretic Foundation}\label{sec:graph_foundation}
 
@@ -198,11 +273,18 @@ For 3D systems, the effective hydrological distance $d_{3D}$ uses a vertical ani
 Wells with overlapping screened intervals are assigned higher connectivity probabilities via a screen overlap bonus.
 
 \subsubsection{Sheaf Consistency and the Laplacian}
-In the sheaf-theoretic view, we define stalks $\mathcal{F}(v) = \mathbb{R}^n$ at each vertex and restriction maps $\varphi_{ev}: \mathcal{F}(v) \to \mathcal{F}(e)$ at each edge. For a flow path $u \to v$, the restriction maps incorporate the transport affine transformation: $\varphi_{eu}(\mathbf{x}_u) = A \mathbf{x}_u + \mathbf{b}$ and $\varphi_{ev}(\mathbf{x}_v) = \mathbf{x}_v - R\mathbf{z}$. A global assignment is a 0-section $\mathbf{X} \in \bigoplus \mathcal{F}(v)$. The sheaf consistency energy is defined by the quadratic form:
+In the sheaf-theoretic view, we define stalks $\mathcal{F}(v) = \mathbb{R}^n$ at each vertex and interpret each directed edge $e=(u\to v)$ as imposing a compatibility constraint between upstream and downstream node vectors.
+
+In the implementation, each edge $e=(u\to v)$ carries an affine transport/reaction map $\rho_e(\mathbf{x}_u)=\alpha_e\mathbf{x}_u+\mathbf{b}_e$ and a nonnegative soft weight $w_e$ (stored as the edge attribute \texttt{sheaf\_weight}). Given a candidate global assignment $\mathbf{X}=\{\mathbf{x}_v\}_{v\in V}$, define the edge residual
+\[\mathbf{r}_e(\mathbf{X}) := \rho_e(\mathbf{x}_u) - \mathbf{x}_v.\]
+The directed section step solves a weighted least-squares problem with optional anchoring and regularization:
 \begin{equation}\label{eq:sheaf_energy}
-	\mathcal{E}(\mathbf{X}) = \sum_{e=(u,v) \in E} w_e \|\varphi_{ev}(\mathbf{x}_v) - \varphi_{eu}(\mathbf{x}_u)\|^2
+\mathcal{E}(\mathbf{X})
+= \sum_{e=(u\to v)\in E} w_e\, \|\mathbf{r}_e(\mathbf{X})\|_2^2
+\; + \sum_{v\in V_{\mathrm{obs}}} \lambda_v\, \|\mathbf{x}_v-\mathbf{x}_v^{\mathrm{obs}}\|_2^2
+\; + \epsilon\sum_{v\in V}\|\mathbf{x}_v\|_2^2.
 \end{equation}
-This energy is equivalent to $\mathbf{X}^\top L \mathbf{X}$, where $L$ is the \textbf{Sheaf Laplacian}. Minimizing $\mathcal{E}$ corresponds to finding a section that is most consistent with the underlying geochemical and transport physics.
+When the maps are linear and anchors are fixed, \eqref{eq:sheaf_energy} is a quadratic form analogous to a sheaf Laplacian energy. In practice, Hydrosheaf constructs the corresponding normal equations and solves for $\mathbf{X}$, and the resulting residuals $\|\mathbf{r}_e(\mathbf{X})\|$ are fed back into the refinement score (Section~\ref{sec:graph_algorithms}).
 
 \subsection{Transport Processes}\label{sec:transport_processes}
 
@@ -370,24 +452,110 @@ Stability-based tuning selects $\lambda$ via resampling.
 When direct head measurements are missing, a Bayesian linear-Gaussian model estimates hydraulic heads from topography and depth-to-water priors, propagating uncertainty to edge probabilities.
 
 \subsubsection{Sheaf-Consistent Edge Refinement}
-A sheaf-consistency score $J^{\text{sheaf}}_{uv}$ blends head priors, isotope compatibility, and conservative tracer behavior. The evaporation probability $\pi_{uv}$ is refined using three physical heuristics:
-\begin{enumerate}
-	\item \textbf{Depth Constraint}: Evaporation is attenuated with depth ($z > 30$m).
-	\item \textbf{Thermodynamic Directionality}: $\pi_{uv}$ is reduced if $|E_v| \leq |E_u|$, as evaporation must increase the evaporation index.
-	\item \textbf{d-Excess Signature}: Kinetic fractionation uniquely decreases $d$-excess; paths showing $d$-excess increases are penalized as evaporation candidates.
-\end{enumerate}
-Soft selection (Expectation-Maximization) iteratively updates edge weights to ensure global consistency.
 
-\subsection{Temporal Deconvolution}\label{sec:temporal_deconvolution}
-Time-varying signals are resolved via:
+A sheaf-consistency score $J^{\text{sheaf}}_e$ blends local priors and (optionally) a global mismatch signal from the current directed-section solution.
+For an edge $e=(u\to v)$, the implementation uses the weighted sum
+\begin{equation}
+J^{\text{sheaf}}_e
+= w_{\mathrm{head}}\,C_{\mathrm{head}}(e)
++ w_{\mathrm{iso}}\,C_{\mathrm{iso}}(e)
++ w_{\mathrm{Cl}}\,C_{\mathrm{Cl}}(e)
++ w_{\mathrm{age}}\,C_{\mathrm{age}}(e)
++ w_{\mathrm{global}}\,R_e(\mathbf{X}).
+\end{equation}
+Here $C_{\mathrm{head}},C_{\mathrm{iso}},C_{\mathrm{Cl}},C_{\mathrm{age}}$ are edge-local costs (with $C_{\mathrm{age}}$ used only when \texttt{sheaf\_\allowbreak age\_\allowbreak enabled} is true), $R_e(\mathbf{X})$ is an edge residual derived from the current directed section (e.g., $\|\rho_e(\mathbf{x}_u)-\mathbf{x}_v\|$), and the scalar weights map directly to configuration parameters:
 \begin{itemize}
-	\item \textbf{Cross-Correlation}: Estimates mean residence time $\tau^*$ from tracer time series.
-	\item \textbf{TTD Convolution}: Models downstream concentration as
-	      \[C_v(t) \approx \int C_u(t-\tau) g(\tau) e^{-k\tau} d\tau,\]
-	      solving for the kernel $g(\tau)$ via nonnegative least squares. For the Piston Flow Model (PFM), where $g(\tau) = \delta(\tau - \tau^*)$, the implementation includes physical validity checks to warn for negative residence times or extrapolation beyond the available input history.
+	\item \texttt{sheaf\_\allowbreak weight\_\allowbreak head\_\allowbreak prior}
+	\item \texttt{sheaf\_\allowbreak weight\_\allowbreak isotope}
+	\item \texttt{sheaf\_\allowbreak weight\_\allowbreak cl}
+	\item \texttt{sheaf\_\allowbreak weight\_\allowbreak age}
+	\item \texttt{sheaf\_\allowbreak weight\_\allowbreak global}
 \end{itemize}
 
-\newpage
+The evaporation probability $\pi_{uv}$ is refined using three physical heuristics:
+\begin{enumerate}
+	\item \textbf{Depth Constraint}: Evaporation is attenuated with depth ($z > 30$m).
+	\item \textbf{Thermodynamic Directionality}: Edges inconsistent with SI or redox direction are penalized.
+	\item \textbf{d-Excess Signature}: Kinetic fractionation uniquely decreases $d$-excess; paths showing $d$-excess increases are penalized as evaporation candidates.
+\end{enumerate}
+
+Candidate edges are scored, and selection uses softmax/Boltzmann weighting:
+\begin{equation}
+w_e = \frac{\exp(-\beta J^{\text{sheaf}}_e)}{\sum\limits_{e'=(u\to \cdot)} \exp(-\beta J^{\text{sheaf}}_{e'})}
+\end{equation}
+where $\beta$ is the sharpness parameter (\texttt{sheaf\_soft\_beta}). The implementation stores $w_e$ into the edge attributes \texttt{sheaf\_weight} and \texttt{edge\_confidence}. Very small weights are pruned using a fixed threshold ($w_e > 10^{-3}$), and an outer loop (\texttt{sheaf\_max\_iter}) alternates between rebuilding edge maps and solving a directed section to reduce the global energy \eqref{eq:sheaf_energy}.
+
+\begin{table}[htbp]
+\caption{Sheaf Refinement Parameters}
+\label{tab:sheaf_refine_params}
+\begin{tabularx}{\textwidth}{@{} l l X @{}}
+\toprule
+Parameter & Type & Description \\
+\midrule
+sheaf\_soft\_beta & float & Softmax/Boltzmann sharpness (higher = more selective) \\
+sheaf\_max\_iter & int & Max outer iterations for refinement loop \\
+sheaf\_weight\_head\_prior & float & Weight for head/topography prior cost $C_{\mathrm{head}}$ \\
+sheaf\_weight\_isotope & float & Weight for isotope compatibility cost $C_{\mathrm{iso}}$ \\
+sheaf\_weight\_cl & float & Weight for conservative-tracer (Cl) cost $C_{\mathrm{Cl}}$ \\
+sheaf\_age\_enabled & bool & Enable age coherence term $C_{\mathrm{age}}$ \\
+sheaf\_weight\_age & float & Weight for age coherence cost $C_{\mathrm{age}}$ (when enabled) \\
+sheaf\_weight\_global & float & Weight for global residual feedback term $R_e(\mathbf{X})$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{algorithm}
+\caption{Sheaf-consistent edge refinement outer loop}\label{alg:sheaf_refine}
+\begin{algorithmic}[1]
+\State \textbf{Input:} Candidate directed edges $E$, observations $\{\mathbf{x}_v^{\mathrm{obs}}\}$, config parameters (Table~\ref{tab:sheaf_refine_params})
+\State Initialize edge weights $w_e$ from priors (e.g., head-based probabilities)
+\For{$t = 1$ to \texttt{sheaf\_max\_iter}}
+\State Fit/update affine edge maps $\rho_e(\mathbf{x}_u)=\alpha_e\mathbf{x}_u+\mathbf{b}_e$ for all retained edges
+\State Solve directed section: $\mathbf{X}^{(t)} \leftarrow \arg\min_{\mathbf{X}} \mathcal{E}(\mathbf{X})$ (Eq.~\ref{eq:sheaf_energy})
+\State Compute edge residuals $R_e(\mathbf{X}^{(t)})$ from $\rho_e(\mathbf{x}_u)-\mathbf{x}_v$
+\State Compute local costs $C_{\mathrm{head}},C_{\mathrm{iso}},C_{\mathrm{Cl}},C_{\mathrm{age}}$ (if enabled)
+\State Form total scores $J^{\text{sheaf}}_e$ and softmax weights $w_e$ per source node $u$
+\State Prune edges with $w_e \le 10^{-3}$; store retained weights into \texttt{sheaf\_weight} and \texttt{edge\_confidence}
+\EndFor
+\State \textbf{Output:} Refined edge set with weights, and final section estimate $\mathbf{X}$
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Assumptions and limitations}
+\begin{itemize}
+	\item \textbf{Affine per-edge map:} Each edge is summarized by an affine map $\rho_e(\mathbf{x}_u)=\alpha_e\mathbf{x}_u+\mathbf{b}_e$, which is expressive but not a full reactive-transport simulator.
+	\item \textbf{Heuristic costs:} The local cost terms are engineered diagnostics (priors, isotopes, conservative tracers, age) rather than a single generative likelihood.
+	\item \textbf{Pruning threshold:} The refinement prunes very small softmax weights using a fixed cutoff ($10^{-3}$), not a tunable parameter.
+	\item \textbf{Data requirements:} Missing or inconsistent required sample fields (ion order, EC/TDS/pH) can invalidate comparisons and will be rejected by validation.
+	\item \textbf{Convergence:} The outer loop is an alternating procedure; while each directed section solve is well-posed, global convergence of the combined refine+refit loop is not guaranteed in general.
+\end{itemize}
+
+
+\subsubsection{Age Coherence (optional)}
+\label{sec:age_coherence}
+
+\textbf{Purpose:} Incorporate groundwater age and nuclear tracer information into edge scoring for improved network inference.
+
+\textbf{How it works:}
+\begin{itemize}
+	\item If \texttt{sheaf\_age\_enabled} is true, the refinement algorithm adds an \texttt{age\_cost} term to the sheaf score for each edge.
+	\item Inputs accepted: \texttt{age\_years} (numeric), or nuclear tracer fields (any of: \texttt{3H}, \texttt{tritium}, \texttt{tritium\_TU}, \texttt{tritium\_mgL}).
+	\item The \texttt{age\_cost} penalizes edges inconsistent with expected age gradients or tracer values.
+	\item The weight for this term is set by \texttt{sheaf\_weight\_age} (default 2.0).
+	\item Age coherence improves selection in systems with age data or nuclear tracers, and is fully optional.
+\end{itemize}
+
+\textbf{Config parameters:}
+\begin{itemize}
+	\item \texttt{sheaf\_age\_enabled} (bool): Enable/disable age coherence.
+	\item \texttt{sheaf\_weight\_age} (float): Weight for age cost in edge scoring.
+\end{itemize}
+
+\textbf{Accepted nuclear tracer keys:}
+\begin{itemize}
+	\item \texttt{3H}, \texttt{tritium}, \texttt{tritium\_TU}, \texttt{tritium\_mgL}
+\end{itemize}
+
 
 % SECTION 4
 \section{Inverse Modeling and Parameter Estimation}\label{sec:calibration}
@@ -456,6 +624,15 @@ Total complexity is $O(|E| \cdot (|\mathcal{C}| \cdot n + T \cdot m \cdot n))$. 
 	\item \textbf{Physics Priors}: Integration with MODPATH endpoints.
 \end{itemize}
 
+\subsection{Temporal Deconvolution}\label{sec:temporal_deconvolution}
+Time-varying signals are resolved via:
+\begin{itemize}
+	\item \textbf{Cross-Correlation}: Estimates mean residence time $\tau^*$ from tracer time series.
+	\item \textbf{TTD Convolution}: Models downstream concentration as
+	      \[C_v(t) \approx \int C_u(t-\tau) g(\tau) e^{-k\tau} d\tau,\]
+	      solving for the kernel $g(\tau)$ via nonnegative least squares. For the Piston Flow Model (PFM), where $g(\tau) = \delta(\tau - \tau^*)$, the implementation includes physical validity checks to warn for negative residence times or extrapolation beyond the available input history.
+\end{itemize}
+
 \newpage
 
 % SECTION 6
@@ -480,17 +657,18 @@ Performance scales linearly with edge count. LASSO solver dominates cost but is 
 \section{Input Data Reference}\label{sec:input_data}
 
 \subsection{Command Line Interface}\label{sec:cli}
-\begin{itemize}
-	\item \texttt{--samples}: Path to samples CSV.
-	\item \texttt{--infer-edges}: Enable topology inference.
-	\item \texttt{--temporal-enabled}: Enable time-series analysis.
-	\item \texttt{--nitrate-source-enabled}: Enable source discrimination.
-	\item \texttt{--3d}: Enable 3D mode.
-\end{itemize}
+For authoritative and up-to-date CLI options, run:
+\begin{verbatim}
+hydrosheaf --help
+\end{verbatim}
+Typical usage:
+\begin{verbatim}
+hydrosheaf --input samples.csv --output results.csv --config config.yaml
+\end{verbatim}
 
 \subsection{Data Schemas}\label{sec:schemas}
 \begin{itemize}
-	\item \textbf{Samples CSV}: Must contain \texttt{id} and ion columns (Ca, Mg, ...). Optional: \texttt{head}, \texttt{elevation}, isotopes.
+	\item \textbf{Samples CSV}: Must contain \texttt{sample\_id}, \texttt{site\_id}, the configured ion columns (default 11-ion set), and \texttt{EC}, \texttt{TDS}, \texttt{pH}. Optional: coordinates, elevation, isotopes, nuclear tracers, time fields.
 	\item \textbf{Temporal CSV}: Long-form with \texttt{site\_id}, \texttt{timestamp}, \texttt{parameter}, \texttt{value}.
 \end{itemize}
 
@@ -516,6 +694,30 @@ Columns include:
 \end{itemize}
 
 \newpage
+
+\appendix
+
+\section{Mathematical Notes (Optional)}\label{sec:math_notes}
+\begin{itemize}
+	\item \textbf{Quadratic structure:} For fixed edge maps and weights, the energy in Eq.~\ref{eq:sheaf_energy} is a convex quadratic in $\mathbf{X}$ and can be solved via normal equations.
+	\item \textbf{Per-ion separability:} With diagonal weights and an affine map that acts identically across ion dimensions (scalar $\alpha_e$), the solve decouples by ion and can be implemented as repeated solves of the same weighted graph system.
+	\item \textbf{Softmax behavior:} The softmax weights $w_e\propto \exp(-\beta J_e)$ interpolate between uniform selection ($\beta\to 0$) and near-hard selection of the lowest-score edge(s) ($\beta\to\infty$).
+\end{itemize}
+
+\section*{Final Consistency Checklist}
+\begin{itemize}
+	\item \textbf{Ion vector:} Confirm $n=11$ and ion\_order matches (Ca, Mg, Na, K, HCO$_3$, Cl, SO$_4$, NO$_3$, F, Fe, PO$_4$).
+	\item \textbf{Sample CSV schema:} Required columns: sample\_id, site\_id, all ions, EC, TDS, pH. Optional: coordinates, elevation, isotopes, nuclear tracers, time fields.
+	\item \textbf{Units:} Ions in mmol/L (or convertible), EC in $\mu$S/cm, TDS in mg/L.
+	\item \textbf{Config defaults:} Use default ion\_order unless overridden; rely on CLI \texttt{--help} for current flags.
+	\item \textbf{Refinement mechanics:} Edge refinement uses softmax/Boltzmann selection with \texttt{sheaf\_soft\_beta}; age coherence is optional.
+	\item \textbf{Validation:} Run CLI validation to catch schema/units issues before analysis.
+\end{itemize}
+
+\section{CLI Reference (Auto-Generated)}\label{sec:cli_appendix}
+\textit{This section should be generated from the output of}\newline
+\texttt{hydrosheaf --help}\newline
+\textit{at release time.}
 
 % REFERENCES
 \input{../webui_section}

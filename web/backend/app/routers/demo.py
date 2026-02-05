@@ -174,7 +174,7 @@ async def get_recharge_tracing():
         ]
         lmwl = [{"x": x, "y": 8.0 * x + 10.0} for x in x_range]  # GMWL
         local_mwl = [
-            {"x": x, "y": 7.22 * x + 8.66} for x in x_range  # Local MWL from config
+            {"x": x, "y": 7.87 * x + 13.61} for x in x_range  # Local MWL (Ghana) - above GMWL
         ]
 
         return {"samples": results, "gmwl": lmwl, "lmwl": local_mwl}

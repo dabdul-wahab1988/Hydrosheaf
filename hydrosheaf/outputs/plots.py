@@ -199,8 +199,42 @@ def plot_gibbs(
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=config.figsize)
 
+    # Style mapping based on station_type if available
+    style_map = {
+        'lysimeter': {'c': '#2980b9', 'marker': 'o', 'label': 'Lysimeter (Soil Water)'},
+        'soil_water': {'c': '#2980b9', 'marker': 'o', 'label': 'Lysimeter (Soil Water)'},
+        'borehole': {'c': '#c0392b', 'marker': 's', 'label': 'Borehole (Groundwater)'},
+        'groundwater': {'c': '#c0392b', 'marker': 's', 'label': 'Borehole (Groundwater)'},
+        'ag_well': {'c': '#f39c12', 'marker': 'p', 'label': 'Ag Well'},
+    }
+    default_style = {'c': 'steelblue', 'marker': 'o', 'label': 'Sample'}
+
+    # Plot data points with styles
+    if "station_type" in df_clean.columns:
+        # Group by station type to handle legends properly
+        for st_type, group in df_clean.groupby("station_type"):
+            style = style_map.get(str(st_type).lower(), default_style)
+            
+            # Cations
+            ax1.scatter(
+                group["Na_meq"] / (group["Na_meq"] + group["Ca_meq"] + 1e-9),
+                group["TDS"],
+                c=style['c'], marker=style['marker'], s=80, alpha=0.7, edgecolor="white", linewidth=0.5,
+                label=style['label']
+            )
+            # Anions
+            ax2.scatter(
+                group["Cl_meq"] / (group["Cl_meq"] + group["HCO3_meq"] + 1e-9),
+                group["TDS"],
+                c=style['c'], marker=style['marker'], s=80, alpha=0.7, edgecolor="white", linewidth=0.5,
+                label=style['label']
+            )
+    else:
+        # Fallback to single color
+        ax1.scatter(na_ratio, tds, c="steelblue", edgecolor="black", s=80, alpha=0.7, label='Sample')
+        ax2.scatter(cl_ratio, tds, c="steelblue", edgecolor="black", s=80, alpha=0.7, label='Sample')
+
     # Gibbs Plot - Cations
-    ax1.scatter(na_ratio, tds, c="steelblue", edgecolor="black", s=80, alpha=0.7)
     ax1.set_yscale("log")
     ax1.set_ylim(1, 100000)
     ax1.set_xlim(-0.05, 1.05)
@@ -208,6 +242,8 @@ def plot_gibbs(
     ax1.set_ylabel("TDS (mg/L)")
     ax1.set_title("Gibbs Plot - Cations")
     ax1.grid(True, which="both", ls="--", alpha=0.5)
+    if "station_type" in df_clean.columns:
+        ax1.legend(loc='upper left', fontsize=9*config.font_scale, frameon=True)
 
     # Annotations
     ax1.text(0.9, 20, "Precipitation\nDominance", fontsize=10*config.font_scale, ha="center", va="center")
@@ -227,7 +263,6 @@ def plot_gibbs(
     )
 
     # Gibbs Plot - Anions
-    ax2.scatter(cl_ratio, tds, c="steelblue", edgecolor="black", s=80, alpha=0.7)
     ax2.set_yscale("log")
     ax2.set_ylim(1, 100000)
     ax2.set_xlim(-0.05, 1.05)

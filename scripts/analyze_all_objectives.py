@@ -927,7 +927,7 @@ def analyze_objective3_recharge(data: dict, output_dir: Path):
         x_range = np.linspace(d18O.min() - 1, d18O.max() + 1, 100)
 
         ax1.plot(x_range, 8 * x_range + 10, "k--", lw=1.5, label="GMWL")
-        ax1.plot(x_range, 8.66 * x_range + 7.22, "g-", lw=1.5, label="LMWL")
+        ax1.plot(x_range, 7.87 * x_range + 13.61, "g-", lw=1.5, label="LMWL")
 
         for stype in ["lysimeter", "borehole"]:
             subset = water_chem[water_chem["station_type"] == stype]

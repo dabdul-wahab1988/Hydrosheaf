@@ -1,0 +1,15 @@
+station_code,station_type,latitude,longitude,elevation_m,depth_m,description
+L1,lysimeter,10.8920,-0.8750,215,1.5,Vadose zone lysimeter - recharge area north
+L2,lysimeter,10.8880,-0.8820,212,1.5,Vadose zone lysimeter - recharge area south
+L3,lysimeter,10.8850,-0.8680,218,1.5,Vadose zone lysimeter - agricultural plot east
+L4,lysimeter,10.8910,-0.8900,210,1.5,Vadose zone lysimeter - agricultural plot west
+BH1,borehole,10.8780,-0.8800,195,25,Monitoring borehole - downstream of L1
+BH2,borehole,10.8720,-0.8850,190,30,Monitoring borehole - downstream of L2
+BH3,borehole,10.8650,-0.8780,188,28,Monitoring borehole - central flowpath
+BH4,borehole,10.8600,-0.8900,185,35,Monitoring borehole - western flowpath
+AW1,ag_well,10.8550,-0.8820,180,40,Agricultural production well - upper field
+AW2,ag_well,10.8500,-0.8880,175,45,Agricultural production well - central field
+AW3,ag_well,10.8450,-0.8750,172,42,Agricultural production well - eastern field
+AW4,ag_well,10.8520,-0.8950,178,38,Agricultural production well - western field
+AW5,ag_well,10.8400,-0.8820,168,50,Agricultural production well - lower central
+AW6,ag_well,10.8350,-0.8900,165,55,Agricultural production well - lower west

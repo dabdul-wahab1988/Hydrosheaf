@@ -56,6 +56,14 @@ MINERAL_LIBRARY: Dict[str, Stoich] = {
     "microcline": {"K": 1, "HCO3": 1},
     # Olivine (Forsterite): Mg2SiO4 + 4CO2 + 4H2O -> 2Mg++ + 4HCO3- + H4SiO4
     "forsterite": {"Mg": 2, "HCO3": 4},
+    # Pyroxene (Enstatite): MgSiO3 + 2CO2 + 3H2O -> Mg++ + 2HCO3- + H4SiO4
+    "enstatite": {"Mg": 1, "HCO3": 2},
+    # Clinopyroxene (Diopside): CaMgSi2O6 + 4CO2 + 2H2O -> Ca++ + Mg++ + 4HCO3- + 2H4SiO4
+    "diopside": {"Ca": 1, "Mg": 1, "HCO3": 4},
+    # Serpentine: Mg3Si2O5(OH)4 + 6CO2 + 5H2O -> 3Mg++ + 6HCO3- + 2H4SiO4
+    "serpentine": {"Mg": 3, "HCO3": 6},
+    # Talc: Mg3Si4O10(OH)2 + 6CO2 + 5H2O -> 3Mg++ + 6HCO3- + 4H4SiO4
+    "talc": {"Mg": 3, "HCO3": 6},
     # Crystalline Basement Weathering (Granite/Gneiss)
     # Biotite: K(Mg,Fe)3AlSi3O10(OH)2 -> Releases K, Mg, Fe, and often Fluoride
     # Simplified Stoichiometry: 1 K, 1.5 Mg, 1.5 Fe, 0.2 F, 7.2 HCO3

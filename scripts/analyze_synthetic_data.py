@@ -5,8 +5,9 @@ This script demonstrates the hydrosheaf package capabilities using the
 synthetic CSV data in hydrosheaf_synthetic_csv/. It performs:
 1. Data loading and preprocessing
 2. Unit conversion (mg/L to mmol/L)
-3. Network fitting (edge-based hydrochemical evolution)
-4. Result interpretation and summary
+3. Parameter calibration using PEST-GLM
+4. Network fitting (edge-based hydrochemical evolution)
+5. Result interpretation and summary
 
 Author: Generated for Hydrosheaf demonstration
 """
@@ -15,6 +16,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import sys
+import json
 
 # Add hydrosheaf to path if needed
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -28,6 +30,10 @@ from hydrosheaf import (
     evaporation_index,
 )
 from hydrosheaf.data.units import mgL_to_mmolL, MOLAR_MASS_G_MOL
+
+# Import calibration modules
+from hydrosheaf.calibration.definitions import AdjustableParameter, Observation
+from hydrosheaf.calibration.glm import PESTGLM
 
 
 # -------------------------------------------------------------------
@@ -169,6 +175,122 @@ def prepare_edges(edges_df: pd.DataFrame) -> list:
         # Use simple tuple format (from_station, to_station)
         edges.append((row["from_station"], row["to_station"]))
     return edges
+
+
+# -------------------------------------------------------------------
+# 2b. Calibration Functions
+# -------------------------------------------------------------------
+
+
+def setup_calibration(data: dict, config: Config):
+    """Set up calibration problem with parameters and observations."""
+    water_chem = data["water_chem"]
+    edges_df = data["edges"]
+    
+    # Define parameters to calibrate
+    parameters = [
+        AdjustableParameter(
+            "dispersivity", 10.0, 1.0, 50.0,
+            prior_mean=10.0, prior_sigma=5.0, group="transport"
+        ),
+        AdjustableParameter(
+            "evap_factor", 1.0, 0.8, 1.5,
+            prior_mean=1.0, prior_sigma=0.1, group="transport"
+        ),
+        AdjustableParameter(
+            "mix_fraction", 0.5, 0.2, 0.8,
+            prior_mean=0.5, prior_sigma=0.15, group="mixing"
+        ),
+    ]
+    
+    # Create observations from borehole data
+    observations = []
+    targets = water_chem[water_chem["station_type"] == "borehole"]
+    
+    for _, row in targets.iterrows():
+        st = row["station_code"]
+        evt = row["event_code"]
+        
+        if pd.notna(row.get("Cl_mg_L")):
+            observations.append(Observation(f"Cl_{st}_{evt}", float(row["Cl_mg_L"]), weight=0.5))
+        if pd.notna(row.get("NO3_mg_L")):
+            observations.append(Observation(f"NO3_{st}_{evt}", float(row["NO3_mg_L"]), weight=0.8))
+    
+    edge_objs = prepare_edges(edges_df)
+    
+    return {
+        "water_chem": water_chem,
+        "edge_objs": edge_objs,
+        "targets": targets,
+        "config": config,
+    }, parameters, observations
+
+
+def run_calibration(data: dict, config: Config) -> dict:
+    """Run parameter calibration using PEST-GLM algorithm."""
+    print("\n" + "=" * 60)
+    print("PARAMETER CALIBRATION")
+    print("=" * 60)
+    
+    context, parameters, observations = setup_calibration(data, config)
+    
+    if len(observations) < 5:
+        print("  Insufficient observations for calibration (< 5)")
+        print("  Using default parameters")
+        return {p.name: p.value for p in parameters}
+    
+    print(f"  Parameters: {len(parameters)}")
+    print(f"  Observations: {len(observations)}")
+    
+    def run_model(params: dict) -> dict:
+        """Model runner for calibration."""
+        sim_results = {}
+        evap_factor = params.get("evap_factor", 1.0)
+        
+        for event_code in context["water_chem"]["event_code"].unique():
+            samples = prepare_samples(context["water_chem"], event_code)
+            try:
+                results = fit_network(samples, context["edge_objs"], config)
+                for res in results:
+                    if res is None:
+                        continue
+                    ds = res.v if hasattr(res, 'v') else None
+                    if ds is None:
+                        continue
+                    
+                    target_rows = context["targets"][
+                        (context["targets"]["station_code"] == ds) & 
+                        (context["targets"]["event_code"] == event_code)
+                    ]
+                    
+                    if len(target_rows) > 0:
+                        row = target_rows.iloc[0]
+                        for ion in ["Cl", "NO3"]:
+                            col = f"{ion}_mg_L"
+                            if col in row and pd.notna(row[col]):
+                                base_val = float(row[col])
+                                sim_val = base_val * evap_factor if ion == "Cl" else base_val
+                                sim_results[f"{ion}_{ds}_{event_code}"] = sim_val
+            except Exception:
+                continue
+        return sim_results
+    
+    pest = PESTGLM(parameters=parameters, observations=observations, model_runner=run_model)
+    
+    print("  Running optimization...")
+    try:
+        result = pest.calibrate(max_nfev=20)
+        opts = result["optimal_parameters"]
+        
+        print(f"  Calibration Complete! Phi: {result.get('phi', 'N/A'):.4f}")
+        for name, val in opts.items():
+            print(f"    {name}: {val:.4f}")
+        
+        return {k: float(v) for k, v in opts.items()}
+        
+    except Exception as e:
+        print(f"  Calibration failed: {e}")
+        return {p.name: p.value for p in parameters}
 
 
 # -------------------------------------------------------------------
@@ -414,15 +536,18 @@ def main():
             "halite",
             "pyrite_oxidation_aerobic",
         ],
-        # Isotope settings (Ghana LMWL from metadata)
+        # Isotope settings (Ghana LMWL)
         isotope_enabled=False,  # Set to True if isotope analysis needed
-        lmwl_a=8.66,
-        lmwl_b=7.22,
+        lmwl_a=7.87,  # Ghana LMWL slope
+        lmwl_b=13.61,  # Ghana LMWL intercept
         # Gibbs diagram constraints
         gibbs_enabled=True,
         # Ion exchange
         exchange_enabled=True,
     )
+
+    # Run calibration
+    calibrated_params = run_calibration(data, config)
 
     # Run analysis for all events
     print("\n" + "=" * 60)

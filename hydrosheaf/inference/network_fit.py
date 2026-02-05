@@ -122,6 +122,7 @@ def fit_network(
     
     logger.info(f"Fitting network with {len(built_edges)} edges and {len(sample_map)} samples.")
 
+
     # Pre-process lateral edges to build neighbor lookup
     # Lateral edges are those marked type="lateral" (flat gradient dispersion candidates)
     # We map u -> [neighbor_id]

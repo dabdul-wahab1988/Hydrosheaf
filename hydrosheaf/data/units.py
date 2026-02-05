@@ -39,6 +39,14 @@ def mgL_to_mmolL(value: float, ion: str) -> float:
     return value / MOLAR_MASS_G_MOL[ion]
 
 
+def mmolL_to_mgL(value: float, ion: str) -> float:
+    """Convert concentration from mmol/L to mg/L."""
+    if ion not in MOLAR_MASS_G_MOL:
+        raise KeyError(f"Unknown ion: {ion}")
+    # mmol/L * mg/mmol = mg/L
+    return value * MOLAR_MASS_G_MOL[ion]
+
+
 def mmolL_to_meqL(value: float, ion: str) -> float:
     if ion not in CHARGE_EQUIV:
         raise KeyError(f"Unknown ion: {ion}")

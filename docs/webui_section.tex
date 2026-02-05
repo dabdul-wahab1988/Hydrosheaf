@@ -53,7 +53,8 @@ Formalized interface for model parameters mapped to CLI flags:
 \begin{itemize}
 	\item \textbf{Transport Models}: Select candidate endmembers (rainfall, seawater, river), enable/disable evaporation hypothesis, configure isotope penalty weights ($\eta_E$, $\eta_d$).
 	\item \textbf{Reaction Dictionary}: Toggle minerals (calcite, gypsum, halite, silicates), set custom stoichiometry, select PHREEQC thermodynamic database (WATEQ4F, PHREEQC.dat, llnl.dat).
-	\item \textbf{Regularization}: Adjust L1 penalty ($\lambda$), enable residence-time coupling (\texttt{--residence-coupling}),\\set coordinate descent convergence tolerance.
+	\item \textbf{Regularization}: Adjust L1 penalty ($\lambda$), enable residence-time coupling\\
+	(\texttt{--residence-\allowbreak coupling}), set coordinate descent convergence tolerance.
 	\item \textbf{Advanced Options}: Enable temporal mode (\texttt{--temporal-enabled}), select uncertainty quantification method (Bootstrap/Bayesian MCMC), upload vadose priors CSV.
 \end{itemize}
 
@@ -72,7 +73,7 @@ Comprehensive visualization of analysis outputs:
 \begin{itemize}
 	\item \textbf{Summary Tables}: Sortable, filterable grids (AG Grid React) of edge results with dynamic columns: transport parameters ($\gamma$, $f$, endmember ID), reaction extents (one column per active mineral), fit metrics ($R^2$, residual norm, L1 norm).
 	\item \textbf{Spatial Maps}: Leaflet-based choropleth visualization of transport model prevalence, TDS evolution gradients, nitrate source probabilities ($P_{\text{manure}}$).
-	\item \textbf{Piper/Stiff Diagrams}: Automated hydrochemical facies classification using ternary\\projections and evolution trajectories along flow paths.
+	\item \textbf{Piper/Stiff Diagrams}: Automated hydrochemical facies classification via ternary\\projections and evolution trajectories along flow paths.
 	\item \textbf{Time-Series Plots}: When temporal mode is enabled (\texttt{--temporal-enabled}), interactive Plotly charts of residence time estimates, seasonal decomposition (trend + periodic + residual), and TTD kernel visualizations (histogram of $g(\tau)$).
 	\item \textbf{Uncertainty Bands}: Credible intervals (Bayesian MCMC) or bootstrap percentiles (BCa) overlaid on predicted concentrations when \texttt{--uncertainty} is enabled.
 \end{itemize}
@@ -180,7 +181,8 @@ For networks with $> 100$ edges or Bayesian MCMC uncertainty quantification (400
 The web interface is designed to complement, not replace, the CLI:
 
 \begin{itemize}
-	\item \textbf{Bidirectional Compatibility}: Projects created via web UI can be exported as\\CLI-compatible JSON configuration files (\texttt{hydrosheaf --config exported\_config.json}),\\and vice versa (CLI results can be imported into web UI for visualization).
+	\item \textbf{Bidirectional Compatibility}: Projects created via web UI can be exported as CLI-compatible JSON configuration files (\texttt{hydrosheaf --config}\\
+	\texttt{exported\_config.json}), and vice versa (CLI results can be imported into web UI for visualization).
 	\item \textbf{Programmatic API}: Advanced users can bypass the web frontend and interact directly with the FastAPI backend via Python \texttt{requests} library or R \texttt{httr} package for automated workflows.
 	\item \textbf{Batch Processing}: For large regional studies (hundreds of wells, dozens of time steps, MCMC uncertainty), the CLI remains preferred due to lower overhead and easier integration with HPC schedulers (SLURM, PBS).
 \end{itemize}

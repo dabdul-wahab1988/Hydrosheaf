@@ -11,6 +11,8 @@ class MineralLibraryTests(unittest.TestCase):
         """Verify standard minerals are present with correct keys."""
         self.assertIn("calcite", MINERAL_LIBRARY)
         self.assertIn("pyrite_oxidation_aerobic", MINERAL_LIBRARY)
+        self.assertIn("enstatite", MINERAL_LIBRARY)
+        self.assertIn("diopside", MINERAL_LIBRARY)
         # Check specific stoichiometry
         calcite = MINERAL_LIBRARY["calcite"]
         self.assertEqual(calcite["Ca"], 1)

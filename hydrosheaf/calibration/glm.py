@@ -4,7 +4,7 @@ Wraps scipy.optimize.least_squares to mimic PEST++ functionality.
 Supports parallel Jacobian calculation.
 """
 
-from typing import Dict, List, Callable, Any, Optional
+from typing import Dict, List, Callable, Any, Optional, cast
 import numpy as np
 from scipy.optimize import least_squares
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
@@ -129,10 +129,14 @@ class PESTGLM:
 
         phi_meas = np.sum(obs_part**2)
         phi_reg = np.sum(reg_part**2)
+        phi_total = phi_meas + phi_reg
+
+        # Track phi history for convergence plotting
+        self.phi_history.append(phi_total)
 
         if self.iteration % 1 == 0:
             logger.info(
-                f"Iter {self.iteration}: Phi_total = {phi_meas + phi_reg:.4e} (Meas: {phi_meas:.4e}, Reg: {phi_reg:.4e})"
+                f"Iter {self.iteration}: Phi_total = {phi_total:.4e} (Meas: {phi_meas:.4e}, Reg: {phi_reg:.4e})"
             )
         self.iteration += 1
 
@@ -237,14 +241,14 @@ class PESTGLM:
 
         # To strictly use parallel jacobian, we must provide it to least_squares.
 
-        jac_arg = "2-point"  # Default serial
+        jac_arg: Any = "2-point"  # Default serial
         if self.n_workers > 1:
             jac_arg = self._calculate_jacobian
 
         result = least_squares(
             self._objective_function,
             self.x0,
-            jac=jac_arg,
+            jac=cast(Any, jac_arg),
             bounds=self.bounds,
             method="trf",
             loss="linear",
@@ -303,3 +307,98 @@ class PESTGLM:
             "success": result.success,
             "message": result.message,
         }
+
+
+def sample_initial_parameters(
+    parameters: List[AdjustableParameter],
+    rng: np.random.Generator
+) -> Dict[str, float]:
+    params: Dict[str, float] = {}
+    for p in parameters:
+        low = p.lower_bound
+        high = p.upper_bound
+        if p.log_transform:
+            low = max(low, 1e-12)
+            high = max(high, low * 10.0)
+            log_low = np.log10(low)
+            log_high = np.log10(high)
+            value = 10 ** rng.uniform(log_low, log_high)
+        else:
+            value = rng.uniform(low, high)
+        params[p.name] = value
+    return params
+
+
+def run_pestglm_multistart(
+    problem: CalibrationProblem,
+    n_starts: int = 6,
+    max_nfev: int = 80,
+    seed: int = 42,
+    n_workers: int = 1,
+    worker_type: str = "thread",
+    score_fn: Optional[Callable[[Dict[str, float]], float]] = None,
+) -> Dict[str, Any]:
+    rng = np.random.default_rng(seed)
+    base_params = {p.name: p.value for p in problem.get_parameters()}
+
+    best_score: Optional[float] = None
+    best_params: Optional[Dict[str, float]] = None
+    best_result: Optional[Dict[str, Any]] = None
+
+    start_results: List[Dict[str, Any]] = []
+
+    for start_idx in range(n_starts):
+        if start_idx == 0:
+            init_params = base_params
+        else:
+            init_params = sample_initial_parameters(problem.get_parameters(), rng)
+
+        for p in problem.get_parameters():
+            p.value = init_params.get(p.name, p.value)
+
+        pest = PESTGLM.from_problem(problem, n_workers=n_workers, worker_type=worker_type)
+        try:
+            result = pest.calibrate(max_nfev=max_nfev)
+        except Exception as exc:
+            start_results.append({
+                "start": start_idx + 1,
+                "success": False,
+                "error": str(exc),
+            })
+            continue
+
+        candidate = result.get("optimal_parameters", init_params)
+        if score_fn is None:
+            phi = float(result.get("phi", np.inf))
+            score = -phi
+        else:
+            score = score_fn(candidate)
+
+        if score is None or not np.isfinite(score):
+            start_results.append({
+                "start": start_idx + 1,
+                "success": result.get("success", False),
+                "score": score,
+                "phi": result.get("phi"),
+                "error": "non-finite score",
+            })
+            continue
+
+        start_results.append({
+            "start": start_idx + 1,
+            "success": result.get("success", False),
+            "score": score,
+            "phi": result.get("phi"),
+        })
+
+        if best_score is None or score > best_score:
+            best_score = score
+            best_params = candidate
+            best_result = result
+
+    return {
+        "best_parameters": best_params or base_params,
+        "best_result": best_result,
+        "best_score": best_score,
+        "start_results": start_results,
+    }

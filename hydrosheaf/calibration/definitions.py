@@ -19,6 +19,7 @@ class AdjustableParameter:
     group: str = "default"
     prior_mean: Optional[float] = None
     prior_sigma: Optional[float] = None  # For regularization
+    description: Optional[str] = None  # Human-readable description for documentation
 
     def to_internal(self, val: float) -> float:
         """Convert real value to optimization space (e.g. log)."""

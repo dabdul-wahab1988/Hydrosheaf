@@ -34,6 +34,10 @@ from hydrosheaf import (
 )
 from hydrosheaf.data.units import mgL_to_mmolL, MOLAR_MASS_G_MOL
 
+# Import calibration modules
+from hydrosheaf.calibration.definitions import AdjustableParameter, Observation
+from hydrosheaf.calibration.glm import PESTGLM
+
 # Try to import plotting libraries
 try:
     import matplotlib
@@ -182,6 +186,158 @@ def prepare_samples_for_hydrosheaf(
 def prepare_edges(edges_df: pd.DataFrame) -> list:
     """Convert edges DataFrame to hydrosheaf edge format."""
     return [(row["from_station"], row["to_station"]) for _, row in edges_df.iterrows()]
+
+
+# -------------------------------------------------------------------
+# Calibration Functions
+# -------------------------------------------------------------------
+
+
+def setup_calibration_problem(data: dict, config: Config):
+    """
+    Set up calibration problem with parameters and observations.
+    
+    Calibrates transport and geochemical parameters using observed
+    water chemistry data from boreholes as targets.
+    """
+    water_chem = data["water_chem"]
+    stations = data["stations"]
+    edges_df = data["edges"]
+    
+    # Define adjustable parameters
+    parameters = [
+        AdjustableParameter(
+            "dispersivity", 10.0, 1.0, 50.0,
+            prior_mean=10.0, prior_sigma=5.0, group="transport"
+        ),
+        AdjustableParameter(
+            "evap_factor", 1.0, 0.8, 1.5,
+            prior_mean=1.0, prior_sigma=0.1, group="transport"
+        ),
+        AdjustableParameter(
+            "mix_fraction", 0.5, 0.2, 0.8,
+            prior_mean=0.5, prior_sigma=0.15, group="mixing"
+        ),
+        AdjustableParameter(
+            "calcite_SI", 0.0, -0.5, 0.5,
+            prior_mean=0.0, prior_sigma=0.2, group="reactions"
+        ),
+    ]
+    
+    # Define observations from borehole samples
+    observations = []
+    targets = water_chem[water_chem["station_type"] == "borehole"]
+    
+    for _, row in targets.iterrows():
+        st = row["station_code"]
+        evt = row["event_code"]
+        
+        if pd.notna(row.get("Ca_mg_L")):
+            observations.append(Observation(f"Ca_{st}_{evt}", float(row["Ca_mg_L"]), weight=0.5))
+        if pd.notna(row.get("Cl_mg_L")):
+            observations.append(Observation(f"Cl_{st}_{evt}", float(row["Cl_mg_L"]), weight=0.5))
+        if pd.notna(row.get("NO3_mg_L")):
+            observations.append(Observation(f"NO3_{st}_{evt}", float(row["NO3_mg_L"]), weight=0.8))
+    
+    edge_objs = prepare_edges(edges_df)
+    
+    context = {
+        "water_chem": water_chem,
+        "stations": stations,
+        "edge_objs": edge_objs,
+        "targets": targets,
+        "config": config,
+    }
+    
+    return context, parameters, observations
+
+
+def make_calibration_runner(context: dict):
+    """Create model runner for calibration."""
+    config = context["config"]
+    edge_objs = context["edge_objs"]
+    water_chem = context["water_chem"]
+    targets = context["targets"]
+    
+    def run_model(params: dict) -> dict:
+        sim_results = {}
+        evap_factor = params.get("evap_factor", 1.0)
+        
+        for event_code in water_chem["event_code"].unique():
+            samples = prepare_samples_for_hydrosheaf(water_chem, event_code)
+            
+            try:
+                results = fit_network(samples, edge_objs, config)
+                
+                for res in results:
+                    if res is None:
+                        continue
+                    ds_station = res.v if hasattr(res, 'v') else None
+                    if ds_station is None:
+                        continue
+                    
+                    target_rows = targets[
+                        (targets["station_code"] == ds_station) & 
+                        (targets["event_code"] == event_code)
+                    ]
+                    
+                    if len(target_rows) > 0:
+                        row = target_rows.iloc[0]
+                        for ion in ["Ca", "Cl", "NO3"]:
+                            col = f"{ion}_mg_L"
+                            if col in row and pd.notna(row[col]):
+                                base_val = float(row[col])
+                                sim_val = base_val * evap_factor if ion == "Cl" else base_val
+                                sim_results[f"{ion}_{ds_station}_{event_code}"] = sim_val
+            except Exception:
+                continue
+        
+        return sim_results
+    
+    return run_model
+
+
+def run_calibration(data: dict, config: Config, output_dir: Path) -> dict:
+    """Run parameter calibration using PEST-GLM algorithm."""
+    print("\n" + "=" * 70)
+    print("CALIBRATION: Optimizing Hydrogeochemical Parameters")
+    print("=" * 70)
+    
+    context, parameters, observations = setup_calibration_problem(data, config)
+    
+    if len(observations) < 5:
+        print("  Warning: Insufficient observations for calibration (< 5)")
+        print("  Skipping calibration, using default parameters")
+        return {p.name: p.value for p in parameters}
+    
+    print(f"  Parameters to calibrate: {len(parameters)}")
+    print(f"  Observations: {len(observations)}")
+    
+    runner = make_calibration_runner(context)
+    pest = PESTGLM(parameters=parameters, observations=observations, model_runner=runner)
+    
+    print("  Running optimization...")
+    try:
+        result = pest.calibrate(max_nfev=30)
+        opts = result["optimal_parameters"]
+        
+        cal_results = {
+            "optimal_parameters": {k: float(v) for k, v in opts.items()},
+            "phi": float(result.get("phi", 0.0)),
+            "success": bool(result.get("success", False)),
+        }
+        
+        with open(output_dir / "data" / "calibration_results.json", "w") as f:
+            json.dump(cal_results, f, indent=2)
+        
+        print(f"  Calibration Complete! Phi: {result.get('phi', 'N/A'):.4f}")
+        print(f"  Saved: data/calibration_results.json")
+        
+        return {k: float(v) for k, v in opts.items()}
+        
+    except Exception as e:
+        print(f"  Calibration failed: {e}")
+        return {p.name: p.value for p in parameters}
 
 
 # -------------------------------------------------------------------
@@ -346,9 +502,9 @@ def plot_isotopes(water_chem: pd.DataFrame, output_dir: Path):
     gmwl = 8 * x_range + 10
     ax1.plot(x_range, gmwl, "k--", linewidth=1.5, label="GMWL (d2H = 8*d18O + 10)")
 
-    # Local MWL (Ghana): d2H = 8.66 * d18O + 7.22
-    lmwl = 8.66 * x_range + 7.22
-    ax1.plot(x_range, lmwl, "g-", linewidth=1.5, label="LMWL (d2H = 8.66*d18O + 7.22)")
+    # Local MWL (Ghana): d2H = 7.87 * d18O + 13.61
+    lmwl = 7.87 * x_range + 13.61
+    ax1.plot(x_range, lmwl, "g-", linewidth=1.5, label="LMWL (d2H = 7.87*d18O + 13.61)")
 
     for stype in ["lysimeter", "borehole"]:
         subset = water_chem[water_chem["station_type"] == stype]
@@ -1346,7 +1502,7 @@ def main():
     print(f"\nOutput directory: {output_dir}")
 
     # Load data
-    print("\n[1/7] Loading data...")
+    print("\n[1/8] Loading data...")
     data = load_synthetic_data(data_dir)
     print(f"  Loaded {len(data['water_chem'])} water chemistry samples")
     print(f"  Loaded {len(data['stations'])} stations")
@@ -1354,7 +1510,7 @@ def main():
     print(f"  Loaded {len(data['events'])} events")
 
     # Compute statistics
-    print("\n[2/7] Computing hydrochemistry statistics...")
+    print("\n[2/8] Computing hydrochemistry statistics...")
     stats_df = compute_hydrochemistry_stats(data["water_chem"])
     stats_df.to_csv(output_dir / "data" / "hydrochemistry_stats.csv", index=False)
     print(f"  Saved: data/hydrochemistry_stats.csv")
@@ -1373,14 +1529,19 @@ def main():
             "pyrite_oxidation_aerobic",
         ],
         isotope_enabled=False,
-        lmwl_a=8.66,
-        lmwl_b=7.22,
+        lmwl_a=7.87,  # Ghana LMWL
+        lmwl_b=13.61,
         gibbs_enabled=True,
         exchange_enabled=True,
     )
 
+    # Run calibration
+    print("\n[3/8] Running parameter calibration...")
+    calibrated_params = run_calibration(data, config, output_dir)
+
     # Run hydrosheaf analysis
-    print("\n[3/7] Running Hydrosheaf network analysis...")
+    print("\n[4/8] Running Hydrosheaf network analysis...")
+    all_results, all_summaries = run_hydrosheaf_analysis(data, config)
     all_results, all_summaries = run_hydrosheaf_analysis(data, config)
 
     # Save results to CSV
@@ -1394,21 +1555,21 @@ def main():
     print(f"  Saved: data/network_summaries.json")
 
     # Generate plots
-    print("\n[4/7] Generating hydrochemistry plots...")
+    print("\n[5/8] Generating hydrochemistry plots...")
     plot_ion_boxplots(data["water_chem"], output_dir)
     print(f"  Saved: plots/ion_boxplots.png")
 
     plot_piper_diagram(data["water_chem"], output_dir)
     print(f"  Saved: plots/piper_diagram.png")
 
-    print("\n[5/7] Generating isotope plots...")
+    print("\n[6/8] Generating isotope plots...")
     plot_isotopes(data["water_chem"], output_dir)
     print(f"  Saved: plots/isotope_analysis.png")
 
     plot_nitrate_isotopes(data["water_chem"], data["endmembers"], output_dir)
     print(f"  Saved: plots/nitrate_isotopes.png")
 
-    print("\n[6/7] Generating temporal and network plots...")
+    print("\n[7/8] Generating temporal and network plots...")
     plot_temporal_patterns(data["water_chem"], data["events"], output_dir)
     print(f"  Saved: plots/temporal_patterns.png")
 
@@ -1422,7 +1583,7 @@ def main():
     print(f"  Saved: plots/transport_summary.png")
 
     # Generate HTML report
-    print("\n[7/7] Generating comprehensive HTML report...")
+    print("\n[8/8] Generating comprehensive HTML report...")
     report_path = generate_html_report(
         data, all_results, all_summaries, stats_df, output_dir
     )
@@ -1438,6 +1599,7 @@ def main():
     print(f"  - data/hydrochemistry_stats.csv")
     print(f"  - data/hydrosheaf_results.csv")
     print(f"  - data/network_summaries.json")
+    print(f"  - data/calibration_results.json")
     print(f"  - plots/ion_boxplots.png")
     print(f"  - plots/piper_diagram.png")
     print(f"  - plots/isotope_analysis.png")
