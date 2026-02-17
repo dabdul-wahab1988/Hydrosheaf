@@ -27,7 +27,7 @@ CHARGE_EQUIV: Dict[str, int] = {
     "NO3": 1,
     "F": 1,
     "Fe": 2,  # Assuming Fe(II) for charge balance estimation. In oxic waters, consider Fe(III).
-    "PO4": 3,  # Assuming PO4(3-). At pH < 12.3, HPO4(2-) or H2PO4(-) may dominate.
+    "PO4": 2,  # Assuming HPO4(2-) dominance at pH 7.2.
 }
 
 

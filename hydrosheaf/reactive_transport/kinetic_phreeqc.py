@@ -76,11 +76,14 @@ def build_kinetic_block(
         if abs(extent) < 1e-6:
             continue
 
-        # Get kinetic parameters
+        # Get kinetic parameters (case-insensitive lookup)
+        label_lower = label.lower()
         if label in kinetic_params:
             params = kinetic_params[label]
-        elif label in DEFAULT_KINETIC_PARAMS:
-            params = DEFAULT_KINETIC_PARAMS[label]
+        elif label_lower in kinetic_params:
+            params = kinetic_params[label_lower]
+        elif label_lower in DEFAULT_KINETIC_PARAMS:
+            params = DEFAULT_KINETIC_PARAMS[label_lower]
         else:
             # Skip reactions without kinetic parameters
             continue
@@ -89,19 +92,24 @@ def build_kinetic_block(
         k_T = apply_temperature_correction(params, temperature_c)
 
         # Get rate law template
-        if label in RATE_LAW_TEMPLATES:
-            rates_block += RATE_LAW_TEMPLATES[label]
+        if label_lower in RATE_LAW_TEMPLATES:
+            rates_block += RATE_LAW_TEMPLATES[label_lower]
             rates_block += "\n"
 
             # Build KINETICS entry
             # Initial moles: for dissolution, need sufficient mineral
             # For precipitation, start with zero
-            if extent > 0:
-                # Dissolution: set m0 = extent * 10 (excess)
-                m0 = extent * 10.0 / 1000.0  # Convert mmol/L to mol/L
-            else:
-                # Precipitation: start with zero
-                m0 = 0.0
+            
+            # Use explicit initial moles if provided (avoiding arbitrary heuristic)
+            m0 = getattr(params, "initial_moles", None)
+            
+            if m0 is None:
+                if extent > 0:
+                    # Dissolution: set m0 = extent * 10 (excess)
+                    m0 = extent * 10.0 / 1000.0  # Convert mmol/L to mol/L
+                else:
+                    # Precipitation: start with zero
+                    m0 = 0.0
 
             kinetics_entry = f"""    {label}
         -m0 {m0:.6e}

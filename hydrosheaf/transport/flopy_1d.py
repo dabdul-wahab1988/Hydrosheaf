@@ -12,18 +12,35 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 
 import numpy as np
-import flopy
-from flopy.modflow import (
-    Modflow,
-    ModflowDis,
-    ModflowBas,
-    ModflowLpf,
-    ModflowWel,
-    ModflowOc,
-    ModflowPcg,
-    ModflowLmt,
-)
-from flopy.mt3d import Mt3dms, Mt3dBtn, Mt3dAdv, Mt3dDsp, Mt3dSsm, Mt3dGcg, Mt3dRct
+try:
+    import flopy
+    from flopy.modflow import (
+        Modflow,
+        ModflowDis,
+        ModflowBas,
+        ModflowLpf,
+        ModflowWel,
+        ModflowOc,
+        ModflowPcg,
+        ModflowLmt,
+    )
+    from flopy.mt3d import (
+        Mt3dms,
+        Mt3dBtn,
+        Mt3dAdv,
+        Mt3dDsp,
+        Mt3dSsm,
+        Mt3dGcg,
+        Mt3dRct,
+    )
+    FLOPY_AVAILABLE = True
+    FLOPY_IMPORT_ERROR: Optional[Exception] = None
+except Exception as exc:  # pragma: no cover - optional dependency path
+    flopy = None  # type: ignore[assignment]
+    Modflow = ModflowDis = ModflowBas = ModflowLpf = ModflowWel = ModflowOc = ModflowPcg = ModflowLmt = Any  # type: ignore[assignment]
+    Mt3dms = Mt3dBtn = Mt3dAdv = Mt3dDsp = Mt3dSsm = Mt3dGcg = Mt3dRct = Any  # type: ignore[assignment]
+    FLOPY_AVAILABLE = False
+    FLOPY_IMPORT_ERROR = exc
 
 from .binaries import get_executable_path
 
@@ -64,7 +81,7 @@ class TransportResult:
 
 def check_flopy_available() -> bool:
     """Check if FloPy is available for transport modeling."""
-    return True
+    return FLOPY_AVAILABLE
 
 
 
@@ -139,10 +156,13 @@ def build_1d_transport_model(
         MODFLOW model, MT3DMS model, and parameter dictionary
     """
     if not FLOPY_AVAILABLE:
+        reason = (
+            f" ({FLOPY_IMPORT_ERROR})" if FLOPY_IMPORT_ERROR is not None else ""
+        )
         raise ImportError(
             "FloPy is required for transport modeling. "
-            "Install with: pip install flopy>=3.3"
-        )
+            f"Install with: pip install flopy>=3.3{reason}"
+        ) from FLOPY_IMPORT_ERROR
 
     # Create workspace
     if workspace is None:
@@ -155,6 +175,28 @@ def build_1d_transport_model(
     cell_length = aquifer_length_m / n_cells
     delr = [cell_length] * n_cells  # Row width (x-direction)
     delc = [aquifer_width_m]  # Column width (y-direction)
+
+    # Validate Discretization (Courant and Peclet numbers)
+    # v = K * i / n_e
+    head_gradient = (head_upstream_m - head_downstream_m) / aquifer_length_m
+    velocity = hydraulic_k_m_day * head_gradient / porosity
+    
+    # dt = perlen / nstp
+    dt = perlen_days / n_time_steps
+    
+    # Peclet = dx / alpha_L
+    # Courant = v * dt / dx
+    peclet = cell_length / dispersivity_m if dispersivity_m > 0 else float('inf')
+    courant = velocity * dt / cell_length if cell_length > 0 else 0.0
+
+    validation_msgs = []
+    if peclet > 2.0:
+        validation_msgs.append(f"Warning: Peclet number {peclet:.2f} > 2.0. Numerical dispersion may occur.")
+    if courant > 1.0:
+        validation_msgs.append(f"Warning: Courant number {courant:.2f} > 1.0. Solution may be unstable.")
+    
+    for msg in validation_msgs:
+        print(msg)  # Or use logger if available in this scope
 
     # Layer properties
     nlay = 1
@@ -247,7 +289,8 @@ def build_1d_transport_model(
     )
 
     # ADV - Advection
-    _adv = Mt3dAdv(mt, mixelm=0)  # Upstream finite difference
+    # Use TVD (mixelm=-1) to minimize numerical dispersion while maintaining stability
+    _adv = Mt3dAdv(mt, mixelm=-1) 
 
     # DSP - Dispersion
     _dsp = Mt3dDsp(mt, al=dispersivity_m, trpt=0.1, trpv=0.01, dmcoef=1e-9)
@@ -328,7 +371,12 @@ def run_1d_transport(
         Transport simulation results
     """
     if not FLOPY_AVAILABLE:
-        raise ImportError("FloPy is required for transport modeling.")
+        reason = (
+            f" ({FLOPY_IMPORT_ERROR})" if FLOPY_IMPORT_ERROR is not None else ""
+        )
+        raise ImportError(
+            f"FloPy is required for transport modeling.{reason}"
+        ) from FLOPY_IMPORT_ERROR
 
     workspace = params.get("workspace", ".")
     warnings_list = []

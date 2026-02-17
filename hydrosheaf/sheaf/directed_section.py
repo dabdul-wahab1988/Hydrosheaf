@@ -139,9 +139,150 @@ def build_edge_maps(
 
 
 try:
-    from scipy.optimize import nnls
+    from scipy.optimize import lsq_linear, least_squares
+    from scipy.sparse import lil_matrix, csr_matrix
 except ImportError:
-    raise ImportError("Hydrosheaf requires scipy.optimize.nnls for accurate scientific calculation.")
+    raise ImportError("Hydrosheaf requires scipy.optimize and scipy.sparse.")
+
+SPECIES_CHARGES = {
+    "Ca": 2.0, "Mg": 2.0, "Na": 1.0, "K": 1.0, 
+    "Cl": -1.0, "SO4": -2.0, "NO3": -1.0, "HCO3": -1.0, "CO3": -2.0, 
+    "F": -1.0, "Br": -1.0, "H": 1.0, "OH": -1.0
+}
+
+def solve_coupled_section(
+    node_ids: Iterable[str],
+    edge_maps: Iterable[DirectedEdgeMap],
+    node_obs: Mapping[str, Optional[Sequence[float]]],
+    species_names: List[str],
+    obs_weight: float = 1.0,
+    charge_balance_weight: float = 0.0,
+    diag_eps: float = 1e-6,
+) -> Dict[str, List[float]]:
+    """
+    Solve the sheaf section problem with coupled chemical constraints.
+    
+    Unlike solve_directed_section which solves each species independently,
+    this solver minimizes a global non-linear objective that can include
+    cross-species constraints like charge balance or equilibrium.
+    
+    Minimizes:
+        || Transport Residuals ||^2 
+      + || Observation Residuals ||^2
+      + || Charge Balance ||^2 (if weight > 0)
+      + Regularization
+      
+    Parameters
+    ----------
+    node_ids : Iterable[str]
+        List of node IDs
+    edge_maps : Iterable[DirectedEdgeMap]
+        Edge definitions and transport parameters
+    node_obs : Mapping
+        Observations per node
+    species_names : List[str]
+        List of species corresponding to the vector indices (e.g. ['Ca', 'Cl', ...])
+    obs_weight : float
+        Weight for observations
+    charge_balance_weight : float
+        Weight for charge balance penalty
+    """
+    nodes = list(node_ids)
+    if not nodes:
+        return {}
+    
+    n_nodes = len(nodes)
+    n_species = len(species_names)
+    idx = {node_id: i for i, node_id in enumerate(nodes)}
+    
+    # Identify charges
+    charges = np.array([SPECIES_CHARGES.get(s, 0.0) for s in species_names])
+    
+    # Flattened state vector size
+    n_params = n_nodes * n_species
+    
+    # Pre-process observations
+    # obs_flat: map (node_idx, species_idx) -> value
+    obs_flat = {}
+    for node_id, obs_vec in node_obs.items():
+        if obs_vec is None: continue
+        u_idx = idx[node_id]
+        for s_idx, val in enumerate(obs_vec):
+            if val is not None:
+                obs_flat[(u_idx, s_idx)] = float(val)
+
+    edge_maps_list = list(edge_maps)
+
+    def residual_function(x):
+        # x is shape (n_nodes * n_species)
+        # Reshape for easier access: (n_nodes, n_species)
+        X = x.reshape((n_nodes, n_species))
+        
+        residuals = []
+        
+        # 1. Transport / Edge Residuals
+        # w * (alpha * X_u + offset - X_v)
+        for em in edge_maps_list:
+            u_i = idx.get(em.edge.u)
+            v_i = idx.get(em.edge.v)
+            if u_i is None or v_i is None: continue
+            
+            w_sqrt = em.weight ** 0.5
+            
+            # Vectorized for all species on this edge
+            # X[u_i] is (n_species,)
+            pred_v = em.alpha * X[u_i] + np.array(em.offset[:n_species])
+            res = w_sqrt * (pred_v - X[v_i])
+            residuals.extend(res)
+            
+        # 2. Observation Residuals
+        w_obs_sqrt = obs_weight ** 0.5
+        for (u_i, s_i), val in obs_flat.items():
+            res = w_obs_sqrt * (X[u_i, s_i] - val)
+            residuals.append(res)
+            
+        # 3. Regularization
+        # diag_eps * x
+        if diag_eps > 0:
+            reg_residuals = (diag_eps ** 0.5) * x
+            residuals.extend(reg_residuals)
+            
+        # 4. Charge Balance (Coupling)
+        # Sum (z_i * c_i) at each node -> 0
+        if charge_balance_weight > 0:
+            w_cb = charge_balance_weight ** 0.5
+            # Dot product of X rows with charges
+            imbalances = X @ charges # (n_nodes,)
+            residuals.extend(w_cb * imbalances)
+            
+        return np.array(residuals)
+
+    # Initial guess: 
+    # Use mean of observations or zeros
+    x0 = np.zeros(n_params)
+    for (u_i, s_i), val in obs_flat.items():
+        x0[u_i * n_species + s_i] = val
+        
+    # Solve
+    # Bounds: concentrations >= 0
+    res = least_squares(
+        residual_function, 
+        x0, 
+        bounds=(0.0, np.inf), 
+        method='trf', 
+        ftol=1e-4, 
+        xtol=1e-4
+    )
+    
+    # Unpack result
+    X_final = res.x.reshape((n_nodes, n_species))
+    
+    results = {}
+    for i, node_id in enumerate(nodes):
+        results[node_id] = X_final[i].tolist()
+        
+    return results
+
 
 def solve_directed_section(
     node_ids: Iterable[str],
@@ -151,12 +292,20 @@ def solve_directed_section(
     diag_eps: float = 1e-6,
     non_negative: bool = True,
 ) -> Dict[str, List[float]]:
+    """Solve the sheaf section problem using constrained least squares.
+
+    Minimizes: sum_e w_e * (alpha_e * x_u + offset_e - x_v)^2
+             + sum_obs w_obs * (x_obs - obs_val)^2
+             + diag_eps * ||x||^2
+    Subject to: x >= 0 (if non_negative=True)
+    """
     nodes = list(node_ids)
     if not nodes:
         return {}
     idx = {node_id: i for i, node_id in enumerate(nodes)}
     n = len(nodes)
 
+    # Determine dimension of the chemical vector
     dim = None
     for obs in node_obs.values():
         if obs is not None:
@@ -169,99 +318,113 @@ def solve_directed_section(
     if dim is None:
         return {}
 
-    results: Dict[str, List[float]] = {}
-    for node_id in nodes:
-        results[node_id] = [0.0] * dim
+    # Pre-build the graph structure of the design matrix A
+    # Rows: 1 per edge, 1 per observation (potential), 1 per node (regularization)
+    # Actually, observations might be sparse/missing per dimension, but we can alloc max
+    # We will rebuild A per dimension if observations vary, but the edge part is constant.
+    # To optimize, we'll build the constant edge part first.
 
+    edge_maps_list = list(edge_maps)
+    n_edges = len(edge_maps_list)
+    n_obs_max = len(node_obs)
+    n_reg = n
+
+    # Total rows estimate
+    n_rows_total = n_edges + n_obs_max + n_reg
+
+    results: Dict[str, List[float]] = {node_id: [0.0] * dim for node_id in nodes}
+
+    # Edges contribute to A independently of dimension (alpha is scalar)
+    # Residual: sqrt(w) * (alpha * x_u - x_v) ~ -sqrt(w) * offset
+    A_edges = lil_matrix((n_edges, n), dtype=float)
+    edge_weights_sqrt = []
+    
+    valid_edges = []
+    
+    for row_idx, edge_map in enumerate(edge_maps_list):
+        u_idx = idx.get(edge_map.edge.u)
+        v_idx = idx.get(edge_map.edge.v)
+        
+        if u_idx is None or v_idx is None:
+            continue
+            
+        w = float(edge_map.weight)
+        if w <= 0:
+            continue
+            
+        w_sqrt = w ** 0.5
+        edge_weights_sqrt.append(w_sqrt)
+        
+        # Term: w_sqrt * (alpha * x_u - x_v)
+        # Col u: w_sqrt * alpha
+        # Col v: -w_sqrt
+        A_edges[row_idx, u_idx] = w_sqrt * float(edge_map.alpha)
+        A_edges[row_idx, v_idx] = -w_sqrt
+        valid_edges.append((row_idx, edge_map))
+
+    # Convert constant parts to CSR for efficiency if possible, 
+    # but we need to stack with variable parts.
+    # Actually, just use LIL for flexible construction then CSR.
+    
+    # Regularization part: sqrt(eps) * x_i ~ 0
+    reg_val = diag_eps ** 0.5
+    
     for d in range(dim):
-        mat = np.zeros((n, n))
-        vec = np.zeros(n)
-
-        for edge_map in edge_maps:
-            edge = edge_map.edge
-            i = idx.get(edge.u)
-            j = idx.get(edge.v)
-            if i is None or j is None:
-                continue
-            w = float(edge_map.weight)
-            if w <= 0:
-                continue
-            a = float(edge_map.alpha)
-            b = float(edge_map.offset[d])
-            mat[i, i] += w * a * a
-            mat[j, j] += w
-            mat[i, j] -= w * a
-            mat[j, i] -= w * a
-            vec[i] += -w * a * b
-            vec[j] += w * b
-
+        # 1. Build A and b for this dimension
+        # Rows: Edges + Observations + Regularization
+        
+        # We need to filter observations that exist for this dimension
+        active_obs = []
         if obs_weight > 0:
             for node_id, obs in node_obs.items():
-                if obs is None or d >= len(obs) or obs[d] is None:
-                    continue
-                i = idx.get(node_id)
-                if i is None:
-                    continue
-                mat[i, i] += obs_weight
-                vec[i] += obs_weight * float(obs[d])
-
-        for i in range(n):
-            mat[i, i] += diag_eps
-
+                if obs is not None and d < len(obs) and obs[d] is not None:
+                    active_obs.append((idx[node_id], float(obs[d])))
+        
+        n_active_obs = len(active_obs)
+        total_rows = n_edges + n_active_obs + n_reg
+        
+        A = lil_matrix((total_rows, n), dtype=float)
+        b = np.zeros(total_rows)
+        
+        # Fill Edges
+        # Copying from pre-built A_edges.
+        A[:n_edges, :] = A_edges
+        
+        # Populate b vector for edges
+        current_valid_idx = 0
+        for row_idx, edge_map in valid_edges:
+             w_sqrt = edge_weights_sqrt[current_valid_idx]
+             offset_val = float(edge_map.offset[d])
+             b[row_idx] = -w_sqrt * offset_val
+             current_valid_idx += 1
+        
+        # Observations
+        obs_w_sqrt = obs_weight ** 0.5
+        obs_start_row = n_edges
+        for k, (node_idx, val) in enumerate(active_obs):
+            row = obs_start_row + k
+            A[row, node_idx] = obs_w_sqrt
+            b[row] = obs_w_sqrt * val
+            
+        # Regularization
+        reg_start_row = n_edges + n_active_obs
+        for k in range(n):
+            row = reg_start_row + k
+            A[row, k] = reg_val
+            b[row] = 0.0
+            
+        # Solve
+        A_csr = A.tocsr()
+        
         if non_negative:
-            # Strictly use scipy.optimize.nnls for scientific accuracy
-            # NNLS solves min ||Ax - b||_2. We have the normal equations Mx = y (where M = A^T A).
-            # However, `nnls` expects A and b.
-            # Since we constructed the normal equations M and vec directly for efficiency,
-            # we can't directly use standard nnls without decomposing M.
-            #
-            # BUT, to maintain strict scientific standards as requested, we should prioritize
-            # correctness over the legacy custom solver.
-            #
-            # Since standard NNLS solvers (like Lawson-Hanson in scipy) take A and b,
-            # and we have M (approx Hessian) and vec (gradient), we have two options:
-            # 1. Use a QP solver that takes H (mat) and f (vec).
-            # 2. Decompose M (Cholesky) to get A, if M is positive definite.
-            #
-            # The previous custom solver was a Coordinate Descent implementation.
-            # We will replace it with a call to scipy.optimize.nnls or equivalent that matches the task.
-            #
-            # Since we have the Normal Equations (M * x = vec), this is equivalent to minimizing
-            # 0.5 * x.T * M * x - vec.T * x s.t. x >= 0.
-            #
-            # Note: scipy.optimize.nnls solves min ||Ax - b||^2.
-            # It does NOT solve the QP form directly given H and f.
-            #
-            # However, we can use `scipy.optimize.lsq_linear` which handles bounds and can solve linear systems.
-            # Or we can use `scipy.optimize.minimize` with 'L-BFGS-B' or 'SLSQP'.
-            #
-            # Given the request for "strict accuracy", `lsq_linear` is robust.
-            # But `lsq_linear` also takes A and b for ||Ax - b||.
-            #
-            # The most direct replacement for M*x = vec subject to x >= 0 is to use `scipy.optimize.minimize`
-            # with the quadratic objective. This is slower but correct.
-            #
-            # Objective: f(x) = 0.5 * x.T * mat * x - vec.T * x
-            # Gradient:  g(x) = mat * x - vec
-            from scipy.optimize import minimize
-
-            def objective(x):
-                return 0.5 * np.dot(x, np.dot(mat, x)) - np.dot(vec, x)
-
-            def jacobian(x):
-                return np.dot(mat, x) - vec
-
-            bounds = [(0.0, None) for _ in range(n)]
-            # Use L-BFGS-B which handles bounds efficiently for large systems
-            res = minimize(objective, np.zeros(n), method='L-BFGS-B', jac=jacobian, bounds=bounds, tol=1e-8)
+            # lsq_linear handles bounds
+            res = lsq_linear(A_csr, b, bounds=(0, np.inf), method='trf', tol=1e-8)
             sol = res.x
-
         else:
-            try:
-                sol = np.linalg.solve(mat, vec)
-            except np.linalg.LinAlgError:
-                sol = np.linalg.lstsq(mat, vec, rcond=None)[0]
-
+            # Unconstrained
+            res = lsq_linear(A_csr, b, bounds=(-np.inf, np.inf), method='trf', tol=1e-8)
+            sol = res.x
+            
         for node_id, i in idx.items():
             results[node_id][d] = float(sol[i])
 

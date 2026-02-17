@@ -222,6 +222,12 @@ def infer_edges_3d_probabilistic(
     radius_km = getattr(config, "edge_radius_km", 5.0)
     p_min = getattr(config, "edge_p_min", 0.75)
     max_neighbors = getattr(config, "edge_max_neighbors", 3)
+    
+    # Stratigraphic Priority Quotas
+    # Default to splitting max_neighbors if specific quotas not set
+    max_primary = getattr(config, "edge_max_neighbors_primary", max_neighbors)
+    max_secondary = getattr(config, "edge_max_neighbors_secondary", max(1, max_neighbors // 3))
+    
     anisotropy = getattr(config, "vertical_anisotropy", 0.1)
 
     # Track edges per node for max_neighbors constraint
@@ -296,8 +302,8 @@ def infer_edges_3d_probabilistic(
             # Determine layer info
             same_layer = (
                 (node_i.aquifer_layer == node_j.aquifer_layer)
-                if node_i.aquifer_layer and node_j.aquifer_layer
-                else True
+                if node_i.aquifer_layer is not None and node_j.aquifer_layer is not None
+                else True # Assume same if unknown, maximum entropy
             )
 
             # Classify edge type
@@ -343,15 +349,29 @@ def infer_edges_3d_probabilistic(
             )
 
             # Store edge with probability for later filtering
-            edges_per_node[node_i.node_id].append((p_combined, edge))
+            # Tuple: (Probability, Edge, IsPrimary)
+            is_primary = same_layer
+            edges_per_node[node_i.node_id].append((p_combined, edge, is_primary))
 
-    # Keep top-k edges per node
+    # Keep top-k edges per node using Stratigraphic Priority
     for node_id, edge_list in edges_per_node.items():
         # Sort by probability descending
         edge_list.sort(key=lambda x: x[0], reverse=True)
-
-        # Keep top max_neighbors
-        for _, edge in edge_list[:max_neighbors]:
+        
+        primary_candidates = [e for p, e, prim in edge_list if prim]
+        secondary_candidates = [e for p, e, prim in edge_list if not prim]
+        
+        # 1. Fill Primary Quota (Same Layer)
+        selected = primary_candidates[:max_primary]
+        
+        # 2. Fill Secondary Quota (Cross Layer / Vertical Leakage)
+        selected.extend(secondary_candidates[:max_secondary])
+        
+        # 3. If total exceeds absolute hard limit, truncate by probability again?
+        # Or trust the quotas. Let's trust the quotas but clamp total if needed.
+        # usually max_neighbors >= max_primary + max_secondary
+        
+        for edge in selected:
             edges.append(edge)
 
     return edges

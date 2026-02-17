@@ -66,9 +66,10 @@ def convolve_input(
             warnings.warn(f"Negative residence time ({tau_mean_years:.2f} years) encountered in PFM. This is physically impossible.")
         if t_recharge < input_years[0]:
              import warnings
-             warnings.warn(f"Recharge date ({t_recharge:.1f}) for PFM exceeds input history start ({input_years[0]:.1f}). Result may be biased by extrapolation.")
+             warnings.warn(f"Recharge date ({t_recharge:.1f}) for PFM exceeds input history start ({input_years[0]:.1f}). Using pre-bomb baseline (0.5 TU).")
              
-        c_in = np.interp(t_recharge, input_years, input_values)
+        # Use a low baseline for pre-bomb water instead of the first entry in input_history
+        c_in = np.interp(t_recharge, input_years, input_values, left=0.5)
         return float(c_in * np.exp(-decay_lambda_inv_year * tau_mean_years))
     
     # For distributed models (EM, DM, etc.), we need to integrate.

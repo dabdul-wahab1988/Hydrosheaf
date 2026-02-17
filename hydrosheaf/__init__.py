@@ -1,89 +1,73 @@
 """Hydrosheaf package entry points."""
 
-from .config import Config, DEFAULT_ION_ORDER
-from .inference.edge_fit import EdgeResult, fit_edge
-from .graph.build import infer_edges_probabilistic
-from .graph3d.build_3d import build_network_3d, infer_edges_3d_probabilistic
-from .inference.network_fit import (
-    fit_edges,
-    fit_network,
-    edge_process_maps,
-    infer_edges,
-    predict_node_ec_tds,
-    summarize_network,
-)
-from .models.ec_tds import calibrate_ec_tds, predict_ec_tds
-from .models.reactions import build_reaction_dictionary
-from .phreeqc.constraints import build_edge_bounds
-from .phreeqc.runner import run_phreeqc
-from .isotopes import compute_d_excess, evaporation_index, fit_lmwl
-from .coda_sbp import ilr_from_sbp, robust_zscore
-from .nitrate_source_v2 import infer_node_posteriors, NitrateSourceResult
-from .api import (
-    attach_temporal_results,
-    auto_disable_missing_modules,
-    build_vadose_priors,
-    validate_required_inputs,
-    fit_network_pipeline,
-    fit_network_with_priors,
-    fit_temporal_edges,
-)
-from .physics.priors import PhysicsPrior, apply_physics_priors
-from .temporal import TemporalEdgeResult, TemporalNode, TimeSeriesSample
-from .temporal.time_series import load_time_series_csv
-from .vadose.contracts import (
-    VadoseForcingSample,
-    VadoseLinksRow,
-    VadoseProfile,
-    VadoseRunConfig,
-)
-from .tuning import TuningReport, tune_reaction_hyperparameters
+from importlib import import_module
+from typing import Any, Dict, List, Tuple
 
-__all__ = [
-    "Config",
-    "DEFAULT_ION_ORDER",
-    "EdgeResult",
-    "fit_edge",
-    "fit_edges",
-    "fit_network",
-    "edge_process_maps",
-    "infer_edges",
-    "infer_edges_probabilistic",
-    "infer_edges_3d_probabilistic",
-    "build_network_3d",
-    "predict_node_ec_tds",
-    "summarize_network",
-    "calibrate_ec_tds",
-    "predict_ec_tds",
-    "build_reaction_dictionary",
-    "run_phreeqc",
-    "build_edge_bounds",
-    "compute_d_excess",
-    "evaporation_index",
-    "fit_lmwl",
-    "ilr_from_sbp",
-    "robust_zscore",
-    "infer_node_posteriors",
-    "NitrateSourceResult",
-    "attach_temporal_results",
-    "auto_disable_missing_modules",
-    "build_vadose_priors",
-    "validate_required_inputs",
-    "fit_network_pipeline",
-    "fit_network_with_priors",
-    "fit_temporal_edges",
-    "PhysicsPrior",
-    "apply_physics_priors",
-    "TemporalEdgeResult",
-    "TemporalNode",
-    "TimeSeriesSample",
-    "load_time_series_csv",
-    "VadoseForcingSample",
-    "VadoseLinksRow",
-    "VadoseProfile",
-    "VadoseRunConfig",
-    "TuningReport",
-    "tune_reaction_hyperparameters",
-]
+_EXPORTS: Dict[str, Tuple[str, str]] = {
+    "Config": (".config", "Config"),
+    "DEFAULT_ION_ORDER": (".config", "DEFAULT_ION_ORDER"),
+    "EdgeResult": (".inference.edge_fit", "EdgeResult"),
+    "fit_edge": (".inference.edge_fit", "fit_edge"),
+    "fit_edges": (".inference.network_fit", "fit_edges"),
+    "fit_network": (".inference.network_fit", "fit_network"),
+    "edge_process_maps": (".inference.network_fit", "edge_process_maps"),
+    "infer_edges": (".inference.network_fit", "infer_edges"),
+    "predict_node_ec_tds": (".inference.network_fit", "predict_node_ec_tds"),
+    "summarize_network": (".inference.network_fit", "summarize_network"),
+    "infer_edges_probabilistic": (".graph.build", "infer_edges_probabilistic"),
+    "infer_edges_3d_probabilistic": (
+        ".graph3d.build_3d",
+        "infer_edges_3d_probabilistic",
+    ),
+    "build_network_3d": (".graph3d.build_3d", "build_network_3d"),
+    "calibrate_ec_tds": (".models.ec_tds", "calibrate_ec_tds"),
+    "predict_ec_tds": (".models.ec_tds", "predict_ec_tds"),
+    "build_reaction_dictionary": (".models.reactions", "build_reaction_dictionary"),
+    "run_phreeqc": (".phreeqc.runner", "run_phreeqc"),
+    "build_edge_bounds": (".phreeqc.constraints", "build_edge_bounds"),
+    "compute_d_excess": (".isotopes", "compute_d_excess"),
+    "evaporation_index": (".isotopes", "evaporation_index"),
+    "fit_lmwl": (".isotopes", "fit_lmwl"),
+    "ilr_from_sbp": (".coda_sbp", "ilr_from_sbp"),
+    "robust_zscore": (".coda_sbp", "robust_zscore"),
+    "infer_node_posteriors": (".nitrate_source_v2", "infer_node_posteriors"),
+    "NitrateSourceResult": (".nitrate_source_v2", "NitrateSourceResult"),
+    "attach_temporal_results": (".api", "attach_temporal_results"),
+    "auto_disable_missing_modules": (".api", "auto_disable_missing_modules"),
+    "build_vadose_priors": (".api", "build_vadose_priors"),
+    "validate_required_inputs": (".api", "validate_required_inputs"),
+    "fit_network_pipeline": (".api", "fit_network_pipeline"),
+    "fit_network_with_priors": (".api", "fit_network_with_priors"),
+    "fit_temporal_edges": (".api", "fit_temporal_edges"),
+    "PhysicsPrior": (".physics.priors", "PhysicsPrior"),
+    "apply_physics_priors": (".physics.priors", "apply_physics_priors"),
+    "TemporalEdgeResult": (".temporal", "TemporalEdgeResult"),
+    "TemporalNode": (".temporal", "TemporalNode"),
+    "TimeSeriesSample": (".temporal", "TimeSeriesSample"),
+    "load_time_series_csv": (".temporal.time_series", "load_time_series_csv"),
+    "VadoseForcingSample": (".vadose.contracts", "VadoseForcingSample"),
+    "VadoseLinksRow": (".vadose.contracts", "VadoseLinksRow"),
+    "VadoseProfile": (".vadose.contracts", "VadoseProfile"),
+    "VadoseRunConfig": (".vadose.contracts", "VadoseRunConfig"),
+    "TuningReport": (".tuning", "TuningReport"),
+    "tune_reaction_hyperparameters": (".tuning", "tune_reaction_hyperparameters"),
+    # NEW WORKFLOW
+    "analyze_dataset": (".workflows.auto", "analyze_dataset"),
+}
 
+__all__ = list(_EXPORTS)
 __version__ = "0.5.0"
+
+
+def __getattr__(name: str) -> Any:
+    if name not in _EXPORTS:
+        raise AttributeError(f"module 'hydrosheaf' has no attribute '{name}'")
+    module_name, attr_name = _EXPORTS[name]
+    module = import_module(module_name, __name__)
+    value = getattr(module, attr_name)
+    globals()[name] = value
+    return value
+
+
+def __dir__() -> List[str]:
+    return sorted(set(globals().keys()) | set(__all__))

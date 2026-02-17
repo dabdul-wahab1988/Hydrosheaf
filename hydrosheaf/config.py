@@ -42,6 +42,8 @@ class Config:
     denit_kappa: float = 1.0
     transport_models_enabled: List[str] = field(default_factory=lambda: ["evap", "mix"])
     mixing_endmembers: Dict[str, List[float]] = field(default_factory=dict)
+    # Dictionary mapping endmember names to (d18O, d2H) tuples
+    mixing_endmembers_isotopes: Dict[str, Tuple[float, float]] = field(default_factory=dict)
     ec_model: Tuple[float, float] = (1.0, 0.0)
     tds_model: Tuple[float, float] = (1.0, 0.0)
     phreeqc_enabled: bool = True
@@ -54,6 +56,9 @@ class Config:
     edge_p_min: float = 0.75
     edge_radius_km: float = 5.0
     edge_max_neighbors: int = 3
+    # Stratigraphic Priority settings
+    edge_max_neighbors_primary: int = 3  # Neighbors in same HSU/Layer
+    edge_max_neighbors_secondary: int = 1  # Vertical leakage neighbors (Cross-Layer)
     edge_sigma_meas: float = 0.5
     edge_sigma_dtw: float = 1.0
     edge_sigma_elev: float = 1.0
@@ -146,6 +151,9 @@ class Config:
     nitrate_isotope_n15_col: str = "d15N"
     nitrate_isotope_o18_col: str = "d18O_NO3"
     nitrate_isotope_mixing_enabled: bool = True
+    nitrate_isotope_water_o18_col: str = "d18O"
+    nitrate_isotope_process_constraints_enabled: bool = True
+    nitrate_isotope_qc_enabled: bool = True
 
     # MCMC Bayesian Isotope Mixing settings
     isotope_mcmc_enabled: bool = False
@@ -153,6 +161,7 @@ class Config:
     isotope_mcmc_n_chains: int = 4
     isotope_mcmc_target_accept: float = 0.9
     isotope_mcmc_warmup: int = 1000
+    isotope_mcmc_hierarchical_enabled: bool = False
     isotope_mcmc_sources: List[str] = field(
         default_factory=lambda: ["Manure", "Fertilizer", "Soil_N", "Precipitation"]
     )
@@ -270,6 +279,15 @@ class Config:
     screen_top_key: str = "screen_top"
     screen_bottom_key: str = "screen_bottom"
     screen_overlap_threshold: float = 5.0  # meters
+
+    # Ultra upgrades
+    compositional_objective: bool = False  # Use Aitchison geometry for residuals
+    compositional_weighting: bool = False # Use 1/x weights (relative error)
+    latent_endmembers_enabled: bool = False # Inject virtual nodes via EMMA
+    latent_endmembers_count: int = 2
+    iterative_jacobian_enabled: bool = False # Update reaction dictionary with PHREEQC
+    iterative_jacobian_max_iter: int = 3
+    reacted_ttd_enabled: bool = False # Convolve kinetics over TTD
 
     def validate(self) -> None:
         # if len(self.ion_order) != 10:

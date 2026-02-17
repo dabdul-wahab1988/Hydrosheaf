@@ -78,6 +78,29 @@ def compute_ilr_coordinate(
     return coeff * math.log(g_r / g_s)
 
 
+def clr(values: Sequence[float], epsilon: float = 1e-12) -> List[float]:
+    """Compute Centered Log-Ratio (clr) transformation.
+    
+    clr(x) = [ln(x1/g(x)), ..., ln(xn/g(x))]
+    where g(x) is the geometric mean.
+    """
+    safe_vals = multiplicative_replace(values, epsilon)
+    g = geometric_mean(safe_vals)
+    if g <= 0:
+        return [0.0] * len(values) # Should not happen with replacement
+    return [math.log(v / g) for v in safe_vals]
+
+
+def clr_inv(clr_vals: Sequence[float]) -> List[float]:
+    """Inverse CLR transformation (softmax).
+    
+    Returns composition summing to 1.
+    """
+    exp_vals = [math.exp(v) for v in clr_vals]
+    total = sum(exp_vals)
+    return [v / total for v in exp_vals]
+
+
 def ilr_from_sbp(
     sample: Dict[str, float], epsilon: float = 1e-12
 ) -> Tuple[Optional[List[float]], bool]:

@@ -19,6 +19,34 @@ epsilon_conc: 1.0e-12
 # Gating
 evap_gate_factor: 0.5    # Multiplier for ratio evidence if evap detected
 
+# Dual-isotope process constraints
+nitrate_isotope_process_constraints_enabled: true
+nitrate_isotope_water_o18_col: d18O
+isotope_process_constraints:
+  denitrification_enabled: true
+  denitrification_min_extent: 0.05
+  denitrification_strength: 1.5
+  denitrification_slope: 0.65
+  denitrification_slope_sigma: 0.25
+  denitrification_perp_sigma: 4.0
+  nitrification_enabled: true
+  nitrification_strength: 1.0
+  nitrification_sigma: 4.0
+  nitrification_o2_o18: 23.5
+  mcmc_alpha_scale: 8.0
+  
+nitrate_isotope_qc_enabled: true
+isotope_qc:
+  min_top_probability: 0.55
+  min_top_margin: 0.12
+  max_normalized_entropy: 0.90
+  min_tail_probability: 0.02
+  max_sensitivity_tv: 0.35
+  sensitivity_delta: 0.5
+  min_top_ci_gap: 0.0
+
+isotope_mcmc_hierarchical_enabled: false
+
 # Threshold overrides (optional - if omitted, computed from data)
 # d_excess_p25: 8.0
 # po4_p90: 0.5

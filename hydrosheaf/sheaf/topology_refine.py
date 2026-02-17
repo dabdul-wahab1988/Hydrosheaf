@@ -430,6 +430,7 @@ def _select_by_score(
         exps = [math.exp(v - max_val) for v in vals]
         sum_exps = sum(exps)
         
+        weighted_edges: List[Tuple[float, float, Edge]] = []
         for (score, edge), weight_factor in zip(scored, exps):
             # Normalized weight
             prob = weight_factor / sum_exps if sum_exps > 0 else 0.0
@@ -440,11 +441,18 @@ def _select_by_score(
             # Update edge_confidence so build_edge_maps uses it naturally
             attrs["edge_confidence"] = prob
             edge.attrs = attrs
-            
-            # Keep edge if it has significant weight or if we want to keep all
-            # Pruning very small weights helps performance
-            if prob > 0.001:
-                selected.append(edge)
+
+            weighted_edges.append((prob, score, edge))
+
+        keep_n = max(0, int(max_neighbors))
+        if keep_n <= 0:
+            continue
+
+        weighted_edges.sort(key=lambda item: (-item[0], item[1]))
+        for prob, _, edge in weighted_edges[:keep_n]:
+            if prob <= 0.0:
+                continue
+            selected.append(edge)
 
     return selected
 

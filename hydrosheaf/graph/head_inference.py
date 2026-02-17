@@ -18,19 +18,24 @@ precision-matrix solve (no PyMC required).
 
 from __future__ import annotations
 
+import os
+import sys
+import warnings
 from dataclasses import dataclass
-
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
-import numpy as np
-import pymc as pm
-import sys
-import os
-
+# Fix for PyMC/MKL crash on Windows (Heap Corruption).
+# Must be set before numerical libraries initialize BLAS backends.
 if sys.platform == "win32":
-    # Fix for PyMC/MKL crash on Windows (Heap Corruption)
-    # Must be set before pymc/numpy BLAS initialization
-    os.environ["MKL_THREADING_LAYER"] = "GNU"
+    os.environ.setdefault("MKL_THREADING_LAYER", "GNU")
+
+import numpy as np
+
+
+def _load_pymc():
+    import pymc as pm
+
+    return pm
 
 @dataclass(frozen=True)
 class HeadPosterior:
@@ -233,6 +238,34 @@ def infer_heads_bayesian_mcmc(
     if sys.platform == "win32":
         cores = 1
 
+    def _fallback_linear(reason: str) -> HeadPosterior:
+        warnings.warn(
+            f"Falling back to closed-form Bayesian head inference: {reason}",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        return infer_heads_bayesian_linear(
+            samples,
+            node_id_key=node_id_key,
+            head_key=head_key,
+            dtw_key=dtw_key,
+            elevation_key=elevation_key,
+            sigma_meas=sigma_meas,
+            sigma_dtw=sigma_dtw,
+            sigma_elev=sigma_elev,
+            sigma_topo=sigma_topo,
+            dtw_prior_mu=dtw_prior_mu,
+            dtw_prior_sigma=dtw_prior_sigma,
+            head_prior_mu=head_prior_mu,
+            head_prior_sigma=head_prior_sigma,
+        )
+
+    try:
+        pm = _load_pymc()
+        import nutpie
+    except Exception as exc:
+        return _fallback_linear(f"PyMC/nutpie unavailable ({exc})")
+
 
 
     # Build a consistent node list and observation arrays
@@ -301,52 +334,54 @@ def infer_heads_bayesian_mcmc(
     draws = int(max(10, mcmc_draws))
     chains = int(max(1, mcmc_chains))
 
-    with pm.Model():
-        mu_dtw = pm.Normal(
-            "mu_dtw", mu=float(dtw_prior_mu), sigma=float(dtw_prior_sigma)
-        )
-        h = pm.Normal(
-            "h", mu=float(head_prior_mu), sigma=float(head_prior_sigma), shape=n
-        )
-
-        # Topographic prior as an observed relationship when elevation exists:
-        # elevation_i ~ Normal(h_i + mu_dtw, sigma_topo)
-        if elev_idx_arr.size:
-            pm.Normal(
-                "elevation_obs",
-                mu=h[elev_idx_arr] + mu_dtw,
-                sigma=float(sigma_topo),
-                observed=elev_vals_arr,
+    try:
+        with pm.Model():
+            mu_dtw = pm.Normal(
+                "mu_dtw", mu=float(dtw_prior_mu), sigma=float(dtw_prior_sigma)
+            )
+            h = pm.Normal(
+                "h", mu=float(head_prior_mu), sigma=float(head_prior_sigma), shape=n
             )
 
-        # Direct head measurements
-        if head_obs_idx_arr.size:
-            pm.Normal(
-                "head_obs",
-                mu=h[head_obs_idx_arr],
-                sigma=float(sigma_meas),
-                observed=head_obs_vals_arr,
-            )
+            # Topographic prior as an observed relationship when elevation exists:
+            # elevation_i ~ Normal(h_i + mu_dtw, sigma_topo)
+            if elev_idx_arr.size:
+                pm.Normal(
+                    "elevation_obs",
+                    mu=h[elev_idx_arr] + mu_dtw,
+                    sigma=float(sigma_topo),
+                    observed=elev_vals_arr,
+                )
 
-        # Derived head observations from elevation - dtw
-        if dtw_obs_idx_arr.size:
-            pm.Normal(
-                "dtw_head_obs",
-                mu=h[dtw_obs_idx_arr],
-                sigma=float(np.sqrt(sigma_elev**2 + sigma_dtw**2)),
-                observed=dtw_obs_vals_arr,
-            )
+            # Direct head measurements
+            if head_obs_idx_arr.size:
+                pm.Normal(
+                    "head_obs",
+                    mu=h[head_obs_idx_arr],
+                    sigma=float(sigma_meas),
+                    observed=head_obs_vals_arr,
+                )
 
-        import nutpie
-        compiled = nutpie.compile_pymc_model(pm.Model.get_context())
-        idata = nutpie.sample(
-            compiled,
-            draws=draws,
-            tune=tune,
-            chains=chains,
-            seed=random_seed,
-            progress_bar=False,
-        )
+            # Derived head observations from elevation - dtw
+            if dtw_obs_idx_arr.size:
+                pm.Normal(
+                    "dtw_head_obs",
+                    mu=h[dtw_obs_idx_arr],
+                    sigma=float(np.sqrt(sigma_elev**2 + sigma_dtw**2)),
+                    observed=dtw_obs_vals_arr,
+                )
+
+            compiled = nutpie.compile_pymc_model(pm.Model.get_context())
+            idata = nutpie.sample(
+                compiled,
+                draws=draws,
+                tune=tune,
+                chains=chains,
+                seed=random_seed,
+                progress_bar=False,
+            )
+    except Exception as exc:
+        return _fallback_linear(f"MCMC sampling failed ({exc})")
 
     # Extract posterior draws and compute mean/cov
 

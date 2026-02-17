@@ -184,8 +184,9 @@ def plot_network_3d(
     plotter.add_text(f"3D Flow Network (Z-Exag: {z_exaggeration}x)", font_size=10)
     plotter.show_grid()  # Show grid lines for spatial reference
     
-    # Add scale bar
-    plotter.add_scale_bar(title="Scale (m)", color="black")
+    # Add scale bar if supported
+    if hasattr(plotter, 'add_scale_bar'):
+        plotter.add_scale_bar(title="Scale (m)", color="black")
     
     if output_path:
         plotter.screenshot(output_path)

@@ -2,21 +2,31 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
 from datetime import datetime
+from statistics import median
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Union
 
 from .config import Config
+from .data.parsing import (
+    extract_sample_decimal_year as _extract_sample_decimal_year,
+    parse_decimal_year as _parse_decimal_year,
+    sample_list as _sample_list,
+)
 from .data.schema import parse_numeric
+from .data.validation import (
+    auto_disable_missing_modules,
+    validate_required_inputs,
+)
 from .graph.build import EdgeInput, build_edges
 from .graph.types import Edge
 from .inference.edge_fit import EdgeResult
 from .inference.network_fit import fit_network
+from .log import get_logger
 from .physics.priors import PhysicsPrior, apply_physics_priors
 from .temporal import TemporalEdgeResult, TemporalNode
 from .temporal.temporal_edge_fit import fit_temporal_edge
-from .nuclear.network_aging import infer_network_ages_bayesian
 from .nuclear.nuclides import get_nuclide
+from .models.latent import identify_latent_endmembers
 
 from .vadose.contracts import (
     VadoseForcingSample,
@@ -26,136 +36,17 @@ from .vadose.contracts import (
 )
 from .vadose.run import build_vadose_edge_priors
 
-
-def _sample_list(
-    samples: Union[Mapping[str, Any], Sequence[Any]]
-) -> List[Mapping[str, Any]]:
-    if isinstance(samples, Mapping):
-        return list(samples.values())
-    if isinstance(samples, Sequence):
-        return list(samples)
-    raise TypeError("Unsupported samples input type.")
+logger = get_logger("api")
 
 
-def _any_numeric(
-    samples: Sequence[Mapping[str, object]],
-    key: str,
-    detection_policy: str,
-) -> bool:
-    for sample in samples:
-        if parse_numeric(sample.get(key), detection_policy) is not None:
-            return True
-    return False
+def infer_network_ages_bayesian(*args: Any, **kwargs: Any) -> Any:
+    """Lazy proxy to avoid importing nuclear MCMC stack at module import time."""
+    from .nuclear.network_aging import infer_network_ages_bayesian as _infer
+
+    return _infer(*args, **kwargs)
 
 
-def _any_pair_numeric(
-    samples: Sequence[Mapping[str, object]],
-    key_a: str,
-    key_b: str,
-    detection_policy: str,
-) -> bool:
-    for sample in samples:
-        if (
-            parse_numeric(sample.get(key_a), detection_policy) is not None
-            and parse_numeric(sample.get(key_b), detection_policy) is not None
-        ):
-            return True
-    return False
 
-
-def _missing_keys(
-    samples: Sequence[Mapping[str, object]],
-    keys: Sequence[str],
-    detection_policy: str,
-) -> List[str]:
-    missing_ids: List[str] = []
-    for sample in samples:
-        missing = False
-        for key in keys:
-            if parse_numeric(sample.get(key), detection_policy) is None:
-                missing = True
-                break
-        if missing:
-            sample_id = sample.get("site_id") or sample.get("sample_id") or "unknown"
-            missing_ids.append(str(sample_id))
-    return missing_ids
-
-
-def validate_required_inputs(samples: object, config: Config) -> None:
-    """Raise if required inputs for enabled modules are missing."""
-    sample_list = _sample_list(samples)
-    detection_policy = config.detection_limit_policy
-    missing_reports: List[str] = []
-
-    if config.phreeqc_enabled:
-        required_phreeqc = [
-            "pH",
-            "Ca",
-            "Mg",
-            "Na",
-            "K",
-            "Cl",
-            "SO4",
-            "NO3",
-            "F",
-            "HCO3",
-        ]
-        missing = _missing_keys(sample_list, required_phreeqc, detection_policy)
-        if missing:
-            missing_reports.append(
-                "PHREEQC requires pH and major ions (Ca, Mg, Na, K, Cl, SO4, NO3, F, HCO3) "
-                f"for all samples (missing: {missing})"
-            )
-
-    if config.isotope_enabled and config.lmwl_defined:
-        missing = _missing_keys(
-            sample_list,
-            [config.isotope_d18o_key, config.isotope_d2h_key],
-            detection_policy,
-        )
-        if missing:
-            missing_reports.append(
-                "Isotope penalties require both "
-                f"{config.isotope_d18o_key} and {config.isotope_d2h_key} "
-                f"for all samples (missing: {missing})"
-            )
-
-    if config.nitrate_source_enabled:
-        missing = _missing_keys(sample_list, ["NO3"], detection_policy)
-        if missing:
-            missing_reports.append(
-                f"Nitrate source requires NO3 for all samples (missing: {missing})"
-            )
-
-    if missing_reports:
-        raise ValueError("; ".join(missing_reports))
-
-
-def auto_disable_missing_modules(samples: object, config: Config) -> Config:
-    """Disable feature flags when required inputs are missing across samples."""
-    sample_list = _sample_list(samples)
-    detection_policy = config.detection_limit_policy
-    updates: Dict[str, object] = {}
-
-    if config.phreeqc_enabled and not _any_numeric(sample_list, "pH", detection_policy):
-        updates["phreeqc_enabled"] = False
-
-    if config.isotope_enabled and not _any_pair_numeric(
-        sample_list,
-        config.isotope_d18o_key,
-        config.isotope_d2h_key,
-        detection_policy,
-    ):
-        updates["isotope_enabled"] = False
-
-    if config.nitrate_source_enabled and not _any_numeric(
-        sample_list, "NO3", detection_policy
-    ):
-        updates["nitrate_source_enabled"] = False
-
-    if updates:
-        return replace(config, **updates)
-    return config
 
 
 def build_vadose_priors(
@@ -283,7 +174,50 @@ def fit_network_pipeline(
         validate_required_inputs(samples, config)
     elif auto_disable_missing:
         config = auto_disable_missing_modules(samples, config)
+        
+    # Latent Endmembers (Ultra Upgrade)
+    virtual_nodes = []
+    if getattr(config, "latent_endmembers_enabled", False):
+        try:
+            # We assume samples is a list of dicts. If it's a dataframe, this might fail.
+            # But the contract usually expects list of mappings.
+            sample_list = _sample_list(samples)
+            virtual_nodes = identify_latent_endmembers(
+                sample_list, 
+                config.ion_order, 
+                n_endmembers=getattr(config, "latent_endmembers_count", 2)
+            )
+            # We must inject these into the samples object used by fit_network
+            # But fit_network takes 'samples'. If it's a list, we append.
+            if isinstance(samples, list):
+                samples.extend(virtual_nodes)
+            logger.info(f"Injected {len(virtual_nodes)} latent virtual nodes.")
+        except Exception as e:
+            logger.warning(f"Latent endmember identification failed: {e}")
+
     built_edges = build_edges(edges)
+    
+    # Connect Virtual Nodes? 
+    # If we added virtual nodes, we should add candidate edges from them to all other nodes.
+    if virtual_nodes:
+        # We need to know who is 'downstream'. 
+        # Heuristic: Virtual nodes are sources. They connect to everyone.
+        # But this explodes the graph.
+        # Let's rely on the user to run candidate generation again OR we add them here.
+        # For 'fit_network_pipeline', edges are usually already provided.
+        # So we append edges from virtual nodes to all real nodes?
+        # That's O(N_virtual * N_real). Acceptable for small N_virtual.
+        sample_list = _sample_list(samples)
+        for vn in virtual_nodes:
+            uid = vn["site_id"]
+            for s in sample_list:
+                vid = s.get("site_id")
+                if vid and vid != uid:
+                    # Add edge with a penalty? Or just add it.
+                    # We create a new Edge object
+                    from .graph.types import Edge
+                    built_edges.append(Edge(edge_id=f"{uid}->{vid}", u=str(uid), v=str(vid)))
+
     if physics_priors:
         built_edges = apply_physics_priors(
             built_edges, physics_priors, mode=physics_priors_mode
@@ -322,22 +256,36 @@ def fit_network_pipeline(
         
         # Prepare observations
         node_obs = {}
+        observed_sample_years: List[float] = []
         # Nuclear Tracer: default to Tritium if not specified
         tracer_name = getattr(config, "residence_time_tracer", "3H")
         
         sample_list = _sample_list(samples)
-        sample_map = {s.get("site_id") or s.get("sample_id"): s for s in sample_list}
+        sample_map = {}
+        for sample in sample_list:
+            node_id = sample.get("site_id") or sample.get("sample_id")
+            if node_id is not None:
+                sample_map[node_id] = sample
         
         for node_id, sample in sample_map.items():
             val = parse_numeric(sample.get(tracer_name), config.detection_limit_policy)
             if val is not None:
                 node_obs[node_id] = val
+                sample_year = _extract_sample_decimal_year(sample)
+                if sample_year is not None:
+                    observed_sample_years.append(sample_year)
         
         if node_obs:
             try:
-                # Use current year as default sample date if not in data
-                sample_date = 2024.0 
-                # Try to get mean date from samples if available
+                if observed_sample_years:
+                    sample_date = float(median(observed_sample_years))
+                else:
+                    sample_date = float(datetime.now().year)
+                    logger.warning(
+                        "No valid sample dates found for nuclear tracer '%s'; using current year %.1f as fallback.",
+                        tracer_name,
+                        sample_date,
+                    )
                 
                 nuclide = get_nuclide(tracer_name)
                 if nuclide:
@@ -349,9 +297,12 @@ def fit_network_pipeline(
                         nuclide=nuclide,
                         model_type=getattr(config, "nuclear_model", "PFM")
                     )
-            except Exception as e:
-                # Log or handle error? For now, just skip if it fails
-                pass
+            except Exception as exc:
+                logger.warning(
+                    "Nuclear aging inference failed and was skipped: %s",
+                    exc,
+                    exc_info=True,
+                )
 
     extras = {
         "edges": built_edges,
@@ -361,4 +312,3 @@ def fit_network_pipeline(
         "graph": locals().get("graph") # pass graph for plotting
     }
     return results, extras
-

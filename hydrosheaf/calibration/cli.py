@@ -5,12 +5,14 @@ Calibration CLI Module.
 import argparse
 import os
 import json
+from dataclasses import replace
 from pathlib import Path
-from typing import Any, Optional, Dict
+from typing import Any, Dict, List, Optional
 
 from .config import load_calibration_config, load_observations_from_csv
 from .glm import PESTGLM
 from .pestpp.runner import run_pestpp
+from .definitions import AdjustableParameter
 from .adapters import (
     TransportCalibrationAdapter,
     TransportExperiment,
@@ -21,6 +23,71 @@ from .adapters import (
 )
 from .adapters_iso import WaterIsotopeMixingAdapter, WaterEndmember
 from ..log import setup_logging, get_logger
+
+
+def _resolve_internal_parameters(
+    problem: Any,
+    config_parameters: List[AdjustableParameter],
+    logger: Any,
+) -> List[AdjustableParameter]:
+    """
+    Resolve parameters for internal GLM runs.
+
+    Default source is adapter/problem parameters. Config parameters with matching
+    names override bounds/transforms/priors/initial values. Unknown config
+    parameter names are ignored with a warning.
+    """
+    problem_parameters = [replace(param) for param in problem.get_parameters()]
+    if not config_parameters:
+        return problem_parameters
+
+    if not problem_parameters:
+        logger.warning(
+            "Adapter returned no parameters; using config.parameters directly for internal calibration."
+        )
+        return [replace(param) for param in config_parameters]
+
+    overrides_by_name: Dict[str, AdjustableParameter] = {}
+    duplicate_names = set()
+    for param in config_parameters:
+        if param.name in overrides_by_name:
+            duplicate_names.add(param.name)
+        overrides_by_name[param.name] = param
+
+    if duplicate_names:
+        logger.warning(
+            "Duplicate parameter definitions found in config.parameters; using the last value for: %s",
+            sorted(duplicate_names),
+        )
+
+    problem_names = {param.name for param in problem_parameters}
+    unknown_names = sorted(name for name in overrides_by_name if name not in problem_names)
+    if unknown_names:
+        logger.warning(
+            "Ignoring config.parameters not present in adapter parameter set: %s",
+            unknown_names,
+        )
+
+    resolved_parameters: List[AdjustableParameter] = []
+    for base in problem_parameters:
+        override = overrides_by_name.get(base.name)
+        if override is None:
+            resolved_parameters.append(base)
+            continue
+        resolved_parameters.append(
+            replace(
+                base,
+                value=override.value,
+                lower_bound=override.lower_bound,
+                upper_bound=override.upper_bound,
+                log_transform=override.log_transform,
+                group=override.group,
+                prior_mean=override.prior_mean,
+                prior_sigma=override.prior_sigma,
+                description=override.description,
+            )
+        )
+    return resolved_parameters
 
 
 def setup_transport_adapter(config, settings=None):
@@ -351,8 +418,13 @@ def run_calibration_cli(args):
         )
     else:
         # Internal PESTGLM (Python)
-        # Override parameters with config definitions (bounds, log, etc)
-        pest_params = config.parameters
+        # Start from adapter parameters, then overlay matching config definitions.
+        pest_params = _resolve_internal_parameters(problem, config.parameters, logger)
+        if not pest_params:
+            logger.error(
+                "No calibration parameters were resolved. Configure fit_parameters or calibration.parameters."
+            )
+            return
 
         pest = PESTGLM(
             parameters=pest_params,

@@ -160,63 +160,190 @@ def fit_edge(
         if isinstance(ub_raw, list):
             ub = [float(v) if v is not None else float("inf") for v in ub_raw]
 
-    candidates: List[
-        Tuple[str, Optional[str], Optional[float], Optional[float], List[float], float]
-    ] = []
+    candidates: List[Dict[str, object]] = []
 
+    # Hierarchical Fitting Strategy (Two-Step)
+    # ----------------------------------------
+    # Step 1: Fit Transport (f or gamma) using Conservative Tracers ONLY.
+    #         Objective: Minimize weighted residual of Cl, Br, Isotopes.
+    #         Constraint: No L1 penalty (transport is physical baseline).
+    #
+    # Step 2: Fit Reactions (z) on the Residual.
+    #         Objective: Minimize weighted residual of all ions + L1 penalty.
+    #         Constraint: Transport is fixed from Step 1.
+
+    # Common Target: y = Obs_v - Obs_u
+    target_y = [v - u_val for v, u_val in zip(x_v, x_u)]
+
+    # Weights for Step 1 (Conservative Physics)
+    # We use config.conservative_weights to isolate Cl, Br, etc.
+    weights_phys = list(config.conservative_weights)
     
-    # Use conservative weights for transport fitting (mixing/evap)
-    # This prevents reactive species (Ca, HCO3) from biasing the transport parameter
-    transport_weights = getattr(config, "conservative_weights", config.weights)
-    
+    # Ultra Upgrade: Compositional Weighting
+    # If enabled, scale weights by 1/(val + eps) to approximate log-error minimization
+    active_weights = list(config.weights)
+    if getattr(config, "compositional_weighting", False):
+        # Weight ~ 1 / variance. If error is proportional to value (relative error), sigma ~ value.
+        # So weight ~ 1 / value^2.
+        # Let's use 1/value for robust relative error (approximates Gamma likelihood).
+        for i, val in enumerate(x_v):
+            if val > 1e-6:
+                scale = 1.0 / (val * val)
+                active_weights[i] *= scale
+                weights_phys[i] *= scale
+            else:
+                # Keep original weight for trace/zero values to avoid explosion
+                pass
+
     if "evap" in config.transport_models_enabled:
-        gamma, evap_residual, evap_norm = fit_evaporation(x_u, x_v, transport_weights)
-        candidates.append(("evap", None, gamma, None, evap_residual, evap_norm))
+        # Step 1: Physics (Evaporation)
+        # Transport Vector: Obs_u (since C_v = C_u * (1 + delta) => C_v - C_u = delta * C_u)
+        transport_vec = list(x_u)
+        
+        # Solve for delta_gamma with NO L1 penalty and conservative weights
+        phys_fit = fit_reactions(
+            target_y, 
+            [transport_vec], 
+            weights_phys, 
+            lambda_l1=0.0, # No penalty for physics
+            max_iter=100,
+            signed_mask=[False], # delta_gamma >= 0
+            lb=[0.0],
+            ub=[999.0]
+        )
+        
+        delta_gamma = phys_fit.extents[0]
+        gamma_val = 1.0 + delta_gamma
+        
+        # Step 2: Chemistry (Reactions)
+        # Calculate residual after transport: y_chem = y_total - delta_gamma * Obs_u
+        transport_contrib = [delta_gamma * val for val in transport_vec]
+        chem_target = [y - t for y, t in zip(target_y, transport_contrib)]
+        
+        # Ultra Upgrade: Iterative Jacobian
+        # If enabled, we refine the reaction matrix based on the current solution
+        current_matrix = reaction_matrix
+        current_labels = list(labels) # Copy
+        
+        n_iter = 1
+        if getattr(config, "iterative_jacobian_enabled", False):
+            n_iter = getattr(config, "iterative_jacobian_max_iter", 3)
+            
+        chem_fit = None
+        
+        for _ in range(n_iter):
+            # Solve for reactions with L1 penalty
+            lambda_l1 = config.lambda_l1_value()
+            chem_fit = fit_reactions(
+                chem_target,
+                current_matrix,
+                active_weights,
+                lambda_l1,
+                max_iter=config.reaction_max_iter,
+                tol=config.reaction_tol,
+                signed_mask=signed_mask,
+                lb=lb,
+                ub=ub
+            )
+            
+            # TODO: If we had a live PHREEQC link here, we would:
+            # 1. Take chem_fit.extents
+            # 2. Run forward model on x_u + transport
+            # 3. Calculate new local slopes (Jacobian) for the active reactions
+            # 4. Update current_matrix columns
+            # For now, we assume the matrix is static or pre-linearized.
+            pass
+        
+        candidates.append({
+            "type": "evap",
+            "end_id": None,
+            "gamma": gamma_val,
+            "f": None,
+            "fit": chem_fit, # Store chemical fit for residual/stats
+            "z": chem_fit.extents,
+            "transport_residual": phys_fit.residual_norm, # Metric of how well physics explains Cl
+            "labels": current_labels
+        })
 
     if "mix" in config.transport_models_enabled:
-        # Standard configuration endmembers
-        for end_id, endmember in config.mixing_endmembers.items():
-            f, mix_residual, mix_norm = fit_mixing(x_u, x_v, endmember, transport_weights)
-            candidates.append(("mix", end_id, None, f, mix_residual, mix_norm))
-            
-        # Extra endmembers (e.g. lateral neighbors for transverse dispersion)
+        # Gather all endmembers
+        mix_sources = list(config.mixing_endmembers.items())
         if extra_endmembers:
-            for end_id, endmember in extra_endmembers.items():
-                f, mix_residual, mix_norm = fit_mixing(x_u, x_v, endmember, transport_weights)
-                candidates.append(("mix", end_id, None, f, mix_residual, mix_norm))
+            mix_sources.extend(extra_endmembers.items())
+
+        for end_id, endmember in mix_sources:
+            # Step 1: Physics (Mixing)
+            # Transport Vector: Endmember - Obs_u
+            transport_vec = [e - u_val for e, u_val in zip(endmember, x_u)]
+            
+            # Solve for f with NO L1 penalty and conservative weights
+            phys_fit = fit_reactions(
+                target_y,
+                [transport_vec],
+                weights_phys,
+                lambda_l1=0.0,
+                max_iter=100,
+                signed_mask=[False], # f >= 0
+                lb=[0.0],
+                ub=[1.0]
+            )
+            
+            f_val = phys_fit.extents[0]
+            
+            # Step 2: Chemistry
+            # Residual: y_chem = y_total - f * (End - Obs_u)
+            transport_contrib = [f_val * val for val in transport_vec]
+            chem_target = [y - t for y, t in zip(target_y, transport_contrib)]
+            
+            # Ultra Upgrade: Iterative Jacobian (Same logic)
+            current_matrix = reaction_matrix
+            chem_fit = None
+            n_iter = 1
+            if getattr(config, "iterative_jacobian_enabled", False):
+                n_iter = getattr(config, "iterative_jacobian_max_iter", 3)
+
+            for _ in range(n_iter):
+                lambda_l1 = config.lambda_l1_value()
+                chem_fit = fit_reactions(
+                    chem_target,
+                    current_matrix,
+                    active_weights,
+                    lambda_l1,
+                    max_iter=config.reaction_max_iter,
+                    tol=config.reaction_tol,
+                    signed_mask=signed_mask,
+                    lb=lb,
+                    ub=ub
+                )
+            
+            candidates.append({
+                "type": "mix",
+                "end_id": end_id,
+                "gamma": None,
+                "f": f_val,
+                "fit": chem_fit,
+                "z": chem_fit.extents,
+                "transport_residual": phys_fit.residual_norm,
+                "labels": labels
+            })
 
     best_result: Optional[EdgeResult] = None
     candidate_entries: List[Dict[str, object]] = []
-    for (
-        transport_model,
-        end_id,
-        gamma_value,
-        f_value,
-        residual,
-        transport_norm,
-    ) in candidates:
-        lambda_l1 = config.lambda_l1_value()
-        if (
-            getattr(config, "residence_time_coupling_enabled", False)
-            and residence_time_days is not None
-        ):
-            tau_ref = float(getattr(config, "residence_time_reference_days", 30.0))
-            tau = max(1e-9, float(residence_time_days))
-            lambda_l1 = lambda_l1 * (tau_ref / tau)
+    
+    for cand in candidates:
+        transport_model = str(cand["type"])
+        chem_fit = cand["fit"] # type: ignore
+        gamma_value = cand["gamma"] # type: ignore
+        f_value = cand["f"] # type: ignore
+        end_id = cand["end_id"] # type: ignore
+        z_vals = cand["z"] # type: ignore
+        
+        # Reconstruct "Modeled V" for penalties
+        # modeled_v = Obs_u + Transport + Reaction
+        # chem_fit.residual = (Obs_v - Obs_u - Transport) - Reaction
+        # Obs_v - chem_fit.residual = Obs_u + Transport + Reaction
+        modeled_x_v = [obs - r for obs, r in zip(x_v, chem_fit.residual)]
 
-        reaction_fit: ReactionFit = fit_reactions(
-            residual,
-            reaction_matrix,
-            weights=config.weights,
-            lambda_l1=lambda_l1,
-            max_iter=config.reaction_max_iter,
-            tol=config.reaction_tol,
-            signed_mask=signed_mask,
-            lb=lb,
-            ub=ub,
-        )
-
-        modeled_x_v = [obs - r for obs, r in zip(x_v, reaction_fit.residual)]
         penalty = 0.0
         if obs_v is not None and config.ec_tds_penalty_enabled:
             penalty = ec_tds_penalty(modeled_x_v, obs_v, config)
@@ -236,6 +363,19 @@ def fit_edge(
             iso_v = extract_isotopes(
                 obs_v, config.isotope_d18o_key, config.isotope_d2h_key
             )
+            
+            # Handle Endmember Isotopes for Mixing Penalty
+            iso_end = None
+            if transport_model == "mix" and end_id:
+                # Look up endmember isotopes in config
+                iso_end = config.mixing_endmembers_isotopes.get(end_id)
+                # If not found there, check if they were provided in extra_endmembers_isotopes?
+                # For now, just config.
+                
+                if iso_end is None and config.strict_input_validation:
+                    import warnings
+                    warnings.warn(f"Endmember '{end_id}' has no isotopic definition. Isotope mixing check bypassed.")
+
             if iso_u and iso_v:
                 iso_raw, iso_metrics = isotope_penalty(
                     iso_u[0],
@@ -246,6 +386,7 @@ def fit_edge(
                     config.lmwl_b,
                     transport_model,
                     d_excess_weight=config.isotope_d_excess_weight,
+                    endmember_iso=iso_end
                 )
                 iso_penalty = config.isotope_weight * iso_raw
                 iso_used = True
@@ -286,16 +427,9 @@ def fit_edge(
             if cl_idx >= 0:
                 cl_u = x_u[cl_idx]
                 cl_v = x_v[cl_idx]
-                # If Cl increases much more than isotopes suggest, penalty
-                # Or if isotopes show enrichment but Cl stays flat, penalty
                 cl_ratio = (cl_v / cl_u) if cl_u > 0 else 1.0
-                # Gamma is the concentration factor from biology/physics
-                # Isotopes should roughly increase linearly with ln(gamma)
-                # Let's use a simpler heuristic: mismatch between cl_ratio and gamma_value
-                # If gamma is 1.2 but Cl ratio is 10.0, it's likely dissolution, not evap.
                 if gamma_value is not None:
                     mismatch = abs(cl_ratio - gamma_value)
-                    # Only penalize if the mismatch is substantial
                     if mismatch > 0.5:
                         iso_consistency_penalty = (
                             config.isotope_consistency_weight * mismatch
@@ -304,12 +438,12 @@ def fit_edge(
         # Calculate Chemistry R2 (weighted)
         mean_v = sum(x_v) / len(x_v) if x_v else 0.0
         sst = sum(w * (v - mean_v) ** 2 for w, v in zip(config.weights, x_v))
-        sse = reaction_fit.residual_norm
+        sse = chem_fit.residual_norm
         chem_r2 = 1.0 - (sse / sst) if sst > 1e-12 else 0.0
 
         objective = (
-            reaction_fit.residual_norm
-            + lambda_l1 * reaction_fit.l1_norm
+            chem_fit.residual_norm
+            + lambda_l1 * chem_fit.l1_norm
             + penalty
             + iso_penalty
             + gibbs_penalty_val
@@ -322,9 +456,13 @@ def fit_edge(
                 "transport_model": transport_model,
                 "endmember_id": end_id,
                 "objective_score": objective,
-                "transport_residual_norm": transport_norm,
+                "transport_residual_norm": chem_fit.residual_norm,
             }
         )
+        
+        # Populate ReactionFit object for result
+        # Since chem_fit DOES NOT contain transport parameters, we use it directly.
+        final_reaction_fit = chem_fit
 
         constraints_active: Dict[str, str] = {}
         si_u_dict: Dict[str, float] = {}
@@ -358,32 +496,42 @@ def fit_edge(
             gamma=gamma_value,
             f=f_value,
             endmember_id=end_id,
-            z_extents=reaction_fit.extents,
+            z_extents=final_reaction_fit.extents,
             z_labels=labels,
-            transport_residual_norm=transport_norm,
-            anomaly_norm=reaction_fit.residual_norm,
+            transport_residual_norm=float(cand.get("transport_residual", 0.0)),
+            anomaly_norm=chem_fit.residual_norm,
             objective_score=objective,
-            l1_norm=reaction_fit.l1_norm,
-            reaction_iterations=reaction_fit.iterations,
-            reaction_converged=reaction_fit.converged,
+            l1_norm=final_reaction_fit.l1_norm,
+            reaction_iterations=final_reaction_fit.iterations,
+            reaction_converged=final_reaction_fit.converged,
             ec_tds_penalty=penalty,
             qc_flags=[],
             constraints_active=constraints_active,
             si_u=si_u_dict,
             si_v=si_v_dict,
-            phreeqc_ok=phreeqc_ok_val,
-            charge_error=charge_error_val,
-            skipped_reason=skipped_reason_val,
-            isotope_penalty=iso_penalty,
 
-            isotope_metrics=iso_metrics,
-            isotope_used=iso_used,
-            gibbs_penalty=gibbs_penalty_val,
-            gibbs_metrics=gibbs_metrics_val,
-            gibbs_used=gibbs_used,
-            isotope_consistency_penalty=iso_consistency_penalty,
-            reaction_fit=reaction_fit,
-            residual_vector=list(reaction_fit.residual),
+                                                        phreeqc_ok=phreeqc_ok_val,
+
+                                                        charge_error=charge_error_val,
+
+                                                        skipped_reason=skipped_reason_val,
+
+                                                        isotope_penalty=iso_penalty,
+
+                                                        isotope_metrics=iso_metrics,
+
+                                                        isotope_used=iso_used,
+
+                                                        gibbs_penalty=gibbs_penalty_val,
+
+                                                        gibbs_metrics=gibbs_metrics_val,
+
+                                                        gibbs_used=gibbs_used,
+
+                                                        isotope_consistency_penalty=iso_consistency_penalty,
+
+            reaction_fit=final_reaction_fit,
+            residual_vector=list(final_reaction_fit.residual),
             chemistry_r2=chem_r2,
         )
 

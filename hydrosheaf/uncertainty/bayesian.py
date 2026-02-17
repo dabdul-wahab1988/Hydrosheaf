@@ -12,14 +12,25 @@ Alternative:
     pip install numpyro>=0.12 jax>=0.4
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-import pymc as pm
-import arviz as az
 
 from ..config import Config
 from . import UncertaintyResult
+
+
+def _load_bayesian_dependencies() -> Tuple[Any, Any, Any]:
+    """Import optional Bayesian dependencies lazily."""
+    try:
+        import arviz as az
+        import nutpie
+        import pymc as pm
+    except Exception as exc:
+        raise ImportError(
+            "Bayesian uncertainty requires pymc, arviz, and nutpie with writable runtime directories."
+        ) from exc
+    return pm, az, nutpie
 
 
 
@@ -82,12 +93,16 @@ def bayesian_edge_fit(
        - 2.5%, 97.5% quantiles for CI
        - R̂ and ESS for convergence
     """
+    pm, az, nutpie = _load_bayesian_dependencies()
+
     # Convert to numpy
     x_u_vec = np.array(x_u, dtype=float)
 
     x_v_vec = np.array(x_v, dtype=float)
     R = np.array(reaction_matrix, dtype=float).T  # n_ions x n_reactions
     n_ions, m_reactions = R.shape
+    if bounds is not None and len(bounds) != m_reactions:
+        raise ValueError("bounds length must match number of reactions.")
 
     # Get prior hyperparameters from config
     prior_gamma_mu = getattr(config, "prior_gamma_mu", 1.0)
@@ -109,15 +124,18 @@ def bayesian_edge_fit(
             xi_list = []
             for j, (lb, ub) in enumerate(bounds):
                 # Ensure lb/ub are floats or None
-                l = float(lb) if lb is not None else -np.inf
-                u = float(ub) if ub is not None else np.inf
-                
+                lower_bound = float(lb) if lb is not None else -np.inf
+                upper_bound = float(ub) if ub is not None else np.inf
+
                 # Use Truncated Laplace dist
-                xi_j = pm.Truncated("xi_" + str(j), 
-                                   pm.Laplace.dist(mu=0, b=prior_xi_scale),
-                                   lower=l, upper=u)
+                xi_j = pm.Truncated(
+                    "xi_" + str(j),
+                    pm.Laplace.dist(mu=0, b=prior_xi_scale),
+                    lower=lower_bound,
+                    upper=upper_bound,
+                )
                 xi_list.append(xi_j)
-            xi = pm.math.stack(xi_list)
+            xi = pm.Deterministic("xi", pm.math.stack(xi_list))
         else:
             xi = pm.Laplace("xi", mu=0, b=prior_xi_scale, shape=m_reactions)
 
@@ -130,12 +148,12 @@ def bayesian_edge_fit(
         pm.Normal("x_v_obs", mu=x_pred, sigma=sigma, observed=x_v_vec)
 
         # Sample
-        import nutpie
         compiled = nutpie.compile_pymc_model(pm.Model.get_context())
         trace = nutpie.sample(
             compiled,
             draws=n_samples,
             chains=n_chains,
+            target_accept=target_accept,
             seed=None,
             progress_bar=False,
         )
@@ -171,21 +189,29 @@ def bayesian_edge_fit(
     result.ess = {}
 
     try:
-        # R-hat (Gelman-Rubin statistic)
-        r_hat_gamma = float(az.rhat(trace.posterior["gamma"]).values)
-        result.r_hat["gamma"] = r_hat_gamma
+        # Gelman-Rubin statistic (R-hat) and Effective Sample Size (ESS)
+        r_hat_ds = az.rhat(trace.posterior)
+        ess_ds = az.ess(trace.posterior)
 
-        for j, label in enumerate(reaction_labels):
-            r_hat_xi = float(az.rhat(trace.posterior["xi"].sel(xi_dim_0=j)).values)
-            result.r_hat[f"xi_{label}"] = r_hat_xi
+        # Gamma
+        result.r_hat["gamma"] = float(r_hat_ds["gamma"].values)
+        result.ess["gamma"] = float(ess_ds["gamma"].values)
 
-        # ESS (Effective Sample Size)
-        ess_gamma = float(az.ess(trace.posterior["gamma"]).values)
-        result.ess["gamma"] = ess_gamma
-
-        for j, label in enumerate(reaction_labels):
-            ess_xi = float(az.ess(trace.posterior["xi"].sel(xi_dim_0=j)).values)
-            result.ess[f"xi_{label}"] = ess_xi
+        # Reaction extents (xi)
+        # xi can be a 1D vector (dim: xi_dim_0) or separate scalars if bounds were applied
+        if "xi" in r_hat_ds:
+            xi_rhat = r_hat_ds["xi"]
+            xi_ess = ess_ds["xi"]
+            for j, label in enumerate(reaction_labels):
+                result.r_hat[f"xi_{label}"] = float(xi_rhat.sel(xi_dim_0=j).values)
+                result.ess[f"xi_{label}"] = float(xi_ess.sel(xi_dim_0=j).values)
+        else:
+            # If xi was Deterministic and not found in diagnostics, check individual xi_j
+            for j, label in enumerate(reaction_labels):
+                xi_name = f"xi_{j}"
+                if xi_name in r_hat_ds:
+                    result.r_hat[f"xi_{label}"] = float(r_hat_ds[xi_name].values)
+                    result.ess[f"xi_{label}"] = float(ess_ds[xi_name].values)
 
     except Exception as e:
         # Convergence diagnostics may fail in some edge cases
@@ -246,9 +272,13 @@ def bayesian_reaction_fit(
     R = np.array(reaction_matrix, dtype=float).T  # n_ions x n_reactions
     W = np.array(weights, dtype=float)
     n_ions, m_reactions = R.shape
+    if bounds is not None and len(bounds) != m_reactions:
+        raise ValueError("bounds length must match number of reactions.")
 
     # Laplace prior scale from L1 lambda
     laplace_scale = 1.0 / lambda_l1 if lambda_l1 > 0 else 1.0
+
+    pm, az, nutpie = _load_bayesian_dependencies()
 
     with pm.Model():
         # Priors
@@ -256,13 +286,16 @@ def bayesian_reaction_fit(
         if bounds is not None:
             xi_list = []
             for j, (lb, ub) in enumerate(bounds):
-                l = float(lb) if lb is not None else -np.inf
-                u = float(ub) if ub is not None else np.inf
-                xi_j = pm.Truncated("xi_" + str(j), 
-                                   pm.Laplace.dist(mu=0, b=laplace_scale),
-                                   lower=l, upper=u)
+                lower_bound = float(lb) if lb is not None else -np.inf
+                upper_bound = float(ub) if ub is not None else np.inf
+                xi_j = pm.Truncated(
+                    "xi_" + str(j),
+                    pm.Laplace.dist(mu=0, b=laplace_scale),
+                    lower=lower_bound,
+                    upper=upper_bound,
+                )
                 xi_list.append(xi_j)
-            xi = pm.math.stack(xi_list)
+            xi = pm.Deterministic("xi", pm.math.stack(xi_list))
         else:
             xi = pm.Laplace("xi", mu=0, b=laplace_scale, shape=m_reactions)
 
@@ -275,12 +308,12 @@ def bayesian_reaction_fit(
         pm.Normal("residual_obs", mu=residual_pred, sigma=sigma, observed=residual_vec)
 
         # Sample
-        import nutpie
         compiled = nutpie.compile_pymc_model(pm.Model.get_context())
         trace = nutpie.sample(
             compiled,
             draws=n_samples,
             chains=n_chains,
+            target_accept=getattr(config, "bayesian_target_accept", 0.95),
             seed=None,
             progress_bar=False,
         )
@@ -307,9 +340,21 @@ def bayesian_reaction_fit(
     ess = {}
 
     try:
-        for j, label in enumerate(reaction_labels):
-            r_hat[label] = float(az.rhat(trace.posterior["xi"].sel(xi_dim_0=j)).values)
-            ess[label] = float(az.ess(trace.posterior["xi"].sel(xi_dim_0=j)).values)
+        r_hat_ds = az.rhat(trace.posterior)
+        ess_ds = az.ess(trace.posterior)
+
+        if "xi" in r_hat_ds:
+            xi_rhat = r_hat_ds["xi"]
+            xi_ess = ess_ds["xi"]
+            for j, label in enumerate(reaction_labels):
+                r_hat[label] = float(xi_rhat.sel(xi_dim_0=j).values)
+                ess[label] = float(xi_ess.sel(xi_dim_0=j).values)
+        else:
+            for j, label in enumerate(reaction_labels):
+                xi_name = f"xi_{j}"
+                if xi_name in r_hat_ds:
+                    r_hat[label] = float(r_hat_ds[xi_name].values)
+                    ess[label] = float(ess_ds[xi_name].values)
     except Exception:
         pass
 

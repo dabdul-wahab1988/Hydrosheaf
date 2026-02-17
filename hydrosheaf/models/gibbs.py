@@ -1,6 +1,15 @@
 """Gibbs diagram classification for hydrogeochemical process identification."""
 
+import math
 from typing import Dict, Mapping, Optional, Tuple
+
+
+def _logistic(x: float, x0: float, k: float) -> float:
+    """Logistic function: 1 / (1 + exp(-k*(x-x0)))"""
+    try:
+        return 1.0 / (1.0 + math.exp(-k * (x - x0)))
+    except OverflowError:
+        return 1.0 if x > x0 else 0.0
 
 
 def compute_gibbs_ratios(
@@ -49,15 +58,7 @@ def classify_gibbs_dominance(
 ) -> str:
     """
     Classify dominant hydrogeochemical process using Gibbs diagram.
-
-    Args:
-        sample: Sample dictionary with ion concentrations
-        tds_precipitation: Upper TDS bound for precipitation dominance (mg/L)
-        tds_evaporation: Lower TDS bound for evaporation dominance (mg/L)
-        ratio_threshold: Ratio threshold for classification
-
-    Returns:
-        "precipitation", "rock", or "evaporation"
+    Updated with probabilistic logic to prevent high-TDS misclassification.
     """
     tds, ratio_cation, ratio_anion = compute_gibbs_ratios(sample, **kwargs)
 
@@ -73,17 +74,26 @@ def classify_gibbs_dominance(
         else:
             return "rock"
 
-    # TDS-based classification with ratio confirmation
-    if tds < tds_precipitation:
-        return "precipitation"
-    elif tds > tds_evaporation:
-        if ratio_cation is not None and ratio_cation > ratio_threshold:
-            return "evaporation"
-        if ratio_anion is not None and ratio_anion > ratio_threshold:
-            return "evaporation"
-        return "evaporation"
-    else:
-        return "rock"
+    # 1. Probability of Precipitation Dominance
+    # Characterized by LOW TDS and HIGH Ratios
+    p_precip_tds = 1.0 - _logistic(tds, tds_precipitation, 0.05)
+    p_precip_ratio = _logistic(max(ratio_cation or 0, ratio_anion or 0), 0.7, 10.0)
+    p_precip = p_precip_tds * p_precip_ratio
+
+    # 2. Probability of Evaporation Dominance
+    # Characterized by HIGH TDS and HIGH Ratios
+    p_evap_tds = _logistic(tds, tds_evaporation, 0.005)
+    p_evap_ratio = _logistic(max(ratio_cation or 0, ratio_anion or 0), 0.6, 10.0)
+    p_evap = p_evap_tds * p_evap_ratio
+
+    # 3. Probability of Rock Dominance
+    # Characterized by Intermediate TDS or High TDS with LOW Ratios
+    # (High TDS with low Na ratio = Evaporite dissolution, which is 'Rock')
+    p_rock = max(0.0, 1.0 - p_precip - p_evap)
+
+    # Hard classification based on max probability
+    probs = {"precipitation": p_precip, "evaporation": p_evap, "rock": p_rock}
+    return max(probs, key=lambda k: probs[k])
 
 
 def gibbs_transport_weights(
@@ -126,27 +136,18 @@ def gibbs_evaporation_penalty(
     **kwargs,
 ) -> float:
     """
-    Compute penalty for evaporation model based on Gibbs classification.
-
-    Lower penalty means evaporation is more consistent with Gibbs classification.
-    This is used to supplement isotope penalties.
-
-    Returns:
-        Penalty value (0 = consistent with evaporation, higher = inconsistent)
+    Compute smooth penalty for evaporation model based on Gibbs probabilities.
+    Penalty = 1.0 - P(Evaporation).
     """
-    dominance = classify_gibbs_dominance(
-        sample,
-        tds_precipitation=tds_precipitation,
-        tds_evaporation=tds_evaporation,
-        **kwargs,
-    )
+    tds, ratio_cation, ratio_anion = compute_gibbs_ratios(sample, **kwargs)
+    if tds is None or ratio_cation is None:
+        return 0.3 # Default neutral penalty
 
-    if dominance == "evaporation":
-        return 0.0
-    elif dominance == "precipitation":
-        return 1.0
-    else:  # rock dominance
-        return 0.3
+    p_evap_tds = _logistic(tds, tds_evaporation, 0.005)
+    p_evap_ratio = _logistic(max(ratio_cation or 0, ratio_anion or 0), 0.6, 10.0)
+    p_evap = p_evap_tds * p_evap_ratio
+    
+    return 1.0 - p_evap
 
 
 def compute_gibbs_metrics(

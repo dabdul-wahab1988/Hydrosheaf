@@ -313,34 +313,34 @@ def fit_network(
                     )
                 elif method == "bayesian":
                     # Only implemented for evaporation gamma in bayesian_edge_fit.
-                    from ..uncertainty.bayesian import bayesian_edge_fit
-
                     if result.transport_model != "evap":
                         uq = None
                     else:
+                        from ..uncertainty.bayesian import bayesian_edge_fit
+
                         bounds_list = None
                         if edge_bounds:
                             lb = edge_bounds.get("lb")
                             ub = edge_bounds.get("ub")
-                        if isinstance(lb, list) and isinstance(ub, list):
-                            bounds_list = []
-                            for lb_v, ub_v in zip(lb, ub):
-                                l_val = float(lb_v) if lb_v is not None else None
-                                u_val = float(ub_v) if ub_v is not None else None
-                                bounds_list.append((l_val, u_val))
-                    uq = bayesian_edge_fit(
-                        x_u,
-                        x_v,
-                        reaction_matrix,
-                        reaction_labels,
-                        config_edge,
-                        n_samples=getattr(config_edge, "bayesian_n_samples", 5000),
-                        n_chains=getattr(config_edge, "bayesian_n_chains", 4),
-                        target_accept=getattr(
-                            config_edge, "bayesian_target_accept", 0.95
-                        ),
-                        bounds=bounds_list,
-                    )
+                            if isinstance(lb, list) and isinstance(ub, list):
+                                bounds_list = []
+                                for lb_v, ub_v in zip(lb, ub):
+                                    l_val = float(lb_v) if lb_v is not None else None
+                                    u_val = float(ub_v) if ub_v is not None else None
+                                    bounds_list.append((l_val, u_val))
+                        uq = bayesian_edge_fit(
+                            x_u,
+                            x_v,
+                            reaction_matrix,
+                            reaction_labels,
+                            config_edge,
+                            n_samples=getattr(config_edge, "bayesian_n_samples", 5000),
+                            n_chains=getattr(config_edge, "bayesian_n_chains", 4),
+                            target_accept=getattr(
+                                config_edge, "bayesian_target_accept", 0.95
+                            ),
+                            bounds=bounds_list,
+                        )
                 else:
                     uq = None
 
@@ -359,9 +359,14 @@ def fit_network(
                     result.extents_ci_high = uq.extents_ci_high
                     result.uncertainty_r_hat = uq.r_hat or {}
                     result.uncertainty_ess = uq.ess or {}
-            except Exception:
+            except Exception as exc:
                 # Keep baseline result if UQ fails (missing PyMC, numerical issues, etc.)
-                pass
+                logger.warning(
+                    "Uncertainty fit skipped for edge '%s' (%s): %s",
+                    edge.edge_id,
+                    method,
+                    exc,
+                )
         edge_attrs = edge.attrs or {}
 
         def _get_float(key: str) -> Optional[float]:

@@ -89,9 +89,14 @@ def infer_edges_probabilistic(
                 continue
             
             # Safe float conversion for lat/lon
+            lat_v = sample.get("lat")
+            lon_v = sample.get("lon")
+            if lat_v is None or lon_v is None:
+                continue
+                
             try:
-                lat_val = float(sample["lat"]) # type: ignore
-                lon_val = float(sample["lon"]) # type: ignore
+                lat_val = float(lat_v) # type: ignore
+                lon_val = float(lon_v) # type: ignore
             except (ValueError, TypeError):
                 continue
                 
@@ -180,10 +185,16 @@ def infer_edges_probabilistic(
             site_id = sample.get("site_id")
             if site_id is None:
                 continue
+            
+            lat_v = sample.get("lat")
+            lon_v = sample.get("lon")
+            if lat_v is None or lon_v is None:
+                continue
+                
             try:
-                lat_val = float(sample["lat"]) # type: ignore
-                lon_val = float(sample["lon"]) # type: ignore
-            except (ValueError, TypeError, KeyError):
+                lat_val = float(lat_v) # type: ignore
+                lon_val = float(lon_v) # type: ignore
+            except (ValueError, TypeError):
                 continue
 
             head, sigma, tier = infer_head_heuristic(
@@ -380,11 +391,16 @@ def infer_edges_from_coordinates(
         site_id = sample.get("site_id")
         if site_id is None:
             continue
-        if "lat" not in sample or "lon" not in sample:
+        
+        lat_val = sample.get("lat")
+        lon_val = sample.get("lon")
+        
+        if lat_val is None or lon_val is None:
             continue
+            
         try:
-            lat_val = float(sample["lat"]) # type: ignore
-            lon_val = float(sample["lon"]) # type: ignore
+            lat_val = float(lat_val) # type: ignore
+            lon_val = float(lon_val) # type: ignore
         except (ValueError, TypeError):
             continue
             

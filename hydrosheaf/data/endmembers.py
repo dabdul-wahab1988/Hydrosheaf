@@ -23,8 +23,10 @@ def load_endmembers_json(path: str) -> Tuple[Dict[str, List[float]], Dict[str, o
     ion_order = meta.get("ion_order") or []
     if units not in {"mg/L", "mmol/L", "meq/L"}:
         raise ValueError("meta.units must be mg/L, mmol/L, or meq/L")
-    if len(ion_order) != 8:
-        raise ValueError("meta.ion_order must list 8 ions")
+    if not isinstance(ion_order, list) or not ion_order:
+        raise ValueError("meta.ion_order must be a non-empty list of ions")
+    if any(not isinstance(ion, str) or not ion.strip() for ion in ion_order):
+        raise ValueError("meta.ion_order must contain non-empty ion names")
 
     endmembers_list = payload.get("endmembers") or []
     if not endmembers_list:

@@ -10,6 +10,7 @@ import numpy as np
 from .definitions import AdjustableParameter, Observation
 from .problem import CalibrationProblem
 from ..log import get_logger
+from ..isotopes import rayleigh_fractionation
 
 logger = get_logger("calibration.adapters_iso")
 
@@ -28,6 +29,7 @@ class WaterIsotopeMixingAdapter(CalibrationProblem):
     """
     Calibrates mixing fractions of water sources to match observed d18O and d2H.
     Uses softmax parameterization to ensure fractions are positive and sum to 1.
+    Optionally accounts for Rayleigh fractionation due to evaporation.
 
     Parameters
     ----------
@@ -39,6 +41,8 @@ class WaterIsotopeMixingAdapter(CalibrationProblem):
         Map of sample_id -> group_id. Fractions are estimated per group.
     weights : Dict[str, float]
         Weights for observations (default 1.0/sigma). e.g. {"18O": 5.0, "2H": 1.0}
+    allow_evaporation : bool
+        If True, estimates an evaporation fraction (f_evap) for the mixed water.
     """
 
     def __init__(
@@ -47,11 +51,13 @@ class WaterIsotopeMixingAdapter(CalibrationProblem):
         observations: Dict[str, Dict[str, float]],
         group_map: Dict[str, str],
         weights: Optional[Dict[str, float]] = None,
+        allow_evaporation: bool = False,
     ):
         self.endmembers = endmembers
         self.observations = observations
         self.group_map = group_map
         self.weights = weights or {"18O": 5.0, "2H": 1.0}
+        self.allow_evaporation = allow_evaporation
 
         # Verify groups
         self.groups = sorted(list(set(group_map.values())))
@@ -65,10 +71,8 @@ class WaterIsotopeMixingAdapter(CalibrationProblem):
         """
         Generate parameters: theta_{group}_{source}
         One theta per source per group.
-
-        To fix identifiability of softmax (since softmax is invariant to adding const),
-        we can fix the last theta to 0.0 or just let regularization handle it.
-        Fixing one is cleaner. Let's fix the last source's theta to 0.
+        
+        If allow_evaporation is True, adds: f_evap_{group}
         """
         params = []
 
@@ -91,6 +95,21 @@ class WaterIsotopeMixingAdapter(CalibrationProblem):
                         prior_sigma=2.0  # Weak prior to keep logits reasonable
                     )
                 )
+            
+            if self.allow_evaporation:
+                # Evaporation fraction (0 to 0.8)
+                # We can parameterize it directly or via sigmoid. Direct is simpler for now.
+                params.append(
+                    AdjustableParameter(
+                        name=f"f_evap_{group}",
+                        value=0.05,
+                        lower_bound=0.0,
+                        upper_bound=0.8, # Cap at 80% evaporation to avoid numerical issues
+                        prior_mean=0.1,
+                        prior_sigma=0.2
+                    )
+                )
+                
         return params
 
     def get_observations(self) -> List[Observation]:
@@ -123,6 +142,7 @@ class WaterIsotopeMixingAdapter(CalibrationProblem):
 
         # 1. Resolve fractions for each group
         group_fractions = {}  # group -> [f1, f2, ..., fN]
+        group_evap = {}      # group -> f_evap
 
         for group in self.groups:
             # Gather logits
@@ -142,11 +162,34 @@ class WaterIsotopeMixingAdapter(CalibrationProblem):
             fractions = exp_logits / sum_exp
 
             group_fractions[group] = fractions
+            
+            if self.allow_evaporation:
+                f_evap_param = f"f_evap_{group}"
+                f_evap_val = param_values.get(f_evap_param, 0.0)
+                # Fraction remaining = 1 - f_evap
+                group_evap[group] = max(0.01, 1.0 - f_evap_val) 
+            else:
+                group_evap[group] = 1.0 # No evaporation
 
         # 2. Predict for each sample
         # Pre-compute endmember vectors
         em_d18O = np.array([e.d18O for e in self.endmembers])
         em_d2H = np.array([e.d2H for e in self.endmembers])
+        
+        # Fractionation factors (approximate for 25 C)
+        # Alpha > 1 for liquid/vapor.
+        # But Rayleigh equation usually defined as R = R0 * f^(alpha-1)
+        # where alpha = R_product / R_reactant.
+        # For evaporation, product is vapor. alpha_lv = R_l / R_v > 1.
+        # But the *residue* (liquid) follows R = R0 * f^(1/alpha_lv - 1) ? 
+        # No, commonly R_l = R0 * f^(alpha_vl - 1) where alpha_vl < 1.
+        # Or R_l = R0 * f^(epsilon/1000).
+        # Standard notation: alpha = R_v / R_l. alpha < 1.
+        # 18O: alpha ~ 0.991 (Majoube 1971).
+        # 2H: alpha ~ 0.92.
+        
+        alpha_18O = 0.991  # approx 1/1.009
+        alpha_2H = 0.92    # approx 1/1.08
 
         for sample_id, _ in self.observations.items():
             group = self.group_map.get(sample_id)
@@ -164,8 +207,15 @@ class WaterIsotopeMixingAdapter(CalibrationProblem):
 
             fracs = group_fractions[group]
 
+            # Mixing Step
             pred_18O = np.dot(fracs, em_d18O)
             pred_2H = np.dot(fracs, em_d2H)
+            
+            # Evaporation Step (Fractionation)
+            f_rem = group_evap[group]
+            if f_rem < 0.999: # Only if evaporation occurred
+                 pred_18O = rayleigh_fractionation(pred_18O, f_rem, alpha_18O)
+                 pred_2H = rayleigh_fractionation(pred_2H, f_rem, alpha_2H)
 
             results[f"{sample_id}_18O"] = float(pred_18O)
             results[f"{sample_id}_2H"] = float(pred_2H)

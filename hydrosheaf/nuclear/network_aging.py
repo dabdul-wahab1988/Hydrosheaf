@@ -12,11 +12,10 @@ Novelty:
 """
 from __future__ import annotations
 
-import numpy as np
-import pymc as pm
-import pytensor.tensor as pt
+from typing import Any, Dict, Optional, Tuple
+
 import networkx as nx
-from typing import Dict, List, Optional, Tuple, Any
+import numpy as np
 
 from hydrosheaf.nuclear.nuclides import Nuclide, TRITIUM
 from hydrosheaf.nuclear.input_history import InputHistory, get_input_history
@@ -25,23 +24,37 @@ from ..log import get_logger
 
 logger = get_logger(__name__)
 
-def _linear_interp(x, x_ref, y_ref):
+
+def _load_network_aging_dependencies() -> Tuple[Any, Any, Any]:
+    """Load optional Bayesian dependencies lazily."""
+    try:
+        import nutpie
+        import pymc as pm
+        import pytensor.tensor as pt
+    except Exception as exc:
+        raise ImportError(
+            "Network aging requires pymc, pytensor, and nutpie with writable runtime directories."
+        ) from exc
+    return pm, pt, nutpie
+
+
+def _linear_interp(x, x_ref, y_ref, pt_module: Any):
     """
     Differentiable linear interpolation in PyTensor.
     Assumes x_ref is sorted and effectively constant.
     """
     x_min = x_ref[0]
     x_max = x_ref[-1]
-    x_clipped = pt.clip(x, x_min, x_max)
+    x_clipped = pt_module.clip(x, x_min, x_max)
     
     dx = x_ref[1] - x_ref[0]
     idx_float = (x_clipped - x_min) / dx
-    idx_floor = pt.floor(idx_float).astype('int64')
+    idx_floor = pt_module.floor(idx_float).astype("int64")
     idx_ceil = idx_floor + 1
     
     n_points = x_ref.shape[0]
-    idx_floor = pt.clip(idx_floor, 0, n_points - 2)
-    idx_ceil = pt.clip(idx_ceil, 1, n_points - 1)
+    idx_floor = pt_module.clip(idx_floor, 0, n_points - 2)
+    idx_ceil = pt_module.clip(idx_ceil, 1, n_points - 1)
     
     y_floor = y_ref[idx_floor]
     y_ceil = y_ref[idx_ceil]
@@ -78,7 +91,7 @@ def infer_network_ages_bayesian(
     - Flaw 3: Velocity-distance constraints.
     - Flaw 4: Joint inference of C14 Dead Carbon Fraction (DCF).
     """
-    import nutpie
+    pm, pt, nutpie = _load_network_aging_dependencies()
     
     if input_hist is None:
         input_hist = get_input_history("global")
@@ -147,7 +160,12 @@ def infer_network_ages_bayesian(
             c14_a0_local = None
         
         # Velocity (Accounts for physical travel time)
-        velocity = pm.LogNormal("velocity", mu=np.log(velocity_prior_mu), sigma=1.0)
+        velocity_mu = max(float(velocity_prior_mu), 1e-6)
+        velocity_sigma = max(float(velocity_prior_sigma), 1e-6)
+        velocity_sigma_log = float(np.log1p(velocity_sigma / velocity_mu))
+        velocity = pm.LogNormal(
+            "velocity", mu=np.log(velocity_mu), sigma=velocity_sigma_log
+        )
         
         # Node Ages
         log_ages = pm.Normal("log_ages", mu=np.log(20), sigma=2.0, shape=n_nodes)
@@ -164,7 +182,7 @@ def infer_network_ages_bayesian(
         # 3. Observation Likelihood
         grid_x_pt = pt.as_tensor_variable(age_grid)
         grid_y_pt = pt.as_tensor_variable(conc_grid)
-        c_base = _linear_interp(ages[obs_indices], grid_x_pt, grid_y_pt)
+        c_base = _linear_interp(ages[obs_indices], grid_x_pt, grid_y_pt, pt)
         
         # Combine base concentration with latent scaling/corrections
         if nuclide.symbol == "14C":

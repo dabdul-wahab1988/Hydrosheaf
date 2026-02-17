@@ -581,10 +581,45 @@ class TransportCalibrationAdapter(CalibrationProblem):
                 for i, val in enumerate(res.concentrations):
                     results[f"{exp.id}_{i}"] = val
             else:
-                # FloPy runner logic would go here (slower)
-                # Not implemented for this adapter yet to keep it simple,
-                # but easily added using run_1d_transport
-                pass
+                # FloPy runner logic
+                from ..transport.flopy_1d import build_1d_transport_model, run_1d_transport
+                
+                # Build model
+                mf, mt, model_params = build_1d_transport_model(
+                    model_name=f"trans_{exp.id}",
+                    # Use temp workspace managed by runner or tempfile inside build
+                    workspace=None, 
+                    aquifer_length_m=exp.distance_m,
+                    # Assume unit thickness/width if not specified in experiment
+                    # Ideally experiment would hold geometry info. 
+                    # For 1D calibration, we assume standard column or flowpath.
+                    dispersivity_m=disp,
+                    decay_rate_1_day=decay,
+                    velocity_m_day=vel, # Used to calc gradient/K inside builder
+                    source_concentration=exp.source_concentration,
+                    # Time discretization: match experiment times?
+                    # FloPy model needs max time.
+                    perlen_days=max(exp.times) * 1.1 if exp.times else 10.0,
+                    n_time_steps=50 # Fixed resolution
+                )
+                
+                # Run
+                res = run_1d_transport(mf, mt, model_params, cleanup=True)
+                
+                if res.success:
+                    # Interpolate to observation times
+                    # res.times vs exp.times
+                    if len(res.times) > 1:
+                        interp_vals = np.interp(exp.times, res.times, res.concentrations)
+                        for i, val in enumerate(interp_vals):
+                            results[f"{exp.id}_{i}"] = val
+                    else:
+                        # Fallback
+                        for i in range(len(exp.times)):
+                            results[f"{exp.id}_{i}"] = res.concentrations[0]
+                else:
+                    for i in range(len(exp.times)):
+                        results[f"{exp.id}_{i}"] = -999.0 # Penalty
 
         return results
 
