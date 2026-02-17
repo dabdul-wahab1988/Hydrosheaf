@@ -1,7 +1,9 @@
 import unittest
 import sys
+from unittest import mock
 
 from hydrosheaf.graph.build import infer_edges_probabilistic
+from hydrosheaf.graph.head_inference import infer_heads_bayesian_mcmc
 
 
 class GraphProbabilisticTests(unittest.TestCase):
@@ -83,6 +85,37 @@ class GraphProbabilisticTests(unittest.TestCase):
         )
         edge_ids = {edge.edge_id for edge in edges}
         self.assertIn("A->B", edge_ids)
+
+    def test_head_mcmc_falls_back_to_linear_when_pymc_unavailable(self):
+        samples = [
+            {"site_id": "A", "elevation": 100.0},
+            {"site_id": "B", "elevation": 90.0},
+        ]
+
+        with mock.patch(
+            "hydrosheaf.graph.head_inference._load_pymc",
+            side_effect=ImportError("pymc unavailable"),
+        ):
+            posterior = infer_heads_bayesian_mcmc(
+                samples,
+                node_id_key="site_id",
+                head_key="head_meas",
+                dtw_key="dtw",
+                elevation_key="elevation",
+                sigma_meas=0.5,
+                sigma_dtw=1.0,
+                sigma_elev=1.0,
+                sigma_topo=5.0,
+                dtw_prior_mu=5.0,
+                dtw_prior_sigma=5.0,
+                head_prior_mu=0.0,
+                head_prior_sigma=1000.0,
+                mcmc_draws=10,
+                mcmc_chains=1,
+            )
+
+        self.assertEqual(set(posterior.node_ids), {"A", "B"})
+        self.assertEqual(len(posterior.head_mean), 2)
 
 
 

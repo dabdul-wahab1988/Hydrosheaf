@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime
 from unittest import mock
 
 from hydrosheaf.api import (
@@ -87,6 +88,54 @@ class AutoDisableMissingModulesTests(unittest.TestCase):
         self.assertFalse(captured["config"].isotope_enabled)
         self.assertFalse(captured["config"].nitrate_source_enabled)
         self.assertIn("edges", extras)
+
+    def test_fit_network_pipeline_nuclear_uses_median_sample_date(self):
+        config = Config(
+            phreeqc_enabled=False,
+            isotope_enabled=False,
+            nitrate_source_enabled=False,
+            sheaf_age_enabled=True,
+            residence_time_tracer="3H",
+        )
+        samples = [
+            {"site_id": "A", "3H": 5.0, "sample_date": "2020-01-01"},
+            {"site_id": "B", "3H": 2.0, "sample_date": "2022-01-01"},
+        ]
+        edges = [("A", "B")]
+
+        with mock.patch("hydrosheaf.api.fit_network", return_value=[]):
+            with mock.patch(
+                "hydrosheaf.api.infer_network_ages_bayesian", return_value={}
+            ) as mocked_infer:
+                fit_network_pipeline(samples, edges, config)
+
+        self.assertTrue(mocked_infer.called)
+        args, _ = mocked_infer.call_args
+        self.assertAlmostEqual(float(args[3]), 2021.0, places=6)
+
+    def test_fit_network_pipeline_nuclear_falls_back_to_current_year(self):
+        config = Config(
+            phreeqc_enabled=False,
+            isotope_enabled=False,
+            nitrate_source_enabled=False,
+            sheaf_age_enabled=True,
+            residence_time_tracer="3H",
+        )
+        samples = [
+            {"site_id": "A", "3H": 5.0},
+            {"site_id": "B", "3H": 2.0},
+        ]
+        edges = [("A", "B")]
+
+        with mock.patch("hydrosheaf.api.fit_network", return_value=[]):
+            with mock.patch(
+                "hydrosheaf.api.infer_network_ages_bayesian", return_value={}
+            ) as mocked_infer:
+                fit_network_pipeline(samples, edges, config)
+
+        self.assertTrue(mocked_infer.called)
+        args, _ = mocked_infer.call_args
+        self.assertEqual(float(args[3]), float(datetime.now().year))
 
     def test_fit_network_with_priors_strict_requires_phreeqc_major_ions(self):
         config = Config(phreeqc_enabled=True, strict_input_validation=True)

@@ -37,6 +37,52 @@ class EndmembersJsonTests(unittest.TestCase):
         self.assertEqual(meta["units"], "mg/L")
         self.assertEqual(len(endmembers["test"]), 8)
 
+    def test_load_endmembers_json_allows_dynamic_ion_order_length(self):
+        payload = {
+            "meta": {
+                "units": "mg/L",
+                "ion_order": [
+                    "Ca",
+                    "Mg",
+                    "Na",
+                    "K",
+                    "HCO3",
+                    "Cl",
+                    "SO4",
+                    "NO3",
+                    "F",
+                    "Fe",
+                    "PO4",
+                ],
+            },
+            "endmembers": [
+                {
+                    "id": "test11",
+                    "composition": {
+                        "Ca": 40.0,
+                        "Mg": 24.0,
+                        "Na": 23.0,
+                        "K": 39.0,
+                        "HCO3": 61.0,
+                        "Cl": 35.0,
+                        "SO4": 96.0,
+                        "NO3": 62.0,
+                        "F": 19.0,
+                        "Fe": 5.0,
+                        "PO4": 9.0,
+                    },
+                }
+            ],
+        }
+        path = pathlib.Path(__file__).parent / "fixtures" / "endmembers_11.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload), encoding="utf-8")
+
+        endmembers, meta = load_endmembers_json(str(path))
+        self.assertIn("test11", endmembers)
+        self.assertEqual(meta["units"], "mg/L")
+        self.assertEqual(len(endmembers["test11"]), 11)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,6 +3,7 @@ Tests for FloPy 1D Transport Model.
 """
 
 import unittest
+from unittest import mock
 import numpy as np
 
 from hydrosheaf.transport.flopy_1d import (
@@ -208,6 +209,22 @@ class FloPyAvailabilityTests(unittest.TestCase):
         """Test that FloPy availability check works."""
         available = check_flopy_available()
         self.assertIsInstance(available, bool)
+
+    def test_build_model_raises_when_flopy_unavailable(self):
+        """Guard rail: transport model build should fail clearly when FloPy is unavailable."""
+        from hydrosheaf.transport import flopy_1d
+
+        with mock.patch.object(flopy_1d, "FLOPY_AVAILABLE", False):
+            with self.assertRaises(ImportError):
+                flopy_1d.build_1d_transport_model()
+
+    def test_run_model_raises_when_flopy_unavailable(self):
+        """Guard rail: transport run should fail clearly when FloPy is unavailable."""
+        from hydrosheaf.transport import flopy_1d
+
+        with mock.patch.object(flopy_1d, "FLOPY_AVAILABLE", False):
+            with self.assertRaises(ImportError):
+                flopy_1d.run_1d_transport(mf=object(), mt=object(), params={})
 
 
 class TransportResultTests(unittest.TestCase):

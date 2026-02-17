@@ -3,12 +3,13 @@ Tests for MCMC Bayesian Isotope Mixing Model.
 """
 
 import unittest
-import sys
 
 from hydrosheaf.models.nitrate_isotopes import IsotopeSample, SourceIsotopes
 from hydrosheaf.models.nitrate_isotopes_mcmc import (
+    HierarchicalMCMCMixingResult,
     MCMCMixingResult,
     check_pymc_available,
+    run_mcmc_mixing_hierarchical,
     run_mcmc_mixing,
     run_mcmc_mixing_batch,
     summarize_mcmc_results,
@@ -235,6 +236,34 @@ class MCMCFallbackTests(unittest.TestCase):
 
         available = check_pymc_available()
         self.assertIsInstance(available, bool)
+
+    def test_hierarchical_mixing_fallback_shape(self):
+        """Hierarchical API should return per-sample fractions even without PyMC."""
+        sources = [
+            SourceIsotopes("Manure", 15.0, 3.0, 5.0, 2.0),
+            SourceIsotopes("Fertilizer", 0.0, 2.0, 20.0, 3.0),
+            SourceIsotopes("Soil_N", 5.0, 2.0, 2.0, 2.0),
+        ]
+        samples = [
+            IsotopeSample(14.0, 6.0),
+            IsotopeSample(2.0, 18.0),
+            IsotopeSample(7.0, 9.0),
+        ]
+        result = run_mcmc_mixing_hierarchical(
+            samples=samples,
+            sources=sources,
+            sample_ids=["A", "B", "C"],
+            n_samples=50,
+            n_chains=2,
+            warmup=20,
+            random_seed=42,
+        )
+        self.assertIsInstance(result, HierarchicalMCMCMixingResult)
+        self.assertEqual(set(result.sample_results.keys()), {"A", "B", "C"})
+        self.assertIn("Manure", result.global_prior_mean)
+        for sample_id in ["A", "B", "C"]:
+            fractions = result.sample_results[sample_id].source_fractions
+            self.assertAlmostEqual(sum(fractions.values()), 1.0, places=4)
 
 
 if __name__ == "__main__":
