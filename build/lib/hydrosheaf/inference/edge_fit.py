@@ -42,6 +42,13 @@ class EdgeResult:
     edge_confidence: Optional[float] = None
     edge_map_penalty: Optional[float] = None
     edge_map_score: Optional[float] = None
+    edge_sheaf_score_local: Optional[float] = None
+    edge_sheaf_score_global: Optional[float] = None
+    edge_sheaf_residual: Optional[float] = None
+    edge_sheaf_pi_evap: Optional[float] = None
+    edge_sheaf_cost_iso: Optional[float] = None
+    edge_sheaf_cost_cl: Optional[float] = None
+    edge_sheaf_flags: Optional[str] = None
     edge_distance_km: Optional[float] = None
     edge_delta_h: Optional[float] = None
     edge_sigma_delta_h: Optional[float] = None
@@ -88,6 +95,8 @@ class EdgeResult:
     uncertainty_method: Optional[str] = None
     reaction_fit: Optional[ReactionFit] = None
     residual_vector: List[float] = field(default_factory=list)
+    chemistry_r2: Optional[float] = None
+
 
     # Optional forward-validation fields (reactive transport)
     rt_validated: bool = False
@@ -133,25 +142,48 @@ def fit_edge(
     bounds: Optional[Dict[str, object]] = None,
     obs_u: Optional[Mapping[str, float]] = None,
     residence_time_days: Optional[float] = None,
+    extra_endmembers: Optional[Dict[str, List[float]]] = None,
 ) -> EdgeResult:
     config.validate()
 
     reaction_matrix, labels, _ = build_reaction_dictionary(config)
     signed_mask = [label in config.signed_reaction_labels for label in labels]
-    lb = bounds.get("lb") if bounds else None
-    ub = bounds.get("ub") if bounds else None
+    
+    lb: Optional[List[float]] = None
+    ub: Optional[List[float]] = None
+    
+    if bounds:
+        lb_raw = bounds.get("lb")
+        ub_raw = bounds.get("ub")
+        if isinstance(lb_raw, list):
+            lb = [float(v) if v is not None else -float("inf") for v in lb_raw]
+        if isinstance(ub_raw, list):
+            ub = [float(v) if v is not None else float("inf") for v in ub_raw]
 
     candidates: List[
         Tuple[str, Optional[str], Optional[float], Optional[float], List[float], float]
     ] = []
+
+    
+    # Use conservative weights for transport fitting (mixing/evap)
+    # This prevents reactive species (Ca, HCO3) from biasing the transport parameter
+    transport_weights = getattr(config, "conservative_weights", config.weights)
+    
     if "evap" in config.transport_models_enabled:
-        gamma, evap_residual, evap_norm = fit_evaporation(x_u, x_v, config.weights)
+        gamma, evap_residual, evap_norm = fit_evaporation(x_u, x_v, transport_weights)
         candidates.append(("evap", None, gamma, None, evap_residual, evap_norm))
 
     if "mix" in config.transport_models_enabled:
+        # Standard configuration endmembers
         for end_id, endmember in config.mixing_endmembers.items():
-            f, mix_residual, mix_norm = fit_mixing(x_u, x_v, endmember, config.weights)
+            f, mix_residual, mix_norm = fit_mixing(x_u, x_v, endmember, transport_weights)
             candidates.append(("mix", end_id, None, f, mix_residual, mix_norm))
+            
+        # Extra endmembers (e.g. lateral neighbors for transverse dispersion)
+        if extra_endmembers:
+            for end_id, endmember in extra_endmembers.items():
+                f, mix_residual, mix_norm = fit_mixing(x_u, x_v, endmember, transport_weights)
+                candidates.append(("mix", end_id, None, f, mix_residual, mix_norm))
 
     best_result: Optional[EdgeResult] = None
     candidate_entries: List[Dict[str, object]] = []
@@ -269,6 +301,12 @@ def fit_edge(
                             config.isotope_consistency_weight * mismatch
                         )
 
+        # Calculate Chemistry R2 (weighted)
+        mean_v = sum(x_v) / len(x_v) if x_v else 0.0
+        sst = sum(w * (v - mean_v) ** 2 for w, v in zip(config.weights, x_v))
+        sse = reaction_fit.residual_norm
+        chem_r2 = 1.0 - (sse / sst) if sst > 1e-12 else 0.0
+
         objective = (
             reaction_fit.residual_norm
             + lambda_l1 * reaction_fit.l1_norm
@@ -278,6 +316,7 @@ def fit_edge(
             + iso_consistency_penalty
         )
 
+
         candidate_entries.append(
             {
                 "transport_model": transport_model,
@@ -286,6 +325,30 @@ def fit_edge(
                 "transport_residual_norm": transport_norm,
             }
         )
+
+        constraints_active: Dict[str, str] = {}
+        si_u_dict: Dict[str, float] = {}
+        si_v_dict: Dict[str, float] = {}
+        phreeqc_ok_val = False
+        charge_error_val: Optional[float] = None
+        skipped_reason_val: Optional[str] = None
+        
+        if bounds:
+            constraints_active = {str(k): str(v) for k, v in bounds.get("constraints_active", {}).items()}
+            si_u_dict = {str(k): float(v) for k, v in bounds.get("si_u", {}).items()}
+            si_v_dict = {str(k): float(v) for k, v in bounds.get("si_v", {}).items()}
+            phreeqc_ok_val = bool(bounds.get("phreeqc_ok", False))
+            
+            ce = bounds.get("charge_error")
+            if ce is not None:
+                try:
+                    charge_error_val = float(ce)
+                except (ValueError, TypeError):
+                    pass
+            
+            sr = bounds.get("skipped_reason")
+            if sr is not None:
+                skipped_reason_val = str(sr)
 
         result = EdgeResult(
             edge_id=edge_id,
@@ -305,13 +368,14 @@ def fit_edge(
             reaction_converged=reaction_fit.converged,
             ec_tds_penalty=penalty,
             qc_flags=[],
-            constraints_active=bounds.get("constraints_active", {}) if bounds else {},
-            si_u=bounds.get("si_u", {}) if bounds else {},
-            si_v=bounds.get("si_v", {}) if bounds else {},
-            phreeqc_ok=bounds.get("phreeqc_ok", False) if bounds else False,
-            charge_error=bounds.get("charge_error") if bounds else None,
-            skipped_reason=bounds.get("skipped_reason") if bounds else None,
+            constraints_active=constraints_active,
+            si_u=si_u_dict,
+            si_v=si_v_dict,
+            phreeqc_ok=phreeqc_ok_val,
+            charge_error=charge_error_val,
+            skipped_reason=skipped_reason_val,
             isotope_penalty=iso_penalty,
+
             isotope_metrics=iso_metrics,
             isotope_used=iso_used,
             gibbs_penalty=gibbs_penalty_val,
@@ -320,14 +384,21 @@ def fit_edge(
             isotope_consistency_penalty=iso_consistency_penalty,
             reaction_fit=reaction_fit,
             residual_vector=list(reaction_fit.residual),
+            chemistry_r2=chem_r2,
         )
+
         if best_result is None or result.objective_score < best_result.objective_score:
             best_result = result
 
     if best_result is None:
         raise RuntimeError("No transport candidates evaluated.")
 
-    scores = [entry["objective_score"] for entry in candidate_entries]
+    # Cast to float to satisfy mypy
+    scores = [float(entry["objective_score"]) for entry in candidate_entries if entry.get("objective_score") is not None]
+    if not scores:
+        # Fallback if somehow scores are empty but best_result is not None (should not happen)
+        scores = [0.0]
+        
     min_score = min(scores)
     weights = [math.exp(-(score - min_score)) for score in scores]
     total = sum(weights) or 1.0

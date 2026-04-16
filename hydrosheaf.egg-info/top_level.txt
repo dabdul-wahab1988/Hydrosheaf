@@ -1,1 +1,3 @@
 hydrosheaf
+hydrosheaf_manual
+hydrosheaf_synthetic_csv

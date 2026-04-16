@@ -74,8 +74,23 @@ def bootstrap_edge_fit(
     original_result = fit_edge(
         x_u, x_v, config, obs_u=obs_u, obs_v=obs_v, bounds=bounds
     )
+    
+    # Fix the transport model for all bootstrap replicates to ensure consistency
+    # in the parameter distributions (don't mix gamma and f)
+    fixed_model = original_result.transport_model
+    fixed_endmember = original_result.endmember_id
+    
+    # Create a temporary config with only the selected model enabled
+    from copy import copy
+    boot_config = copy(config)
+    boot_config.transport_models_enabled = [fixed_model]
+    if fixed_model == "mix" and fixed_endmember:
+        # Filter to only the selected endmember
+        if fixed_endmember in config.mixing_endmembers:
+            boot_config.mixing_endmembers = {fixed_endmember: config.mixing_endmembers[fixed_endmember]}
 
     # Compute residuals
+
     residuals = np.array(original_result.residual_vector, dtype=float)
     n_ions = len(residuals)
 
@@ -104,11 +119,12 @@ def bootstrap_edge_fit(
             boot_result = fit_edge(
                 x_u,
                 x_v_star.tolist(),
-                config,
+                boot_config,
                 obs_u=obs_u,
                 obs_v=obs_v,
                 bounds=bounds,
             )
+
 
             # Store parameters
             if boot_result.transport_model == "evap":

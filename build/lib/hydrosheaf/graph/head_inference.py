@@ -19,10 +19,18 @@ precision-matrix solve (no PyMC required).
 from __future__ import annotations
 
 from dataclasses import dataclass
+
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
+import pymc as pm
+import sys
+import os
 
+if sys.platform == "win32":
+    # Fix for PyMC/MKL crash on Windows (Heap Corruption)
+    # Must be set before pymc/numpy BLAS initialization
+    os.environ["MKL_THREADING_LAYER"] = "GNU"
 
 @dataclass(frozen=True)
 class HeadPosterior:
@@ -221,24 +229,11 @@ def infer_heads_bayesian_mcmc(
     when PyMC is available. If PyMC import fails, this uses
     infer_heads_bayesian_linear instead.
     """
-    try:
-        import pymc as pm  # type: ignore
-    except Exception:
-        return infer_heads_bayesian_linear(
-            samples,
-            node_id_key=node_id_key,
-            head_key=head_key,
-            dtw_key=dtw_key,
-            elevation_key=elevation_key,
-            sigma_meas=sigma_meas,
-            sigma_dtw=sigma_dtw,
-            sigma_elev=sigma_elev,
-            sigma_topo=sigma_topo,
-            dtw_prior_mu=dtw_prior_mu,
-            dtw_prior_sigma=dtw_prior_sigma,
-            head_prior_mu=head_prior_mu,
-            head_prior_sigma=head_prior_sigma,
-        )
+    # Force single core on Windows to avoid multiprocessing crashes (0xc0000374)
+    if sys.platform == "win32":
+        cores = 1
+
+
 
     # Build a consistent node list and observation arrays
     node_ids: List[str] = []
@@ -342,18 +337,19 @@ def infer_heads_bayesian_mcmc(
                 observed=dtw_obs_vals_arr,
             )
 
-        idata = pm.sample(
+        import nutpie
+        compiled = nutpie.compile_pymc_model(pm.Model.get_context())
+        idata = nutpie.sample(
+            compiled,
             draws=draws,
             tune=tune,
             chains=chains,
-            target_accept=float(mcmc_target_accept),
-            random_seed=random_seed,
-            cores=int(max(1, cores)),
-            progressbar=False,
-            compute_convergence_checks=False,
+            seed=random_seed,
+            progress_bar=False,
         )
 
     # Extract posterior draws and compute mean/cov
+
     h_draws = idata.posterior["h"].values  # (chain, draw, n)
     h_samples = h_draws.reshape(-1, n)
     head_mean = np.mean(h_samples, axis=0)

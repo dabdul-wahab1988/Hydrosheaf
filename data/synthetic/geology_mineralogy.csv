@@ -1,7 +1,0 @@
-station_code,geologic_province,likely_lithology,likely_minerals,reactive_phases,notes
-L1,Voltaian_Basin,weathered_sandstone_shale_regolith,quartz;feldspar;kaolinite;illite;goethite;hematite,Fe_oxides;clay_minerals;carbonate_cement?,regolith/lateritic soil over Voltaian sediments
-L2,Voltaian_Basin,weathered_sandstone_shale_regolith,quartz;feldspar;kaolinite;illite;goethite;hematite,Fe_oxides;clay_minerals;carbonate_cement?,regolith/lateritic soil over Voltaian sediments
-BH1,Voltaian_Basin,fractured_sandstone_with_shale_interbeds,quartz;feldspar;illite;calcite;dolomite;pyrite_trace,carbonate_minerals;Fe_sulfides_trace;Fe_oxides,sedimentary aquifer typical of Voltaian units
-BH2,Voltaian_Basin,fractured_sandstone_with_shale_interbeds,quartz;feldspar;illite;calcite;dolomite;pyrite_trace,carbonate_minerals;Fe_sulfides_trace;Fe_oxides,sedimentary aquifer typical of Voltaian units
-BH3,Voltaian_Basin,fractured_sandstone_with_mudstone_layers,quartz;feldspar;illite;calcite;dolomite;pyrite_trace,carbonate_minerals;Fe_sulfides_trace;Fe_oxides,sedimentary aquifer typical of Voltaian units
-BH4,Voltaian_Basin,fractured_sandstone_with_mudstone_layers,quartz;feldspar;illite;calcite;dolomite;pyrite_trace,carbonate_minerals;Fe_sulfides_trace;Fe_oxides,sedimentary aquifer typical of Voltaian units

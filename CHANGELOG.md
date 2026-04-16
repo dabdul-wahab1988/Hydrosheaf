@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.5.0 (2026-01-25)
+
+### New Features
+
+- **PEST++ and MODFLOW**: Auto-download support for calibration and transport executables.
+- **Vadose Zone Tuning**: Added hyperparameter tuning utilities and diagnostics.
+
+### Enhancements
+
+- **Dependency Enforcement**: Removed optional fallbacks; core scientific dependencies are now required.
+- **Sheaf Solver**: Replaced the custom solver with `scipy.optimize` for improved robustness.
+- **Scientific Logging**: Expanded CLI and core inference logging for reproducibility.
+- **Plotting**: Improved scientific plots for rigor and reproducible output.
+- **Web Application**: Updated frontend/back-end to match core engine features, with improved plots and download actions.
+
+### Documentation
+
+- **Setup Guidance**: Added a no-compilation quick start and refreshed README guidance.
+
+### Maintenance
+
+- Repository reorganization and targeted test fixes.
+
 ## 0.4.0 (2026-01-15)
 
 ### New Features

@@ -6,8 +6,10 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 import math
+import flopy
 
 from ..graph.types import Edge
+
 from .priors import PhysicsPrior
 
 
@@ -86,14 +88,8 @@ def priors_from_modpath_endpoints(
 
     Assumes endpoint coordinates are in the same coordinate system as `nodes`.
     """
-    try:
-        import flopy  # type: ignore
-    except Exception as exc:  # pragma: no cover
-        raise RuntimeError(
-            "FloPy is required to read MODPATH endpoints. Install flopy to use this feature."
-        ) from exc
-
     ep = flopy.utils.EndpointFile(endpoints_path)
+
     data = ep.get_alldata()
 
     # Aggregations: (u,v) -> [times]

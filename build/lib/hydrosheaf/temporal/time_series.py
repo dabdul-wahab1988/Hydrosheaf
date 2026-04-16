@@ -117,13 +117,21 @@ def load_time_series_csv(
             except ValueError:
                 pass
 
-        # Isotopes
-        for iso_key in ["18O", "2H", "d18O", "d2H"]:
+        # Isotopes and Nuclear Tracers
+        nuclear_keys = [
+            "18O", "2H", "d18O", "d2H",
+            "3H", "tritium", "H3", "H-3", "Tritium",
+            "14C", "C14", "carbon14", "C-14", "Radiocarbon",
+            "85Kr", "Kr85", "Krypton-85"
+        ]
+        
+        for iso_key in nuclear_keys:
             if iso_key in row:
                 try:
                     isotopes[iso_key] = float(row[iso_key])
                 except ValueError:
                     pass
+
 
         # Create sample
         sample = TimeSeriesSample(

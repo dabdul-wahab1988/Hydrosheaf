@@ -8,13 +8,30 @@ Stoich = Mapping[str, float]
 # Complete Mineral Library (IUPAC/Phreeqc Compliant Standards)
 MINERAL_LIBRARY: Dict[str, Stoich] = {
     # Carbonates
-    "calcite": {
+    # Open System (Infinite CO2): CaCO3 + CO2 + H2O -> Ca++ + 2HCO3-
+    "calcite_open": {
         "Ca": 1,
         "HCO3": 2,
-    },  # CaCO3 (Alkalinity balanced: Ca + CO3 + H = Ca + HCO3)
-    "aragonite": {"Ca": 1, "HCO3": 2},  # CaCO3 polymorph
-    "dolomite": {"Ca": 1, "Mg": 1, "HCO3": 4},  # CaMg(CO3)2
-    "magnesite": {"Mg": 1, "HCO3": 2},  # MgCO3
+    },
+    # Closed System (Limited CO2): CaCO3 + H+ -> Ca++ + HCO3- (consumes acidity)
+    # Or strictly: CaCO3 -> Ca++ + CO3--. In most groundwater (pH 6-8), this equilibrates to HCO3.
+    "calcite_closed": {
+        "Ca": 1,
+        "HCO3": 1,
+    },
+    "calcite": {"Ca": 1, "HCO3": 2},  # Default kept as open system for compatibility
+    "aragonite": {"Ca": 1, "HCO3": 2},
+    
+    # Dolomite Open: CaMg(CO3)2 + 2CO2 + 2H2O -> Ca++ + Mg++ + 4HCO3-
+    "dolomite_open": {"Ca": 1, "Mg": 1, "HCO3": 4},
+    # Dolomite Closed: CaMg(CO3)2 + 2H+ -> Ca++ + Mg++ + 2HCO3-
+    "dolomite_closed": {"Ca": 1, "Mg": 1, "HCO3": 2},
+    "dolomite": {"Ca": 1, "Mg": 1, "HCO3": 4},
+    
+    "magnesite_open": {"Mg": 1, "HCO3": 2},
+    "magnesite_closed": {"Mg": 1, "HCO3": 1},
+    "magnesite": {"Mg": 1, "HCO3": 2},
+
     "siderite": {"Fe": 1, "HCO3": 2},  # FeCO3
     # Evaporites
     "gypsum": {"Ca": 1, "SO4": 1},  # CaSO4:2H2O
@@ -39,6 +56,14 @@ MINERAL_LIBRARY: Dict[str, Stoich] = {
     "microcline": {"K": 1, "HCO3": 1},
     # Olivine (Forsterite): Mg2SiO4 + 4CO2 + 4H2O -> 2Mg++ + 4HCO3- + H4SiO4
     "forsterite": {"Mg": 2, "HCO3": 4},
+    # Pyroxene (Enstatite): MgSiO3 + 2CO2 + 3H2O -> Mg++ + 2HCO3- + H4SiO4
+    "enstatite": {"Mg": 1, "HCO3": 2},
+    # Clinopyroxene (Diopside): CaMgSi2O6 + 4CO2 + 2H2O -> Ca++ + Mg++ + 4HCO3- + 2H4SiO4
+    "diopside": {"Ca": 1, "Mg": 1, "HCO3": 4},
+    # Serpentine: Mg3Si2O5(OH)4 + 6CO2 + 5H2O -> 3Mg++ + 6HCO3- + 2H4SiO4
+    "serpentine": {"Mg": 3, "HCO3": 6},
+    # Talc: Mg3Si4O10(OH)2 + 6CO2 + 5H2O -> 3Mg++ + 6HCO3- + 4H4SiO4
+    "talc": {"Mg": 3, "HCO3": 6},
     # Crystalline Basement Weathering (Granite/Gneiss)
     # Biotite: K(Mg,Fe)3AlSi3O10(OH)2 -> Releases K, Mg, Fe, and often Fluoride
     # Simplified Stoichiometry: 1 K, 1.5 Mg, 1.5 Fe, 0.2 F, 7.2 HCO3

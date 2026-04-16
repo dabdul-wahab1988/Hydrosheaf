@@ -1,3 +1,0 @@
-cluster_code,landuse,dominant_crops,manure_use,residue_management,tillage
-CLUSTER_A,intensive_irrigated_cropland,tomato;onion;maize,occasional,removed,conventional
-CLUSTER_B,mixed_rainfed_cropland,maize;yam;groundnut,rare,incorporated,reduced

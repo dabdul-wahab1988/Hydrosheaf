@@ -15,7 +15,7 @@ Requires-Dist: pydantic
 Requires-Dist: typer
 Requires-Dist: flopy
 Requires-Dist: seaborn
-Requires-Dist: phreeqpy
+Requires-Dist: phreeqpython
 Requires-Dist: pyvista
 Requires-Dist: vtk
 Requires-Dist: pymc

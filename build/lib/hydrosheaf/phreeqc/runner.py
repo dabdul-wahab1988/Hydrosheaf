@@ -8,6 +8,8 @@ import shutil
 from ..config import Config
 from .outputs import parse_selected_output
 from .templates import build_selected_output_block, build_solution_block
+import phreeqpython
+
 
 
 def _default_result(sample_id: str, reason: str) -> Dict[str, object]:
@@ -144,17 +146,9 @@ def run_phreeqc(
 
     if config.phreeqc_mode == "phreeqpython":
         try:
-            import phreeqpython  # type: ignore
-        except ImportError:
-            for sample in valid_samples:
-                sample_id = _ensure_sample_id(sample)
-                results[sample_id] = _default_result(
-                    sample_id, "phreeqpython_unavailable"
-                )
-            return results
-        try:
             if db_path:
                 db_file = _prepare_database_copy(db_path)
+
                 engine = phreeqpython.PhreeqPython(
                     database=db_file.name,
                     database_directory=db_file.parent,
@@ -162,6 +156,7 @@ def run_phreeqc(
             else:
                 engine = phreeqpython.PhreeqPython()
         except Exception:
+
             for sample in valid_samples:
                 sample_id = _ensure_sample_id(sample)
                 results[sample_id] = _default_result(sample_id, "phreeqpython_failed")

@@ -1,0 +1,78 @@
+# ==============================================================================
+# HYDROSHEAF INTELLIGENT CONFIGURATION
+# ==============================================================================
+# This file controls the behavior of the Hydrosheaf Groundwater Analysis Engine.
+# Enable "True" to activate intelligent features.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. CORE PHYSICS & CHEMISTRY
+# ------------------------------------------------------------------------------
+# Models to test: 'evap' (Evaporation) and 'mix' (Mixing between waters)
+transport_models_enabled: ["evap", "mix"]
+
+# Active Minerals: The rocks/minerals the water interacts with.
+# Common list for sedimentary/agricultural aquifers.
+active_minerals:
+  - "calcite"                   # Carbonate rock (Limestone)
+  - "dolomite"                  # Mg-Carbonate
+  - "gypsum"                    # Sulfate source
+  - "halite"                    # Salt (NaCl)
+  - "albite"                    # Silicate weathering (Clay formation)
+  - "pyrite_oxidation_aerobic"  # Acid generation from sulfide minerals
+  - "CO2(g)"                    # Allow gas exchange (Degassing/Recharge)
+
+# Enable Ion Exchange? (e.g. Sodium sticking to Clay, releasing Calcium)
+exchange_enabled: True
+
+# Enable Gibbs Diagram checks? (Isotopes/Chemistry sanity check)
+gibbs_enabled: True
+
+# ------------------------------------------------------------------------------
+# 2. INTELLIGENT DISCOVERY (AI)
+# ------------------------------------------------------------------------------
+# Automatically find "hidden" pollution sources (Latent Endmembers) using PCA.
+# If True, the model will tell you if there is a mystery source (e.g. Manure).
+latent_endmembers_enabled: True
+latent_endmembers_count: 2      # How many hidden sources to look for?
+
+# ------------------------------------------------------------------------------
+# 3. NITRATE SOURCE TRACKING
+# ------------------------------------------------------------------------------
+# Enable Isotope Fingerprinting for Nitrate (d15N, d18O)?
+nitrate_source_enabled: True
+nitrate_isotope_mixing_enabled: True
+
+# Column names in your CSV for isotopes (Adjust if yours are different)
+nitrate_isotope_n15_col: "d15N_NO3_permil"
+nitrate_isotope_o18_col: "d18O_NO3_permil"
+
+# ------------------------------------------------------------------------------
+# 4. GEOCHEMICAL ENGINE (PHREEQC)
+# ------------------------------------------------------------------------------
+# Use PHREEQC for rigorous thermodynamic validation? (Highly Recommended)
+# If False, uses a faster linear approximation.
+phreeqc_enabled: True
+phreeqc_mode: "phreeqpython"    # Standard python interface
+
+# ------------------------------------------------------------------------------
+# 5. DATA STRUCTURE
+# ------------------------------------------------------------------------------
+# Order of ions in your data processing (Standard Hydrochem order)
+ion_order: 
+  - "Ca"
+  - "Mg"
+  - "Na"
+  - "K"
+  - "HCO3"
+  - "Cl"
+  - "SO4"
+  - "NO3"
+  - "F"
+  - "Fe"
+  - "PO4"
+
+# Statistical Confidence settings
+uncertainty_method: "bootstrap" # Calculate error bars (Confidence Intervals)
+bootstrap_n_resamples: 50       # Number of statistical checks (Higher = Slower)
+input_uncertainty_pct: 5.0      # Assumed lab error %

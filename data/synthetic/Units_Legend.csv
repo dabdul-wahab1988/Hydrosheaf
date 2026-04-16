@@ -1,0 +1,12 @@
+Variable(s),Units,Notes
+pH,unitless,Field measurement (same for paired bottles)
+EC_uScm,µS/cm,Field conductivity
+"Ca_mgL, Mg_mgL, Na_mgL, K_mgL",mg/L,Major cations (acidified bottle A)
+"HCO3_mgL, Cl_mgL, SO4_mgL, NO3_mgL",mg/L,Major anions (unacidified bottle U)
+"d15N_NO3_permil, d18O_NO3_permil",‰ vs AIR/VSMOW,Nitrate isotope bottle I
+"d2H_H2O_permil, d18O_H2O_permil",‰ vs VSMOW,Water isotope bottle W
+"NO3_N_mgkg, NH4_N_mgkg",mg/kg,Soil inorganic N
+"OrgC_pct, TotalN_pct",%,Soil organic carbon and total nitrogen
+"Sand_pct, Silt_pct, Clay_pct",%,Particle size fractions
+BulkDensity_gcm3,g/cm3,Soil bulk density
+CEC_cmolkg,cmol(+)/kg,Cation exchange capacity

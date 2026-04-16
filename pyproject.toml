@@ -21,7 +21,7 @@ dependencies = [
     "typer",
     "flopy",
     "seaborn",
-    "phreeqpy",
+    "phreeqpython",
     "pyvista",
     "vtk",
     "pymc",

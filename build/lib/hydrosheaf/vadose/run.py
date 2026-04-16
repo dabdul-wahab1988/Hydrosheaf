@@ -144,7 +144,11 @@ def build_vadose_edge_priors(
             grid_dt_days=float(cfg.ttd_grid_dt_days),
             max_lag_days=float(cfg.ttd_max_lag_days),
             cv=float(cfg.ttd_default_cv),
+            preferential_flow_fraction=float(cfg.preferential_flow_fraction),
+            preferential_velocity_factor=float(cfg.preferential_velocity_factor),
+            preferential_cv=float(cfg.preferential_cv),
         )
+
 
         prior = VadoseEdgePrior(
             u=link.u,

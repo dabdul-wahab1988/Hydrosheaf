@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import List, Sequence, Tuple
+import math
 
 import numpy as np
+
 
 
 @dataclass(frozen=True)
@@ -109,8 +111,9 @@ def gamma_kernel_grid(
         log_pdf = (
             (k - 1.0) * np.log(t)
             - (t / theta)
-            - (np.log(np.math.gamma(k)) + k * np.log(theta))
+            - (np.log(math.gamma(k)) + k * np.log(theta))
         )
+
         pdf[positive] = np.exp(log_pdf)
     # normalize discrete
     area = float(np.sum(pdf) * float(grid_dt_days))
@@ -126,6 +129,9 @@ def mixture_ttd_from_series(
     grid_dt_days: float,
     max_lag_days: float,
     cv: float,
+    preferential_flow_fraction: float = 0.0,
+    preferential_velocity_factor: float = 10.0,
+    preferential_cv: float = 1.0,
 ) -> Tuple[List[float], List[float], TravelTimeSummary]:
     taus = np.asarray(tau_days, dtype=float)
     w = np.asarray(weights, dtype=float)
@@ -145,30 +151,58 @@ def mixture_ttd_from_series(
     w = w[mask]
     w = w / np.sum(w)
 
+    # Base statistics (matrix/advective only)
     mean = float(np.sum(w * taus))
     var = float(np.sum(w * (taus - mean) ** 2))
     std = float(np.sqrt(max(0.0, var)))
     p10 = _weighted_quantile(taus, w, 0.1)
     p50 = _weighted_quantile(taus, w, 0.5)
     p90 = _weighted_quantile(taus, w, 0.9)
+    
+    # If preferential flow is active, we should probably update the summary stats
+    # to reflect the effective dual-domain behavior.
+    # For now, we report the MATRIX (advective) statistics as "baseline",
+    # but the kernel below will include the fast path.
+    # (Future TODO: Calculate effective moments of the mixture)
+    
     summary = TravelTimeSummary(
         mean_days=mean, std_days=std, p10_days=p10, p50_days=p50, p90_days=p90
     )
 
     # Build mixture kernel as weighted sum of per-time gamma kernels.
+    # Now supports Dual-Domain (Matrix + Preferential)
     n = int(np.floor(float(max_lag_days) / float(grid_dt_days))) + 1
     grid = np.linspace(0.0, float(max_lag_days), n)
     pdf_mix = np.zeros_like(grid)
+    
+    w_matrix = 1.0 - max(0.0, min(1.0, preferential_flow_fraction))
+    w_fast = 1.0 - w_matrix
+    fast_factor = max(1.0, preferential_velocity_factor)
+    
     for tau_i, wi in zip(taus, w):
-        g_tau, g_pdf = gamma_kernel_grid(
-            mean_days=float(tau_i),
-            cv=cv,
-            grid_dt_days=grid_dt_days,
-            max_lag_days=max_lag_days,
-        )
-        if not g_tau:
-            continue
-        pdf_mix += wi * np.asarray(g_pdf, dtype=float)
+        # Matrix component
+        if w_matrix > 0:
+            g_tau, g_pdf = gamma_kernel_grid(
+                mean_days=float(tau_i),
+                cv=cv,
+                grid_dt_days=grid_dt_days,
+                max_lag_days=max_lag_days,
+            )
+            if g_tau:
+                pdf_mix += wi * w_matrix * np.asarray(g_pdf, dtype=float)
+        
+        # Preferential component
+        if w_fast > 0:
+            tau_fast = float(tau_i) / fast_factor
+            g_tau_fast, g_pdf_fast = gamma_kernel_grid(
+                mean_days=tau_fast,
+                cv=preferential_cv,
+                grid_dt_days=grid_dt_days,
+                max_lag_days=max_lag_days,
+            )
+            if g_tau_fast:
+                pdf_mix += wi * w_fast * np.asarray(g_pdf_fast, dtype=float)
+
     area = float(np.sum(pdf_mix) * float(grid_dt_days))
     if area > 0:
         pdf_mix /= area
@@ -177,3 +211,4 @@ def mixture_ttd_from_series(
         [float(x) for x in pdf_mix.tolist()],
         summary,
     )
+

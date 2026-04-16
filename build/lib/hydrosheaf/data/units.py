@@ -6,14 +6,14 @@ MOLAR_MASS_G_MOL: Dict[str, float] = {
     "Ca": 40.078,
     "Mg": 24.305,
     "Na": 22.990,
-    "K": 39.0983,
-    "HCO3": 61.0168,
-    "Cl": 35.45,
-    "SO4": 96.06,
-    "NO3": 62.0049,
-    "F": 19.0,
+    "K": 39.098,
+    "HCO3": 61.017,
+    "Cl": 35.453,
+    "SO4": 96.064,
+    "NO3": 62.005,
+    "F": 18.998,
     "Fe": 55.845,
-    "PO4": 94.9714,
+    "PO4": 94.971,
 }
 
 CHARGE_EQUIV: Dict[str, int] = {
@@ -26,9 +26,10 @@ CHARGE_EQUIV: Dict[str, int] = {
     "SO4": 2,
     "NO3": 1,
     "F": 1,
-    "Fe": 2,  # Assuming Fe(II) for charge balance estimation
-    "PO4": 3,  # Assuming PO4(3-)
+    "Fe": 2,  # Assuming Fe(II) for charge balance estimation. In oxic waters, consider Fe(III).
+    "PO4": 3,  # Assuming PO4(3-). At pH < 12.3, HPO4(2-) or H2PO4(-) may dominate.
 }
+
 
 
 def mgL_to_mmolL(value: float, ion: str) -> float:
@@ -36,6 +37,14 @@ def mgL_to_mmolL(value: float, ion: str) -> float:
         raise KeyError(f"Unknown ion: {ion}")
     # g/mol == mg/mmol. value (mg/L) / M (mg/mmol) = mmol/L
     return value / MOLAR_MASS_G_MOL[ion]
+
+
+def mmolL_to_mgL(value: float, ion: str) -> float:
+    """Convert concentration from mmol/L to mg/L."""
+    if ion not in MOLAR_MASS_G_MOL:
+        raise KeyError(f"Unknown ion: {ion}")
+    # mmol/L * mg/mmol = mg/L
+    return value * MOLAR_MASS_G_MOL[ion]
 
 
 def mmolL_to_meqL(value: float, ion: str) -> float:

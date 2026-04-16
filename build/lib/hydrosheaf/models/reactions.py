@@ -1,13 +1,13 @@
 """Reaction dictionary and sparse fitting."""
 
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Sequence, Tuple
+from typing import Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from ..config import Config, DEFAULT_ION_ORDER
 from ..data.minerals import get_mineral_stoich
 
 
-def _vector_from_coeffs(coeffs: dict, ion_order: Iterable[str]) -> List[float]:
+def _vector_from_coeffs(coeffs: Mapping[str, float], ion_order: Iterable[str]) -> List[float]:
     return [float(coeffs.get(ion, 0.0)) for ion in ion_order]
 
 
@@ -17,7 +17,7 @@ def build_reaction_dictionary(
     ion_order = config.ion_order or DEFAULT_ION_ORDER
     kappa = config.denit_kappa
 
-    reactions: List[Tuple[str, dict, bool]] = []
+    reactions: List[Tuple[str, Mapping[str, float], bool]] = []
 
     # 1. Add User-Selected Minerals
     for name in config.active_minerals:
@@ -137,37 +137,85 @@ def fit_reactions(
         [_dot(weighted_matrix[i], weighted_matrix[j]) for j in range(m)]
         for i in range(m)
     ]
+
+    # Compute condition number for multicollinearity warning
+    trace_gram = sum(gram[i][i] for i in range(m))
+    frob_sq = sum(gram[i][j]**2 for i in range(m) for j in range(m))
+    # Approximate condition number using trace/Frobenius ratio
+    if trace_gram > 1e-12:
+        approx_cond = (frob_sq**0.5) / (trace_gram / m)
+        if approx_cond > 30:
+            import warnings
+            warnings.warn(
+                f"Reaction matrix may be ill-conditioned (approx. κ={approx_cond:.1f}). "
+                "Consider reducing active minerals or enabling exchange reactions."
+            )
+
     s_r = [_dot(weighted_matrix[i], weighted_residual) for i in range(m)]
 
-    if lb is not None and len(lb) != m:
-        raise ValueError("lb length must match reaction matrix size.")
-    if ub is not None and len(ub) != m:
-        raise ValueError("ub length must match reaction matrix size.")
+    if lb is not None and ub is not None:
+        if len(lb) != m or len(ub) != m:
+            raise ValueError("lb and ub must match matrix size.")
+        for i, (l, u) in enumerate(zip(lb, ub)):
+            if l is not None and u is not None and l > u:
+                raise ValueError(f"Lower bound exceeds upper bound at index {i}: {l} > {u}")
+
     if signed_mask is None:
         signed_mask = [False] * m
     if len(signed_mask) != m:
         raise ValueError("signed_mask length must match reaction matrix size.")
 
+    # Adaptive ridge regression parameter for numerical stability
+    # Use max diagonal element to scale epsilon, plus a small absolute floor
+    max_diag = 0.0
+    for i in range(m):
+        if gram[i][i] > max_diag:
+            max_diag = gram[i][i]
+    ridge_epsilon = max_diag * 1e-10 + 1e-20
+
     z = [0.0] * m
     converged = False
+    iteration = 0
+    
+    # Store objective history to detect cycling
+    prev_obj = float('inf')
+    
     for iteration in range(1, max_iter + 1):
         max_delta = 0.0
         for j in range(m):
-            rho = s_r[j] - sum(gram[j][k] * z[k] for k in range(m) if k != j)
-            denom = gram[j][j] + 1e-12
-            updated = _soft_threshold(rho, lambda_l1 / 2.0) / denom
+            # Calculate partial residual correlation
+            # Use math.fsum if available for precision, but sum is usually fine for small m
+            dot_prod = sum(gram[j][k] * z[k] for k in range(m) if k != j)
+            rho = s_r[j] - dot_prod
+            
+            denom = gram[j][j] + ridge_epsilon
+            
+            # If denominator is effectively zero (zero reaction vector), force coeff to 0
+            if denom < 1e-15:
+                updated = 0.0
+            else:
+                updated = _soft_threshold(rho, lambda_l1 / 2.0) / denom
+            
             if not signed_mask[j]:
                 updated = max(0.0, updated)
             if lb is not None and lb[j] is not None:
                 updated = max(lb[j], updated)
             if ub is not None and ub[j] is not None:
                 updated = min(ub[j], updated)
-            max_delta = max(max_delta, abs(updated - z[j]))
+            
+            delta = abs(updated - z[j])
+            if delta > max_delta:
+                max_delta = delta
 
             z[j] = updated
+            
         if max_delta <= tol:
             converged = True
             break
+            
+        # Optional: Check objective function every 10 iterations to detect cycling
+        # (omitted for speed unless we want strict guarantees)
+
 
     fitted = _combine_reactions(reaction_matrix, z)
     post_residual = [r - f for r, f in zip(residual, fitted)]

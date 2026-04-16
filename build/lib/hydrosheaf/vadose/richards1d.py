@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+import math
 from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -63,6 +64,21 @@ def _layer_params_by_node(profile: VadoseProfile, z_m: np.ndarray) -> List[VGPar
 
     for d in z_m:
         layer = profile.layers[_layer_for_depth(float(d))]
+        ks_val = float(layer.ks_m_day) if layer.ks_m_day is not None else 0.0
+        
+        # Apply quasi-2D tensor anisotropy correction if defined
+        # K_zz = K_par * sin^2(alpha) + K_perp * cos^2(alpha)
+        # where K_perp = ks, K_par = ks * anisotropy
+        if layer.dip_angle_deg != 0.0 or layer.anisotropy_ratio != 1.0:
+            rad = math.radians(float(layer.dip_angle_deg))
+            s2 = math.sin(rad) ** 2
+            c2 = math.cos(rad) ** 2
+            # Use provided ks as the base perpendicular conductivity if not texture-derived
+            # If texture derived, we handle it below
+            pass # calculated inside the block or after texture lookup
+
+        final_ks = 0.0
+        
         if (
             layer.theta_r is not None
             and layer.theta_s is not None
@@ -70,22 +86,49 @@ def _layer_params_by_node(profile: VadoseProfile, z_m: np.ndarray) -> List[VGPar
             and layer.n is not None
             and layer.ks_m_day is not None
         ):
+            # Explicit parameters
+            base_ks = float(layer.ks_m_day)
+            rad = math.radians(float(layer.dip_angle_deg))
+            s2 = math.sin(rad) ** 2
+            c2 = math.cos(rad) ** 2
+            ratio = float(layer.anisotropy_ratio)
+            # K_eff = (base * ratio) * sin^2 + base * cos^2 = base * (ratio * s2 + c2)
+            final_ks = base_ks * (ratio * s2 + c2)
+            
             params.append(
                 VGParams(
                     theta_r=float(layer.theta_r),
                     theta_s=float(layer.theta_s),
                     alpha_1_m=float(layer.alpha_1_m),
                     n=float(layer.n),
-                    ks_m_day=float(layer.ks_m_day),
+                    ks_m_day=final_ks,
                     pore_connectivity=float(layer.pore_connectivity),
                 )
             )
             continue
+            
         if layer.texture:
             p = vg_from_texture(layer.texture)
             if p is not None:
-                params.append(p)
+                # Texture derived base parameters
+                base_ks = float(p.ks_m_day)
+                rad = math.radians(float(layer.dip_angle_deg))
+                s2 = math.sin(rad) ** 2
+                c2 = math.cos(rad) ** 2
+                ratio = float(layer.anisotropy_ratio)
+                final_ks = base_ks * (ratio * s2 + c2)
+                
+                # Clone p with new ks
+                params.append(VGParams(
+                    theta_r=p.theta_r,
+                    theta_s=p.theta_s,
+                    alpha_1_m=p.alpha_1_m,
+                    n=p.n,
+                    ks_m_day=final_ks,
+                    pore_connectivity=p.pore_connectivity
+                ))
                 continue
+                
         raise ValueError(
             "Vadose layer missing hydraulic params (theta_r/theta_s/alpha/n/ks) and no known texture mapping."
         )
@@ -180,6 +223,8 @@ def run_richards_column(
 
         # Lower boundary: optional constant head from water table depth (requires wt deeper than profile)
         psi_bottom_bc = None
+        is_seepage_active = False
+        
         if config.lower_boundary == "constant_head_from_wt":
             wt = _wt_at_time(sample.timestamp)
             if wt is None:
@@ -192,6 +237,10 @@ def run_richards_column(
                 )
             # Approximate hydrostatic suction at column bottom: psi ≈ -(wt - depth)
             psi_bottom_bc = float(-(wt - depth_m))
+        elif config.lower_boundary == "seepage_face":
+            # Initial guess for seepage state based on previous time step
+            if psi_n[-1] >= 0.0:
+                is_seepage_active = True
 
         theta_n = np.array(
             [
@@ -288,13 +337,25 @@ def run_richards_column(
             # Bottom node j=n_nodes-1
             j = n_nodes - 1
             Km = float(K_face[-1]) if n_nodes >= 2 else 0.0
-            q_bot = float(K_k[-1])  # free drainage default
+            
+            # Determine BC for this iteration
+            iter_dirichlet_val: Optional[float] = None
+            iter_flux_q: float = float(K_k[-1])  # Default free drainage
+            
             if psi_bottom_bc is not None:
+                iter_dirichlet_val = float(psi_bottom_bc)
+            elif config.lower_boundary == "seepage_face":
+                if is_seepage_active:
+                    iter_dirichlet_val = 0.0
+                else:
+                    iter_flux_q = 0.0 # Zero flux when unsaturated/closed
+            
+            if iter_dirichlet_val is not None:
                 # Impose Dirichlet on bottom node by a strong penalty row.
                 main[j] = 1.0
                 if n_nodes >= 2:
                     lower[-1] = 0.0
-                rhs[j] = float(psi_bottom_bc)
+                rhs[j] = float(iter_dirichlet_val)
             else:
                 main[j] = (C_k[j] / dt) + (Km) / (dz * dz)
                 if n_nodes >= 2:
@@ -302,7 +363,7 @@ def run_richards_column(
                 rhs[j] = (
                     (C_k[j] / dt) * psi_k[j]
                     + (theta_n[j] - theta_k[j]) / dt
-                    + (Km - q_bot) / dz
+                    + (Km - iter_flux_q) / dz
                     - sink[j]
                 )
 
@@ -313,6 +374,24 @@ def run_richards_column(
                 format="csc",
             )
             psi_next = np.array(spsolve(A, rhs), dtype=float)
+            
+            # Update Seepage Face state for next iteration
+            if config.lower_boundary == "seepage_face":
+                if is_seepage_active:
+                    # Check flux. If inflow (q < 0), switch to closed.
+                    # q_bot = K_face_bot * (1 - (psi_bot - psi_up)/dz)
+                    # psi_bot = 0
+                    if n_nodes >= 2:
+                        # Use K_face from this iter (approx)
+                        kf = Km # Km is K_face[-1]
+                        psi_up = psi_next[-2]
+                        q_check = kf * (1.0 + psi_up / dz)
+                        if q_check < -1e-9: # tolerance
+                            is_seepage_active = False
+                else:
+                    # Check pressure. If saturated, switch to open.
+                    if psi_next[-1] >= 0.0:
+                        is_seepage_active = True
 
             max_delta = float(np.max(np.abs(psi_next - psi_k)))
             psi_k = psi_next
@@ -343,7 +422,16 @@ def run_richards_column(
             Kf = 2.0 * K_np1[j] * K_np1[j + 1] / max(1e-12, (K_np1[j] + K_np1[j + 1]))
             q_faces[j + 1] = Kf * (1.0 - (psi_np1[j + 1] - psi_np1[j]) / dz)
         # Bottom face
-        q_faces[-1] = float(K_np1[-1]) if psi_bottom_bc is None else float(K_np1[-1])
+        if psi_bottom_bc is not None:
+            # Darcy flux with prescribed head (Dirichlet)
+            Kf = float(K_np1[-1])
+            # q = -K * (d_psi/dz - 1) = K * (1 - (psi_v - psi_u)/dz)
+            # here z is positive down, so flux is K * (1 - (psi_bot - psi_prev)/dz)
+            q_faces[-1] = Kf * (1.0 - (float(psi_bottom_bc) - psi_np1[-2]) / dz)
+        else:
+            # Free drainage (Unit gradient: q = K)
+            q_faces[-1] = float(K_np1[-1])
+
 
         # Mass balance check over the column depth:
         storage_n = float(np.sum(theta_n) * dz)

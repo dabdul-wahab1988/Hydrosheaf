@@ -39,6 +39,12 @@ class VadoseLayer:
     ks_m_day: Optional[float] = None
     pore_connectivity: float = 0.5
 
+    # Anisotropy and Geometry (Quasi-2D support via tensor projection)
+    # dip_angle_deg: Angle of layering relative to horizontal (0 = flat).
+    # anisotropy_ratio: K_parallel / K_perpendicular (default 1.0 = isotropic).
+    dip_angle_deg: float = 0.0
+    anisotropy_ratio: float = 1.0
+
 
 @dataclass(frozen=True)
 class VadoseProfile:
@@ -73,7 +79,7 @@ class VadoseRunConfig:
     feddes_h_anoxic_m: float = -0.1
 
     # Lower boundary control
-    lower_boundary: Literal["free_drainage", "constant_head_from_wt"] = "free_drainage"
+    lower_boundary: Literal["free_drainage", "constant_head_from_wt", "seepage_face"] = "free_drainage"
     require_wt_deeper_than_profile: bool = True
 
     # Travel-time distribution (TTD) kernel construction (gamma mixture approximation)
@@ -82,6 +88,12 @@ class VadoseRunConfig:
     ttd_default_cv: float = (
         0.7  # coefficient of variation for gamma kernel around advective mean
     )
+
+    # Dual-domain / Preferential flow parameters (statistical approximation)
+    preferential_flow_fraction: float = 0.0  # Fraction of flow bypassing matrix (0.0 to 1.0)
+    preferential_velocity_factor: float = 10.0  # How much faster is the preferential path?
+    preferential_cv: float = 1.0  # CV for the preferential component
+
 
 
 @dataclass(frozen=True)

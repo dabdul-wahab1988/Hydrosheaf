@@ -1,8 +1,0 @@
-event_code,Month,date,season
-E1-DRY,5,2023-05-15,dry
-E2-PRE,9,2023-09-15,transition
-E3-POST1,10,2023-10-15,wet
-E4-POST2,11,2023-11-15,wet
-E5-DRY2,1,2024-01-15,dry
-E6-PRE2,9,2024-09-15,transition
-E7-POST3,10,2024-10-15,wet
