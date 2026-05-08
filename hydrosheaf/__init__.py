@@ -53,6 +53,13 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
     "tune_reaction_hyperparameters": (".tuning", "tune_reaction_hyperparameters"),
     # NEW WORKFLOW
     "analyze_dataset": (".workflows.auto", "analyze_dataset"),
+    "ClaimRecord": (".validation", "ClaimRecord"),
+    "EvidenceLevel": (".validation", "EvidenceLevel"),
+    "assess_claim_records": (".validation", "assess_claim_records"),
+    "classification_metrics": (".validation", "classification_metrics"),
+    "interval_coverage": (".validation", "interval_coverage"),
+    "regression_metrics": (".validation", "regression_metrics"),
+    "topology_metrics": (".validation", "topology_metrics"),
 }
 
 __all__ = list(_EXPORTS)
