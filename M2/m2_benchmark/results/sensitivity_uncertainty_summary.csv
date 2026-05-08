@@ -1,0 +1,5 @@
+factor,output_metric,iqr_contribution
+Head-data absence,edge confidence,0.14301534766931862
+Graph edge-density,reaction extent,10.743063862814829
+Missing major ions,reaction extent,100.0
+Tracer measurement error,MRT,688.9792000000001

@@ -1,0 +1,74 @@
+{
+  "run_timestamp_utc": "2026-05-06T04:27:38.859171+00:00",
+  "source_repository": "https://code.usgs.gov/cawsc/DGMETA",
+  "source_publication": "https://pubs.usgs.gov/publication/tm4F5",
+  "source_commit": "c4a16f4fd225d46fb84c99f84ea69adba139ba5f",
+  "max_rows_per_sheet": null,
+  "download_attempts": [
+    {
+      "source": "Examples/DGMETA_20231101_Example_1.xlsm",
+      "target": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/dgmeta/input/DGMETA_20231101_Example_1.xlsm",
+      "status": "present"
+    },
+    {
+      "source": "Examples/DGMETA_20231101_Example_2_Clever.xlsm",
+      "target": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/dgmeta/input/DGMETA_20231101_Example_2_Clever.xlsm",
+      "status": "present"
+    },
+    {
+      "source": "Examples/DGMETA_20231101_Example_2_Hamme.xlsm",
+      "target": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/dgmeta/input/DGMETA_20231101_Example_2_Hamme.xlsm",
+      "status": "present"
+    },
+    {
+      "source": "Examples/DGMETA_20231101_Example_2_Jenkins.xlsm",
+      "target": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/dgmeta/input/DGMETA_20231101_Example_2_Jenkins.xlsm",
+      "status": "present"
+    },
+    {
+      "source": "Examples/DGMETA_20231101_Example_2_Weiss.xlsm",
+      "target": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/dgmeta/input/DGMETA_20231101_Example_2_Weiss.xlsm",
+      "status": "present"
+    },
+    {
+      "source": "Examples/DGMETA_20231101_Example_3_TX.xlsm",
+      "target": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/dgmeta/input/DGMETA_20231101_Example_3_TX.xlsm",
+      "status": "present"
+    },
+    {
+      "source": "Examples/DGMETA_20231101_Example_4_CESJV.xlsm",
+      "target": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/dgmeta/input/DGMETA_20231101_Example_4_CESJV.xlsm",
+      "status": "present"
+    },
+    {
+      "source": "Examples/DGMETA_20231101_Example_5_Degassed.xlsm",
+      "target": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/dgmeta/input/DGMETA_20231101_Example_5_Degassed.xlsm",
+      "status": "present"
+    },
+    {
+      "source": "README.md",
+      "target": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/dgmeta/input/README.md",
+      "status": "present"
+    },
+    {
+      "source": "code.json",
+      "target": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/dgmeta/input/code.json",
+      "status": "present"
+    }
+  ],
+  "input_workbooks": [
+    "DGMETA_20231101_Example_1.xlsm",
+    "DGMETA_20231101_Example_2_Clever.xlsm",
+    "DGMETA_20231101_Example_2_Hamme.xlsm",
+    "DGMETA_20231101_Example_2_Jenkins.xlsm",
+    "DGMETA_20231101_Example_2_Weiss.xlsm",
+    "DGMETA_20231101_Example_3_TX.xlsm",
+    "DGMETA_20231101_Example_4_CESJV.xlsm",
+    "DGMETA_20231101_Example_5_Degassed.xlsm"
+  ],
+  "outputs": {
+    "comparison": "external/dgmeta/results/dgmeta_hydrosheaf_comparison.csv",
+    "summary": "external/dgmeta/results/dgmeta_validation_summary.csv"
+  },
+  "note": "Uses cached DGMETA workbook outputs; does not execute Excel VBA macros."
+}

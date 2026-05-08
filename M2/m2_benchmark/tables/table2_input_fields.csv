@@ -1,0 +1,9 @@
+data_category,minimum_viable_fields,enhanced_fields,m2_role
+Site identifiers,site_id,"sample_id, event_id",required
+Spatial metadata,"x, y or latitude, longitude","screen depth, elevation, aquifer unit",required for graph
+Major ions,"Ca, Mg, Na, K, HCO3, Cl, SO4, NO3","F, Fe, PO4, Br",required for reaction fitting
+Field parameters,"pH, temperature","EC, TDS, DO",enhanced QC and PHREEQC
+Stable isotopes,"d18O, d2H",local meteoric line metadata,enhanced transport screening
+Nuclear tracers,"tritium, 14C","3H/3He, 36Cl, 81Kr, CFCs, SF6, noble gases",enhanced residence time
+Hydraulic data,head or elevation proxy,MODPATH endpoints,enhanced topology priors
+Thermodynamic inputs,saturation indices or PHREEQC-ready chemistry,"mineralogy, pCO2, DIC",enhanced reaction constraints

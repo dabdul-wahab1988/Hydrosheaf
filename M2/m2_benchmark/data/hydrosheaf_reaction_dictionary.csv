@@ -1,0 +1,11 @@
+reaction_label,is_mineral,stoichiometry_mmolL_per_extent,is_signed_in_benchmark
+calcite,True,"{""Ca"": 1.0, ""HCO3"": 2.0}",False
+dolomite,True,"{""Ca"": 1.0, ""HCO3"": 4.0, ""Mg"": 1.0}",False
+gypsum,True,"{""Ca"": 1.0, ""SO4"": 1.0}",False
+halite,True,"{""Cl"": 1.0, ""Na"": 1.0}",False
+albite,True,"{""HCO3"": 1.0, ""Na"": 1.0}",False
+pyrite_oxidation_aerobic,True,"{""Fe"": 1.0, ""SO4"": 2.0}",False
+NO3src,False,"{""NO3"": 1.0}",False
+denit,False,"{""HCO3"": 1.0, ""NO3"": -1.0}",False
+CaNa_exch,False,"{""Ca"": 1.0, ""Na"": -2.0}",True
+MgNa_exch,False,"{""Mg"": 1.0, ""Na"": -2.0}",True

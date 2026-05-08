@@ -1,0 +1,2 @@
+n_endpoint_edges,n_pathline_edges,true_positive_edges,false_positive_edges,false_negative_edges,edge_precision,edge_recall,edge_f1,direction_agreement_rate,mean_source_receptor_overlap,pathline_elapsed_time_median,pathline_elapsed_time_p90,edge_error_rate
+174,174,174,0,0,1.0,1.0,1.0,1.0,1.0,293.33050000000003,550.6551999999999,0.0

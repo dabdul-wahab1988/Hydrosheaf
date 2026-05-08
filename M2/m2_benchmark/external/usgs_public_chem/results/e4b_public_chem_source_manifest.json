@@ -1,0 +1,66 @@
+{
+  "run_timestamp_utc": "2026-05-06T04:24:17Z",
+  "source_summary": {
+    "source": "USGS NAWQA groundwater-quality public data release",
+    "doi": "10.5066/P9J7I9DH",
+    "source_page": "https://www.usgs.gov/data/select-groundwater-quality-and-quality-control-data-national-water-quality-assessment-project",
+    "sciencebase_item": "606f0b21d34ef99870188821",
+    "selected_network_name": "vpdcpas1",
+    "selected_network_type": "PAS",
+    "selected_states": [
+      "AL",
+      "PA",
+      "TN",
+      "VA",
+      "WV"
+    ],
+    "selected_aquifers": [
+      "Valley and Ridge and Piedmont and Blue Ridge carbonate-rock aquifers"
+    ],
+    "complete_public_samples": 30,
+    "available_complete_public_samples": 889,
+    "data_zip_sha256": "94aeb98a847b39b7d7f63decb6993c2bb040966b105f8b475a89709510d36a11"
+  },
+  "source_files": {
+    "NWQP_GW_QW_Data_Release_v4.zip": {
+      "path": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/usgs_public_chem/input/NWQP_GW_QW_Data_Release_v4.zip",
+      "sha256": "94aeb98a847b39b7d7f63decb6993c2bb040966b105f8b475a89709510d36a11",
+      "bytes": 322697
+    },
+    "NWQP_GW_QW_Metadata_V4.xml": {
+      "path": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/usgs_public_chem/input/NWQP_GW_QW_Metadata_V4.xml",
+      "sha256": "0a37e8469d27b6ebaf57d832e81f3a04d9a7615fdb4c3d8d3576b69bfa4249d2",
+      "bytes": 153173
+    },
+    "NWQP_GW_QW_RevisionHistory_v4.txt": {
+      "path": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/usgs_public_chem/input/NWQP_GW_QW_RevisionHistory_v4.txt",
+      "sha256": "4d44c2f3bf7c29d6bfd3e53592d75b8245552c0ef8dcb25e0977ecc631d04652",
+      "bytes": 60420
+    }
+  },
+  "hydrosheaf_config": {
+    "ion_order": [
+      "Ca",
+      "Mg",
+      "Na",
+      "K",
+      "HCO3",
+      "Cl",
+      "SO4",
+      "F"
+    ],
+    "active_minerals": [
+      "calcite",
+      "dolomite",
+      "gypsum",
+      "halite"
+    ],
+    "latent_endmembers_enabled": false,
+    "candidate_graph": "5-nearest neighbors in latitude/longitude/depth space"
+  },
+  "outputs": {
+    "samples": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/usgs_public_chem/results/public_chem_samples.csv",
+    "edge_results": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/usgs_public_chem/results/public_chem_edge_results.csv",
+    "report": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/usgs_public_chem/results/e4b_public_chem_report.md"
+  }
+}

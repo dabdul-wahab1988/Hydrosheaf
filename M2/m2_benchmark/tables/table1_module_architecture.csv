@@ -1,0 +1,7 @@
+module,primary_function,required_inputs,generated_outputs,validation_role
+Data ingestion and preprocessing,"Unit harmonisation, QC, missing-value handling","sample chemistry, isotopes, coordinates",normalised node table,Synthetic recovery and data-limited workflow
+Graph construction and edge inference,Directed candidate edge generation and confidence scoring,"coordinates, heads, priors, age consistency",confidence-weighted graph,Topology benchmark
+Residence-time modelling,Single-node LPM and network Bayesian age update,"tritium, 14C, optional gases",age posterior summaries,Tracer-age agreement
+Sparse inverse hydrogeochemical fitting,Transport correction and L1 reaction fitting,"upstream/downstream chemistry, endmembers",reaction extents and residuals,Synthetic reaction recovery
+PHREEQC constraint and forward check,Thermodynamic feasibility screening,"saturation fields, reaction extents","RMSE, NSE, feasibility flag",Forward validation
+Uncertainty and outputs,"Monte Carlo, degraded data, topology perturbation",benchmark realisations,"tables, figures, diagnostics",Sensitivity and uncertainty

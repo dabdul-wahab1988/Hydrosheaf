@@ -1,0 +1,7 @@
+tracer,lpm_type,key_assumptions,age_range,uncertainty_output,primary_limitation
+3H,piston/exponential,"young recharge, detectable tritium",0-60 yr,Monte Carlo posterior,ambiguous under mixing
+3H/3He,closed-system ingrowth,well-preserved noble gas sample,1-50 yr,analytical plus bootstrap,degassing sensitivity
+14C,dispersion with d13C correction,dead-carbon correction available,100-40000 yr,Bayesian posterior,correction non-uniqueness
+36Cl / 81Kr,deep aquifer decay,confined old groundwater,10000-1000000 yr,posterior interval,specialised sampling
+CFCs / SF6,atmospheric input function,"young water, no contamination",0-70 yr,Monte Carlo,excess air and contamination
+Network Bayesian update,edge-constrained age ordering,connected graph with tracer anchors,all ranges,narrowed node posterior,depends on graph quality

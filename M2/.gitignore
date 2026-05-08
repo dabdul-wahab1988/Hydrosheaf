@@ -1,0 +1,11 @@
+# Keep M2 source documents and bulky downloaded raw data out of the repo.
+/*.docx
+/*.zip
+/*.xml
+
+# Public/raw input archives are reproducible from the source manifests and
+# README files. Commit generated results, reports, and lightweight provenance.
+m2_benchmark/external/*/input/**
+!m2_benchmark/external/*/input/
+!m2_benchmark/external/*/input/README.md
+!m2_benchmark/external/dgmeta/input/code.json

@@ -1,0 +1,17 @@
+{
+  "validation_tier": "E2_modpath_topology",
+  "source_url": "https://www.usgs.gov/data/modflow-2005-modpath-and-moc3d-used-groundwater-flow-simulation-pathlines-analysis-and-solute",
+  "source_doi": "10.5066/F7J102FK",
+  "endpoint_file": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\modpath\\input\\selected_output\\base-MP.end",
+  "pathline_file": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\modpath\\input\\selected_output\\base-MP.path",
+  "n_endpoint_records": 3000,
+  "n_pathline_points": 410769,
+  "outputs": {
+    "graph_priors": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\modpath\\results\\modpath_graph_priors.csv",
+    "topology_agreement": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\modpath\\results\\modpath_topology_agreement.csv",
+    "pathline_particles": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\modpath\\results\\modpath_pathline_particles.csv",
+    "summary": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\modpath\\results\\modpath_topology_summary.csv",
+    "figure_s2": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\figures\\figure_s2_modpath_to_graph_prior_real_archive.png",
+    "report": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\modpath\\results\\e2_modpath_topology_report.md"
+  }
+}
