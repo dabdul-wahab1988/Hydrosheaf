@@ -1,0 +1,5 @@
+scenario,validation_mode,purpose,precision,recall,f1,false_positive_rate,false_negative_rate,tp,fp,fn,tn,scale_mismatch,median_reference_length,median_inferred_length
+well_resolved_chain,independent_graph_inference,Independent graph recovers MODPATH chain with no errors.,1.0,1.0,1.0,0.0,0.0,4.0,0.0,0.0,4.0,False,125.0,125.0
+false_positive_shortcut,independent_graph_inference,Hydrosheaf adds a plausible but non-MODPATH shortcut edge.,0.8,1.0,0.888888888888889,0.25,0.0,4.0,1.0,0.0,3.0,True,125.0,130.0
+false_negative_missing_link,independent_graph_inference,Hydrosheaf misses one MODPATH edge and preserves a partial chain.,1.0,0.75,0.8571428571428571,0.0,0.25,3.0,0.0,1.0,4.0,False,125.0,120.0
+scale_mismatch_shortcuts,independent_graph_inference,Hydrosheaf infers coarse shortcut edges instead of local MODPATH links.,0.0,0.0,0.0,0.75,1.0,0.0,3.0,4.0,1.0,True,125.0,360.0

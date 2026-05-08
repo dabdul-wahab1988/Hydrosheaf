@@ -1,0 +1,5 @@
+missing_ions,lambda_l1,reaction_residual_norm,l1_norm,n_selected_reactions,selected_reactions,converged
+SO4,0.0,1.6449107164255731e-12,1.7999991982800547,4,calcite;gypsum;halite;denit,True
+NO3,0.0,2.0177504391071253e-12,2.6000015050419267,4,calcite;gypsum;halite;denit,True
+HCO3,0.0,1.2541487704376135e-13,1.8000002501820012,4,calcite;gypsum;halite;denit,True
+Ca;SO4,0.0,4.3289501381443454e-14,1.3900001354689466,3,calcite;halite;denit,True

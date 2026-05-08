@@ -60,6 +60,32 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
     "interval_coverage": (".validation", "interval_coverage"),
     "regression_metrics": (".validation", "regression_metrics"),
     "topology_metrics": (".validation", "topology_metrics"),
+    "apply_modpath_informed_graph_priors": (
+        ".validation",
+        "apply_modpath_informed_graph_priors",
+    ),
+    "build_modpath_informed_graph_priors": (
+        ".validation",
+        "build_modpath_informed_graph_priors",
+    ),
+    "edge_confusion": (".validation", "edge_confusion"),
+    "normalize_directed_edges": (".validation", "normalize_directed_edges"),
+    "scale_mismatch_diagnostics": (".validation", "scale_mismatch_diagnostics"),
+    "validate_independent_graph_against_modpath": (
+        ".validation",
+        "validate_independent_graph_against_modpath",
+    ),
+    "fit_sparse_reaction_once": (".validation", "fit_sparse_reaction_once"),
+    "l1_penalty_sensitivity": (".validation", "l1_penalty_sensitivity"),
+    "missing_ion_sensitivity": (".validation", "missing_ion_sensitivity"),
+    "thermodynamic_bound_violations": (
+        ".validation",
+        "thermodynamic_bound_violations",
+    ),
+    "validate_sparse_inverse_reaction_model": (
+        ".validation",
+        "validate_sparse_inverse_reaction_model",
+    ),
 }
 
 __all__ = list(_EXPORTS)

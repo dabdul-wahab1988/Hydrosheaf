@@ -1,0 +1,4 @@
+validation_mode,prior_mode,n_input_hydrosheaf_edges,n_modpath_prior_edges,n_output_edges,not_independent_validation,output_edges
+modpath_informed_graph_prior,override,2,4,2,True,A->C;R->A
+modpath_informed_graph_prior,merge,2,4,5,True,A->C;R->A;A->B;B->C;C->D
+modpath_informed_graph_prior,only,2,4,4,True,A->B;B->C;C->D;R->A
