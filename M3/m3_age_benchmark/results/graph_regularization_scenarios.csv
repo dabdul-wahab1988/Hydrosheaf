@@ -1,0 +1,25 @@
+scenario,purpose,graph_label,prior_strength,prior_weight,rmse_single_log10,rmse_graph_log10,delta_rmse_graph_minus_single,improved,n_violations_before,n_violations_after,edges
+helpful_graph,Correct graph fixes a downstream-younger-than-upstream tracer artefact.,scenario_graph,none,0.0,0.3508087322847642,0.3508087322847642,0.0,False,1,1,A->B;B->C;C->D
+helpful_graph,Correct graph fixes a downstream-younger-than-upstream tracer artefact.,scenario_graph,weak,0.25,0.3508087322847642,0.2924685197467973,-0.05834021253796695,True,1,1,A->B;B->C;C->D
+helpful_graph,Correct graph fixes a downstream-younger-than-upstream tracer artefact.,scenario_graph,medium,0.55,0.3508087322847642,0.29088013535888474,-0.059928596925879485,True,1,1,A->B;B->C;C->D
+helpful_graph,Correct graph fixes a downstream-younger-than-upstream tracer artefact.,scenario_graph,strong,0.85,0.3508087322847642,0.29085765276041664,-0.059951079524347584,True,1,1,A->B;B->C;C->D
+helpful_graph,Correct graph fixes a downstream-younger-than-upstream tracer artefact.,randomized_negative_control,none,0.0,0.3508087322847642,0.3508087322847642,0.0,False,1,1,A->C;B->C;D->A
+helpful_graph,Correct graph fixes a downstream-younger-than-upstream tracer artefact.,randomized_negative_control,weak,0.25,0.3508087322847642,0.8645622065599705,0.5137534742752063,False,1,2,A->C;B->C;D->A
+helpful_graph,Correct graph fixes a downstream-younger-than-upstream tracer artefact.,randomized_negative_control,medium,0.55,0.3508087322847642,0.9029494810723685,0.5521407487876042,False,1,2,A->C;B->C;D->A
+helpful_graph,Correct graph fixes a downstream-younger-than-upstream tracer artefact.,randomized_negative_control,strong,0.85,0.3508087322847642,0.9042496783437027,0.5534409460589385,False,1,2,A->C;B->C;D->A
+degrading_graph,Wrong graph direction forces a physically false monotonic pattern.,scenario_graph,none,0.0,0.04138962081512011,0.04138962081512011,0.0,False,3,3,D->C;C->B;B->A
+degrading_graph,Wrong graph direction forces a physically false monotonic pattern.,scenario_graph,weak,0.25,0.04138962081512011,0.9043527968967664,0.8629631760816463,False,3,3,D->C;C->B;B->A
+degrading_graph,Wrong graph direction forces a physically false monotonic pattern.,scenario_graph,medium,0.55,0.04138962081512011,1.0340653914857973,0.9926757706706772,False,3,3,D->C;C->B;B->A
+degrading_graph,Wrong graph direction forces a physically false monotonic pattern.,scenario_graph,strong,0.85,0.04138962081512011,1.0386245520284028,0.9972349312132827,False,3,3,D->C;C->B;B->A
+degrading_graph,Wrong graph direction forces a physically false monotonic pattern.,randomized_negative_control,none,0.0,0.04138962081512011,0.04138962081512011,0.0,False,3,1,B->A;C->D;B->D
+degrading_graph,Wrong graph direction forces a physically false monotonic pattern.,randomized_negative_control,weak,0.25,0.04138962081512011,0.280029737803201,0.2386401169880809,False,3,1,B->A;C->D;B->D
+degrading_graph,Wrong graph direction forces a physically false monotonic pattern.,randomized_negative_control,medium,0.55,0.04138962081512011,0.295672781965785,0.2542831611506649,False,3,1,B->A;C->D;B->D
+degrading_graph,Wrong graph direction forces a physically false monotonic pattern.,randomized_negative_control,strong,0.85,0.04138962081512011,0.2959304523141677,0.2545408314990476,False,3,1,B->A;C->D;B->D
+mixed_recharge_ambiguity,A local young recharge node should not be over-smoothed by a regional graph.,scenario_graph,none,0.0,0.045587181654651754,0.045587181654651754,0.0,False,1,1,A->B;B->C;C->D
+mixed_recharge_ambiguity,A local young recharge node should not be over-smoothed by a regional graph.,scenario_graph,weak,0.25,0.045587181654651754,0.24957473682166403,0.20398755516701228,False,1,1,A->B;B->C;C->D
+mixed_recharge_ambiguity,A local young recharge node should not be over-smoothed by a regional graph.,scenario_graph,medium,0.55,0.045587181654651754,0.26415526962347874,0.21856808796882699,False,1,1,A->B;B->C;C->D
+mixed_recharge_ambiguity,A local young recharge node should not be over-smoothed by a regional graph.,scenario_graph,strong,0.85,0.045587181654651754,0.2643960671273997,0.21880888547274796,False,1,1,A->B;B->C;C->D
+mixed_recharge_ambiguity,A local young recharge node should not be over-smoothed by a regional graph.,randomized_negative_control,none,0.0,0.045587181654651754,0.045587181654651754,0.0,False,1,2,D->B;A->D;B->A
+mixed_recharge_ambiguity,A local young recharge node should not be over-smoothed by a regional graph.,randomized_negative_control,weak,0.25,0.045587181654651754,0.6636411321793729,0.6180539505247211,False,1,2,D->B;A->D;B->A
+mixed_recharge_ambiguity,A local young recharge node should not be over-smoothed by a regional graph.,randomized_negative_control,medium,0.55,0.045587181654651754,0.7243510635264617,0.67876388187181,False,1,2,D->B;A->D;B->A
+mixed_recharge_ambiguity,A local young recharge node should not be over-smoothed by a regional graph.,randomized_negative_control,strong,0.85,0.045587181654651754,0.7258684751730109,0.6802812935183591,False,1,2,D->B;A->D;B->A
