@@ -4,31 +4,27 @@ This document provides instructions for regenerating the benchmarks, figures, an
 
 ## 1. Environment Setup
 
-To ensure reproducibility and avoid binary dependency issues (especially with BLAS/LAPACK on WSL/Linux), we recommend using a fresh virtual environment.
+To ensure reproducibility and avoid binary dependency issues (especially with BLAS/LAPACK on Linux/WSL), use the included `uv` manager.
 
 ### Using `uv` (Recommended)
 
 ```bash
-# Sync dependencies and install the package in editable mode
-uv sync
-uv run python -m pytest tests/test_cli_smoke.py
-```
+# Clean existing virtual environment if having C-extension issues
+rm -rf .venv
+uv venv
+source .venv/bin/activate
 
-### Using Conda (Alternative for stable shared libs)
-
-```bash
-conda env create -f environment.yml
-conda activate hydrosheaf
-pip install -e .
+# Install the package and dependencies
+uv pip install -e .[all] pytest
 ```
 
 ## 2. Core Science Verification
 
-Before running benchmarks, verify the core package functionality:
+Before running benchmarks, verify the core package functionality. From the activated virtual environment, run:
 
 ```bash
-# Run unit tests
-python -m pytest tests/ -v
+# Run unit tests to ensure the physics and inference engines are correct
+.venv/bin/pytest tests/ -v
 ```
 
 ## 3. Manuscript Benchmarks (M2-M5)
@@ -36,6 +32,8 @@ python -m pytest tests/ -v
 Each manuscript has a dedicated benchmark package. You can run them individually or use the master script.
 
 ### Master Reproduction Script
+
+The master script runs the benchmarks in sequence, providing a single entry point to reproduce the thesis evidence.
 
 ```bash
 python run_all_benchmarks.py
