@@ -98,6 +98,33 @@ class Config:
     edge_depth_mismatch: float = 20.0
     isotope_enabled: bool = False
     isotope_weight: float = 1.0
+
+    # Advanced M2 Thesis Upgrades
+    use_thermodynamic_logic_gates: bool = True
+    si_logic_gate_threshold: float = 0.5  # SI value above which dissolution is pruned
+    use_temporal_sheaf_sections: bool = True
+    sensitivity_analysis_enabled: bool = False
+    sensitivity_perturbation_scale: float = 0.1
+    export_3d_network: bool = False
+    
+    # Technical Remediation (M2-M5 PhD Upgrades)
+    # Moving from 'Speculative Mineralogy' to 'Honest Process Modeling'
+    honest_modeling: bool = True
+    measured_ions: List[str] = field(default_factory=list) # Ions actually in the lab report
+    geologic_bias: str = "crystalline" # "crystalline" (favor silicates) or "sedimentary" (favor carbonates)
+    
+    # Kinetic Feasibility Filter (Flaw 4 remediation)
+    kinetic_filter_enabled: bool = False
+    kinetic_surface_area_m2_L: float = 0.1 # Assumed reactive surface area
+    # Mapping of mineral names to log10(k) mol/m2/s
+    mineral_rate_constants: Dict[str, float] = field(default_factory=lambda: {
+        "calcite": -6.0,
+        "albite": -12.0,
+        "anorthite": -11.0,
+        "k_feldspar": -12.0,
+        "pyrite_net": -8.0,
+    })
+    
     isotope_d_excess_weight: float = 0.0
     isotope_d18o_key: str = "18O"
     isotope_d2h_key: str = "2H"

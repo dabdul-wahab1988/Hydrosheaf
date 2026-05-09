@@ -219,7 +219,7 @@
 - • Figure 3: Residence-time inference workflow — Plot type: flowchart — What it demonstrates: tracer input histories, LPM selection, single-node inversion, network Bayesian inference and uncertainty output.
 - • Figure 4: Sparse inverse hydrogeochemical fitting workflow — Plot type: algorithm diagram — What it demonstrates: transport fitting, conservative-tracer weighting, reaction residual fitting, PHREEQC constraints and objective scoring.
 - • Figure 5: Benchmark validation design — Plot type: multi-panel validation schematic — What it demonstrates: synthetic recovery, public tracer-age validation, MODPATH topology comparison and PHREEQC forward validation.
-- • Figure 6: Example process-network output — Plot type: network map or edge-coloured graph — What it demonstrates: spatially connected reaction pathways, dominant processes and uncertainty indicators.
+- • Figure 6: 3D Process-network output — Plot type: 3D network map or edge-coloured graph — What it demonstrates: Spatially connected reaction pathways in 3D, dominant processes and uncertainty indicators mapped to depth.
 - • Figure 7: Sensitivity and uncertainty summary — Plot type: tornado plot or uncertainty cascade — What it demonstrates: effects of graph parameters, tracer assumptions, reaction dictionary and input uncertainty on model outputs.
 - Implementation alignment update for the revised M2 manuscript
 - The outline should now be written around the committed curated benchmark package in M2/m2_benchmark. That package contains synthetic recovery tests, public tracer-age validation, MODPATH-to-graph topology validation, PHREEQC forward diagnostics, DGMETA dissolved-gas validation and a Northern Ghana data-limited demonstration.

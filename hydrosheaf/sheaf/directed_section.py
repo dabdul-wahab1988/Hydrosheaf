@@ -45,6 +45,7 @@ def _fit_edge_map(
     x_u: Sequence[float],
     x_v: Sequence[float],
     config: Config,
+    pre_si_mask: Optional[Mapping[str, float]] = None,
 ) -> Optional[Tuple[float, List[float], float, str, Optional[str]]]:
     transport_weights = getattr(config, "conservative_weights", config.weights)
     candidates: List[
@@ -63,7 +64,7 @@ def _fit_edge_map(
     if not candidates:
         return None
 
-    reaction_matrix, labels, _ = build_reaction_dictionary(config)
+    reaction_matrix, labels, mineral_mask, penalty_scales = build_reaction_dictionary(config, pre_si_mask=pre_si_mask)
     signed_mask = [label in config.signed_reaction_labels for label in labels]
     lambda_l1 = config.lambda_l1_value()
 
@@ -79,6 +80,7 @@ def _fit_edge_map(
             max_iter=config.reaction_max_iter,
             tol=config.reaction_tol,
             signed_mask=signed_mask,
+            penalty_scales=penalty_scales,
         )
         objective = reaction_fit.residual_norm + lambda_l1 * reaction_fit.l1_norm
 
@@ -113,6 +115,7 @@ def build_edge_maps(
     node_values: Mapping[str, Sequence[float]],
     config: Config,
     prior_weight: float = 1.0,
+    pre_si_masks: Optional[Mapping[str, Mapping[str, float]]] = None,
 ) -> Dict[str, DirectedEdgeMap]:
     maps: Dict[str, DirectedEdgeMap] = {}
     for edge in edges:
@@ -120,7 +123,12 @@ def build_edge_maps(
         x_v = node_values.get(edge.v)
         if x_u is None or x_v is None:
             continue
-        fit = _fit_edge_map(x_u, x_v, config)
+        
+        pre_si = None
+        if pre_si_masks:
+            pre_si = pre_si_masks.get(edge.u)
+
+        fit = _fit_edge_map(x_u, x_v, config, pre_si_mask=pre_si)
         if fit is None:
             continue
         alpha, offset, objective, transport_model, end_id = fit

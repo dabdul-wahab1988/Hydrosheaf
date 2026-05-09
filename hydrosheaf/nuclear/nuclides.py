@@ -46,6 +46,14 @@ CARBON14 = Nuclide.from_half_life(
     desc="Carbon-14, used for dating older groundwater (requires correction)."
 )
 
+ARGON39 = Nuclide.from_half_life(
+    name="Argon-39",
+    symbol="39Ar",
+    half_life_years=269.0,
+    units="pmc",
+    desc="Noble gas isotope for intermediate ages (50-1000 years)."
+)
+
 KRYPTON85 = Nuclide.from_half_life(
     name="Krypton-85",
     symbol="85Kr",
@@ -62,6 +70,9 @@ REGISTRY: Dict[str, Nuclide] = {
     "14C": CARBON14,
     "C14": CARBON14,
     "carbon14": CARBON14,
+    "39Ar": ARGON39,
+    "Ar39": ARGON39,
+    "argon39": ARGON39,
     "85Kr": KRYPTON85,
     "Kr85": KRYPTON85,
 }

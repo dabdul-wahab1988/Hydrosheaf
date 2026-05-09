@@ -1,9 +1,9 @@
 {
-  "run_timestamp_utc": "2026-05-07T05:55:29Z",
+  "run_timestamp_utc": "2026-05-08T22:22:16Z",
   "validation_tier": "E4c_northern_ghana_field_hydrochemistry",
   "source_summary": {
-    "workbook": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\data\\NorthenGhana\\NorthernGhana.xlsx",
-    "supplementary_information": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\data\\NorthenGhana\\SI.pdf",
+    "workbook": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/data/NorthenGhana/NorthernGhana.xlsx",
+    "supplementary_information": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/data/NorthenGhana/SI.pdf",
     "workbook_sha256": "55ca931f98ba2424d0711697b4b80b18b9a12b97c91f4738aa45f78b318aae0e",
     "si_sha256": "33a5c37deaf323c560f45662d610b39f70e803d7bd6d9dea8726c46238bbcb99",
     "workbook_creator": "Dickson Abdul-Wahab",
@@ -96,12 +96,12 @@
     "median_generated_edge_distance_km": 16.937267632060152
   },
   "outputs": {
-    "samples": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\northern_ghana\\results\\northern_ghana_samples.csv",
-    "edge_inputs": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\northern_ghana\\results\\northern_ghana_edge_inputs.csv",
-    "edge_results": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\northern_ghana\\results\\northern_ghana_edge_results.csv",
-    "summary": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\northern_ghana\\results\\northern_ghana_validation_summary.csv",
-    "qc": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\northern_ghana\\results\\northern_ghana_qc_summary.csv",
-    "report": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\external\\northern_ghana\\results\\e4c_northern_ghana_report.md",
-    "figure": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\figures\\figure_s8_e4_sparse_pilot_network.png"
+    "samples": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/northern_ghana/results/northern_ghana_samples.csv",
+    "edge_inputs": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/northern_ghana/results/northern_ghana_edge_inputs.csv",
+    "edge_results": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/northern_ghana/results/northern_ghana_edge_results.csv",
+    "summary": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/northern_ghana/results/northern_ghana_validation_summary.csv",
+    "qc": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/northern_ghana/results/northern_ghana_qc_summary.csv",
+    "report": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/external/northern_ghana/results/e4c_northern_ghana_report.md",
+    "figure": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M2/m2_benchmark/figures/figure_s8_e4_sparse_pilot_network.png"
   }
 }

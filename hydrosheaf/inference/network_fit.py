@@ -185,8 +185,13 @@ def fit_network(
             if minerals_for_layer:
                 config_edge = replace(config, active_minerals=list(minerals_for_layer))
 
-        reaction_matrix, reaction_labels, mineral_mask = build_reaction_dictionary(
-            config_edge
+        # Thermodynamic Logic Gate Pruning (M2 Upgrade)
+        pre_si_mask = None
+        if phreeqc_results and edge.u in phreeqc_results:
+            pre_si_mask = phreeqc_results[edge.u].get("saturation_indices")
+
+        reaction_matrix, reaction_labels, mineral_mask, penalty_scales = build_reaction_dictionary(
+            config_edge, pre_si_mask=pre_si_mask
         )
 
         edge_bounds: Dict[str, object] = {}
@@ -272,6 +277,7 @@ def fit_network(
             obs_u=sample_u_norm,
             residence_time_days=tau_edge,
             extra_endmembers=extra_endmembers,
+            pre_si_mask=pre_si_mask,
         )
         
         # Log significant findings (Science Level)

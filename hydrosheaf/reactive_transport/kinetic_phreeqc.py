@@ -263,9 +263,10 @@ def run_phreeqc_kinetic(
 
         if selected_output_file:
             input_str += f"""
-SELECTED_OUTPUT 1
-    -reset false
-    -time true
+SELECTED_OUTPUT
+    -active               true
+    -reset                false
+    -time                 true
     -csv true
     -file {selected_output_file}
     -totals Ca Mg Na K Cl S(6) N(5) Alkalinity F Fe P
@@ -274,9 +275,10 @@ SELECTED_OUTPUT 1
 """
         else:
             input_str += """
-SELECTED_OUTPUT 1
-    -reset false
-    -time true
+SELECTED_OUTPUT
+    -active               true
+    -reset                false
+    -time                 true
     -totals Ca Mg Na K Cl S(6) N(5) Alkalinity F Fe P
     -si Calcite Dolomite Gypsum Halite Fluorite Albite Anorthite
     -step true
@@ -286,39 +288,53 @@ SELECTED_OUTPUT 1
         if config.phreeqc_mode == "phreeqpython":
             try:
                 phreeqc = pp.PhreeqPython(database=config.phreeqc_database)
-                output = phreeqc.run_string(input_str)
+                # Use the internal IPhreeqc runner
+                phreeqc.ip.run_string(input_str)
+                
+                phreeqc_errors = phreeqc.ip.get_error_string()
+                if phreeqc_errors and "ERROR" in phreeqc_errors.upper():
+                    result["error_message"] = phreeqc_errors
+                    return result
 
-                # Extract final composition
-
-                final_sol = output.selected_output()
-                if final_sol and len(final_sol) > 0:
-                    final_row = final_sol.iloc[-1]
+                # Extract data from the selected output array
+                data = phreeqc.ip.get_selected_output_array()
+                # print(f"DEBUG: PHREEQC output data: {data}")
+                if data and len(data) > 1:
+                    headers = data[0]
+                    final_row = data[-1]
+                    
+                    row_dict = dict(zip(headers, final_row))
 
                     # Extract final concentrations
                     ion_order = config.ion_order
                     final_comp = []
 
+                    mapping = {
+                        "Ca": "Ca(mol/kgw)",
+                        "Mg": "Mg(mol/kgw)",
+                        "Na": "Na(mol/kgw)",
+                        "K": "K(mol/kgw)",
+                        "Cl": "Cl(mol/kgw)",
+                        "SO4": "S(6)(mol/kgw)",
+                        "NO3": "N(5)(mol/kgw)",
+                        "HCO3": "Alk(mol/kgw)",
+                        "F": "F(mol/kgw)",
+                        "Fe": "Fe(mol/kgw)",
+                        "PO4": "P(mol/kgw)",
+                    }
+
                     for ion in ion_order:
-                        if ion == "HCO3":
-                            final_comp.append(
-                                float(final_row.get("Alk(mol/kgw)", 0.0)) * 1000.0
-                            )
-                        elif ion == "SO4":
-                            final_comp.append(
-                                float(final_row.get("S(6)(mol/kgw)", 0.0)) * 1000.0
-                            )
-                        elif ion == "NO3":
-                            final_comp.append(
-                                float(final_row.get("N(5)(mol/kgw)", 0.0)) * 1000.0
-                            )
-                        else:
-                            final_comp.append(
-                                float(final_row.get(f"{ion}(mol/kgw)", 0.0)) * 1000.0
-                            )
+                        col = mapping.get(ion, f"{ion}(mol/kgw)")
+                        val = row_dict.get(col, 0.0)
+                        final_comp.append(float(val) * 1000.0)
 
                     result["final_composition"] = final_comp
 
-                    # Extract SI series
+                    # SI series - we only get the last row this way easily, 
+                    # for full series we'd need to iterate or use pandas if we can get the full array
+                    import pandas as pd
+                    df = pd.DataFrame(data[1:], columns=headers)
+                    
                     si_minerals = [
                         "Calcite",
                         "Dolomite",
@@ -330,8 +346,8 @@ SELECTED_OUTPUT 1
                     ]
                     for mineral in si_minerals:
                         si_col = f"si_{mineral}"
-                        if si_col in final_sol.columns:
-                            result["si_series"][mineral] = final_sol[si_col].tolist()
+                        if si_col in df.columns:
+                            result["si_series"][mineral] = df[si_col].tolist()
 
                     result["success"] = True
 

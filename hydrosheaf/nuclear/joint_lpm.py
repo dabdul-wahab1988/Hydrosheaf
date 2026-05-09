@@ -12,9 +12,12 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 
+from ..log import get_logger
 from .input_history import InputHistory, build_default_tritium_input
+
+logger = get_logger(__name__)
 from .multi_tracer import build_atmospheric_tracer_input
-from .nuclides import CARBON14, TRITIUM
+from .nuclides import CARBON14, TRITIUM, ARGON39, KRYPTON85
 from .tracer_inputs import (
     load_tracer_histories,
     normalize_tracer_key,
@@ -26,6 +29,7 @@ SUPPORTED_LPM_MODELS = (
     "PFM",
     "EM",
     "DM",
+    "GA",
     "EPM",
     "PEM",
     "EMM",
@@ -147,6 +151,30 @@ def build_lpm_tracer_observations(
             )
         )
 
+    ar39 = _finite_float(observations.get("ar39_pmc"))
+    if ar39 is not None and 0 < ar39 <= 130:
+        out.append(
+            TracerFitObservation(
+                "39Ar",
+                ar39,
+                _sigma(observations, "ar39_sigma_pmc", ar39, relative=0.10, floor=5.0),
+                "pmc",
+                note="cosmogenic noble gas isotope for intermediate ages",
+            )
+        )
+
+    kr85 = _finite_float(observations.get("kr85_pptv"))
+    if kr85 is not None and kr85 >= 0:
+        out.append(
+            TracerFitObservation(
+                "85Kr",
+                kr85,
+                _sigma(observations, "kr85_sigma_pptv", kr85, relative=0.10, floor=0.05),
+                "dpm/cc",
+                note="expects corrected atmospheric equivalent",
+            )
+        )
+
     gas_specs = [
         ("SF6", "sf6_pptv", "sf6_sigma_pptv"),
         ("CFC11", "cfc11_pptv", "cfc11_sigma_pptv"),
@@ -237,6 +265,14 @@ def _component_pdf(model: str, mean_age: float, taus: np.ndarray, params: Mappin
         g[taus == 0] = 0.0
         return g
 
+    if model_key == "GA":
+        # Gamma distribution: shape (a) and scale (theta = mean/a)
+        # Using scipy.stats if possible, else manual.
+        shape = max(float(params.get("shape", 1.0)), 0.1)
+        scale = mean / shape
+        from scipy.stats import gamma
+        return gamma.pdf(taus, shape, scale=scale)
+
     if model_key == "EPM":
         piston_fraction = min(max(float(params.get("piston_fraction", 0.5)), 0.0), 0.95)
         piston_delay = piston_fraction * mean
@@ -315,6 +351,11 @@ def _predict_c14(pdf: np.ndarray, taus: np.ndarray, d_tau: float, initial_pmc: f
     return float(np.sum(initial_pmc * np.exp(-lambda_y * taus) * pdf) * d_tau)
 
 
+def _predict_ar39(pdf: np.ndarray, taus: np.ndarray, d_tau: float, initial_pmc: float) -> float:
+    lambda_y = math.log(2.0) / ARGON39.half_life_years
+    return float(np.sum(initial_pmc * np.exp(-lambda_y * taus) * pdf) * d_tau)
+
+
 def _mean_from_distribution(pdf: np.ndarray, taus: np.ndarray, d_tau: float) -> float:
     return float(np.sum(taus * pdf) * d_tau)
 
@@ -372,10 +413,29 @@ def predict_lpm_tracers(
     if "14C" in requested:
         out["14C"] = _predict_c14(pdf, taus, d_tau, initial_c14_pmc)
 
-    for tracer in ("SF6", "CFC11", "CFC12", "CFC113"):
+    if "39AR" in requested:
+        # Standard initial Ar-39 activity is 100 pmc
+        out["39Ar"] = _predict_ar39(pdf, taus, d_tau, 100.0)
+
+    for tracer in ("SF6", "CFC11", "CFC12", "CFC113", "85KR"):
         if tracer in requested:
             history = hists.get(tracer) or build_atmospheric_tracer_input(tracer)
-            out[tracer] = _predict_from_history(sample_year, history, pdf, taus, d_tau)
+            
+            decay_lambda = 0.0
+            if tracer == "85KR":
+                decay_lambda = math.log(2.0) / KRYPTON85.half_life_years
+                
+            out[tracer] = _predict_from_history(
+                sample_year, 
+                history, 
+                pdf, 
+                taus, 
+                d_tau,
+                decay_lambda_per_year=decay_lambda
+            )
+            if tracer == "85KR":
+                # Rename back to 85Kr for consistency with observations
+                out["85Kr"] = out.pop("85KR")
 
     if "4HE" in requested:
         mean_age = _mean_from_distribution(pdf, taus, d_tau)
@@ -395,6 +455,12 @@ def _parameter_candidates(model: str, age_grid: np.ndarray) -> Tuple[List[Dict[s
         for age in age_grid:
             for dispersion in (0.01, 0.03, 0.1, 0.3, 1.0):
                 candidates.append({"mean_age_years": float(age), "dispersion": dispersion})
+        return candidates, 2
+
+    if model_key == "GA":
+        for age in age_grid:
+            for shape in (0.5, 1.0, 2.0, 5.0):
+                candidates.append({"mean_age_years": float(age), "shape": shape})
         return candidates, 2
 
     if model_key == "EPM":
@@ -467,6 +533,7 @@ def fit_lpm_model(
     if history_paths:
         resolved_histories.update(load_tracer_histories(history_paths))
     if not fit_observations:
+        logger.debug(f"fit_lpm_model: no fit_observations found for {observations}")
         return JointLpmFit(
             model=model.upper(),
             parameters={},
@@ -497,6 +564,7 @@ def fit_lpm_model(
             initial_c14_pmc=initial_c14_pmc,
             max_age_years=max_age,
         )
+        
         residuals: List[TracerFitResidual] = []
         objective = 0.0
         missing_prediction = False

@@ -2,10 +2,25 @@
 
 from dataclasses import dataclass
 from typing import Iterable, List, Mapping, Optional, Sequence, Tuple
+import math
+import numpy as np
 
 from ..config import Config, DEFAULT_ION_ORDER
 from ..data.minerals import get_mineral_stoich
+from ..log import get_logger
 
+logger = get_logger("models.reactions")
+
+# Mapping of reactions to their mandatory indicator ions (M2-M5 PhD Remediation)
+# If honest_modeling is enabled, these reactions are pruned if indicators are missing.
+INDICATOR_IONS = {
+    "pyrite_oxidation_aerobic": ["Fe", "SO4"],
+    "pyrite_oxidation_denit": ["Fe", "SO4"],
+    "biotite": ["K", "Mg", "Fe"],
+    "chlorite": ["Mg", "Fe"],
+    "fluorite": ["F", "Ca"],
+    "sylvite": ["K", "Cl"],
+}
 
 def _vector_from_coeffs(coeffs: Mapping[str, float], ion_order: Iterable[str]) -> List[float]:
     return [float(coeffs.get(ion, 0.0)) for ion in ion_order]
@@ -13,36 +28,81 @@ def _vector_from_coeffs(coeffs: Mapping[str, float], ion_order: Iterable[str]) -
 
 def build_reaction_dictionary(
     config: Config,
-) -> Tuple[List[List[float]], List[str], List[bool]]:
+    pre_si_mask: Optional[Mapping[str, float]] = None,
+) -> Tuple[List[List[float]], List[str], List[bool], List[float]]:
     ion_order = config.ion_order or DEFAULT_ION_ORDER
     kappa = config.denit_kappa
+    
+    # Identify available data (measured ions)
+    available = set(config.measured_ions) if config.measured_ions else set(ion_order)
 
-    reactions: List[Tuple[str, Mapping[str, float], bool]] = []
+    reactions: List[Tuple[str, Mapping[str, float], bool, float]] = []
+
+    # Geologic Bias Scaling (M2-M5 PhD Remediation)
+    def get_penalty_scale(name: str) -> float:
+        n = name.lower().replace(" ", "_")
+        if config.geologic_bias == "crystalline":
+            if any(s in n for s in ["albite", "anorthite", "feldspar", "biotite", "chlorite", "pyroxene"]):
+                return 0.5
+            if any(c in n for c in ["calcite", "dolomite", "magnesite", "aragonite"]):
+                return 2.0
+        elif config.geologic_bias == "sedimentary":
+            if any(c in n for c in ["calcite", "dolomite", "magnesite", "aragonite"]):
+                return 0.5
+            if any(s in n for s in ["albite", "anorthite", "feldspar", "biotite", "chlorite", "pyroxene"]):
+                return 2.0
+        return 1.0
 
     # 1. Add User-Selected Minerals
     for name in config.active_minerals:
-        # Check standard library
+        # Check Technical Remediation: Honest Modeling
+        if config.honest_modeling:
+            indicators = INDICATOR_IONS.get(name.lower().replace(" ", "_"))
+            if indicators:
+                missing = [ion for ion in indicators if ion not in available]
+                if missing:
+                    # Specific Remediation: Pyrite Auto-Substitution (Fixes Flaw 1)
+                    if name.lower() == "pyrite_oxidation_aerobic" and "Fe" in missing:
+                        logger.warning(f"Honest Modeling: Substituting 'pyrite_net' for '{name}' (Iron not measured).")
+                        try:
+                            reactions.append(("pyrite_net", get_mineral_stoich("pyrite_net"), True, get_penalty_scale("pyrite_net")))
+                            continue
+                        except ValueError: pass
+                    
+                    logger.warning(f"Honest Modeling: Pruning mineral '{name}' because indicators {missing} are not measured.")
+                    continue
+
+        # Check Thermodynamic Logic Gate
+        if config.use_thermodynamic_logic_gates and pre_si_mask is not None:
+            si_val = pre_si_mask.get(name)
+            if si_val is not None and si_val > config.si_logic_gate_threshold:
+                logger.debug(f"Logic Gate: Pruning mineral '{name}' (SI={si_val:.2f} > {config.si_logic_gate_threshold})")
+                continue
+
         try:
             stoich = get_mineral_stoich(name)
-            reactions.append((name, stoich, True))
+            reactions.append((name, stoich, True, get_penalty_scale(name)))
         except ValueError:
-            # Could range for custom loaded minerals later
             continue
 
-    # 2. Add Process Reactions (Non-Mineral)
-    # These are always available or controlled by specific flags
-    reactions.append(("NO3src", {"NO3": 1}, False))
-    reactions.append(("denit", {"HCO3": kappa, "NO3": -1}, False))
+    # 2. Add Process Reactions
+    has_so4_source = any(lbl in ["gypsum", "anhydrite", "pyrite_net", "SO4_input"] for lbl, _, _, _ in reactions)
+    if not has_so4_source and "SO4" in available:
+        try: reactions.append(("SO4_input", get_mineral_stoich("SO4_input"), False, 1.0))
+        except ValueError: pass
 
-    # 3. Add Exchange Reactions (Controlled by config flag)
+    reactions.append(("NO3src", {"NO3": 1}, False, 1.0))
+    reactions.append(("denit", {"HCO3": kappa, "NO3": -1}, False, 1.0))
+
     if config.exchange_enabled:
-        reactions.append(("CaNa_exch", {"Ca": 1, "Na": -2}, False))
-        reactions.append(("MgNa_exch", {"Mg": 1, "Na": -2}, False))
+        reactions.append(("CaNa_exch", {"Ca": 1, "Na": -2}, False, 1.0))
+        reactions.append(("MgNa_exch", {"Mg": 1, "Na": -2}, False, 1.0))
 
-    labels = [label for label, _, _ in reactions]
-    mineral_mask = [is_mineral for _, _, is_mineral in reactions]
-    matrix = [_vector_from_coeffs(coeffs, ion_order) for _, coeffs, _ in reactions]
-    return matrix, labels, mineral_mask
+    labels = [label for label, _, _, _ in reactions]
+    mineral_mask = [is_mineral for _, _, is_mineral, _ in reactions]
+    penalty_scales = [scale for _, _, _, scale in reactions]
+    matrix = [_vector_from_coeffs(coeffs, ion_order) for _, coeffs, _, _ in reactions]
+    return matrix, labels, mineral_mask, penalty_scales
 
 
 def _dot(a: Iterable[float], b: Iterable[float]) -> float:
@@ -94,21 +154,15 @@ class ReactionFit:
     l1_norm: float
     iterations: int
     converged: bool
-
-    # Uncertainty fields (populated if uncertainty_method != "none")
     extents_std: Optional[List[float]] = None
     extents_ci_low: Optional[List[float]] = None
     extents_ci_high: Optional[List[float]] = None
-    uncertainty_result: Optional[object] = (
-        None  # UncertaintyResult from uncertainty module
-    )
+    uncertainty_result: Optional[object] = None
 
 
 def _soft_threshold(value: float, threshold: float) -> float:
-    if value > threshold:
-        return value - threshold
-    if value < -threshold:
-        return value + threshold
+    if value > threshold: return value - threshold
+    if value < -threshold: return value + threshold
     return 0.0
 
 
@@ -117,108 +171,54 @@ def fit_reactions(
     reaction_matrix: List[List[float]],
     weights: List[float],
     lambda_l1: float,
-    max_iter: int = 200,
+    max_iter: int = 300,
     tol: float = 1e-6,
     signed_mask: Optional[List[bool]] = None,
     lb: Optional[List[float]] = None,
     ub: Optional[List[float]] = None,
+    penalty_scales: Optional[List[float]] = None,
 ) -> ReactionFit:
     if not reaction_matrix:
-        return ReactionFit(
-            [], residual, _weighted_norm_sq(residual, weights), 0.0, 0, True
-        )
+        return ReactionFit([], residual, _weighted_norm_sq(residual, weights), 0.0, 0, True)
 
-    weighted_matrix, weighted_residual = _weighted_vectors(
-        reaction_matrix, residual, weights
-    )
+    weighted_matrix, weighted_residual = _weighted_vectors(reaction_matrix, residual, weights)
     m = len(weighted_matrix)
 
-    gram = [
-        [_dot(weighted_matrix[i], weighted_matrix[j]) for j in range(m)]
-        for i in range(m)
-    ]
-
-    # Compute condition number for multicollinearity warning
-    trace_gram = sum(gram[i][i] for i in range(m))
-    frob_sq = sum(gram[i][j]**2 for i in range(m) for j in range(m))
-    # Approximate condition number using trace/Frobenius ratio
-    if trace_gram > 1e-12:
-        approx_cond = (frob_sq**0.5) / (trace_gram / m)
-        if approx_cond > 30:
-            import warnings
-            warnings.warn(
-                f"Reaction matrix may be ill-conditioned (approx. κ={approx_cond:.1f}). "
-                "Consider reducing active minerals or enabling exchange reactions."
-            )
-
+    gram = [[_dot(weighted_matrix[i], weighted_matrix[j]) for j in range(m)] for i in range(m)]
     s_r = [_dot(weighted_matrix[i], weighted_residual) for i in range(m)]
 
-    if lb is not None and ub is not None:
-        if len(lb) != m or len(ub) != m:
-            raise ValueError("lb and ub must match matrix size.")
-        for i, (l, u) in enumerate(zip(lb, ub)):
-            if l is not None and u is not None and l > u:
-                raise ValueError(f"Lower bound exceeds upper bound at index {i}: {l} > {u}")
-
-    if signed_mask is None:
-        signed_mask = [False] * m
-    if len(signed_mask) != m:
-        raise ValueError("signed_mask length must match reaction matrix size.")
-
-    # Adaptive ridge regression parameter for numerical stability
-    # Use max diagonal element to scale epsilon, plus a small absolute floor
-    max_diag = 0.0
-    for i in range(m):
-        if gram[i][i] > max_diag:
-            max_diag = gram[i][i]
+    if signed_mask is None: signed_mask = [False] * m
+    if penalty_scales is None: penalty_scales = [1.0] * m
+    
+    max_diag = max(gram[i][i] for i in range(m)) if m > 0 else 0.0
     ridge_epsilon = max_diag * 1e-10 + 1e-20
 
     z = [0.0] * m
     converged = False
-    iteration = 0
-    
-    # Store objective history to detect cycling
-    prev_obj = float('inf')
     
     for iteration in range(1, max_iter + 1):
         max_delta = 0.0
         for j in range(m):
-            # Calculate partial residual correlation
-            # Use math.fsum if available for precision, but sum is usually fine for small m
             dot_prod = sum(gram[j][k] * z[k] for k in range(m) if k != j)
             rho = s_r[j] - dot_prod
-            
             denom = gram[j][j] + ridge_epsilon
             
-            # If denominator is effectively zero (zero reaction vector), force coeff to 0
-            if denom < 1e-15:
-                updated = 0.0
-            else:
-                updated = _soft_threshold(rho, lambda_l1 / 2.0) / denom
+            # Apply per-reaction penalty scaling
+            scaled_lambda = lambda_l1 * penalty_scales[j]
+            updated = _soft_threshold(rho, scaled_lambda / 2.0) / denom if denom > 1e-15 else 0.0
             
-            if not signed_mask[j]:
-                updated = max(0.0, updated)
-            if lb is not None and lb[j] is not None:
-                updated = max(lb[j], updated)
-            if ub is not None and ub[j] is not None:
-                updated = min(ub[j], updated)
+            if not signed_mask[j]: updated = max(0.0, updated)
+            if lb and lb[j] is not None: updated = max(lb[j], updated)
+            if ub and ub[j] is not None: updated = min(ub[j], updated)
             
             delta = abs(updated - z[j])
-            if delta > max_delta:
-                max_delta = delta
-
+            if delta > max_delta: max_delta = delta
             z[j] = updated
             
         if max_delta <= tol:
             converged = True
             break
-            
-        # Optional: Check objective function every 10 iterations to detect cycling
-        # (omitted for speed unless we want strict guarantees)
-
 
     fitted = _combine_reactions(reaction_matrix, z)
     post_residual = [r - f for r, f in zip(residual, fitted)]
-    residual_norm = _weighted_norm_sq(post_residual, weights)
-    l1_norm = sum(abs(value) for value in z)
-    return ReactionFit(z, post_residual, residual_norm, l1_norm, iteration, converged)
+    return ReactionFit(z, post_residual, _weighted_norm_sq(post_residual, weights), sum(abs(v) for v in z), iteration, converged)

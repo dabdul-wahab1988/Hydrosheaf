@@ -73,11 +73,11 @@ MINERAL_LIBRARY: Dict[str, Stoich] = {
     "chlorite": {"Mg": 3, "Fe": 2, "HCO3": 10},
     # Sulfides & Redox
     # Pyrite (Aerobic Oxidation): FeS2 + ... -> Fe(OH)3 + 2 SO4-- + 4 H+
-    # Acid attacks carbonate buffer: 4 H+ + 4 CaCO3 -> 4 Ca++ + 8 HCO3- (Net: 4Ca, 8HCO3, 2SO4?)
-    # Simplified Model without coupling: SO4: 2 (assuming Fe precipitates as Hydroxide)
-    # Or coupled with alkalinity consumption if explicit H+ not tracked.
-    # Current Hydrosheaf model often separates acidity. Here we assume Fe precipitates.
     "pyrite_oxidation_aerobic": {"SO4": 2, "Fe": 1},
+    # "Honest" Net Pyrite: Assumes immediate precipitation of Goethite/Fe(OH)3
+    # Releases 2 SO4 and consumes 4 HCO3 (acidity buffering) per mole Pyrite.
+    "pyrite_net": {"SO4": 2, "HCO3": -4}, 
+    
     # Pyrite (Denitrification Coupled):
     # 5 FeS2 + 14 NO3- + 4 H+ -> 7 N2 + 10 SO4-- + 5 Fe++ + 2 H2O
     # Stoich per mole Pyrite: SO4: 2, NO3: -2.8, Fe: 1
@@ -89,6 +89,11 @@ MINERAL_LIBRARY: Dict[str, Stoich] = {
         "Mg": 1,
         "HCO3": 4,
     },  # Updated to match typical Anorthite/Pyroxene mix
+    
+    # "Honest" Process Proxies (M2-M5 PhD Remediation)
+    # Use these when specific indicator ions like Iron or Aluminum are not measured.
+    "SO4_input": {"SO4": 1}, # Generic sulfate source (Atmospheric/diffuse salts)
+    "NO3_input": {"NO3": 1}, # Generic nitrate source (Fertilizer/Septic)
 }
 
 

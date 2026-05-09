@@ -1,6 +1,6 @@
 <!-- Markdown companion generated from M3outline.docx for version-controlled manuscript planning. -->
 
-# A) Testing Graph-Regularized Multi-Tracer Groundwater Age Inference with Tritium, Helium, SF6, CFCs and Carbon-14 in Hydrosheaf
+# A) Testing Graph-Regularized Multi-Tracer Groundwater Age Inference with Tritium, Noble Gases (He, Ar-39, Kr-85), SF6, CFCs and Carbon-14 in Hydrosheaf
 
 # C) Outline with word counts
 
@@ -10,19 +10,19 @@
 
 ## Keywords — [50] words
 
-- Groundwater age; tritium; helium; sulfur hexafluoride; carbon-14; graph topology; Hydrosheaf; lumped-parameter models — [50] words
+- Groundwater age; Argon-39; Krypton-85; Tritium; Helium; SF6; Carbon-14; Graph topology; Hydrosheaf; Transit Time Distributions (TTDs) — [50] words
 
 ## 1. Introduction — [1,500] words
 
 ### 1.1 Background: groundwater residence time as a control on aquifer vulnerability and geochemical evolution — [300] words
 
-### 1.2 Nuclear and atmospheric tracers in groundwater-age assessment — [300] words
+### 1.2 Nuclear and atmospheric tracers in groundwater-age assessment: from modern (3H, Kr-85) to intermediate (Ar-39) and old (C-14) scales — [300] words
 
 ### 1.3 Current reliance on well-wise lumped-parameter age models — [250] words
 
 ### 1.4 Limitation: weak use of spatial connectivity and aquifer network structure — [250] words
 
-### 1.5 Rationale for testing graph regularization under controlled conditions — [200] words
+### 1.5 Rationale for testing graph regularization and complex Transit Time Distributions (TTDs) under controlled conditions — [200] words
 
 ### 1.6 Aim, objectives and research questions — [200] words
 
@@ -30,7 +30,7 @@
 
 ### 2.1 Study design and benchmarking philosophy — [300] words
 
-### 2.2 Public USGS groundwater-age datasets — [450] words
+### 2.2 Public USGS and international groundwater-age datasets — [450] words
 
 #### 2.2.1 National public-supply aquifer age dataset, 2004-2017 — [150] words
 
@@ -42,11 +42,11 @@
 
 #### 2.3.1 Tritium and tritiogenic helium-3 — [100] words
 
-#### 2.3.2 SF6 and dissolved-gas corrections — [100] words
+#### 2.3.2 Argon-39 and Krypton-85 noble gas isotopes for intermediate and young ages — [100] words
 
-#### 2.3.3 Carbon-14 and radiogenic helium-4 indicators of older groundwater — [100] words
+#### 2.3.3 SF6, CFCs and dissolved-gas corrections — [100] words
 
-#### 2.3.4 Ancillary well, aquifer, depth and chemistry variables — [50] words
+#### 2.3.4 Carbon-14 and radiogenic helium-4 indicators of older groundwater — [100] words
 
 ### 2.4 Data harmonisation and quality-control protocol — [450] words
 
@@ -54,23 +54,21 @@
 
 #### 2.4.2 Missing-data rules and tracer-availability classes — [100] words
 
-#### 2.4.3 Screening for SF6 contamination and excess-air uncertainty — [100] words
+#### 2.4.3 Screening for SF6/CFC contamination and excess-air uncertainty — [100] words
 
-#### 2.4.4 Screening for helium terrigenic contribution — [75] words
+#### 2.4.4 Screening for helium and argon terrigenic contributions — [75] words
 
 #### 2.4.5 Carbon-14 interpretive constraints and dead-carbon uncertainty — [75] words
 
-### 2.5 Baseline groundwater-age models — [500] words
+### 2.5 Baseline and Advanced Transit Time Distributions (TTDs) — [500] words
 
-#### 2.5.1 Piston-flow model — [100] words
+#### 2.5.1 Piston-flow, Exponential and Dispersion models — [150] words
 
-#### 2.5.2 Exponential mixing model — [100] words
+#### 2.5.2 Multi-modal and Binary young-old mixture models — [150] words
 
-#### 2.5.3 Dispersion model — [100] words
+#### 2.5.3 Advanced TTDs: Shape-flexible Gamma and Beta distributions — [100] words
 
-#### 2.5.4 Binary young-old mixture model — [100] words
-
-#### 2.5.5 USGS-reported age estimates as benchmark reference values — [100] words
+#### 2.5.4 USGS-reported age estimates as benchmark reference values — [100] words
 
 ### 2.6 Hydrosheaf multi-tracer age-inference and graph-regularization framework — [750] words
 
@@ -82,7 +80,7 @@
 
 #### 2.6.4 Graph-prior settings, randomized negative controls and regularization diagnostics — [150] words
 
-#### 2.6.5 Separation of tracer evidence from graph prior influence — [150] words
+#### 2.6.5 Joint inversion of multi-tracer physics and topological priors — [150] words
 
 ### 2.7 Benchmark scenarios — [450] words
 

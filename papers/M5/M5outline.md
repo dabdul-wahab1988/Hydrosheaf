@@ -121,8 +121,12 @@
 #### 3.3.4 Cases where PHREEQC constraints reduce fit flexibility — [125] words
 
 ### 3.4 Recovery of known reaction extents in synthetic benchmarks — [450] words
+- High recovery accuracy for independent minerals (Halite error ~0.0 mmol/L).
+- Observed identifiability challenges for co-varying minerals (Calcite/Gypsum) successfully captured by the sparse solver residual (RMSE < 0.2 mmol/L).
 
 ### 3.5 Kinetic PHREEQC forward-check diagnostics — [400] words
+- Quantitative validation of inferred extents using PHREEQC's non-linear kinetic engine.
+- Demonstration of model stability and thermodynamic consistency across identified flow paths.
 
 ### 3.6 Sensitivity to L1 penalty, ion weights and missing ions — [400] words
 

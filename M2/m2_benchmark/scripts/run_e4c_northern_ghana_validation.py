@@ -410,6 +410,13 @@ def hydrosheaf_config():
     config.sheaf_isotope_enabled = False
     config.isotope_enabled = False
     config.phreeqc_enabled = False
+    
+    # Enable M2 Thesis Upgrades
+    config.use_thermodynamic_logic_gates = True
+    config.use_temporal_sheaf_sections = True
+    config.sensitivity_analysis_enabled = True
+    config.export_3d_network = True
+    
     return config
 
 
@@ -719,6 +726,35 @@ def run_northern_ghana(
     qc_df.to_csv(RESULT_DIR / "northern_ghana_qc_summary.csv", index=False)
     write_report(summary_df.iloc[0], results)
     plot_e4_network(results)
+
+    # Export 3D Network
+    if edge_inputs is not None and not edge_inputs.empty:
+        try:
+            from hydrosheaf.graph3d.export_3d import export_network_3d_json, generate_3d_vtp
+            # Quick conversion of top results to nodes/edges
+            top = results.nsmallest(20, "objective_score")
+            nodes_map = {}
+            for _, row in samples.iterrows():
+                nodes_map[row["site_id"]] = {
+                    "id": row["site_id"],
+                    "x": float(row.get("easting", 0.0)),
+                    "y": float(row.get("northing", 0.0)),
+                    "z": -float(row.get("screen_depth", 0.0)),
+                }
+            nodes_list = list(nodes_map.values())
+            edges_list = []
+            for _, row in top.iterrows():
+                edges_list.append({
+                    "u": row["u"],
+                    "v": row["v"],
+                    "residual_norm": float(row["objective_score"])
+                })
+            export_network_3d_json(nodes_list, edges_list, str(RESULT_DIR / "northern_ghana_network_3d.json"))
+            generate_3d_vtp(nodes_list, edges_list, str(RESULT_DIR / "northern_ghana_network_3d.vtp"))
+            print(f"Exported 3D network to {RESULT_DIR}")
+        except Exception as e:
+            print(f"Failed to export 3D network: {e}")
+
     write_manifest(
         profile,
         summary_df.iloc[0],

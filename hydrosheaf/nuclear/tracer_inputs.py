@@ -11,7 +11,7 @@ import numpy as np
 from .input_history import InputHistory
 
 
-GAS_TRACERS = ("SF6", "CFC11", "CFC12", "CFC113")
+GAS_TRACERS = ("SF6", "CFC11", "CFC12", "CFC113", "85KR")
 TRACER_ALIASES = {
     "3H": "3H",
     "H3": "3H",
@@ -29,6 +29,12 @@ TRACER_ALIASES = {
     "14C": "14C",
     "C14": "14C",
     "CARBON14": "14C",
+    "39AR": "39Ar",
+    "AR39": "39Ar",
+    "ARGON39": "39Ar",
+    "85KR": "85Kr",
+    "KR85": "85Kr",
+    "KRYPTON85": "85Kr",
     "4HE": "4He",
     "HE4": "4He",
 }
