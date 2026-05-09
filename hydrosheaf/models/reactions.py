@@ -32,7 +32,7 @@ def build_reaction_dictionary(
 ) -> Tuple[List[List[float]], List[str], List[bool], List[float]]:
     ion_order = config.ion_order or DEFAULT_ION_ORDER
     kappa = config.denit_kappa
-    
+
     # Identify available data (measured ions)
     available = set(config.measured_ions) if config.measured_ions else set(ion_order)
 
@@ -68,7 +68,7 @@ def build_reaction_dictionary(
                             reactions.append(("pyrite_net", get_mineral_stoich("pyrite_net"), True, get_penalty_scale("pyrite_net")))
                             continue
                         except ValueError: pass
-                    
+
                     logger.warning(f"Honest Modeling: Pruning mineral '{name}' because indicators {missing} are not measured.")
                     continue
 
@@ -159,6 +159,31 @@ class ReactionFit:
     extents_ci_high: Optional[List[float]] = None
     uncertainty_result: Optional[object] = None
 
+    @property
+    def aic(self) -> float:
+        """Akaike Information Criterion: AIC = 2k + n*ln(RSS/n)"""
+        n = len(self.residual)
+        k = len([e for e in self.extents if abs(e) > 1e-6]) + 1 # +1 for variance
+        if n == 0 or self.residual_norm <= 0: return float('inf')
+        return 2*k + n * math.log(self.residual_norm / n)
+
+    @property
+    def aicc(self) -> float:
+        """Corrected AIC for small sample sizes: AICc = AIC + 2k(k+1)/(n-k-1)"""
+        n = len(self.residual)
+        k = len([e for e in self.extents if abs(e) > 1e-6]) + 1
+        aic_val = self.aic
+        if n - k - 1 <= 0: return float('inf') # Avoid singularity
+        return aic_val + (2 * k * (k + 1)) / (n - k - 1)
+
+    @property
+    def bic(self) -> float:
+        """Bayesian Information Criterion: BIC = ln(n)k + n*ln(RSS/n)"""
+        n = len(self.residual)
+        k = len([e for e in self.extents if abs(e) > 1e-6]) + 1
+        if n == 0 or self.residual_norm <= 0: return float('inf')
+        return k * math.log(n) + n * math.log(self.residual_norm / n)
+
 
 def _soft_threshold(value: float, threshold: float) -> float:
     if value > threshold: return value - threshold
@@ -189,32 +214,32 @@ def fit_reactions(
 
     if signed_mask is None: signed_mask = [False] * m
     if penalty_scales is None: penalty_scales = [1.0] * m
-    
+
     max_diag = max(gram[i][i] for i in range(m)) if m > 0 else 0.0
     ridge_epsilon = max_diag * 1e-10 + 1e-20
 
     z = [0.0] * m
     converged = False
-    
+
     for iteration in range(1, max_iter + 1):
         max_delta = 0.0
         for j in range(m):
             dot_prod = sum(gram[j][k] * z[k] for k in range(m) if k != j)
             rho = s_r[j] - dot_prod
             denom = gram[j][j] + ridge_epsilon
-            
+
             # Apply per-reaction penalty scaling
             scaled_lambda = lambda_l1 * penalty_scales[j]
             updated = _soft_threshold(rho, scaled_lambda / 2.0) / denom if denom > 1e-15 else 0.0
-            
+
             if not signed_mask[j]: updated = max(0.0, updated)
             if lb and lb[j] is not None: updated = max(lb[j], updated)
             if ub and ub[j] is not None: updated = min(ub[j], updated)
-            
+
             delta = abs(updated - z[j])
             if delta > max_delta: max_delta = delta
             z[j] = updated
-            
+
         if max_delta <= tol:
             converged = True
             break
