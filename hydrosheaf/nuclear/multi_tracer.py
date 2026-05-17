@@ -374,3 +374,91 @@ def infer_multi_tracer_age(
     combined["disagreement"] = diagnose_tracer_disagreement(combined)
     combined["flags"] = combined["disagreement"]["flags"]
     return combined
+
+def historical_max_concentration(tracer: str, sample_year: float) -> float:
+    """Get the maximum historical concentration of a gas tracer up to the sample year."""
+    try:
+        history = build_atmospheric_tracer_input(tracer)
+    except ValueError:
+        return float('inf')
+    years, values = np.asarray(history.years, dtype=float), np.asarray(history.values, dtype=float)
+    if math.isfinite(sample_year):
+        mask = years <= sample_year + 1.0e-6
+        if bool(np.any(mask)):
+            return float(np.max(values[mask]))
+    return float(np.max(values))
+
+
+def calculate_tracer_reliability_weights(
+    observations: Mapping[str, Any],
+    sample_year: float,
+    reference_age: float = float("nan"),
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """
+    Calculate soft reliability weights for gas tracers based on historical limits
+    and proxy coherence.
+    """
+    out = dict(observations)
+    masked: list[str] = []
+    reasons: list[str] = []
+
+    if not math.isfinite(reference_age):
+        independent_proxies: list[float] = []
+        age_3h3he = float("nan")
+        tritium = _finite_float(out.get("tritium_TU"))
+        he3 = _finite_float(out.get("he3_trit_TU"))
+        if tritium is not None and he3 is not None and tritium > 0 and he3 >= 0:
+            lambda_y = math.log(2.0) / TRITIUM.half_life_years
+            age_3h3he = math.log1p(he3 / tritium) / lambda_y
+        
+        if math.isfinite(age_3h3he) and age_3h3he >= 0.5:
+            independent_proxies.append(float(age_3h3he))
+        if independent_proxies:
+            reference_age = float(np.median(independent_proxies))
+
+    gas_specs = [
+        ("SF6", "sf6_pptv"),
+        ("CFC11", "cfc11_pptv"),
+        ("CFC12", "cfc12_pptv"),
+        ("CFC113", "cfc113_pptv"),
+    ]
+    for tracer, value_key in gas_specs:
+        value = _finite_float(out.get(value_key))
+        if value is None or value < 0:
+            continue
+        tracer_reasons: list[str] = []
+        max_hist = historical_max_concentration(tracer, sample_year)
+        
+        tracer_weight = 1.0
+        if value > max_hist * 1.02:
+            tracer_weight *= 0.05
+            tracer_reasons.append("above_historical_max_downweighted")
+            
+        proxy_age = float("nan")
+        try:
+            est = infer_atmospheric_tracer_age(value, sample_year, tracer)
+            if est is not None:
+                proxy_age = est.age_years
+        except Exception:
+            pass
+
+        if (
+            math.isfinite(reference_age)
+            and reference_age >= 5.0
+            and math.isfinite(proxy_age)
+            and proxy_age <= max(0.5, reference_age * 0.2)
+        ):
+            tracer_weight *= 0.1
+            tracer_reasons.append("excessively_modern_vs_independent_proxy_downweighted")
+            
+        if tracer_reasons:
+            out[f"{tracer.lower()}_weight"] = tracer_weight
+            masked.append(tracer)
+            reasons.append(f"{tracer}:{'+'.join(tracer_reasons)}")
+            
+    return out, {
+        "young_gas_masked_tracers": "|".join(masked),
+        "young_gas_masked_reason": "|".join(reasons),
+        "young_gas_masked_count": len(masked),
+    }
+

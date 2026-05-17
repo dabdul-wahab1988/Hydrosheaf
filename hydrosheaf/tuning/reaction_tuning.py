@@ -223,8 +223,8 @@ def _build_edge_data(
             if minerals_for_layer:
                 config_edge = replace(config, active_minerals=list(minerals_for_layer))
 
-        reaction_matrix, reaction_labels, mineral_mask = build_reaction_dictionary(
-            config_edge
+        reaction_matrix, reaction_labels, mineral_mask, *_ = build_reaction_dictionary(
+            config_edge, sample=sample_u_norm
         )
 
         edge_bounds: Dict[str, object] = {}
@@ -269,7 +269,7 @@ def _build_edge_data(
             except (TypeError, ValueError):
                 tau_edge = None
         if tau_edge is None:
-            tau_edge = estimate_edge_residence_time_days(edge.attrs or {}, config_edge)
+            tau_edge, _ = estimate_edge_residence_time_days(edge.attrs or {}, config_edge)
 
         edge_data.append(
             EdgeFitData(

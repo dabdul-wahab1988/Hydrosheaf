@@ -80,3 +80,36 @@ VeaCatchment_SyntheticDataset_CBEpass_v1_csv
 hydrosheaf_code_bundle.txt
 bundle_project_files.py
 codex-x86_64-pc-windows-msvc.exe
+
+# Research datasets and generated analysis/manuscript artifacts.
+# Keep source code, tests, package metadata, and configuration tracked.
+data/
+**/data/
+!hydrosheaf/data/
+!hydrosheaf/data/**/*.py
+**/results/
+**/tables/
+**/figures/*
+**/figures/**/*
+!**/figures/**/
+!**/figures/**/*.py
+manu_results/
+scripts/analysis_results/
+papers/
+*.csv
+*.tsv
+*.xls
+*.xlsx
+*.docx
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.vtp
+*Code_Bundle.txt
+*_text.txt
+*_fig_log.txt
+*_Figure_*.txt
+main_Figure*.txt

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import uuid
 from pathlib import Path
 from textwrap import fill
 
@@ -12,13 +13,24 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import yaml
+from matplotlib.ticker import MaxNLocator
 
 
 BENCHMARK_ROOT = Path(__file__).resolve().parents[1]
-FIGURE_DIR = BENCHMARK_ROOT / "figures"
+M6_BENCHMARK_ROOT = Path(__file__).resolve().parents[3] / "M6" / "m6_robustness_benchmark"
+# Direct output to Manuscript folder
+FIGURE_DIR = BENCHMARK_ROOT / "figures" / "Manuscript_Ready"
 RESULT_DIR = BENCHMARK_ROOT / "results"
 EXTERNAL_DIR = BENCHMARK_ROOT / "external"
+M6_RESULT_DIR = M6_BENCHMARK_ROOT / "results"
 
+
+# --- Typography Standards (Matching Fig 5 style) ---
+FONT_TITLE = 18
+FONT_LABEL = 16
+FONT_TICK = 16
+FONT_LEGEND = 14
+FONT_ANNOTATE = 11
 
 COLORS = {
     "young": "#3b82f6",
@@ -31,9 +43,54 @@ COLORS = {
 }
 
 
+PROCESS_LABEL_MAP = {
+    "calcite": "Calcite Dissolution",
+    "calcite_open": "Calcite Dissolution (Open)",
+    "calcite_closed": "Calcite Dissolution (Closed)",
+    "dolomite": "Dolomite Dissolution",
+    "dolomite_open": "Dolomite Dissolution (Open)",
+    "dolomite_closed": "Dolomite Dissolution (Closed)",
+    "gypsum": "Gypsum Dissolution",
+    "albite": "Plagioclase Weathering",
+    "anorthite": "Plagioclase Weathering",
+    "k_feldspar": "K-Feldspar Weathering",
+    "microcline": "K-Feldspar Weathering",
+    "biotite": "Ferromagnesian Weathering",
+    "chlorite": "Ferromagnesian Weathering",
+    "enstatite": "Ferromagnesian Weathering",
+    "diopside": "Ferromagnesian Weathering",
+    "halite": "Halite Dissolution",
+    "fluorite": "Fluorite Dissolution",
+    "NO3src": "Nitrate Input",
+    "denit": "Denitrification",
+    "CaNa_exch": "Ca-Na Ion Exchange",
+    "MgNa_exch": "Mg-Na Ion Exchange",
+    "CaK_exch": "Ca-K Ion Exchange",
+    "NaK_exch": "Na-K Ion Exchange",
+    "pyrite_oxidation_aerobic": "Pyrite Oxidation (Aerobic)",
+    "pyrite_oxidation_denit": "Pyrite Oxidation (Denit)",
+    "pyrite_net": "Pyrite Oxidation (Net)",
+    "albite_acid": "Plagioclase Weathering (Acid)",
+    "anorthite_acid": "Plagioclase Weathering (Acid)",
+    "chlorite_acid": "Ferromagnesian Weathering (Acid)",
+    "k_feldspar_acid": "K-Feldspar Weathering (Acid)",
+    "biotite_acid": "Ferromagnesian Weathering (Acid)",
+    "sulfate_reduction": "Microbial Sulfate Reduction",
+    "nitrification": "Agricultural Nitrification",
+    "potash_fertilizer": "Potash Fertilizer (KCl)",
+    "road_salt_calcium": "De-Icing Salt (CaCl2)",
+    "road_salt_magnesium": "De-Icing Salt (MgCl2)",
+    "iron_reduction": "Microbial Iron Reduction",
+    "Conservative": "Evaporative Concentration",
+}
+
+
 def _save(fig: plt.Figure, name: str) -> None:
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(FIGURE_DIR / name, dpi=300, bbox_inches="tight")
+    target = FIGURE_DIR / name
+    temp = target.with_name(f"{target.stem}.{uuid.uuid4().hex}.tmp{target.suffix}")
+    fig.savefig(temp, dpi=300, bbox_inches="tight", format=target.suffix.lstrip("."))
+    temp.replace(target)
     plt.close(fig)
 
 
@@ -43,7 +100,7 @@ def _panel_label(ax: plt.Axes, label: str) -> None:
         1.08,
         label,
         transform=ax.transAxes,
-        fontsize=12,
+        fontsize=FONT_LABEL,
         fontweight="bold",
         va="top",
         ha="left",
@@ -54,558 +111,596 @@ def _wrap_labels(labels: list[str], width: int = 14) -> list[str]:
     return [fill(str(label), width=width) for label in labels]
 
 
-def _short_node(label: str) -> str:
-    replacements = {
-        "Virtual_Endmember_PC1_High": "VE1H",
-        "Virtual_Endmember_PC1_Low": "VE1L",
-        "Virtual_Endmember_PC2_High": "VE2H",
-        "Virtual_Endmember_PC2_Low": "VE2L",
-    }
-    out = str(label)
-    for source, target in replacements.items():
-        out = out.replace(source, target)
-    if out.startswith("NGW-"):
-        out = out.replace("NGW-", "")
-    return out
-
-
 def load_truth() -> dict:
     with (BENCHMARK_ROOT / "config" / "ground_truth.yaml").open("r", encoding="utf-8") as handle:
         return yaml.safe_load(handle)
 
 
-def plot_compact_process_network() -> None:
-    truth = load_truth()
-    graph = nx.DiGraph()
-    node_classes = {}
-    for node_id, node in truth["nodes"].items():
-        graph.add_node(node_id)
-        node_classes[node_id] = node.get("age_class", "intermediate")
-    for node_id, node in truth["generated_nodes"].items():
-        graph.add_node(node_id)
-        node_classes[node_id] = node.get("age_class", "intermediate")
-
-    edge_labels = {}
-    for edge in truth["generation_edges"]:
-        graph.add_edge(edge["u"], edge["v"], process=edge["process"])
-        edge_labels[(edge["u"], edge["v"])] = {
-            "evaporation": "E",
-            "carbonate_weathering": "C",
-            "evaporite_weathering": "V",
-            "gypsum_halite": "V",
-            "lateral_mixing": "L",
-            "dilution_recharge_pulse": "D",
-            "nitrate_recharge": "N",
-            "confined_exchange": "X",
-            "regional_discharge": "R",
-            "deep_discharge": "R",
-        }.get(edge["process"], edge["process"][:1].upper())
-    for edge in truth.get("lateral_truth_edges", []):
-        graph.add_edge(edge["u"], edge["v"], process="lateral")
-        edge_labels[(edge["u"], edge["v"])] = "Lateral"
-
-    pos = {
-        "MODERN": (0.02, 0.35),
-        "RCH": (0.14, 0.52),
-        "SH15": (0.28, 0.68),
-        "SH30": (0.28, 0.36),
-        "INT1": (0.43, 0.58),
-        "INT2": (0.56, 0.52),
-        "MIX20": (0.70, 0.56),
-        "MIX40": (0.82, 0.52),
-        "MIX60": (0.94, 0.47),
-        "DILUTE": (1.07, 0.43),
-        "DEEP": (1.20, 0.39),
-        "DISCH": (1.34, 0.46),
-        "LAT_SAL": (0.70, 0.83),
-        "LAT_CARB": (0.94, 0.16),
-    }
-
-    fig, ax = plt.subplots(figsize=(10.8, 4.8))
-    ax.set_title("Figure 2. Locked synthetic process network", fontsize=14, fontweight="bold", pad=12)
-    node_colors = [COLORS.get(node_classes.get(node, ""), COLORS["muted"]) for node in graph.nodes]
-    nx.draw_networkx_nodes(graph, pos, node_color=node_colors, node_size=920, edgecolors="#1f2937", linewidths=1.3, ax=ax)
-    nx.draw_networkx_labels(graph, pos, font_size=8.5, font_weight="bold", ax=ax)
-    nx.draw_networkx_edges(
-        graph,
-        pos,
-        arrows=True,
-        arrowstyle="-|>",
-        arrowsize=14,
-        width=1.8,
-        edge_color=COLORS["line"],
-        connectionstyle="arc3,rad=0.08",
-        ax=ax,
-    )
-
-    label_pos = {
-        ("RCH", "SH15"): (0.20, 0.61),
-        ("RCH", "SH30"): (0.20, 0.43),
-        ("SH15", "INT1"): (0.36, 0.63),
-        ("INT1", "INT2"): (0.50, 0.55),
-        ("INT2", "MIX20"): (0.63, 0.54),
-        ("MIX20", "MIX40"): (0.76, 0.54),
-        ("MIX40", "MIX60"): (0.88, 0.50),
-        ("MIX60", "DILUTE"): (1.00, 0.45),
-        ("DILUTE", "DEEP"): (1.14, 0.41),
-        ("DEEP", "DISCH"): (1.27, 0.43),
-        ("LAT_SAL", "MIX20"): (0.68, 0.70),
-        ("LAT_SAL", "MIX40"): (0.79, 0.68),
-        ("LAT_CARB", "MIX60"): (0.92, 0.30),
-    }
-    for edge, label in edge_labels.items():
-        if edge in label_pos:
-            ax.text(
-                *label_pos[edge],
-                label,
-                fontsize=7.0,
-                color="#1f2937",
-                ha="center",
-                va="center",
-                bbox=dict(facecolor="white", edgecolor="#d1d5db", alpha=0.88, boxstyle="round,pad=0.18"),
-            )
-
-    handles = [
-        plt.Line2D([0], [0], marker="o", color="w", label=label, markerfacecolor=color, markeredgecolor="#1f2937", markersize=8)
-        for label, color in [
-            ("young", COLORS["young"]),
-            ("intermediate", COLORS["intermediate"]),
-            ("old", COLORS["old"]),
-            ("mixed", COLORS["mixed"]),
-            ("fossil", COLORS["fossil"]),
-        ]
-    ]
-    ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, -0.05), frameon=False, ncol=5, fontsize=8)
-    ax.text(
-        0.02,
-        0.07,
-        "Edge codes: E evaporation, C carbonate, V evaporite, L lateral, D dilution, X exchange, R discharge",
-        fontsize=7.5,
-        color="#374151",
-        transform=ax.transAxes,
-    )
-    ax.set_xlim(-0.06, 1.42)
-    ax.set_ylim(0.05, 0.93)
-    ax.axis("off")
-    _save(fig, "figure2_process_network.png")
+def plot_manuscript_fig1_architecture() -> None:
+    """Figure 1: Export the Mermaid architecture diagram."""
+    mermaid_path = Path(__file__).resolve().parents[3] / "main_Figure1.txt"
+    out_path = FIGURE_DIR / "Manuscript_Fig1_Architecture.mermaid"
+    if mermaid_path.exists():
+        FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+        with mermaid_path.open("r") as f:
+            content = f.read()
+        with out_path.open("w") as f:
+            f.write(content)
+        print(f"Exported Mermaid diagram to {out_path.name}")
 
 
-def plot_external_validation_composite() -> None:
-    age = pd.read_csv(EXTERNAL_DIR / "usgs_age" / "results" / "usgs_age_validation.csv")
-    modpath = pd.read_csv(EXTERNAL_DIR / "modpath" / "results" / "modpath_topology_summary.csv").iloc[0]
-    phreeqc = pd.read_csv(RESULT_DIR / "phreeqc_forward_validation.csv")
-    dgmeta = pd.read_csv(EXTERNAL_DIR / "dgmeta" / "results" / "dgmeta_hydrosheaf_comparison.csv")
-
-    fig, axes = plt.subplots(2, 2, figsize=(11, 8.2))
-
-    ax = axes[0, 0]
-    plot_age = age[(age["reference_mean_age_years"] > 0) & (age["hydrosheaf_age_years"] > 0)].copy()
-    counts = plot_age["supported_tracer_count"].clip(upper=5)
-    sc = ax.scatter(
-        plot_age["reference_mean_age_years"],
-        plot_age["hydrosheaf_age_years"],
-        c=counts,
-        cmap="viridis",
-        s=18,
-        alpha=0.60,
-        edgecolors="none",
-    )
-    lim_min = 0.1
-    lim_max = max(plot_age["reference_mean_age_years"].max(), plot_age["hydrosheaf_age_years"].max()) * 1.15
-    ax.plot([lim_min, lim_max], [lim_min, lim_max], color="#111827", lw=1.1)
-    ax.plot([lim_min, lim_max], [lim_min * 10, lim_max * 10], color="#9ca3af", lw=0.8, ls="--")
-    ax.plot([lim_min * 10, lim_max], [lim_min, lim_max / 10], color="#9ca3af", lw=0.8, ls="--")
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.set_xlim(lim_min, lim_max)
-    ax.set_ylim(lim_min, lim_max)
-    ax.set_title("USGS public tracer-age comparison")
-    ax.set_xlabel("Published mean age (yr)")
-    ax.set_ylabel("Hydrosheaf age (yr)")
-    cbar = fig.colorbar(sc, ax=ax, fraction=0.046, pad=0.02)
-    cbar.set_label("Supported tracers")
-    _panel_label(ax, "A")
-
-    ax = axes[0, 1]
-    labels = ["TP", "FP", "FN"]
-    values = [modpath["true_positive_edges"], modpath["false_positive_edges"], modpath["false_negative_edges"]]
-    ax.bar(labels, values, color=["#2563eb", "#ef4444", "#f97316"])
-    ax.set_title("MODPATH topology agreement")
-    ax.set_ylabel("Directed edges")
-    ax.text(
-        0.96,
-        0.88,
-        f"F1={modpath['edge_f1']:.2f}\ndirection={modpath['direction_agreement_rate']:.2f}",
-        transform=ax.transAxes,
-        ha="right",
-        va="top",
-        fontsize=10,
-        bbox=dict(facecolor="white", edgecolor="#d1d5db", boxstyle="round,pad=0.35"),
-    )
-    _panel_label(ax, "B")
-
-    ax = axes[1, 0]
-    ax.scatter(phreeqc["rmse_mmolL"], phreeqc["nse"], s=18, alpha=0.55, color="#0f766e", edgecolors="none")
-    ax.axhline(0.5, color="#ef4444", lw=1.0, ls="--")
-    ax.axhline(0.0, color="#9ca3af", lw=0.8)
-    ax.set_title("Live PHREEQC forward diagnostics")
-    ax.set_xlabel("RMSE (mmol/L)")
-    ax.set_ylabel("NSE")
-    ax.text(
-        0.96,
-        0.10,
-        f"n={len(phreeqc)}\nmedian NSE={phreeqc['nse'].median():.2f}",
-        transform=ax.transAxes,
-        ha="right",
-        va="bottom",
-        fontsize=10,
-        bbox=dict(facecolor="white", edgecolor="#d1d5db", boxstyle="round,pad=0.35"),
-    )
-    _panel_label(ax, "C")
-
-    ax = axes[1, 1]
-    dg = dgmeta.dropna(subset=["reference_temperature_c", "hydrosheaf_temperature_c"]).copy()
-    color_map = {"UA": "#2563eb", "CE": "#f59e0b"}
-    for model, group in dg.groupby("hydrosheaf_model"):
-        ax.scatter(
-            group["reference_temperature_c"],
-            group["hydrosheaf_temperature_c"],
-            s=18,
-            alpha=0.60,
-            label=str(model),
-            color=color_map.get(str(model), COLORS["muted"]),
-            edgecolors="none",
-        )
-    lo = min(dg["reference_temperature_c"].min(), dg["hydrosheaf_temperature_c"].min()) - 1
-    hi = max(dg["reference_temperature_c"].max(), dg["hydrosheaf_temperature_c"].max()) + 1
-    ax.plot([lo, hi], [lo, hi], color="#111827", lw=1.0)
-    ax.set_xlim(lo, hi)
-    ax.set_ylim(lo, hi)
-    ax.set_title("DGMETA recharge temperature")
-    ax.set_xlabel("DGMETA reference (C)")
-    ax.set_ylabel("Hydrosheaf estimate (C)")
-    ax.legend(frameon=False, title="model", fontsize=8)
-    _panel_label(ax, "D")
-
-    fig.tight_layout()
-    _save(fig, "figure4_external_validation_composite.png")
-
-
-def plot_residence_time_supplement() -> None:
-    ages = pd.read_csv(RESULT_DIR / "age_inference_validation.csv")
-    consistency = pd.read_csv(RESULT_DIR / "age_network_consistency.csv")
-    fig, axes = plt.subplots(1, 3, figsize=(12, 3.8))
-
-    ax = axes[0]
-    sample = ages.groupby("site_id").median(numeric_only=True).reset_index()
-    ax.scatter(sample["true_mrt_years"], sample["single_node_lpm_years"], label="single-node", color="#94a3b8", s=35)
-    ax.scatter(sample["true_mrt_years"], sample["network_bayesian_years"], label="network", color="#2563eb", s=35)
-    lim = [1, max(sample["true_mrt_years"].max(), sample["single_node_lpm_years"].max()) * 1.1]
-    ax.plot(lim, lim, "k--", lw=1)
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.set_title("Synthetic age agreement")
-    ax.set_xlabel("True MRT (yr)")
-    ax.set_ylabel("Estimated MRT (yr)")
-    ax.legend(frameon=False, fontsize=8)
-    _panel_label(ax, "A")
-
-    ax = axes[1]
-    labels = ["RCH", "DILUTE", "DEEP"]
-    data = [ages.loc[ages["site_id"] == label, "network_bayesian_years"] for label in labels]
-    ax.violinplot(data, positions=np.arange(len(labels)), showmeans=True)
-    ax.set_xticks(np.arange(len(labels)))
-    ax.set_xticklabels(labels)
-    ax.set_yscale("log")
-    ax.set_title("Network posteriors")
-    ax.set_ylabel("MRT (yr)")
-    _panel_label(ax, "B")
-
-    ax = axes[2]
-    grouped = consistency.groupby("edge_confidence_threshold").agg(
-        consistency=("downstream_age_consistency_fraction", "median"),
-        tau=("kendall_tau", "median"),
-    )
-    ax.plot(grouped.index, grouped["consistency"], "o-", label="age-order fraction", color="#2563eb")
-    ax.plot(grouped.index, grouped["tau"], "s--", label="Kendall tau", color="#f59e0b")
-    ax.set_ylim(-0.1, 1.05)
-    ax.set_title("Downstream age consistency")
-    ax.set_xlabel("Edge confidence threshold")
-    ax.legend(frameon=False, fontsize=8)
-    _panel_label(ax, "C")
-
-    fig.tight_layout()
-    _save(fig, "figure_s4_residence_time_network_update.png")
-
-
-def plot_sensitivity_figure() -> None:
-    unc = pd.read_csv(RESULT_DIR / "sensitivity_uncertainty_summary.csv")
-    unc = unc.sort_values("iqr_contribution", ascending=True)
-    unc["relative_percent"] = 100.0 * unc["iqr_contribution"] / unc["iqr_contribution"].sum()
-
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.4), gridspec_kw={"width_ratios": [1.05, 1.0]})
-    ax = axes[0]
-    ax.barh(unc["factor"], unc["relative_percent"], color="#475569")
-    ax.set_title("Relative uncertainty contribution")
-    ax.set_xlabel("Share of summed contribution (%)")
-    ax.set_xlim(0, max(unc["relative_percent"].max() * 1.12, 10))
-    for y, value in enumerate(unc["relative_percent"]):
-        ax.text(value + 1.0, y, f"{value:.1f}%", va="center", fontsize=8)
-    _panel_label(ax, "A")
-
-    ax = axes[1]
-    ax.axis("off")
-    ax.set_title("Uncertainty cascade")
-    steps = [
-        ("Tracer and\nchemistry errors", 0.16, 0.72),
-        ("Age posterior\nand graph weights", 0.50, 0.72),
-        ("Transport and\nreaction choice", 0.84, 0.72),
-        ("PHREEQC and\nresidual filters", 0.50, 0.42),
-        ("Final edge\nconfidence", 0.50, 0.14),
-    ]
-    for text, x, y in steps:
-        ax.text(
-            x,
-            y,
-            text,
-            ha="center",
-            va="center",
-            fontsize=9,
-            bbox=dict(boxstyle="round,pad=0.35", facecolor="#f8fafc", edgecolor="#334155", linewidth=1.1),
-        )
-    for start, end in [
-        ((0.27, 0.72), (0.39, 0.72)),
-        ((0.61, 0.72), (0.73, 0.72)),
-        ((0.78, 0.63), (0.58, 0.48)),
-        ((0.50, 0.32), (0.50, 0.23)),
-    ]:
-        ax.annotate("", xy=end, xytext=start, arrowprops=dict(arrowstyle="->", lw=1.4, color="#111827"))
-    _panel_label(ax, "B")
-    fig.tight_layout()
-    _save(fig, "figure5_sensitivity_uncertainty.png")
-
-
-def plot_sparse_algorithm() -> None:
-    fig, ax = plt.subplots(figsize=(10.5, 2.7))
-    ax.axis("off")
-    steps = ["Transport fit", "Residual vector", "L1 reaction fit", "SI feasibility", "Objective score", "Ranked pathway"]
-    xs = np.linspace(0.08, 0.92, len(steps))
-    for x, step in zip(xs, steps):
-        ax.text(
-            x,
-            0.52,
-            step,
-            ha="center",
-            va="center",
-            fontsize=9,
-            bbox=dict(boxstyle="round,pad=0.32", facecolor="#f8fafc", edgecolor="#0f766e", linewidth=1.2),
-        )
-    for x1, x2 in zip(xs[:-1], xs[1:]):
-        ax.annotate("", xy=(x2 - 0.055, 0.52), xytext=(x1 + 0.055, 0.52), arrowprops=dict(arrowstyle="->", lw=1.3))
-    ax.set_title("Figure S1. Sparse inverse hydrogeochemical fitting algorithm", fontsize=13, pad=10)
-    _save(fig, "figure_s1_sparse_fitting_algorithm.png")
-
-
-def plot_e6_nonlinear_validation() -> None:
-    e6 = pd.read_csv(EXTERNAL_DIR / "e6_nonlinear" / "results" / "e6_nonlinear_validation.csv")
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4))
-
-    ax = axes[0]
-    ax.hist(e6["nse"], bins=14, color="#2563eb", alpha=0.78)
-    ax.axvline(e6["nse"].median(), color="#111827", lw=1.2, ls="--", label=f"median={e6['nse'].median():.2f}")
-    ax.set_title("Nonlinear PHREEQC NSE")
-    ax.set_xlabel("NSE")
-    ax.set_ylabel("Edges")
-    ax.legend(frameon=False, fontsize=8)
-    _panel_label(ax, "A")
-
-    ax = axes[1]
-    minerals = [
-        ("calcite", "#2563eb"),
-        ("gypsum", "#f59e0b"),
-        ("halite", "#0f766e"),
-    ]
-    all_true = []
-    all_inf = []
-    for mineral, color in minerals:
-        x = e6[f"true_{mineral}"]
-        y = e6[f"inf_{mineral}"]
-        all_true.extend(x.tolist())
-        all_inf.extend(y.tolist())
-        ax.scatter(x, y, s=22, alpha=0.65, color=color, label=mineral)
-    lim = max(max(map(abs, all_true)), max(map(abs, all_inf)), 0.01) * 1.15
-    ax.plot([-lim, lim], [-lim, lim], color="#111827", lw=1.0)
-    ax.axhline(0, color="#d1d5db", lw=0.8)
-    ax.axvline(0, color="#d1d5db", lw=0.8)
-    ax.set_xlim(-lim, lim)
-    ax.set_ylim(-lim, lim)
-    ax.set_title("Reaction extent recovery")
-    ax.set_xlabel("PHREEQC truth extent")
-    ax.set_ylabel("Hydrosheaf inferred extent")
-    ax.legend(frameon=False, fontsize=8)
-    _panel_label(ax, "B")
-
-    fig.tight_layout()
-    _save(fig, "figure_s5_e6_nonlinear_validation.png")
-
-
-def plot_dgmeta_diagnostics() -> None:
-    dg = pd.read_csv(EXTERNAL_DIR / "dgmeta" / "results" / "dgmeta_hydrosheaf_comparison.csv")
-    fig, axes = plt.subplots(1, 3, figsize=(12, 3.8))
-
-    ax = axes[0]
-    temp = dg.dropna(subset=["reference_temperature_c", "hydrosheaf_temperature_c"])
-    for model, group in temp.groupby("hydrosheaf_model"):
-        ax.scatter(group["reference_temperature_c"], group["hydrosheaf_temperature_c"], s=18, alpha=0.60, label=str(model), edgecolors="none")
-    lo = min(temp["reference_temperature_c"].min(), temp["hydrosheaf_temperature_c"].min()) - 1
-    hi = max(temp["reference_temperature_c"].max(), temp["hydrosheaf_temperature_c"].max()) + 1
-    ax.plot([lo, hi], [lo, hi], color="#111827", lw=1.0)
-    ax.set_xlim(lo, hi)
-    ax.set_ylim(lo, hi)
-    ax.set_title("Recharge temperature")
-    ax.set_xlabel("DGMETA reference (C)")
-    ax.set_ylabel("Hydrosheaf (C)")
-    ax.legend(frameon=False, fontsize=8)
-    _panel_label(ax, "A")
-
-    ax = axes[1]
-    air = dg.dropna(subset=["reference_excess_air_cm3kg", "hydrosheaf_excess_air_cm3kg"])
-    for model, group in air.groupby("hydrosheaf_model"):
-        ax.scatter(group["reference_excess_air_cm3kg"], group["hydrosheaf_excess_air_cm3kg"], s=18, alpha=0.60, label=str(model), edgecolors="none")
-    if not air.empty:
-        lo = min(air["reference_excess_air_cm3kg"].min(), air["hydrosheaf_excess_air_cm3kg"].min()) - 0.5
-        hi = max(air["reference_excess_air_cm3kg"].max(), air["hydrosheaf_excess_air_cm3kg"].max()) + 0.5
-        ax.plot([lo, hi], [lo, hi], color="#111827", lw=1.0)
-        ax.set_xlim(lo, hi)
-        ax.set_ylim(lo, hi)
-    ax.set_title("Excess air")
-    ax.set_xlabel("DGMETA reference (cm3/kg)")
-    ax.set_ylabel("Hydrosheaf (cm3/kg)")
-    _panel_label(ax, "B")
-
-    ax = axes[2]
-    resid = dg.dropna(subset=["temperature_error_c"]).copy()
-    groups = [group["temperature_error_c"].abs() for _, group in resid.groupby("hydrosheaf_model")]
-    labels = [str(model) for model, _ in resid.groupby("hydrosheaf_model")]
-    ax.boxplot(groups, tick_labels=labels, showfliers=False)
-    ax.set_title("Absolute temperature residuals")
-    ax.set_ylabel("|error| (C)")
-    _panel_label(ax, "C")
-
-    fig.tight_layout()
-    _save(fig, "figure_s6_dgmeta_diagnostics.png")
-
-
-def plot_e1_residual_stratification() -> None:
-    age = pd.read_csv(EXTERNAL_DIR / "usgs_age" / "results" / "usgs_age_validation.csv")
-    age = age.dropna(subset=["log10_error"]).copy()
-    age["age_class"] = pd.cut(
-        age["reference_mean_age_years"],
-        bins=[0, 70, 1000, math.inf],
-        labels=["young (<70 yr)", "intermediate", "old (>1000 yr)"],
-    )
-    fig, axes = plt.subplots(1, 2, figsize=(10.5, 4))
-
-    ax = axes[0]
-    count_labels = sorted(age["supported_tracer_count"].dropna().unique())
-    data = [age.loc[age["supported_tracer_count"] == count, "log10_error"] for count in count_labels]
-    ax.boxplot(data, tick_labels=[str(int(count)) for count in count_labels], showfliers=False)
-    ax.axhline(0, color="#111827", lw=1.0)
-    ax.set_title("Residual by tracer count")
-    ax.set_xlabel("Supported tracer count")
-    ax.set_ylabel("log10 age error")
-    _panel_label(ax, "A")
-
-    ax = axes[1]
-    class_labels = ["young (<70 yr)", "intermediate", "old (>1000 yr)"]
-    data = [age.loc[age["age_class"] == label, "log10_error"] for label in class_labels]
-    ax.boxplot(data, tick_labels=_wrap_labels(class_labels, 12), showfliers=False)
-    ax.axhline(0, color="#111827", lw=1.0)
-    ax.set_title("Residual by age class")
-    ax.set_ylabel("log10 age error")
-    _panel_label(ax, "B")
-
-    fig.tight_layout()
-    _save(fig, "figure_s7_e1_tracer_age_residuals.png")
-
-
-def plot_e4_pilot_network() -> None:
-    northern_path = EXTERNAL_DIR / "northern_ghana" / "results" / "northern_ghana_edge_results.csv"
-    public_path = EXTERNAL_DIR / "usgs_public_chem" / "results" / "public_chem_edge_results.csv"
-    pilot_path = EXTERNAL_DIR / "pilot" / "results" / "pilot_edge_results.csv"
-
-    if northern_path.exists():
-        path = northern_path
-        title_suffix = " (Corrected Northern Ghana)"
-    elif public_path.exists():
-        path = public_path
-        title_suffix = " (USGS Public NAWQA)"
-    elif pilot_path.exists():
-        path = pilot_path
-        title_suffix = " (Pilot Dataset)"
-    else:
-        print("Skipping Figure S8: No edge results found.")
+def plot_manuscript_fig2_topology_validation() -> None:
+    """Figure 2: Physical Prior & Topology Validation (MODPATH agreement)."""
+    modpath_path = EXTERNAL_DIR / "modpath" / "results" / "modpath_topology_summary.csv"
+    if not modpath_path.exists():
+        print("Skipping Figure 2: MODPATH results not found.")
         return
 
-    pilot = pd.read_csv(path)
-    top = pilot.nsmallest(15, "objective_score").copy()
-    graph = nx.DiGraph()
-    for _, row in top.iterrows():
-        graph.add_edge(
-            row["u"],
-            row["v"],
-            weight=float(row["chemistry_r2"]),
-            score=float(row["objective_score"]),
-            season=row.get("season", ""),
-        )
+    modpath = pd.read_csv(modpath_path).iloc[0]
+    fig, ax = plt.subplots(figsize=(8, 7.5))
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.6), gridspec_kw={"width_ratios": [1.2, 1.0]})
-    ax = axes[0]
-    pos = nx.spring_layout(graph, seed=11, k=1.05, iterations=150)
-    node_colors = ["#e0f2fe" if str(node).startswith("Virtual") else "#dcfce7" for node in graph.nodes]
-    nx.draw_networkx_nodes(graph, pos, node_color=node_colors, edgecolors="#1f2937", node_size=620, ax=ax)
-    if "season" in top.columns:
-        season_colors = {"Wet": "#2563eb", "Dry": "#f59e0b"}
-        edge_colors = [season_colors.get(graph.edges[edge].get("season"), "#334155") for edge in graph.edges]
-        handles = [
-            plt.Line2D([0], [0], color=color, lw=2.2, label=season)
-            for season, color in season_colors.items()
-        ]
-        ax.legend(handles=handles, loc="lower left", frameon=False, fontsize=8)
-    else:
-        edge_colors = "#334155"
-    nx.draw_networkx_edges(graph, pos, arrows=True, arrowstyle="-|>", arrowsize=12, edge_color=edge_colors, width=1.2, ax=ax)
-    labels = {node: _short_node(str(node)) for node in graph.nodes}
-    nx.draw_networkx_labels(graph, pos, labels=labels, font_size=6.2, ax=ax)
-    ax.set_title(f"Top sparse-data edges{title_suffix}")
-    ax.axis("off")
-    _panel_label(ax, "A")
+    labels = ["True\nPositive", "False\nPositive", "False\nNegative"]
+    values = [modpath["true_positive_edges"], modpath["false_positive_edges"], modpath["false_negative_edges"]]
+    bars = ax.bar(labels, values, color=["#2563eb", "#ef4444", "#f97316"], alpha=0.85, width=0.6)
 
-    ax = axes[1]
-    top10 = top.head(10).sort_values("chemistry_r2")
-    edge_labels = [f"{_short_node(row.u)} -> {_short_node(row.v)}" for row in top10.itertuples()]
-    ax.barh(edge_labels, top10["chemistry_r2"], color="#0f766e")
-    lower = max(0.0, min(0.90, float(top10["chemistry_r2"].min()) - 0.01))
-    ax.set_xlim(lower, 1.0)
-    ax.set_title("Chemistry fit for top edges")
-    ax.set_xlabel("Chemistry R2")
-    _panel_label(ax, "B")
+    ax.set_title("Topology Validation vs. MODPATH Reference", fontsize=FONT_TITLE, fontweight="bold", pad=20)
+    ax.set_ylabel("Count of Directed Edges", fontsize=FONT_LABEL, fontweight="bold")
+
+    ax.tick_params(axis='both', which='major', labelsize=FONT_TICK)
+    ax.yaxis.set_major_locator(MaxNLocator(nbins=5, integer=True))
+
+    stats_text = (f"F1-Score: {modpath['edge_f1']:.2f}\n"
+                  f"Precision: {modpath['edge_precision']:.2f}\n"
+                  f"Recall: {modpath['edge_recall']:.2f}")
+    ax.text(0.95, 0.95, stats_text, transform=ax.transAxes, ha="right", va="top",
+            fontsize=FONT_ANNOTATE, fontweight="bold",
+            bbox=dict(facecolor="white", edgecolor="#d1d5db", boxstyle="round,pad=0.5"))
+
+    ax.text(0.5, -0.25, "Comparison of Hydrosheaf inferred topology against physical flow simulation.",
+            transform=ax.transAxes, ha="center", va="center", fontsize=FONT_ANNOTATE, style='italic', color="#475569")
+
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height + 1,
+                f'{int(height)}', ha='center', va='bottom', fontsize=FONT_ANNOTATE, fontweight="bold")
 
     fig.tight_layout()
-    _save(fig, "figure_s8_e4_sparse_pilot_network.png")
+    _save(fig, "Manuscript_Fig2_Topology_Validation.png")
+
+
+def plot_manuscript_fig3_synthetic_validation() -> None:
+    """Figure 3: Comprehensive Synthetic Validation (The 'Master Proof').
+    Consolidates transport recovery, reaction sparsity, and sensitivity analysis.
+    """
+    import seaborn as sns
+    from matplotlib.gridspec import GridSpec
+
+    edge_path = RESULT_DIR / "edge_fit_results.csv"
+    truth = load_truth()
+
+    if not edge_path.exists():
+        print("Skipping Figure 3: Synthetic results not found.")
+        return
+
+    df = pd.read_csv(edge_path)
+
+    # Filter for the 'baseline' scenario
+    baseline = df[(df["scenario"] == "complete") & (df["topology_variant"] == "full")].copy()
+
+    fig = plt.figure(figsize=(22, 17))
+    gs = GridSpec(2, 2, figure=fig, height_ratios=[1, 1.2], hspace=0.45, wspace=0.35)
+
+    # --- PANEL A: Transport Parameter Recovery (Violin-Box Hybrid) ---
+    ax_a = fig.add_subplot(gs[0, 0])
+    trans_data = []
+    for edge in truth["generation_edges"]:
+        eid = edge["edge_id"]
+        sub = baseline[baseline["edge_id"] == eid]
+
+        # Gamma
+        true_gamma = 1.0 / edge.get("gamma_inv", 1.0)
+        temp = sub[["gamma"]].copy().rename(columns={"gamma": "Value"})
+        temp["Parameter"] = r"$\gamma$ (Evap)"
+        temp["True"] = true_gamma
+        trans_data.append(temp)
+
+        # Mixing (if active)
+        if edge.get("f", 0) > 0:
+            temp_f = sub[["f"]].copy().rename(columns={"f": "Value"})
+            temp_f["Parameter"] = r"$f$ (Mix)"
+            temp_f["True"] = edge["f"]
+            trans_data.append(temp_f)
+
+    df_a = pd.concat(trans_data).reset_index(drop=True)
+    sns.violinplot(data=df_a, x="Parameter", y="Value", ax=ax_a, inner=None, color="#f1f5f9", linewidth=1.5)
+    sns.boxplot(data=df_a, x="Parameter", y="Value", ax=ax_a, width=0.15, boxprops={'zorder': 2}, color="white")
+    sns.stripplot(data=df_a, x="Parameter", y="Value", ax=ax_a, size=3, alpha=0.3, color="#2563eb", jitter=0.2)
+
+    # Plot true values as horizontal markers
+    unique_params = df_a["Parameter"].unique()
+    for i, param in enumerate(unique_params):
+        true_val = df_a[df_a["Parameter"] == param]["True"].iloc[0]
+        ax_a.plot([i - 0.2, i + 0.2], [true_val, true_val], color="red", ls="--", lw=2, label="Ground Truth" if i==0 else "")
+
+    ax_a.set_title("A. Physical Transport Parameter Recovery", fontsize=FONT_TITLE, fontweight="bold", pad=20)
+    ax_a.set_ylabel("Parameter Value / Fraction", fontsize=FONT_LABEL, fontweight="bold")
+    ax_a.tick_params(labelsize=FONT_TICK)
+    ax_a.legend(frameon=False, fontsize=FONT_LEGEND)
+
+    # --- PANEL B: Reaction Extent & Sparsity (JointGrid Style) ---
+    # We use a nested GridSpec for the JointGrid look within the main figure
+    gs_b = gs[0, 1].subgridspec(4, 4, hspace=0.05, wspace=0.05)
+    ax_b_main = fig.add_subplot(gs_b[1:, 0:3])
+    ax_b_histx = fig.add_subplot(gs_b[0, 0:3], sharex=ax_b_main)
+    ax_b_histy = fig.add_subplot(gs_b[1:, 3], sharey=ax_b_main)
+
+    minerals = ["calcite", "gypsum", "halite"]
+    plot_data_b = []
+    for m in minerals:
+        # Construct truth mapping for each edge explicitly (including false edges as 0)
+        truth_map = {e["edge_id"]: e["reactions"].get(m, 0.0) for e in truth["generation_edges"]}
+        temp = baseline[["edge_id", f"reaction_{m}"]].copy()
+        temp["True"] = temp["edge_id"].apply(lambda x: truth_map.get(x, 0.0))
+        temp = temp.rename(columns={f"reaction_{m}": "Inferred"})
+        temp["Mineral"] = PROCESS_LABEL_MAP.get(m, m.capitalize())
+        plot_data_b.append(temp[["Inferred", "True", "Mineral"]])
+
+    df_b = pd.concat(plot_data_b).reset_index(drop=True)
+    sns.scatterplot(data=df_b, x="True", y="Inferred", hue="Mineral", palette="viridis",
+                    s=80, alpha=0.6, edgecolor="white", linewidth=0.5, ax=ax_b_main)
+
+    lim = max(df_b["True"].max(), df_b["Inferred"].max(), 0.1) * 1.1
+    ax_b_main.plot([-0.05, lim], [-0.05, lim], "k--", alpha=0.3, lw=1.5, zorder=0)
+
+    # Marginals
+    sns.kdeplot(data=df_b, x="True", ax=ax_b_histx, fill=True, alpha=0.3, hue="Mineral", legend=False)
+    sns.kdeplot(data=df_b, y="Inferred", ax=ax_b_histy, fill=True, alpha=0.3, hue="Mineral", legend=False)
+
+    ax_b_histx.axis("off")
+    ax_b_histy.axis("off")
+    ax_b_main.set_xlabel("True Extent (mmol/L)", fontsize=FONT_LABEL, fontweight="bold")
+    ax_b_main.set_ylabel("Inferred Extent (mmol/L)", fontsize=FONT_LABEL, fontweight="bold")
+    ax_b_main.tick_params(labelsize=FONT_TICK)
+    ax_b_main.legend(frameon=False, fontsize=FONT_LEGEND, loc="upper left")
+
+    # Title on the top axis (histogram) to avoid overlap
+    ax_b_histx.set_title("B. Reaction Recovery & Signal Sparsity", fontsize=FONT_TITLE, fontweight="bold", pad=20)
+
+    # --- PANEL C: Missing Data Performance Decay ---
+    ax_c = fig.add_subplot(gs[1, 0])
+    # Group by scenario
+    scen_map = {
+        "complete": "1. All Data",
+        "ion_incomplete": "2. Missing Major Ions",
+        "head_absent": "3. No Head Data"
+    }
+    df["Scenario_Label"] = df["scenario"].map(scen_map)
+    # Ensure order
+    df["Scenario_Label"] = pd.Categorical(df["Scenario_Label"], categories=sorted(scen_map.values()), ordered=True)
+
+    sns.boxplot(data=df, x="Scenario_Label", y="chemistry_r2", ax=ax_c, hue="Scenario_Label", palette="coolwarm", width=0.5, legend=False)
+    ax_c.set_title("C. Model Robustness Stress-Test", fontsize=FONT_TITLE, fontweight="bold", pad=20)
+    ax_c.set_ylabel(r"Discovery Accuracy ($R^2$)", fontsize=FONT_LABEL, fontweight="bold")
+    ax_c.set_xlabel("Degradation Tier", fontsize=FONT_LABEL, fontweight="bold")
+    ax_c.set_ylim(0, 1.05)
+    ax_c.tick_params(labelsize=FONT_TICK)
+    ax_c.grid(True, ls=":", alpha=0.3)
+
+    # --- PANEL D: Isotopic Forensic Proof (Forensic Consistency) ---
+    ax_d = fig.add_subplot(gs[1, 1])
+    iso_path = RESULT_DIR / "res_isotopes.csv"
+    if iso_path.exists():
+        df_d = pd.read_csv(iso_path)
+        # REVIEWER FIX: Plot the actual isotopic SHIFT (Delta d18O) instead of absolute states
+        sns.regplot(data=df_d, x="true_shift", y="inf_shift", ax=ax_d, color="#db2777",
+                    scatter_kws={'s': 80, 'alpha': 0.6, 'edgecolor': 'white'},
+                    line_kws={'color': 'black', 'ls': '--', 'lw': 1.5})
+
+        # 1:1 Line
+        d_lim = [min(df_d["true_shift"].min(), df_d["inf_shift"].min()) - 0.2,
+                 max(df_d["true_shift"].max(), df_d["inf_shift"].max()) + 0.2]
+        ax_d.plot(d_lim, d_lim, "k:", alpha=0.3)
+
+        ax_d.set_title("D. Isotopic Forensic Consistency Check", fontsize=FONT_TITLE, fontweight="bold", pad=20)
+        ax_d.set_xlabel(r"True $\Delta \delta^{18}$O Shift (permil)", fontsize=FONT_LABEL, fontweight="bold")
+        ax_d.set_ylabel(r"Inferred $\Delta \delta^{18}$O Shift (permil)", fontsize=FONT_LABEL, fontweight="bold")
+        ax_d.tick_params(labelsize=FONT_TICK)
+
+        # Add R2 annotation
+        r2_iso = np.corrcoef(df_d["true_shift"], df_d["inf_shift"])[0,1]**2
+        ax_d.text(0.05, 0.95, fr"$R^2 = {r2_iso:.3f}$", transform=ax_d.transAxes,
+                  fontsize=FONT_LEGEND, fontweight="bold", verticalalignment='top',
+                  bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="#d1d5db"))
+    else:
+        ax_d.text(0.5, 0.5, "Isotope results not found", ha="center", va="center")
+        ax_d.set_title("D. Isotopic Forensic Consistency", fontsize=FONT_TITLE, fontweight="bold")
+
+    plt.suptitle("Information-Theoretic Proof of Hydrosheaf Inversion Accuracy\n(Synthetic Benchmark Suite: 100 Realisations)",
+                 fontsize=26, fontweight="bold", y=0.98)
+
+    plt.tight_layout()
+    _save(fig, "Manuscript_Fig3_Synthetic_Validation.png")
+
+
+def plot_manuscript_fig4_ghana_network() -> None:
+    """Figure 4: The 'Ghana Discovery' 4-Panel Spatial Process Network."""
+    path = RESULT_DIR / "field_discovery_results.csv"
+    if not path.exists():
+        print("Skipping Figure 4: Field discovery results not found.")
+        return
+
+    field = pd.read_csv(path)
+
+    manu_df = pd.read_csv(BENCHMARK_ROOT.parents[1] / "data" / "LowerAnayari" / "manu.csv")
+    talensi_df = pd.read_csv(BENCHMARK_ROOT.parents[1] / "data" / "Talensi_MiningArea" / "talensi.csv")
+
+    manu_pos = {str(row["Sample ID"]): (float(row["X coordinate"]), float(row["Y coordinate"])) for _, row in manu_df.iterrows() if pd.notna(row["X coordinate"])}
+    manu_elev = {str(row["Sample ID"]): float(row["Elevation"]) for _, row in manu_df.iterrows() if pd.notna(row["Elevation"])}
+
+    talensi_pos = {str(row["Code"]): (float(row["Longitude"]), float(row["Latitude"])) for _, row in talensi_df.iterrows() if pd.notna(row["Longitude"])}
+    talensi_elev = {str(row["Code"]): float(row["Elevation"]) for _, row in talensi_df.iterrows() if pd.notna(row["Elevation"])}
+
+    FAMILY_COLORS = {
+        "Plagioclase Weathering": "#2563eb", "K-Feldspar Weathering": "#7c3aed", "Ferromagnesian Weathering": "#92400e",
+        "Carbonate Dissolution": "#16a34a", "Evaporite Dissolution": "#0891b2", "Anthropogenic Input": "#dc2626",
+        "Redox / Oxidation": "#db2777", "Evaporative Concentration": "#64748b",
+    }
+
+    def get_family(proc):
+        p = proc.lower()
+        if any(x in p for x in ["albite", "anorthite"]): return "Plagioclase Weathering"
+        if any(x in p for x in ["k_feldspar", "microcline"]): return "K-Feldspar Weathering"
+        if any(x in p for x in ["biotite", "chlorite", "enstatite", "diopside"]): return "Ferromagnesian Weathering"
+        if any(x in p for x in ["calcite", "dolomite", "magnesite", "aragonite"]): return "Carbonate Dissolution"
+        if any(x in p for x in ["gypsum", "halite", "sylvite", "fluorite", "apatite"]): return "Evaporite Dissolution"
+        if any(x in p for x in ["no3", "potash", "nitrification", "road_salt"]): return "Anthropogenic Input"
+        if any(x in p for x in ["denit", "pyrite", "sulfate_reduction", "iron_reduction"]): return "Redox / Oxidation"
+        return "Evaporative Concentration"
+
+    def get_dominant_info(row):
+        extents = {}
+        for k, v in row.items():
+            if k.startswith("extent_") and pd.notna(v):
+                lbl = k.replace("extent_", "")
+                if lbl in ["pyrite_oxidation_aerobic", "pyrite_net"]:
+                    extents["pyrite"] = extents.get("pyrite", 0) + abs(v)
+                else:
+                    extents[lbl] = abs(v)
+
+        if not extents or max(extents.values()) < 0.02: return "Evaporative Concentration", 0.5
+        dom_proc = max(extents, key=extents.get)
+        return get_family(dom_proc), extents[dom_proc]
+
+    fig, axes = plt.subplots(2, 2, figsize=(16, 14))
+    ((ax_m_all, ax_m_top), (ax_t_all, ax_t_top)) = axes
+
+    import matplotlib.patheffects as path_effects
+
+    # Load Edge-Level PSI Data
+    psi_path = RESULT_DIR / "top_edges_psi.csv"
+    edge_psi_dict = {}
+    if psi_path.exists():
+        psi_df = pd.read_csv(psi_path)
+        # Helper to harmonize family names from CSV to the new figure legend
+        fam_map = {
+            "Plagioclase": "Plagioclase Weathering",
+            "K-Feldspar": "K-Feldspar Weathering",
+            "Ferromagnesian": "Ferromagnesian Weathering",
+            "Carbonates": "Carbonate Dissolution",
+            "Evaporites": "Evaporite Dissolution",
+            "Anthropogenic": "Anthropogenic Input",
+            "Redox": "Redox / Oxidation",
+            "Conservative": "Evaporative Concentration"
+        }
+        for _, row in psi_df.iterrows():
+            raw_fam = str(row["family"])
+            clean_fam = fam_map.get(raw_fam, raw_fam)
+            edge_psi_dict[str(row["edge_id"])] = (clean_fam, float(row["psi"]))
+
+    def draw_site_panel(ax, edges_df, pos_dict, elev_dict, title, is_top=False):
+        G = nx.DiGraph()
+        for _, row in edges_df.iterrows():
+            u, v, eid = str(row["u"]), str(row["v"]), str(row["edge_id"])
+            if u in pos_dict and v in pos_dict:
+                fam, mag = get_dominant_info(row)
+                if is_top and eid in edge_psi_dict:
+                    fam, psi = edge_psi_dict[eid]
+                    # Filter: Only show edges with > 20% probability
+                    if psi > 0.20:
+                        G.add_edge(u, v, family=fam, magnitude=mag, psi=psi)
+                elif not is_top:
+                    G.add_edge(u, v, family=fam, magnitude=mag, psi=0.5)
+
+        nodes = list(G.nodes())
+        node_colors = [elev_dict.get(n, 0) for n in nodes]
+
+        node_coll = nx.draw_networkx_nodes(
+            G, pos_dict, nodelist=nodes, node_color=node_colors,
+            cmap="terrain", edgecolors="#1f2937", node_size=60 if is_top else 80,
+            ax=ax, alpha=0.9, linewidths=1.0
+        )
+
+        for u, v, d in G.edges(data=True):
+            if not is_top:
+                # Standardized thin width
+                width = 1.5
+                alpha_val = 0.8
+            else:
+                # Standardized thin width for PSI panels as well
+                psi = d["psi"]
+                width = 1.5
+                alpha_val = 0.3 + (psi * 0.7)
+
+            nx.draw_networkx_edges(
+                G, pos_dict, edgelist=[(u,v)], arrows=True,
+                arrowsize=10 if not is_top else int(10 + psi * 5),
+                width=width, edge_color=FAMILY_COLORS[d["family"]],
+                ax=ax, connectionstyle="arc3,rad=0.1", alpha=alpha_val
+            )
+
+            if is_top:
+                # Add PSI text label to the edge
+                mid_x = (pos_dict[u][0] + pos_dict[v][0]) / 2
+                mid_y = (pos_dict[u][1] + pos_dict[v][1]) / 2
+                # Fading: Use alpha=0.3 for low-probability labels
+                label_alpha = 1.0 if d["psi"] >= 0.50 else 0.3
+                ax.annotate(f"{d['psi']*100:.0f}%", (mid_x, mid_y),
+                            color=FAMILY_COLORS[d["family"]], fontsize=8, fontweight="bold",
+                            alpha=label_alpha,
+                            path_effects=[path_effects.withStroke(linewidth=2, foreground="white", alpha=label_alpha)])
+
+        if is_top:
+            for node, (x, y) in pos_dict.items():
+                if node in G:
+                    ax.annotate(node, (x, y), xytext=(6, 6), textcoords='offset points',
+                               fontsize=7.5, fontweight="bold",
+                               path_effects=[path_effects.withStroke(linewidth=2, foreground="white")])
+
+        ax.set_title(title, fontsize=FONT_TITLE, fontweight="bold", pad=12)
+        return node_coll
+
+    m_edges = field[field["edge_id"].str.startswith("Manu")].copy()
+    draw_site_panel(ax_m_all, m_edges, manu_pos, manu_elev, "(a) Lower Anayari: All Discovered Paths")
+    draw_site_panel(ax_m_top, m_edges, manu_pos, manu_elev, "(b) Lower Anayari: Process-Identification Probability (PSI)", is_top=True)
+
+    t_edges = field[field["edge_id"].str.startswith("Talensi")].copy()
+    draw_site_panel(ax_t_all, t_edges, talensi_pos, talensi_elev, "(c) Talensi: All Discovered Paths")
+    sm = draw_site_panel(ax_t_top, t_edges, talensi_pos, talensi_elev, "(d) Talensi: Process-Identification Probability (PSI)", is_top=True)
+
+    for ax in axes.flat:
+        ax.set_xlabel("Longitude / Easting", fontsize=FONT_LABEL, fontweight="bold")
+        ax.set_ylabel("Latitude / Northing", fontsize=FONT_LABEL, fontweight="bold")
+        ax.tick_params(axis='both', which='major', labelsize=FONT_TICK, left=True, bottom=True, labelleft=True, labelbottom=True)
+        ax.set_axis_on()
+        ax.grid(True, ls=":", alpha=0.3)
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=4))
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=4))
+
+    from matplotlib.lines import Line2D
+    legend_elements = [Line2D([0], [0], color=c, lw=4, label=k) for k, c in FAMILY_COLORS.items()]
+    fig.legend(handles=legend_elements, loc="lower center", ncol=4,
+                      title="Geochemical Process Families", bbox_to_anchor=(0.5, -0.05),
+                      fontsize=FONT_LEGEND, title_fontsize=FONT_LABEL)
+
+    cbar_ax = fig.add_axes([0.92, 0.25, 0.02, 0.5])
+    cbar = fig.colorbar(sm, cax=cbar_ax)
+    cbar.set_label("Relative Elevation (m a.s.l.)", fontsize=FONT_LABEL, fontweight="bold")
+    cbar.ax.tick_params(labelsize=FONT_TICK)
+
+    plt.suptitle("Spatiotemporal Process Discovery Networks", fontsize=22, fontweight="bold", y=0.98)
+    plt.tight_layout(rect=[0, 0.02, 0.9, 0.94])
+    _save(fig, "Manuscript_Fig4_Ghana_Process_Network.png")
+
+
+def plot_manuscript_fig5_residence_time_validation() -> None:
+    """Figure 5: Synthetic and public residence-time validation."""
+    synthetic_path = RESULT_DIR / "age_inference_validation.csv"
+    public_path = EXTERNAL_DIR / "usgs_age" / "results" / "usgs_age_validation.csv"
+    if not synthetic_path.exists() and not public_path.exists():
+        print("Skipping Figure 5: residence-time validation data not found.")
+        return
+
+    fig, axes = plt.subplots(1, 2, figsize=(16, 7.5))
+    ax_syn, ax_pub = axes
+
+    if synthetic_path.exists():
+        syn = pd.read_csv(synthetic_path).dropna(
+            subset=["true_mrt_years", "network_bayesian_years"]
+        )
+        class_colors = {
+            "young": COLORS["young"],
+            "intermediate": COLORS["intermediate"],
+            "old": COLORS["old"],
+            "fossil": COLORS["fossil"],
+            "mixed": COLORS["mixed"],
+        }
+        for age_class, color in class_colors.items():
+            sub = syn[syn["age_class"] == age_class]
+            if sub.empty:
+                continue
+            ax_syn.scatter(
+                sub["true_mrt_years"],
+                sub["network_bayesian_years"],
+                s=70,
+                alpha=0.72,
+                edgecolor="white",
+                linewidth=0.5,
+                color=color,
+                label=age_class.capitalize(),
+            )
+        lim_min = max(0.5, min(syn["true_mrt_years"].min(), syn["network_bayesian_years"].min()) * 0.6)
+        lim_max = max(syn["true_mrt_years"].max(), syn["network_bayesian_years"].max()) * 1.6
+        lims = np.logspace(np.log10(lim_min), np.log10(lim_max), 100)
+        ax_syn.plot(lims, lims, color="#111827", ls="--", lw=1.5)
+        ax_syn.fill_between(lims, lims / 3, lims * 3, color="#94a3b8", alpha=0.14)
+        log_true = np.log10(np.maximum(syn["true_mrt_years"], 0.1))
+        log_inf = np.log10(np.maximum(syn["network_bayesian_years"], 0.1))
+        r2 = np.corrcoef(log_true, log_inf)[0, 1] ** 2
+        mae = np.mean(np.abs(syn["network_bayesian_years"] - syn["true_mrt_years"]))
+        ax_syn.text(
+            0.05,
+            0.95,
+            f"$R^2$ = {r2:.2f}\nMAE = {mae:.1f} y",
+            transform=ax_syn.transAxes,
+            ha="left",
+            va="top",
+            fontsize=FONT_ANNOTATE,
+            fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.4", facecolor="white", edgecolor="#d1d5db"),
+        )
+        ax_syn.legend(frameon=False, fontsize=FONT_LEGEND, loc="lower right")
+    else:
+        ax_syn.text(0.5, 0.5, "Synthetic age validation not found", ha="center", va="center")
+
+    if public_path.exists():
+        pub = pd.read_csv(public_path).dropna(
+            subset=["reference_mean_age_years", "hydrosheaf_age_years"]
+        )
+        pub = pub[pub["reference_mean_age_years"] <= 50000].copy()
+        categories = {
+            "Modern tracers": pub["supported_tracers"].astype(str).str.contains("3H|SF6|CFC", regex=True),
+            "14C inclusive": pub["supported_tracers"].astype(str).str.contains("14C", regex=False),
+        }
+        plotted = pd.Series(False, index=pub.index)
+        palette = {"Modern tracers": COLORS["young"], "14C inclusive": COLORS["fossil"], "Other": COLORS["muted"]}
+        for label, mask in categories.items():
+            sub = pub[mask & ~plotted]
+            plotted.loc[sub.index] = True
+            if not sub.empty:
+                ax_pub.scatter(
+                    sub["reference_mean_age_years"],
+                    sub["hydrosheaf_age_years"],
+                    s=32,
+                    alpha=0.45,
+                    edgecolor="white",
+                    linewidth=0.25,
+                    color=palette[label],
+                    label=label,
+                )
+        other = pub[~plotted]
+        if not other.empty:
+            ax_pub.scatter(
+                other["reference_mean_age_years"],
+                other["hydrosheaf_age_years"],
+                s=28,
+                alpha=0.35,
+                color=palette["Other"],
+                label="Other",
+            )
+        lims = np.logspace(-1, 5, 100)
+        ax_pub.plot(lims, lims, color="#111827", ls="--", lw=1.5)
+        ax_pub.fill_between(lims, lims / 10, lims * 10, color="#94a3b8", alpha=0.14)
+        log_ref = np.log10(np.maximum(pub["reference_mean_age_years"], 0.1))
+        log_inf = np.log10(np.maximum(pub["hydrosheaf_age_years"], 0.1))
+        r2 = np.corrcoef(log_ref, log_inf)[0, 1] ** 2
+        mae_log = np.mean(np.abs(log_ref - log_inf))
+        ax_pub.text(
+            0.05,
+            0.95,
+            f"$R^2$ = {r2:.2f}\nMAE = {mae_log:.2f} log units",
+            transform=ax_pub.transAxes,
+            ha="left",
+            va="top",
+            fontsize=FONT_ANNOTATE,
+            fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.4", facecolor="white", edgecolor="#d1d5db"),
+        )
+        ax_pub.legend(frameon=False, fontsize=FONT_LEGEND, loc="lower right")
+    else:
+        ax_pub.text(0.5, 0.5, "Public age validation not found", ha="center", va="center")
+
+    for ax, title in [
+        (ax_syn, "(a) Synthetic Network Bayesian Age Recovery"),
+        (ax_pub, "(b) Public Tracer-Age Agreement"),
+    ]:
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        ax.set_xlabel("Reference / True Age (years)", fontsize=FONT_LABEL, fontweight="bold")
+        ax.set_ylabel("Hydrosheaf Age (years)", fontsize=FONT_LABEL, fontweight="bold")
+        ax.set_title(title, fontsize=FONT_TITLE, fontweight="bold", pad=14)
+        ax.tick_params(labelsize=FONT_TICK)
+        ax.grid(True, which="major", ls=":", alpha=0.25)
+
+    plt.suptitle("Residence-Time Validation across Synthetic and Public Tracer Evidence", fontsize=22, fontweight="bold", y=1.02)
+    fig.tight_layout()
+    _save(fig, "Manuscript_Fig5_Residence_Time_Validation.png")
+
+
+def plot_manuscript_fig6_optimal_model_selection() -> None:
+    """Figure 6: The Information-Theoretic 'Optimal Discovery' Plateau."""
+    path = M6_RESULT_DIR / "m6_regularization_path.csv"
+    if not path.exists():
+        print("Skipping Figure 6: Regularization path data not found.")
+        return
+
+    df_all = pd.read_csv(path)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 13))
+
+    def plot_panel(ax, site_name, label):
+        df = df_all[df_all["site"] == site_name].copy()
+        ax_right = ax.twinx()
+        lns1 = ax.plot(df["lambda"], df["residual_norm"], "o-", color="#3b82f6", label="Residual Norm", markersize=5, linewidth=1.5, alpha=0.8)
+        lns2 = ax_right.plot(df["lambda"], df["aicc"], "s-", color="#ef4444", label="AICc", markersize=5, linewidth=1.5, alpha=0.8)
+        best_lambda = df.loc[df["aicc"].idxmin(), "lambda"]
+        ax.axvline(best_lambda, color="#1f2937", ls="--", alpha=0.4)
+        ax_right.annotate(fr"Optimal $\lambda$ = {best_lambda:.4f}", xy=(best_lambda, 0.5), xycoords=("data", "axes fraction"), ha="center", va="center", rotation=90, fontsize=10, fontweight="bold", bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="#d1d5db", alpha=0.9))
+        ax.set_xscale("log")
+        ax.set_xlabel(r"Regularization Strength ($\lambda$)", fontsize=FONT_LABEL, fontweight="bold")
+        ax.set_ylabel("Residual Norm", color="#3b82f6", fontsize=FONT_LABEL, fontweight="bold")
+        ax_right.set_ylabel("AICc", color="#ef4444", fontsize=FONT_LABEL, fontweight="bold")
+        ax.tick_params(axis='both', which='major', labelsize=FONT_TICK)
+        ax_right.tick_params(axis='both', which='major', labelsize=FONT_TICK)
+        ax.set_title(f"({label}) {'Lower Anayari' if site_name == 'Manu' else 'Talensi Mining Area'}", fontsize=FONT_TITLE, fontweight="bold", pad=12)
+        return lns1 + lns2
+
+    h = plot_panel(ax1, "Manu", "a")
+    plot_panel(ax2, "Talensi", "b")
+    fig.legend(h, ["Residual Norm", "AICc"], loc="lower center", ncol=2, frameon=True, fontsize=FONT_LEGEND, edgecolor="#d1d5db", bbox_to_anchor=(0.5, -0.02))
+    plt.suptitle("Optimal Model Selection via AICc Minimum", fontsize=FONT_TITLE, fontweight="bold", y=1.02)
+    fig.tight_layout()
+    _save(fig, "Manuscript_Fig6_Optimal_Model_Selection.png")
+
+
+def plot_manuscript_fig7_psi_robustness_guarantee() -> None:
+    """Figure 7: The Phase Stability Matrix (PSI) Heatmap."""
+    path = M6_RESULT_DIR / "m6_phase_stability_index.csv"
+    if not path.exists():
+        print("Skipping Figure 7: PSI data not found.")
+        return
+
+    df = pd.read_csv(path)
+    df["label"] = df["mineral"].map(lambda x: PROCESS_LABEL_MAP.get(x, x))
+    pivot_df = df.pivot_table(index="label", columns="site", values="psi", aggfunc="max").fillna(0)
+    pivot_df["total"] = pivot_df.sum(axis=1)
+    pivot_df = pivot_df.sort_values("total", ascending=False).drop(columns="total")
+
+    import seaborn as sns
+    fig, ax = plt.subplots(figsize=(10, 11))
+    sns.heatmap(pivot_df * 100, annot=True, fmt=".1f", cmap="YlGnBu", cbar_kws={'label': 'Identification Probability (%)'}, linewidths=.5, ax=ax, annot_kws={"weight": "bold", "size": 14})
+
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=FONT_TICK)
+    cbar.set_label('Identification Probability (%)', fontsize=FONT_LABEL, fontweight="bold")
+
+    ax.set_title("Phase Stability Matrix (PSI)\nDiscovery Robustness across Geologic Provinces", fontsize=FONT_TITLE, fontweight="bold", pad=20)
+    ax.set_xticklabels(["Lower Anayari (Basement)", "Talensi (Mining/Agriculture)"], rotation=0, fontweight="bold", fontsize=FONT_LABEL)
+    ax.tick_params(axis='y', labelsize=FONT_TICK)
+    ax.set_ylabel("")
+    ax.set_xlabel("")
+
+    fig.tight_layout()
+    _save(fig, "Manuscript_Fig7_PSI_Robustness_Guarantee.png")
 
 
 def main() -> None:
-    plot_compact_process_network()
-    plot_external_validation_composite()
-    plot_residence_time_supplement()
-    plot_sensitivity_figure()
-    plot_sparse_algorithm()
-    plot_e6_nonlinear_validation()
-    plot_dgmeta_diagnostics()
-    plot_e1_residual_stratification()
-    plot_e4_pilot_network()
-    print("Publication figures regenerated.")
+    plot_manuscript_fig1_architecture()
+    plot_manuscript_fig2_topology_validation()
+    plot_manuscript_fig3_synthetic_validation()
+    plot_manuscript_fig4_ghana_network()
+    plot_manuscript_fig5_residence_time_validation()
+    plot_manuscript_fig6_optimal_model_selection()
+    plot_manuscript_fig7_psi_robustness_guarantee()
+    print("M2 Manuscript-Ready figures generated in 'figures/Manuscript_Ready/'.")
 
 
 if __name__ == "__main__":

@@ -8,5 +8,5 @@ from .reactions import build_reaction_dictionary as _build
 
 def build_reaction_dictionary(
     config: Config,
-) -> Tuple[List[List[float]], List[str], List[bool]]:
+) -> Tuple[List[List[float]], List[str], List[bool], List[float]]:
     return _build(config)

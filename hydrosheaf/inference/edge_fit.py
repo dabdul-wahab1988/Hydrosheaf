@@ -5,7 +5,10 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Mapping, Optional, Tuple
 
 from ..config import Config
+from ..log import get_logger
 from ..data.qc import qc_flags
+
+logger = get_logger("inference.edge_fit")
 from ..models.ec_tds import ec_tds_penalty
 from ..models.gibbs import gibbs_evaporation_penalty, compute_gibbs_metrics
 from ..models.reactions import ReactionFit, build_reaction_dictionary, fit_reactions
@@ -132,12 +135,36 @@ def fit_edge(
     bounds: Optional[Dict[str, object]] = None,
     obs_u: Optional[Mapping[str, float]] = None,
     residence_time_days: Optional[float] = None,
+    residence_time_std_days: Optional[float] = None,
     extra_endmembers: Optional[Dict[str, List[float]]] = None,
     pre_si_mask: Optional[Mapping[str, float]] = None,
 ) -> EdgeResult:
     config.validate()
 
-    reaction_matrix, labels, mineral_mask, penalty_scales = build_reaction_dictionary(config, pre_si_mask=pre_si_mask)
+    add_no3src = True
+    add_denit = True
+    no3src_scale = 1.0
+    denit_scale = 1.0
+    
+    if obs_u is not None:
+        no3_val = float(obs_u.get("NO3") or 0.0)
+        if no3_val < 0.16:
+            add_denit = False
+            logger.debug("Logic Gate: Pruning 'denit' (NO3 < 0.16 mmol/L)")
+        if no3_val > 0.8:
+            no3src_scale = 0.1
+            logger.debug("Logic Gate: Forcing 'NO3src' selection (NO3 > 0.8 mmol/L)")
+
+    # Topology Redox Proxy (Data-Independent Forensic Fix #2)
+    # If residence time is < 30 days OR flow path is shallow (e.g. gamma indicates high recharge), 
+    # denitrification is thermodynamically unlikely (too much oxygen). We penalize it.
+    if residence_time_days is not None and residence_time_days < 30.0:
+        denit_scale = 10.0
+        logger.debug("Topology Redox Proxy: Penalizing denitrification (short residence time < 30d)")
+    # We will pass this dynamic scale into the dictionary builder
+    reaction_matrix, labels, mineral_mask, penalty_scales = build_reaction_dictionary(
+        config, pre_si_mask=pre_si_mask, sample=obs_u, dynamic_denit_scale=denit_scale
+    )
     signed_mask = [label in config.signed_reaction_labels for label in labels]
     
     lb: Optional[List[float]] = None
@@ -164,7 +191,7 @@ def fit_edge(
 
     if "evap" in config.transport_models_enabled:
         transport_vec = list(x_u)
-        phys_fit = fit_reactions(target_y, [transport_vec], weights_phys, lambda_l1=0.0, signed_mask=[False], lb=[0.0], ub=[999.0])
+        phys_fit = fit_reactions(target_y, [transport_vec], weights_phys, lambda_l1=0.0, signed_mask=[True], lb=[-0.99], ub=[999.0])
         delta_gamma = phys_fit.extents[0]
         gamma_val = 1.0 + delta_gamma
         transport_contrib = [delta_gamma * val for val in transport_vec]
@@ -174,7 +201,8 @@ def fit_edge(
         chem_fit = fit_reactions(
             chem_target, reaction_matrix, active_weights, lambda_l1,
             max_iter=config.reaction_max_iter, tol=config.reaction_tol,
-            signed_mask=signed_mask, lb=lb, ub=ub, penalty_scales=penalty_scales
+            signed_mask=signed_mask, lb=lb, ub=ub, penalty_scales=penalty_scales,
+            lambda_l2=config.lambda_l2
         )
         
         candidates.append({
@@ -289,7 +317,10 @@ def fit_edge(
             isotope_penalty=iso_penalty, isotope_metrics=iso_metrics, isotope_used=iso_used,
             gibbs_penalty=gibbs_penalty_val, gibbs_metrics=gibbs_metrics_val, gibbs_used=gibbs_used,
             isotope_consistency_penalty=iso_consistency_penalty, reaction_fit=final_reaction_fit,
-            residual_vector=list(final_reaction_fit.residual), chemistry_r2=chem_r2
+            residual_vector=list(final_reaction_fit.residual), chemistry_r2=chem_r2,
+            edge_residence_time_days=residence_time_days,
+            physics_tau_mean_days=residence_time_days,
+            physics_tau_std_days=residence_time_std_days
         )
 
         if best_result is None or res_obj.objective_score < best_result.objective_score:

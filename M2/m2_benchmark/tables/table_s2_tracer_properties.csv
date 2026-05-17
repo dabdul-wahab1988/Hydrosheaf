@@ -1,7 +1,0 @@
-tracer,decay_or_property,input_function,main_uncertainty,laboratory_requirement
-3H,12.32 yr half-life,precipitation/recharge input,bomb-pulse and seasonal input uncertainty,liquid scintillation or He ingrowth
-14C,5730 yr half-life,DIC activity,dead-carbon and d13C correction,AMS radiocarbon
-36Cl,301000 yr half-life,meteoric and subsurface production,nucleogenic production,AMS
-81Kr,229000 yr half-life,atmospheric input,sampling volume and analytical access,atom trap trace analysis
-CFC/SF6,atmospheric history,gas solubility input,"contamination, excess air",gas chromatography
-noble gases,stable physical tracers,recharge temperature suite,excess air correction,mass spectrometry

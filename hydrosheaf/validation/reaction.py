@@ -124,6 +124,8 @@ def fit_sparse_reaction_once(
     weights: Sequence[float],
     *,
     lambda_l1: float,
+    lambda_l2: float = 0.0,
+    penalty_scales: Optional[List[float]] = None,
     signed_mask: Optional[List[bool]] = None,
     lb: Optional[List[float]] = None,
     ub: Optional[List[float]] = None,
@@ -139,6 +141,8 @@ def fit_sparse_reaction_once(
         [list(map(float, row)) for row in reaction_matrix],
         list(map(float, weights)),
         float(lambda_l1),
+        lambda_l2=lambda_l2,
+        penalty_scales=penalty_scales,
         max_iter=max_iter,
         tol=tol,
         signed_mask=signed_mask,
@@ -149,6 +153,7 @@ def fit_sparse_reaction_once(
     active = _active_reactions(reaction_labels, fit.extents, threshold=selected_threshold)
     return {
         "lambda_l1": float(lambda_l1),
+        "lambda_l2": float(lambda_l2),
         "transport_residual_norm": before,
         "reaction_residual_norm": after,
         "residual_reduction_fraction": (before - after) / before if before > 0 else 0.0,
@@ -169,6 +174,8 @@ def l1_penalty_sensitivity(
     weights: Sequence[float],
     lambda_grid: Iterable[float],
     *,
+    lambda_l2: float = 0.0,
+    penalty_scales: Optional[List[float]] = None,
     signed_mask: Optional[List[bool]] = None,
     lb: Optional[List[float]] = None,
     ub: Optional[List[float]] = None,
@@ -185,6 +192,8 @@ def l1_penalty_sensitivity(
                 reaction_labels,
                 weights,
                 lambda_l1=lambda_l1,
+                lambda_l2=lambda_l2,
+                penalty_scales=penalty_scales,
                 signed_mask=signed_mask,
                 lb=lb,
                 ub=ub,
@@ -203,6 +212,8 @@ def missing_ion_sensitivity(
     missing_ion_sets: Iterable[Iterable[str]],
     *,
     lambda_l1: float,
+    lambda_l2: float = 0.0,
+    penalty_scales: Optional[List[float]] = None,
     selected_threshold: float = 1.0e-6,
 ) -> List[Dict[str, Any]]:
     """Refit after dropping selected ions by setting their weights to zero."""
@@ -222,6 +233,8 @@ def missing_ion_sensitivity(
             reaction_labels,
             sensitivity_weights,
             lambda_l1=lambda_l1,
+            lambda_l2=lambda_l2,
+            penalty_scales=penalty_scales,
             selected_threshold=selected_threshold,
         )
         fit["missing_ions"] = sorted(missing_set)
@@ -242,6 +255,7 @@ def validate_sparse_inverse_reaction_model(
     missing_ion_sets: Optional[Iterable[Iterable[str]]] = None,
     phreeqc_bounds: Optional[Mapping[str, Any]] = None,
     selected_threshold: float = 1.0e-6,
+    penalty_scales: Optional[List[float]] = None,
 ) -> Dict[str, Any]:
     """Run the M5 sparse inverse-reaction validation harness."""
 
@@ -258,6 +272,8 @@ def validate_sparse_inverse_reaction_model(
         reaction_labels,
         weights,
         lambda_grid,
+        lambda_l2=config.lambda_l2,
+        penalty_scales=penalty_scales,
         lb=list(phreeqc_bounds.get("lb")) if phreeqc_bounds and phreeqc_bounds.get("lb") else None,
         ub=list(phreeqc_bounds.get("ub")) if phreeqc_bounds and phreeqc_bounds.get("ub") else None,
         selected_threshold=selected_threshold,
@@ -271,6 +287,8 @@ def validate_sparse_inverse_reaction_model(
         weights,
         missing_ion_sets or [],
         lambda_l1=float(best["lambda_l1"]),
+        lambda_l2=config.lambda_l2,
+        penalty_scales=penalty_scales,
         selected_threshold=selected_threshold,
     )
     violations = thermodynamic_bound_violations(

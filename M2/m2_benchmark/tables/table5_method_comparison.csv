@@ -1,7 +1,0 @@
-method,flow_path_formalisation,residence_time_support,thermodynamic_rigour,uncertainty_propagation,minimum_data_requirement,data_limited_suitability
-PHREEQC/NETPATH,manual path selection,limited,high,limited native,medium,strong thermodynamics but path topology is analyst-defined
-MODFLOW/MODPATH,physical particle tracking,travel time support,low geochemistry,model calibration uncertainty,high,strong physics but high data and calibration burden
-TracerLPM/LUMPY,point based,high,none,posterior/Monte Carlo,medium,good age tools but no process-labelled graph
-VISHMOD/virtual sampling,spatial/virtual pathways,partial,partial,varies,medium-high,useful spatial context but limited integrated reaction-age coupling
-Graph/GNN surrogates,learned graph,varies,low interpretability,model-dependent,high,requires training data and has weaker process transparency
-Hydrosheaf,directed confidence-weighted graph,single-node and network age,PHREEQC-compatible constraints,Monte Carlo/topology/degradation,low-medium,"integrates topology, tracer age, sparse reactions, and uncertainty"

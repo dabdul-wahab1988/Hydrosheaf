@@ -1,2 +1,0 @@
-n_edges,gamma_mae,mean_extent_mae,max_extent_mae,reaction_tp,reaction_fp,reaction_fn,reaction_precision,reaction_recall,reaction_f1,median_objective_score
-80,0.004581888081387414,0.0024664625553945984,0.006270005468891759,240,0,0,1.0,1.0,1.0,3.888455349554245e-05

@@ -1,0 +1,111 @@
+version: 1
+description: >
+  Phase-2 M3 experimental design matrix. These scenarios are intentionally
+  paired so each benchmark row can be compared against itself under controlled
+  changes in correction mode, tracer set, and LPM strategy.
+
+defaults:
+  age_steps: 35
+  row_filter:
+    finite_reference_age: true
+
+scenarios:
+  - scenario_id: parity_reported_corrected
+    label: USGS parity, corrected inputs
+    purpose: Baseline Phase-1 parity mode using reported LPM family and USGS-corrected inputs where available.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: selected
+    he4_mode: calibrated
+    tracer_set: reported
+    lpm_strategy: reported
+
+  - scenario_id: ablation_raw_gases
+    label: Raw gas-tracer ablation
+    purpose: Quantify the paired effect of replacing USGS dissolved-gas-corrected young tracers with raw measured values.
+    gas_correction_mode: raw
+    c14_correction_mode: selected
+    he4_mode: calibrated
+    tracer_set: reported
+    lpm_strategy: reported
+
+  - scenario_id: screened_dgm_gases
+    label: Screened young-gas correction
+    purpose: Compare a conservative Hydrosheaf screen that keeps USGS-corrected young tracers unless raw gases give materially better internal young-tracer coherence and fit.
+    gas_correction_mode: screened_dgm
+    gas_masking_mode: screen_contaminated
+    c14_correction_mode: selected
+    he4_mode: calibrated
+    tracer_set: reported
+    lpm_strategy: reported
+
+  - scenario_id: ablation_raw_c14
+    label: Raw carbon-14 ablation
+    purpose: Quantify the paired effect of removing selected USGS 14C correction and using raw 14C with fixed A0.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: raw
+    he4_mode: calibrated
+    tracer_set: reported
+    lpm_strategy: reported
+
+  - scenario_id: ablation_no_he4
+    label: Disable helium-4
+    purpose: Quantify old-groundwater performance loss when calibrated 4He accumulation is disabled.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: selected
+    he4_mode: disabled
+    tracer_set: reported
+    lpm_strategy: reported
+
+  - scenario_id: tracer_young_only
+    label: Young-tracer-only subset
+    purpose: Estimate performance when old-water tracers are removed from reported tracer sets.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: selected
+    he4_mode: disabled
+    tracer_set: young_only
+    lpm_strategy: reported
+
+  - scenario_id: tracer_old_only
+    label: Old-tracer-only subset
+    purpose: Estimate performance when young tracers are removed and 14C/4He constraints dominate.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: selected
+    he4_mode: calibrated
+    tracer_set: old_only
+    lpm_strategy: reported
+
+  - scenario_id: oldwater_c14_ensemble
+    label: Old-water 14C ensemble
+    purpose: Quantify the effect of aggregating multiple plausible USGS 14C correction models into an ensemble median.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: ensemble
+    he4_mode: calibrated
+    tracer_set: reported
+    lpm_strategy: reported
+
+  - scenario_id: oldwater_he4_uncertainty
+    label: Old-water 4He uncertainty
+    purpose: Quantify the effect of inflating 4He uncertainty using calibrated solution-rate support fields from Table 4.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: selected
+    he4_mode: calibrated_uncertainty
+    tracer_set: reported
+    lpm_strategy: reported
+
+  - scenario_id: oldwater_ensemble_he4_uncertainty
+    label: Old-water ensemble plus 4He uncertainty
+    purpose: Joint old-groundwater stress test using 14C ensemble handling and calibrated 4He uncertainty inflation.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: ensemble
+    he4_mode: calibrated_uncertainty
+    tracer_set: reported
+    lpm_strategy: reported
+
+  - scenario_id: hydrosheaf_selection_corrected
+    label: Hydrosheaf model selection, corrected inputs
+    purpose: Compare Hydrosheaf-selected supported TTD families against USGS-reported parity mode.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: selected
+    he4_mode: calibrated
+    tracer_set: reported
+    lpm_strategy: selection

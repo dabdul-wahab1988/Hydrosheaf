@@ -27,6 +27,7 @@ class Config:
     lambda_sparse: float = 0.0
 
     lambda_l1: float = 0.0
+    lambda_l2: float = 0.0
     reaction_max_iter: int = 300
     reaction_tol: float = 1e-6
     charge_balance_limit: float = 0.1
@@ -101,7 +102,7 @@ class Config:
 
     # Advanced M2 Thesis Upgrades
     use_thermodynamic_logic_gates: bool = True
-    si_logic_gate_threshold: float = 0.5  # SI value above which dissolution is pruned
+    si_logic_gate_threshold: float = 0.2  # SI value above which dissolution is pruned
     use_temporal_sheaf_sections: bool = True
     sensitivity_analysis_enabled: bool = False
     sensitivity_perturbation_scale: float = 0.1
@@ -232,7 +233,10 @@ class Config:
     )
     residence_time_tracer: str = "Cl"  # conservative tracer for age estimation
     residence_time_hydraulic_k: float = 1.0  # m/day, for gradient method
+    residence_time_hydraulic_k_cv: float = 1.0  # 100% uncertainty on K (log-normal typical)
     residence_time_porosity: float = 0.2  # effective porosity
+    residence_time_porosity_cv: float = 0.2  # 20% uncertainty on porosity
+    residence_time_gradient_cv: float = 0.5  # 50% uncertainty on gradient derived from topography
     # Recharge piston flow settings
     recharge_lag_volume_mm: float = 500.0  # Effective storage volume (mm)
     recharge_effective_fraction: float = 0.5  # Fraction of rain becoming recharge

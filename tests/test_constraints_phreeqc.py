@@ -8,7 +8,7 @@ from hydrosheaf.phreeqc.constraints import build_edge_bounds
 class ConstraintTests(unittest.TestCase):
     def test_si_bounds_mapping(self):
         config = Config(si_threshold_tau=0.2)
-        _, labels, mineral_mask = build_reaction_dictionary(config)
+        _, labels, mineral_mask, *_ = build_reaction_dictionary(config)
         phreeqc = {
             "A": {
                 "sample_id": "A",

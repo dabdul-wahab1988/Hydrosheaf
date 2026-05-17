@@ -29,6 +29,8 @@ def _vector_from_coeffs(coeffs: Mapping[str, float], ion_order: Iterable[str]) -
 def build_reaction_dictionary(
     config: Config,
     pre_si_mask: Optional[Mapping[str, float]] = None,
+    sample: Optional[Mapping[str, float]] = None,
+    dynamic_denit_scale: float = 1.0,
 ) -> Tuple[List[List[float]], List[str], List[bool], List[float]]:
     ion_order = config.ion_order or DEFAULT_ION_ORDER
     kappa = config.denit_kappa
@@ -38,19 +40,23 @@ def build_reaction_dictionary(
 
     reactions: List[Tuple[str, Mapping[str, float], bool, float]] = []
 
-    # Geologic Bias Scaling (M2-M5 PhD Remediation)
+    # Geologic Bias Scaling (M2-M5 PhD Remediation & Winner-Takes-All Priority)
     def get_penalty_scale(name: str) -> float:
         n = name.lower().replace(" ", "_")
         if config.geologic_bias == "crystalline":
             if any(s in n for s in ["albite", "anorthite", "feldspar", "biotite", "chlorite", "pyroxene"]):
                 return 0.5
+            if any(e in n for e in ["gypsum", "anhydrite", "halite", "sylvite"]):
+                return 10.0
+            # Winner-Takes-All: Massive penalty for carbonates in basement rock unless strongly supported
             if any(c in n for c in ["calcite", "dolomite", "magnesite", "aragonite"]):
-                return 2.0
+                return 50.0 
         elif config.geologic_bias == "sedimentary":
             if any(c in n for c in ["calcite", "dolomite", "magnesite", "aragonite"]):
                 return 0.5
+            # Winner-Takes-All: Massive penalty for primary silicates in mature sedimentary basins
             if any(s in n for s in ["albite", "anorthite", "feldspar", "biotite", "chlorite", "pyroxene"]):
-                return 2.0
+                return 50.0
         return 1.0
 
     # 1. Add User-Selected Minerals
@@ -79,6 +85,28 @@ def build_reaction_dictionary(
                 logger.debug(f"Logic Gate: Pruning mineral '{name}' (SI={si_val:.2f} > {config.si_logic_gate_threshold})")
                 continue
 
+        # Check Concentration Logic Gate
+        if sample is not None:
+            so4_val = float(sample.get("SO4") or 0.0)
+            cl_val = float(sample.get("Cl") or 0.0)
+            f_val = float(sample.get("F") or 0.0)
+            
+            if name.lower() in ["gypsum", "anhydrite"]:
+                if so4_val < 0.208:
+                    logger.debug(f"Logic Gate: Pruning '{name}' (SO4 < 0.208 mmol/L)")
+                    continue
+                if config.geologic_bias == "crystalline" and so4_val > 0.52:
+                    logger.debug(f"Logic Gate: Pruning '{name}' in crystalline setting (SO4 > 0.52 mmol/L)")
+                    continue
+            elif name.lower() in ["halite", "sylvite"]:
+                if cl_val < 0.564:
+                    logger.debug(f"Logic Gate: Pruning '{name}' (Cl < 0.564 mmol/L)")
+                    continue
+            elif name.lower() == "fluorite":
+                if f_val < 0.026:
+                    logger.debug(f"Logic Gate: Pruning '{name}' (F < 0.026 mmol/L)")
+                    continue
+
         try:
             stoich = get_mineral_stoich(name)
             reactions.append((name, stoich, True, get_penalty_scale(name)))
@@ -91,12 +119,28 @@ def build_reaction_dictionary(
         try: reactions.append(("SO4_input", get_mineral_stoich("SO4_input"), False, 1.0))
         except ValueError: pass
 
-    reactions.append(("NO3src", {"NO3": 1}, False, 1.0))
-    reactions.append(("denit", {"HCO3": kappa, "NO3": -1}, False, 1.0))
+    add_no3src = True
+    add_denit = True
+    no3src_scale = 1.0
+    if sample is not None:
+        if sample.get("NO3", 0.0) < 0.16:
+            add_denit = False
+            logger.debug("Logic Gate: Pruning 'denit' (NO3 < 0.16 mmol/L)")
+        if sample.get("NO3", 0.0) > 0.8:
+            no3src_scale = 0.1
+            logger.debug("Logic Gate: Forcing 'NO3src' selection (NO3 > 0.8 mmol/L)")
+
+    if add_no3src:
+        reactions.append(("NO3src", {"NO3": 1}, False, no3src_scale))
+    if add_denit:
+        reactions.append(("denit", {"HCO3": kappa, "NO3": -1}, False, 1.0))
 
     if config.exchange_enabled:
+        # Bidirectional Exchange: Forward = Ca/Mg release (salinization), Reverse = Na release (freshening)
         reactions.append(("CaNa_exch", {"Ca": 1, "Na": -2}, False, 1.0))
+        reactions.append(("NaCa_exch", {"Ca": -1, "Na": 2}, False, 1.0))
         reactions.append(("MgNa_exch", {"Mg": 1, "Na": -2}, False, 1.0))
+        reactions.append(("NaMg_exch", {"Mg": -1, "Na": 2}, False, 1.0))
 
     labels = [label for label, _, _, _ in reactions]
     mineral_mask = [is_mineral for _, _, is_mineral, _ in reactions]
@@ -202,6 +246,7 @@ def fit_reactions(
     lb: Optional[List[float]] = None,
     ub: Optional[List[float]] = None,
     penalty_scales: Optional[List[float]] = None,
+    lambda_l2: float = 0.0,
 ) -> ReactionFit:
     if not reaction_matrix:
         return ReactionFit([], residual, _weighted_norm_sq(residual, weights), 0.0, 0, True)
@@ -226,12 +271,14 @@ def fit_reactions(
         for j in range(m):
             dot_prod = sum(gram[j][k] * z[k] for k in range(m) if k != j)
             rho = s_r[j] - dot_prod
-            denom = gram[j][j] + ridge_epsilon
+
+            # Elastic Net Step: divisor includes L2 penalty (lambda_l2)
+            # Objective: 0.5*RSS + lambda_l1*|z| + 0.5*lambda_l2*z^2
+            denom = gram[j][j] + lambda_l2 + ridge_epsilon
 
             # Apply per-reaction penalty scaling
             scaled_lambda = lambda_l1 * penalty_scales[j]
             updated = _soft_threshold(rho, scaled_lambda / 2.0) / denom if denom > 1e-15 else 0.0
-
             if not signed_mask[j]: updated = max(0.0, updated)
             if lb and lb[j] is not None: updated = max(lb[j], updated)
             if ub and ub[j] is not None: updated = min(ub[j], updated)
@@ -246,4 +293,5 @@ def fit_reactions(
 
     fitted = _combine_reactions(reaction_matrix, z)
     post_residual = [r - f for r, f in zip(residual, fitted)]
-    return ReactionFit(z, post_residual, _weighted_norm_sq(post_residual, weights), sum(abs(v) for v in z), iteration, converged)
+    l1_norm = sum(abs(v) * p for v, p in zip(z, penalty_scales))
+    return ReactionFit(z, post_residual, _weighted_norm_sq(post_residual, weights), l1_norm, iteration, converged)

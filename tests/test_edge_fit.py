@@ -16,7 +16,7 @@ class EdgeFitTests(unittest.TestCase):
         weights[5] = 0.0  # Ignore Cl
         config.conservative_weights = weights
         
-        reaction_matrix, labels, _ = build_reaction_dictionary(config)
+        reaction_matrix, labels, *_ = build_reaction_dictionary(config)
         halite_idx = labels.index("halite")
         halite = reaction_matrix[halite_idx]
 
@@ -41,7 +41,7 @@ class EdgeFitTests(unittest.TestCase):
         # so Cl is NOT conservative here.
         config.conservative_weights = [1.0] * 10
         
-        reaction_matrix, labels, _ = build_reaction_dictionary(config)
+        reaction_matrix, labels, *_ = build_reaction_dictionary(config)
 
         halite_idx = labels.index("halite")
         gypsum_idx = labels.index("gypsum")

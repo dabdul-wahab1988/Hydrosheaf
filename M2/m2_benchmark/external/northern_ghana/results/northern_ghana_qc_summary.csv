@@ -1,8 +1,0 @@
-check,value,interpretation
-required_workbook_missing_values,0,"Required well, season, and converted major-ion fields are complete when value is 0."
-quantitative_cbe_samples,294,Samples with abs(CBE) <= 5% used for fitted validation.
-screening_only_cbe_samples,19,"Kept in sample export, excluded from quantitative fitting."
-exploratory_cbe_samples,7,"Kept in sample export, excluded from quantitative fitting."
-source_graph_edges_supplied,0,The corrected workbook has no supplied graph-edge sheet; graph edges are generated reproducibly.
-generated_graph_edges_used,1019,Seasonal graph edges inferred by Hydrosheaf infer_edges(method='probabilistic') and passed to sparse fitting.
-dry_wet_metadata_consistent,1,"Dry and wet rows have matching coordinates, elevations, depths, and static water levels."

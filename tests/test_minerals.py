@@ -32,7 +32,7 @@ class MineralLibraryTests(unittest.TestCase):
         config.active_minerals = ["calcite", "halite"]
         config.exchange_enabled = False  # disable for clarity
 
-        matrix, labels, mineral_mask = build_reaction_dictionary(config)
+        matrix, labels, mineral_mask, *_ = build_reaction_dictionary(config)
 
         self.assertIn("calcite", labels)
         self.assertIn("halite", labels)

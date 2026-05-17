@@ -139,7 +139,7 @@ class ConstraintsBuildingTests(unittest.TestCase):
         }
 
         edges = [("A", "B")]
-        matrix, labels, mineral_mask = build_reaction_dictionary(config)
+        matrix, labels, mineral_mask, *_ = build_reaction_dictionary(config)
         bounds = build_edge_bounds(phreeqc_results, edges, labels, mineral_mask, config)
 
         edge_bounds = bounds["A->B"]
@@ -180,7 +180,7 @@ class ConstraintsBuildingTests(unittest.TestCase):
         }
 
         edges = [("A", "B")]
-        matrix, labels, mineral_mask = build_reaction_dictionary(config)
+        matrix, labels, mineral_mask, *_ = build_reaction_dictionary(config)
         bounds = build_edge_bounds(phreeqc_results, edges, labels, mineral_mask, config)
 
         edge_bounds = bounds["A->B"]
@@ -218,7 +218,7 @@ class ConstraintsBuildingTests(unittest.TestCase):
         }
 
         edges = [("A", "B")]
-        matrix, labels, mineral_mask = build_reaction_dictionary(config)
+        matrix, labels, mineral_mask, *_ = build_reaction_dictionary(config)
         bounds = build_edge_bounds(phreeqc_results, edges, labels, mineral_mask, config)
 
         edge_bounds = bounds["A->B"]
@@ -231,7 +231,7 @@ class ReactionFittingTests(unittest.TestCase):
     def test_fit_multiple_reactions(self):
         """Test fitting multiple concurrent reactions."""
         config = default_config()
-        matrix, labels, _ = build_reaction_dictionary(config)
+        matrix, labels, *_ = build_reaction_dictionary(config)
 
         calcite_idx = labels.index("calcite")
         halite_idx = labels.index("halite")
@@ -252,7 +252,7 @@ class ReactionFittingTests(unittest.TestCase):
     def test_fit_with_bounds(self):
         """Test reaction fitting respects bounds constraints."""
         config = default_config()
-        matrix, labels, _ = build_reaction_dictionary(config)
+        matrix, labels, *_ = build_reaction_dictionary(config)
 
         calcite_idx = labels.index("calcite")
 
@@ -274,7 +274,7 @@ class ReactionFittingTests(unittest.TestCase):
     def test_l1_regularization_sparsity(self):
         """Test that L1 regularization promotes sparsity."""
         config = default_config()
-        matrix, labels, _ = build_reaction_dictionary(config)
+        matrix, labels, *_ = build_reaction_dictionary(config)
 
         # Residual that could be explained by multiple reactions
         residual = [0.5, 0.3, 0.2, 1.0, 0.1, 0.4, 0.1, 0.05]
@@ -421,7 +421,7 @@ class EdgeFitDetailedTests(unittest.TestCase):
     def test_edge_fit_with_constraints(self):
         """Test edge fitting with PHREEQC-derived constraints."""
         config = default_config()
-        matrix, labels, _ = build_reaction_dictionary(config)
+        matrix, labels, *_ = build_reaction_dictionary(config)
 
         x_u = [1.0, 0.5, 0.3, 0.5, 0.1, 0.6, 0.2, 0.1]
         x_v = [1.5, 0.8, 0.4, 0.8, 0.15, 0.9, 0.18, 0.12]

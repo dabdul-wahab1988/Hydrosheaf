@@ -8,11 +8,6 @@ import warnings
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import networkx as nx
 import numpy as np
 import pandas as pd
 import yaml
@@ -104,7 +99,7 @@ def make_config(
 
 
 def reaction_maps(config: Config) -> Tuple[Dict[str, List[float]], List[str]]:
-    matrix, labels, _ = build_reaction_dictionary(config)
+    matrix, labels, *_ = build_reaction_dictionary(config)
     return {label: list(vector) for label, vector in zip(labels, matrix)}, labels
 
 
@@ -507,7 +502,7 @@ def build_truth_tables(
             }
         )
 
-    reaction_matrix, labels, mineral_mask = build_reaction_dictionary(config)
+    reaction_matrix, labels, mineral_mask, *_ = build_reaction_dictionary(config)
     reaction_rows = []
     for label, vector, mineral in zip(labels, reaction_matrix, mineral_mask):
         reaction_rows.append(
@@ -838,6 +833,51 @@ def evaluate_forward_validation(
     return pd.DataFrame(rows)
 
 
+def evaluate_isotope_shifts(
+    edge_results: pd.DataFrame,
+    realisations: pd.DataFrame,
+    truth: Mapping[str, Any],
+) -> pd.DataFrame:
+    """Build the isotope-shift contract used by manuscript Figure 3."""
+    baseline = edge_results[
+        (edge_results["scenario"] == "complete")
+        & (edge_results["topology_variant"] == "full")
+    ].copy()
+    true_edge_ids = {edge["edge_id"] for edge in truth["generation_edges"]}
+    sample_index = {
+        (int(row.realisation), str(row.site_id)): row
+        for row in realisations.itertuples()
+    }
+    rows: List[Dict[str, Any]] = []
+    for _, result in baseline.iterrows():
+        edge_id_value = str(result["edge_id"])
+        if edge_id_value not in true_edge_ids:
+            continue
+        key_u = (int(result["realisation"]), str(result["u"]))
+        key_v = (int(result["realisation"]), str(result["v"]))
+        if key_u not in sample_index or key_v not in sample_index:
+            continue
+        u_row = sample_index[key_u]
+        v_row = sample_index[key_v]
+        true_shift = float(v_row.d18O_true) - float(u_row.d18O_true)
+        inferred_shift = float(v_row.d18O) - float(u_row.d18O)
+        rows.append(
+            {
+                "realisation": int(result["realisation"]),
+                "edge_id": edge_id_value,
+                "u": str(result["u"]),
+                "v": str(result["v"]),
+                "true_shift": true_shift,
+                "inf_shift": inferred_shift,
+                "true_d2H_shift": float(v_row.d2H_true) - float(u_row.d2H_true),
+                "inf_d2H_shift": float(v_row.d2H) - float(u_row.d2H),
+                "transport_model": str(result["transport_model"]),
+                "chemistry_r2": float(result["chemistry_r2"]),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def write_main_tables(
     transport: pd.DataFrame,
     reactions: pd.DataFrame,
@@ -1042,214 +1082,11 @@ def write_main_tables(
     return table4
 
 
-def plot_architecture() -> None:
-    fig, ax = plt.subplots(figsize=(11.2, 6.4))
-    ax.axis("off")
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.text(0.5, 0.94, "Hydrosheaf M2 validation architecture", ha="center", va="center", fontsize=15, weight="bold")
-    ax.text(0.09, 0.84, "Inputs", ha="center", va="center", fontsize=9, weight="bold", color="#365f74")
-    ax.text(0.39, 0.84, "Core inference", ha="center", va="center", fontsize=9, weight="bold", color="#365f74")
-    ax.text(0.74, 0.84, "Validation and outputs", ha="center", va="center", fontsize=9, weight="bold", color="#365f74")
-
-    boxes = [
-        ("Chemistry + field data\nmajor ions, pH, T", 0.10, 0.68, "#edf6f9", "solid"),
-        ("Optional priors\ntracers, heads, MODPATH", 0.10, 0.44, "#fff8e7", "dashed"),
-        ("Preprocess\nunits, QC, missing values", 0.30, 0.68, "#f7f9fb", "solid"),
-        ("Directed graph priors\nhead, distance, age order", 0.48, 0.76, "#f7f9fb", "solid"),
-        ("Residence time\nsingle-node LPM + network update", 0.48, 0.52, "#f7f9fb", "solid"),
-        ("Sparse inverse reactions\ntransport + L1 process labels", 0.48, 0.28, "#f7f9fb", "solid"),
-        ("External checks\nUSGS age, MODPATH, DGMETA", 0.72, 0.68, "#eef2ff", "solid"),
-        ("PHREEQC diagnostics\nRMSE, NSE, saturation index", 0.72, 0.44, "#eef2ff", "solid"),
-        ("Reviewer outputs\nfigures, tables, uncertainty", 0.90, 0.56, "#eaf7ed", "solid"),
-    ]
-    for text, x, y, facecolor, linestyle in boxes:
-        ax.text(
-            x,
-            y,
-            text,
-            ha="center",
-            va="center",
-            fontsize=9,
-            bbox=dict(
-                boxstyle="round,pad=0.45",
-                facecolor=facecolor,
-                edgecolor="#2f5d7c",
-                linewidth=1.2,
-                linestyle=linestyle,
-            ),
-        )
-    arrows = [
-        ((0.18, 0.68), (0.23, 0.68)),
-        ((0.18, 0.44), (0.39, 0.74)),
-        ((0.36, 0.68), (0.41, 0.74)),
-        ((0.48, 0.70), (0.48, 0.58)),
-        ((0.48, 0.46), (0.48, 0.34)),
-        ((0.56, 0.76), (0.65, 0.68)),
-        ((0.56, 0.52), (0.65, 0.44)),
-        ((0.79, 0.68), (0.84, 0.58)),
-        ((0.79, 0.44), (0.84, 0.54)),
-    ]
-    for start, end in arrows:
-        ax.annotate("", xy=end, xytext=start, arrowprops=dict(arrowstyle="->", lw=1.5, color="#333333"))
-    ax.text(
-        0.5,
-        0.13,
-        "Dashed box = optional external/field priors; solid boxes = minimum M2 workflow.",
-        ha="center",
-        fontsize=8.2,
-        color="#4b5563",
-    )
-    ax.text(
-        0.5,
-        0.08,
-        "Guardrail: external checks validate specific layers, not full site-calibrated reactive transport.",
-        ha="center",
-        fontsize=8.2,
-        color="#4b5563",
-    )
-    fig.tight_layout()
-    fig.savefig(BENCHMARK_ROOT / "figures" / "figure1_architecture_workflow.png", dpi=300)
-    plt.close(fig)
-
-
-def plot_network(nodes: Mapping[str, Mapping[str, Any]], truth: Mapping[str, Any]) -> None:
-    graph = nx.DiGraph()
-    pos = {}
-    colors = {"young": "#3b82f6", "intermediate": "#22c55e", "old": "#f59e0b", "fossil": "#ef4444", "mixed": "#8b5cf6"}
-    for node_id, node in nodes.items():
-        graph.add_node(node_id, age_class=node["age_class"])
-        pos[node_id] = (float(node["xy"][0]), float(node["xy"][1]))
-    for edge in truth["generation_edges"]:
-        graph.add_edge(edge["u"], edge["v"], label=edge["process"], weight=2.2)
-    for edge in truth.get("lateral_truth_edges", []):
-        graph.add_edge(edge["u"], edge["v"], label="lateral", weight=1.4)
-    fig, ax = plt.subplots(figsize=(11, 6.5))
-    node_colors = [colors.get(nodes[n]["age_class"], "#64748b") for n in graph.nodes]
-    nx.draw_networkx_nodes(graph, pos, node_color=node_colors, node_size=850, edgecolors="#1f2937", ax=ax)
-    nx.draw_networkx_labels(graph, pos, font_size=8, font_weight="bold", ax=ax)
-    nx.draw_networkx_edges(
-        graph,
-        pos,
-        arrows=True,
-        arrowstyle="-|>",
-        width=[graph.edges[e].get("weight", 1.0) for e in graph.edges],
-        edge_color="#334155",
-        connectionstyle="arc3,rad=0.05",
-        ax=ax,
-    )
-    labels = {
-        (edge["u"], edge["v"]): edge["process"].replace("_", " ")
-        for edge in truth["generation_edges"]
-    }
-    nx.draw_networkx_edge_labels(graph, pos, edge_labels=labels, font_size=7, ax=ax)
-    ax.set_title("Figure 2. Graph-constrained groundwater process network", fontsize=14, weight="bold")
-    ax.axis("off")
-    legend_handles = [
-        plt.Line2D([0], [0], marker="o", color="w", label=label, markerfacecolor=color, markeredgecolor="#1f2937", markersize=10)
-        for label, color in colors.items()
-    ]
-    ax.legend(handles=legend_handles, loc="lower left", frameon=False, ncol=3)
-    fig.tight_layout()
-    fig.savefig(BENCHMARK_ROOT / "figures" / "figure2_process_network.png", dpi=300)
-    plt.close(fig)
-
-
-def plot_figure3(
-    transport: pd.DataFrame,
-    reactions: pd.DataFrame,
+def write_sensitivity_uncertainty_summary(
     missing: pd.DataFrame,
     topology: pd.DataFrame,
-) -> None:
-    fig, axes = plt.subplots(2, 2, figsize=(13, 9))
-
-    ax = axes[0, 0]
-    transport.boxplot(column="recovered_value", by="parameter", ax=ax)
-    truth_values = transport.groupby("parameter")["true_value"].median()
-    for idx, (_, value) in enumerate(truth_values.items(), start=1):
-        ax.hlines(value, idx - 0.35, idx + 0.35, colors="red", linestyles="dashed", linewidth=1.5)
-    ax.set_title("A. Transport parameter recovery")
-    ax.set_xlabel("")
-    ax.set_ylabel("Recovered fraction")
-    fig.suptitle("")
-
-    ax = axes[0, 1]
-    nonzero = reactions[np.abs(reactions["true_extent_mmolL"]) > 1e-12]
-    ax.scatter(nonzero["true_extent_mmolL"], nonzero["recovered_extent_mmolL"], alpha=0.45, s=18, color="#2563eb")
-    lim = max(abs(nonzero["true_extent_mmolL"]).max(), abs(nonzero["recovered_extent_mmolL"]).max())
-    ax.plot([-lim, lim], [-lim, lim], "r--", lw=1)
-    ax.set_title("B. Reaction extent recovery")
-    ax.set_xlabel("True extent (mmol/L)")
-    ax.set_ylabel("Recovered extent (mmol/L)")
-
-    ax = axes[1, 0]
-    ax.bar(missing["scenario"], missing["reaction_relative_abs_bias_median_percent"], color="#0f766e")
-    ax.set_title("C. Missing-data sensitivity")
-    ax.set_ylabel("Median absolute reaction bias (%)")
-    ax.tick_params(axis="x", rotation=20)
-
-    ax = axes[1, 1]
-    grouped = topology.groupby("topology_variant").agg(
-        edges_per_node=("edges_per_node", "median"),
-        rho=("reaction_spearman_rho", "median"),
-    )
-    ax.plot(grouped["edges_per_node"], grouped["rho"], "o-", color="#7c3aed")
-    for variant, row in grouped.iterrows():
-        ax.text(row["edges_per_node"], row["rho"], f" {variant}", fontsize=8)
-    ax.set_ylim(-0.1, 1.05)
-    ax.set_title("D. Topology robustness")
-    ax.set_xlabel("Candidate edges per node")
-    ax.set_ylabel("Spearman rho")
-
-    fig.tight_layout()
-    fig.savefig(BENCHMARK_ROOT / "figures" / "figure3_synthetic_benchmark_recovery.png", dpi=300)
-    plt.close(fig)
-
-
-def plot_figure4(ages: pd.DataFrame, age_consistency: pd.DataFrame) -> None:
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-    ax = axes[0]
-    sample = ages.groupby("site_id").median(numeric_only=True).reset_index()
-    ax.scatter(sample["true_mrt_years"], sample["single_node_lpm_years"], label="single-node", color="#94a3b8")
-    ax.scatter(sample["true_mrt_years"], sample["network_bayesian_years"], label="network", color="#2563eb")
-    lim = [1, max(sample["true_mrt_years"].max(), sample["single_node_lpm_years"].max()) * 1.1]
-    ax.plot(lim, lim, "k--", lw=1)
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.set_title("A. Age agreement")
-    ax.set_xlabel("True MRT (yr)")
-    ax.set_ylabel("Estimated MRT (yr)")
-    ax.legend(frameon=False)
-
-    ax = axes[1]
-    chosen = ages[ages["site_id"].isin(["RCH", "DILUTE", "DEEP"])]
-    positions = np.arange(1, 4)
-    labels = ["RCH", "DILUTE", "DEEP"]
-    data = [chosen.loc[chosen["site_id"] == label, "network_bayesian_years"] for label in labels]
-    ax.violinplot(data, positions=positions, showmeans=True)
-    ax.set_xticks(positions)
-    ax.set_xticklabels(labels)
-    ax.set_yscale("log")
-    ax.set_title("B. Network posterior distributions")
-    ax.set_ylabel("MRT (yr)")
-
-    ax = axes[2]
-    grouped = age_consistency.groupby("edge_confidence_threshold").agg(
-        tau=("kendall_tau", "median"),
-        consistency=("downstream_age_consistency_fraction", "median"),
-    )
-    ax.plot(grouped.index, grouped["consistency"], "o-", label="age-order fraction")
-    ax.plot(grouped.index, grouped["tau"], "s--", label="Kendall tau")
-    ax.set_ylim(-0.1, 1.05)
-    ax.set_title("C. Downstream ageing consistency")
-    ax.set_xlabel("Edge confidence threshold")
-    ax.legend(frameon=False)
-    fig.tight_layout()
-    fig.savefig(BENCHMARK_ROOT / "figures" / "figure4_residence_time_network_update.png", dpi=300)
-    plt.close(fig)
-
-
-def plot_figure5(missing: pd.DataFrame, topology: pd.DataFrame, ages: pd.DataFrame) -> pd.DataFrame:
+    ages: pd.DataFrame,
+) -> pd.DataFrame:
     uncertainty_rows = []
     uncertainty_rows.append(
         {
@@ -1281,72 +1118,7 @@ def plot_figure5(missing: pd.DataFrame, topology: pd.DataFrame, ages: pd.DataFra
     )
     uncertainty = pd.DataFrame(uncertainty_rows).sort_values("iqr_contribution")
     uncertainty.to_csv(BENCHMARK_ROOT / "results" / "sensitivity_uncertainty_summary.csv", index=False)
-
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5.5))
-    ax = axes[0]
-    ax.barh(uncertainty["factor"], uncertainty["iqr_contribution"], color="#475569")
-    ax.set_title("A. Global sensitivity tornado")
-    ax.set_xlabel("IQR contribution (scaled units)")
-
-    ax = axes[1]
-    ax.axis("off")
-    steps = [
-        ("Tracer error", 0.1, 0.75),
-        ("Age posterior", 0.35, 0.75),
-        ("Graph weight", 0.6, 0.75),
-        ("Reaction choice", 0.6, 0.45),
-        ("Thermodynamic filter", 0.35, 0.45),
-        ("Final diagnostic", 0.1, 0.45),
-    ]
-    for text, x, y in steps:
-        ax.text(x, y, text, ha="center", va="center", bbox=dict(boxstyle="round,pad=0.35", facecolor="#f8fafc", edgecolor="#334155"))
-    for start, end in [((0.18, 0.75), (0.27, 0.75)), ((0.43, 0.75), (0.52, 0.75)), ((0.6, 0.68), (0.6, 0.52)), ((0.52, 0.45), (0.43, 0.45)), ((0.27, 0.45), (0.18, 0.45))]:
-        ax.annotate("", xy=end, xytext=start, arrowprops=dict(arrowstyle="->", lw=1.5))
-    ax.set_title("B. Uncertainty cascade")
-    fig.tight_layout()
-    fig.savefig(BENCHMARK_ROOT / "figures" / "figure5_sensitivity_uncertainty.png", dpi=300)
-    plt.close(fig)
     return uncertainty
-
-
-def plot_supplementary(forward: pd.DataFrame) -> None:
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.axis("off")
-    steps = ["Transport fit", "Residual vector", "L1 reaction fit", "SI feasibility", "Objective score", "Ranked pathway"]
-    xs = np.linspace(0.08, 0.92, len(steps))
-    for x, step in zip(xs, steps):
-        ax.text(x, 0.55, step, ha="center", va="center", bbox=dict(boxstyle="round,pad=0.3", facecolor="#f8fafc", edgecolor="#0f766e"))
-    for x1, x2 in zip(xs[:-1], xs[1:]):
-        ax.annotate("", xy=(x2 - 0.055, 0.55), xytext=(x1 + 0.055, 0.55), arrowprops=dict(arrowstyle="->"))
-    ax.set_title("Figure S1. Sparse inverse hydrogeochemical fitting algorithm")
-    fig.tight_layout()
-    fig.savefig(BENCHMARK_ROOT / "figures" / "figure_s1_sparse_fitting_algorithm.png", dpi=300)
-    plt.close(fig)
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.axis("off")
-    for text, x in [("MODPATH pathlines", 0.18), ("edge candidates", 0.50), ("physics-prior graph", 0.82)]:
-        ax.text(x, 0.55, text, ha="center", va="center", bbox=dict(boxstyle="round,pad=0.4", facecolor="#f8fafc", edgecolor="#1d4ed8"))
-    ax.annotate("", xy=(0.39, 0.55), xytext=(0.27, 0.55), arrowprops=dict(arrowstyle="->"))
-    ax.annotate("", xy=(0.71, 0.55), xytext=(0.59, 0.55), arrowprops=dict(arrowstyle="->"))
-    ax.set_title("Figure S2. MODPATH-to-graph prior conversion workflow")
-    fig.tight_layout()
-    fig.savefig(BENCHMARK_ROOT / "figures" / "figure_s2_modpath_to_graph_prior.png", dpi=300)
-    plt.close(fig)
-
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
-    axes[0].hist(forward["rmse_mmolL"], bins=20, color="#2563eb", alpha=0.75)
-    axes[0].set_title("A. Forward residual RMSE")
-    axes[0].set_xlabel("RMSE (mmol/L)")
-    axes[0].set_ylabel("Count")
-    axes[1].scatter(forward["rmse_mmolL"], forward["nse"], s=15, alpha=0.45, color="#0f766e")
-    axes[1].axhline(0.5, color="red", linestyle="--", lw=1)
-    axes[1].set_title("B. Forward model efficiency")
-    axes[1].set_xlabel("RMSE (mmol/L)")
-    axes[1].set_ylabel("NSE")
-    fig.tight_layout()
-    fig.savefig(BENCHMARK_ROOT / "figures" / "figure_s3_phreeqc_forward_diagnostics.png", dpi=300)
-    plt.close(fig)
 
 
 def write_docs(table4: pd.DataFrame, n_realisations: int) -> None:
@@ -1382,7 +1154,7 @@ def write_docs(table4: pd.DataFrame, n_realisations: int) -> None:
         "- `results/age_inference_validation.csv`",
         "- `results/phreeqc_forward_validation.csv`",
         "- `tables/table1_module_architecture.csv` through `tables/table5_method_comparison.csv`",
-        "- `figures/figure1_architecture_workflow.png` through `figures/figure5_sensitivity_uncertainty.png`",
+        "- manuscript-ready figures are generated by `scripts/make_publication_figures.py` and `scripts/make_supplementary_figures.py`",
         "",
         "## PHREEQC Note",
         "",
@@ -1440,7 +1212,7 @@ def run_benchmark(n_realisations: Optional[int] = None) -> None:
                 raw_rows.extend(result_rows(results, realisation, scenario, variant, edge_specs))
 
     edge_results = pd.DataFrame(raw_rows)
-    print("Writing results, tables, and figures...", flush=True)
+    print("Writing results and tables...", flush=True)
     edge_results.to_csv(BENCHMARK_ROOT / "results" / "edge_fit_results.csv", index=False)
 
     transport = evaluate_transport(edge_results, edge_truth)
@@ -1449,6 +1221,7 @@ def run_benchmark(n_realisations: Optional[int] = None) -> None:
     topology = evaluate_topology(edge_results, truth)
     ages, age_consistency = evaluate_age_inference(truth, nodes, n_realisations)
     forward = evaluate_forward_validation(edge_results, realisations, truth, config)
+    isotopes = evaluate_isotope_shifts(edge_results, realisations, truth)
 
     transport.to_csv(BENCHMARK_ROOT / "results" / "transport_recovery.csv", index=False)
     reactions.to_csv(BENCHMARK_ROOT / "results" / "reaction_recovery.csv", index=False)
@@ -1457,6 +1230,7 @@ def run_benchmark(n_realisations: Optional[int] = None) -> None:
     ages.to_csv(BENCHMARK_ROOT / "results" / "age_inference_validation.csv", index=False)
     age_consistency.to_csv(BENCHMARK_ROOT / "results" / "age_network_consistency.csv", index=False)
     forward.to_csv(BENCHMARK_ROOT / "results" / "phreeqc_forward_validation.csv", index=False)
+    isotopes.to_csv(BENCHMARK_ROOT / "results" / "res_isotopes.csv", index=False)
 
     table4 = write_main_tables(
         transport,
@@ -1468,12 +1242,7 @@ def run_benchmark(n_realisations: Optional[int] = None) -> None:
         forward,
         reaction_dictionary,
     )
-    plot_architecture()
-    plot_network(nodes, truth)
-    plot_figure3(transport, reactions, missing, topology)
-    plot_figure4(ages, age_consistency)
-    plot_figure5(missing, topology, ages)
-    plot_supplementary(forward)
+    write_sensitivity_uncertainty_summary(missing, topology, ages)
     write_docs(table4, n_realisations)
     print("M2 benchmark complete.", flush=True)
 

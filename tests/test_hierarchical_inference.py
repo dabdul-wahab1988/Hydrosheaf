@@ -101,7 +101,7 @@ class TestHierarchicalInference:
     
         # 2. Reaction should be identified
         # Check Calcite extent
-        _, labels, _ = build_reaction_dictionary(config)
+        _, labels, *_ = build_reaction_dictionary(config)
         calcite_idx = labels.index("calcite_closed")
         calcite_extent = result.z_extents[calcite_idx]        
         assert calcite_extent == pytest.approx(5.0, abs=0.1)

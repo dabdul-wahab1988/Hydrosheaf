@@ -1,2 +1,0 @@
-model_framing,best_lambda_l1,best_reaction_residual_norm,best_l1_norm,best_n_selected_reactions,selected_reactions,thermodynamic_bound_violation,missing_ion_sensitive,l1_penalty_sensitive,linearized_dictionary_limit,not_fully_coupled_phreeqc_inverse_solver
-sparse linear inverse reaction model screened and stress-tested using PHREEQC thermodynamic and forward-validation diagnostics,0.0,0.11252747252803502,2.1164835245751736,4,calcite;gypsum;halite;denit,False,True,True,False,True

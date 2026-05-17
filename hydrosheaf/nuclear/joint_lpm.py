@@ -45,6 +45,7 @@ class TracerFitObservation:
     sigma: float
     units: str
     note: str = ""
+    weight: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -181,10 +182,19 @@ def build_lpm_tracer_observations(
         ("CFC12", "cfc12_pptv", "cfc12_sigma_pptv"),
         ("CFC113", "cfc113_pptv", "cfc113_sigma_pptv"),
     ]
+    
+    from .multi_tracer import calculate_tracer_reliability_weights
+    sample_year = _finite_float(observations.get("sample_year")) or 2026.0
+    weighted_obs, _ = calculate_tracer_reliability_weights(observations, sample_year)
+    
     for tracer, value_key, sigma_key in gas_specs:
         value = _finite_float(observations.get(value_key))
         if value is None or value < 0:
             continue
+        weight = _finite_float(weighted_obs.get(f"{tracer.lower()}_weight"))
+        if weight is None or weight < 0:
+            weight = 1.0
+
         out.append(
             TracerFitObservation(
                 tracer,
@@ -192,6 +202,7 @@ def build_lpm_tracer_observations(
                 _sigma(observations, sigma_key, value, relative=0.10, floor=0.05),
                 "pptv",
                 note="expects atmospheric-equivalent corrected gas input",
+                weight=weight,
             )
         )
 
@@ -574,7 +585,7 @@ def fit_lpm_model(
                 missing_prediction = True
                 break
             standardized = (obs.value - pred) / obs.sigma
-            objective += standardized * standardized
+            objective += (standardized * standardized) * obs.weight
             residuals.append(
                 TracerFitResidual(
                     tracer=obs.tracer,

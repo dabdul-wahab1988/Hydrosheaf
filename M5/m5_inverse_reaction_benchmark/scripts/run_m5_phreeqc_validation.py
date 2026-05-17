@@ -82,7 +82,9 @@ def run_m5_validation():
     config.active_minerals = ["calcite", "dolomite", "gypsum", "halite"]
     config.exchange_enabled = False # Keep it simple for synthetic recovery
     
-    reaction_matrix, labels, _ = build_reaction_dictionary(config)
+    # Map x_u to sample dict for logic gates
+    sample_u = {ion: val for ion, val in zip(ion_order, x_u)}
+    reaction_matrix, labels, mineral_mask, penalty_scales = build_reaction_dictionary(config, sample=sample_u)
     
     # 2. Run Sparse Inverse Model
     print("\nRunning Hydrosheaf Sparse Inverse Model...")
@@ -95,7 +97,9 @@ def run_m5_validation():
         reaction_matrix, 
         config.weights, 
         lambda_l1=0.0, # Zero penalty for exact recovery test
-        max_iter=1000
+        max_iter=1000,
+        lambda_l2=config.lambda_l2,
+        penalty_scales=penalty_scales
     )
     
     print("\nInferred extents (mmol/L):")
