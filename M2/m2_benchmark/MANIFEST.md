@@ -1,62 +1,89 @@
 # M2 Benchmark Manifest
 
-This manifest describes the repository-curated M2 benchmark package. Bulky raw
-public inputs are intentionally excluded from Git and can be restored from the
-DOIs, URLs, README files, and source manifests recorded under `external/`.
-
-## Committed Core Benchmark Assets
-
 - `config/ground_truth.yaml`
 - `data/baseline_samples_realisation_000.csv`
 - `data/ground_truth_edges.csv`
 - `data/ground_truth_nodes.csv`
 - `data/hydrosheaf_reaction_dictionary.csv`
-- `data/realisations/*.csv`
-- `results/*.csv`
-- `results/e3_phreeqc_forward_report.md`
-- `tables/*.csv`
-- `figures/*.png`
+- `data/realisations/samples_complete_000.csv`
+- `data/realisations/samples_complete_001.csv`
+- `data/realisations/samples_complete_002.csv`
+- `data/realisations/samples_head_absent_000.csv`
+- `data/realisations/samples_head_absent_001.csv`
+- `data/realisations/samples_head_absent_002.csv`
+- `data/realisations/samples_ion_incomplete_000.csv`
+- `data/realisations/samples_ion_incomplete_001.csv`
+- `data/realisations/samples_ion_incomplete_002.csv`
+- `data/realisations/samples_tracer_absent_000.csv`
+- `data/realisations/samples_tracer_absent_001.csv`
+- `data/realisations/samples_tracer_absent_002.csv`
+- `data/realisations/synthetic_realisations_all.csv`
+- `results/age_inference_validation.csv`
+- `results/age_network_consistency.csv`
+- `results/edge_fit_results.csv`
+- `results/field_discovery_results.csv`
+- `results/missing_data_sensitivity.csv`
+- `results/phreeqc_forward_validation.csv`
+- `results/reaction_recovery.csv`
+- `results/res_isotopes.csv`
+- `results/sensitivity_uncertainty_summary.csv`
+- `results/top_edges_psi.csv`
+- `results/topology_robustness.csv`
+- `results/transport_recovery.csv`
+- `external/usgs_age/results/e1_usgs_age_source_manifest.json`
+- `external/usgs_age/results/e1_validation_report.md`
+- `external/usgs_age/results/e1b_joint_lpm_report.md`
+- `external/usgs_age/results/e1b_joint_lpm_validation.csv`
+- `external/usgs_age/results/README.md`
+- `external/usgs_age/results/usgs_age_validation_summary.csv`
+- `external/usgs_age/results/usgs_age_validation.csv`
+- `external/modpath/results/e2_modpath_source_manifest.json`
+- `external/modpath/results/e2_modpath_topology_report.md`
+- `external/modpath/results/e2b_modpath_geochemical_replay_manifest.json`
+- `external/modpath/results/e2b_modpath_geochemical_replay_report.md`
+- `external/modpath/results/modpath_geochemical_replay_summary.csv`
+- `external/modpath/results/modpath_geochemical_replay.csv`
+- `external/modpath/results/modpath_graph_priors.csv`
+- `external/modpath/results/modpath_pathline_particles.csv`
+- `external/modpath/results/modpath_topology_agreement.csv`
+- `external/modpath/results/modpath_topology_summary.csv`
+- `external/modpath/results/README.md`
+- `tables/Manuscript_Ready/Table1_Module_Architecture.md`
+- `tables/Manuscript_Ready/Table2_Validation_Suite.md`
+- `tables/Manuscript_Ready/Table3_Global_Validation_Performance.md`
+- `tables/Manuscript_Ready/Table4_MRT_Accuracy.md`
+- `tables/Manuscript_Ready/Table5_MODPATH_Agreement.md`
+- `tables/Manuscript_Ready/Table6_Discovery_and_PSI.md`
+- `tables/table1_module_architecture.csv`
+- `tables/table2_input_fields.csv`
+- `tables/table3_residence_time_options.csv`
+- `tables/table4_validation_design_and_results.csv`
+- `tables/table5_method_comparison.csv`
+- `tables/table_s2_tracer_properties.csv`
+- `tables/table_s3_reaction_dictionary.csv`
+- `tables/table_s4_benchmark_dataset_inventory.csv`
+- `figures/Manuscript_Ready/fig1.py`
+- `figures/Manuscript_Ready/Manuscript_Fig1_Architecture.png`
+- `figures/Manuscript_Ready/Manuscript_Fig1_Architecture_largefont_90degree_elbow_arrows.png`
+- `figures/Manuscript_Ready/Manuscript_Fig1_Architecture_largefont_90degree_elbow_arrows_allfonts_plus2pt.png`
+- `figures/Manuscript_Ready/Manuscript_Fig1_Architecture_largefont_90degree_elbow_arrows_nonbold_plus2pt.png`
+- `figures/Manuscript_Ready/Manuscript_Fig1_Architecture_reviewer_largefont_straight_arrows.png`
+- `figures/Manuscript_Ready/Manuscript_Fig2_Topology_Validation.png`
+- `figures/Manuscript_Ready/Manuscript_Fig3_Synthetic_Validation.png`
+- `figures/Manuscript_Ready/Manuscript_Fig4_Ghana_Process_Network.png`
+- `figures/Manuscript_Ready/Manuscript_Fig5_Residence_Time_Validation.png`
+- `figures/Manuscript_Ready/Manuscript_Fig6_Optimal_Model_Selection.png`
+- `figures/Manuscript_Ready/Manuscript_Fig7_PSI_Robustness_Guarantee.png`
+- `figures/Manuscript_Ready/Manuscript_Supp_FigS1_Public_Age_Validation.png`
+- `figures/Manuscript_Ready/Manuscript_Supp_FigS2_Geochemical_Validation.png`
+- `figures/Manuscript_Ready/Manuscript_Supp_FigS3_Ghana_Field_Residuals.png`
 - `docs/02_figures.md`
 - `docs/03_tables.md`
 - `docs/external_validation_plan.md`
+- `docs/m2_analysis_consistency_review.md`
 - `docs/m2_results_summary.md`
-- `scripts/*.py`
-
-## Committed External-Validation Evidence
-
-- `external/usgs_age/results/*.csv`
-- `external/usgs_age/results/*.md`
-- `external/usgs_age/results/*manifest.json`
-- `external/modpath/results/*.csv`
-- `external/modpath/results/*.md`
-- `external/modpath/results/*manifest.json`
-- `external/phreeqc/input/README.md`
-- `external/phreeqc/results/README.md`
-- `external/dgmeta/results/*.csv`
-- `external/dgmeta/results/*.md`
-- `external/dgmeta/results/*manifest.json`
-- `external/northern_ghana/results/*.csv`
-- `external/northern_ghana/results/*.md`
-- `external/northern_ghana/results/*manifest.json`
-- `external/usgs_public_chem/results/*.csv`
-- `external/usgs_public_chem/results/*.md`
-- `external/usgs_public_chem/results/*manifest.json`
-
-## Excluded Raw Inputs
-
-The following are not committed because they are large, public, local, or
-reproducible from source:
-
-- downloaded USGS zip archives;
-- extracted USGS public-source tables;
-- MODPATH model archives and raw endpoint/pathline files;
-- DGMETA workbook macros;
-- superseded local pilot input files;
-- M2 draft Word documents and duplicate top-level source downloads.
-
-## Claim Guardrail
-
-M2 can claim an integrated Hydrosheaf validation package only when captions and
-text retain the tier-specific limitations in `docs/m2_results_summary.md`.
-External validation rows should not be collapsed into a single claim of full
-age, topology, and reactive-transport equivalence.
+- `scripts/make_publication_figures.py`
+- `scripts/make_publication_tables.py`
+- `scripts/make_supplementary_figures.py`
+- `scripts/run_m2_benchmark.py`
+- `scripts/run_m2_manuscript_analysis.py`

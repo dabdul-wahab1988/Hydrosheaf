@@ -3,12 +3,70 @@ from __future__ import annotations
 
 import csv
 import math
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Union
 
 import numpy as np
 
-from .input_history import InputHistory
+from .input_history import InputHistory, build_default_tritium_input
+
+
+@dataclass(frozen=True)
+class SiteInputContext:
+    site_id: str
+    sample_year: float
+    latitude: float | None = None
+    longitude: float | None = None
+    study_unit: str = ""
+    aquifer_group: str = ""
+    recharge_temperature_c: float | None = None
+    elevation_m: float | None = None
+
+
+def build_site_tracer_histories(context: SiteInputContext) -> dict[str, InputHistory]:
+    """Return site-aware tracer input histories.
+
+    First implementation is simple but structured:
+    - Choose hemisphere by latitude.
+    - Return tritium history (regional scaling).
+    - Return gas histories (currently Northern Hemisphere screening defaults).
+    - Record metadata so callers know which history mode was used.
+    """
+    lat = context.latitude
+    region = "northern_continental"
+    history_source = "default_northern_hemisphere"
+    if lat is not None and lat < 0:
+        region = "southern_hemisphere"
+        history_source = "default_southern_hemisphere_fallback"
+
+    histories: dict[str, InputHistory] = {
+        "3H": build_default_tritium_input(region),
+    }
+
+    # Gas histories: use compact atmospheric defaults for now.
+    # TODO: Replace with hemisphere-specific station histories when available.
+    from .multi_tracer import build_atmospheric_tracer_input
+    for tracer in ("SF6", "CFC11", "CFC12", "CFC113", "85Kr"):
+        histories[tracer] = build_atmospheric_tracer_input(tracer)
+
+    return histories
+
+
+def site_input_history_metadata(context: SiteInputContext) -> dict[str, str]:
+    """Return metadata tags describing which histories were selected."""
+    lat = context.latitude
+    if lat is not None and lat < 0:
+        return {
+            "input_history_mode": "hemisphere_scaled",
+            "input_history_region": "southern_hemisphere",
+            "input_history_source": "default_southern_hemisphere_fallback",
+        }
+    return {
+        "input_history_mode": "hemisphere_scaled",
+        "input_history_region": "northern_hemisphere",
+        "input_history_source": "default_northern_hemisphere",
+    }
 
 
 GAS_TRACERS = ("SF6", "CFC11", "CFC12", "CFC113", "85KR")

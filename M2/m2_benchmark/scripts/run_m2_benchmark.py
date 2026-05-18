@@ -937,6 +937,42 @@ def write_main_tables(
     single_rmse = np.sqrt(np.mean((ages["single_node_lpm_years"] - ages["true_mrt_years"]) ** 2))
     network_rmse = np.sqrt(np.mean((ages["network_bayesian_years"] - ages["true_mrt_years"]) ** 2))
     phreeqc_pass = float(forward["thermodynamic_feasible"].mean()) if not forward.empty else np.nan
+    m3_summary_path = PROJECT_ROOT / "M3" / "m3_age_benchmark" / "results" / "m3_phase4_screened_full_results_summary.csv"
+    m3_public_metric = "run M3 full screened benchmark for public-age metrics"
+    m3_public_status = "requires M3 full screened run"
+    if m3_summary_path.exists():
+        m3_summary = pd.read_csv(m3_summary_path)
+        m3_row = m3_summary[m3_summary["scenario_id"] == "screened_dgm_gases"] if "scenario_id" in m3_summary else m3_summary
+        if not m3_row.empty:
+            row = m3_row.iloc[0]
+            m3_public_metric = (
+                f"M3 screened n={int(row.get('metric_rows', row.get('total_rows', 0)))}; "
+                f"median |log10 error|={float(row.get('median_abs_log10_error', np.nan)):.3f}; "
+                f"log10 RMSE={float(row.get('log10_rmse', np.nan)):.3f}; "
+                f"within factor 2={float(row.get('within_factor_2', np.nan)):.2f}"
+            )
+            m3_public_status = "completed by M3 full screened public-age benchmark"
+    modpath_path = BENCHMARK_ROOT / "external" / "modpath" / "results" / "modpath_topology_summary.csv"
+    modpath_metric = "run MODPATH endpoint/pathline graph comparison"
+    modpath_status = "external pending"
+    if modpath_path.exists():
+        mod = pd.read_csv(modpath_path).iloc[0]
+        modpath_metric = (
+            f"TP={int(mod.get('true_positive_edges', 0))}; FP={int(mod.get('false_positive_edges', 0))}; "
+            f"FN={int(mod.get('false_negative_edges', 0))}; F1={float(mod.get('edge_f1', np.nan)):.2f}"
+        )
+        modpath_status = "completed topology-only comparison"
+    field_path = BENCHMARK_ROOT / "results" / "field_discovery_results.csv"
+    field_metric = "run Ghana field discovery workflow"
+    field_status = "field demonstration pending"
+    if field_path.exists():
+        field = pd.read_csv(field_path)
+        if not field.empty:
+            field_metric = (
+                f"n_edges={len(field)}; median chemistry R2={float(field['chemistry_r2'].median()):.3f}; "
+                "generated graph, no independent process truth"
+            )
+            field_status = "completed field-hydrochemistry demonstration"
 
     table4 = pd.DataFrame(
         [
@@ -953,19 +989,19 @@ def write_main_tables(
                 "Public tracer-age validation",
                 "USGS public-supply aquifer groundwater-age data release, DOI 10.5066/P9W7T0DN",
                 "published TracerLPM mean age and young/Holocene/Pleistocene fractions",
-                "planned: log10 age RMSE, median log10 bias, uncertainty coverage, tracer/aquifer stratified error",
-                "agreement with independent public LPM/TracerLPM-style age estimates",
+                m3_public_metric,
+                "screening-level agreement with independent public LPM/TracerLPM-style age estimates",
                 "Jurgens et al. USGS data release 10.5066/P9W7T0DN",
-                "external pending",
+                m3_public_status,
             ],
             [
                 "MODFLOW/MODPATH topology validation",
                 "USGS Savage Municipal Water-Supply Well MODFLOW-2005/MODPATH5 archive, DOI 10.5066/F7J102FK",
                 "directed edges, path overlap, and travel-time consistency",
-                "planned: TP/FP/FN edges, direction agreement, source-receptor overlap, travel-time residual",
-                "graph priors and inferred topology agree with particle-tracking outputs",
+                modpath_metric,
+                "graph conversion agrees with particle-tracking topology; does not validate geochemical process inference",
                 "Harte USGS data release 10.5066/F7J102FK",
-                "external pending",
+                modpath_status,
             ],
             [
                 "Live PHREEQC forward validation",
@@ -980,10 +1016,10 @@ def write_main_tables(
                 "Data-limited pilot scenario",
                 "Corrected Northern Ghana aquifer workbook",
                 "end-to-end generated-edge and reaction outputs under sparse field inputs",
-                "planned: completeness, convergence, residual diagnostics, relative bias where references exist",
+                field_metric,
                 "workflow remains interpretable when optional tracers, source graph edges, or PHREEQC inputs are absent",
                 "data/NorthenGhana/NorthernGhana.xlsx; public DOI/source URL not embedded in workbook",
-                "field demonstration pending E4c run",
+                field_status,
             ],
         ],
         columns=[
@@ -1128,7 +1164,15 @@ def write_docs(table4: pd.DataFrame, n_realisations: int) -> None:
             if path.is_file():
                 if "__pycache__" in path.parts or path.suffix == ".pyc":
                     continue
+                if path.name == "Manuscript_Fig1_Architecture.mermaid":
+                    continue
                 manifest_paths.append(path.relative_to(BENCHMARK_ROOT).as_posix())
+    for folder in ["external/usgs_age/results", "external/modpath/results"]:
+        root = BENCHMARK_ROOT / folder
+        if root.exists():
+            for path in sorted(root.rglob("*")):
+                if path.is_file():
+                    manifest_paths.append(path.relative_to(BENCHMARK_ROOT).as_posix())
     (BENCHMARK_ROOT / "MANIFEST.md").write_text(
         "# M2 Benchmark Manifest\n\n" + "\n".join(f"- `{path}`" for path in manifest_paths) + "\n",
         encoding="utf-8",
@@ -1144,6 +1188,13 @@ def write_docs(table4: pd.DataFrame, n_realisations: int) -> None:
         "## Table 4 Snapshot",
         "",
         table4.to_markdown(index=False),
+        "",
+        "## Interpretation Guardrails",
+        "",
+        "- Public USGS age results are screening-level residence-time evidence; they are not full TracerLPM family equivalence.",
+        "- MODPATH evidence validates endpoint/pathline topology conversion only, not geochemical process inference.",
+        "- PHREEQC evidence remains a proxy unless a live PHREEQC executable/backend is configured and rerun.",
+        "- Ghana field results are a generated-graph field-hydrochemistry demonstration without independent process-truth labels.",
         "",
         "## Main Outputs",
         "",

@@ -46,8 +46,11 @@ Hydrosheaf task:
 - Ingest the seven USGS tables.
 - Map site metadata, tracer measurements, and reference LPM outputs into
   Hydrosheaf's residence-time validation schema.
-- Run Hydrosheaf single-node tracer-age inference for samples with enough tracer
-  data.
+- Run the canonical M3 screened USGS benchmark for samples with enough tracer
+  data:
+
+  `python M3\m3_age_benchmark\scripts\run_m3_design_matrix.py --full --age-steps 35 --scenario screened_dgm_gases --output M3\m3_age_benchmark\results\m3_phase4_screened_full_results.csv`
+
 - Compare Hydrosheaf age estimates against published LPM mean age and young /
   Holocene / Pleistocene fractions.
 
@@ -56,7 +59,9 @@ Required outputs:
 - `external/usgs_age/input/usgs_age_sites.csv`
 - `external/usgs_age/results/usgs_age_validation.csv`
 - `external/usgs_age/results/usgs_age_validation_summary.csv`
-- `figures/figure_s7_e1_tracer_age_residuals.png`
+- `M3/m3_age_benchmark/results/m3_phase4_screened_full_results.csv`
+- `figures/Manuscript_Ready/Manuscript_Fig5_Residence_Time_Validation.png`
+- `figures/Manuscript_Ready/Manuscript_Supp_FigS1_Public_Age_Validation.png`
 
 Minimum metrics:
 
@@ -99,7 +104,7 @@ Required outputs:
 - `external/modpath/input/modpath_endpoints.*`
 - `external/modpath/results/modpath_graph_priors.csv`
 - `external/modpath/results/modpath_topology_agreement.csv`
-- `figures/figure_s2_modpath_to_graph_prior.png`
+- `figures/Manuscript_Ready/Manuscript_Fig2_Topology_Validation.png`
 
 Minimum metrics:
 
@@ -130,7 +135,7 @@ Required outputs:
 
 - `external/phreeqc/results/phreeqc_forward_validation.csv`
 - `external/phreeqc/results/phreeqc_failure_log.csv`
-- `figures/figure_s3_phreeqc_forward_diagnostics.png`
+- `figures/Manuscript_Ready/Manuscript_Supp_FigS2_Geochemical_Validation.png`
 
 Minimum metrics:
 
@@ -165,12 +170,14 @@ Required outputs:
 - `external/northern_ghana/results/northern_ghana_edge_results.csv`
 - `external/northern_ghana/results/northern_ghana_validation_summary.csv`
 - `external/northern_ghana/results/e4c_northern_ghana_report.md`
-- `figures/figure_s8_e4_sparse_pilot_network.png`
+- `figures/Manuscript_Ready/Manuscript_Fig4_Ghana_Process_Network.png`
+- `figures/Manuscript_Ready/Manuscript_Supp_FigS3_Ghana_Field_Residuals.png`
 
 ## Correction To Current M2 Package
 
 The generated synthetic benchmark is valid for Section 3.2 and part of Table 4.
-It does not yet satisfy the external public-data validation required for Sections
-3.3, 3.4, and 3.5. The current synthetic age and topology results should be
-reported as internal benchmark checks, while the external validation tables and
-figures should be generated after E1-E3 are implemented.
+The public-age claim should now be sourced from the M3 full screened USGS
+benchmark, while the MODPATH result should be described as topology-only
+agreement. PHREEQC remains a proxy unless a live PHREEQC backend is configured
+and rerun. The Ghana field network remains a field-hydrochemistry demonstration
+because no independent process-truth graph is available.

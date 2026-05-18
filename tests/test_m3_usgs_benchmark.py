@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 
@@ -437,3 +438,267 @@ def test_m3_gas_audit_tracks_changed_values_and_effects():
     assert audit.loc[0, "corrected_3h3he_apparent_age"] > audit.loc[0, "raw_3h3he_apparent_age"]
     summary = module.summarize_audit(audit)
     assert summary.loc[0, "raw_improved_fraction"] == 1.0
+
+
+def test_reported_tracer_mask_keeps_only_usgs_reported_tracers():
+    module = _load_m3_module()
+    obs = {
+        "tritium_TU": 1.0,
+        "tritium_sigma_TU": 0.1,
+        "he3_trit_TU": 2.0,
+        "he3_trit_sigma_TU": 0.2,
+        "sf6_pptv": 5.0,
+        "sf6_sigma_pptv": 0.5,
+        "cfc12_pptv": 400.0,
+        "cfc12_sigma_pptv": 20.0,
+        "c14_pmc": 80.0,
+        "c14_sigma_pmc": 5.0,
+    }
+    masked = module._apply_reported_tracer_mask(obs, "3H, 3He(trit)")
+    assert masked["tritium_TU"] == 1.0
+    assert masked["he3_trit_TU"] == 2.0
+    assert masked["sf6_pptv"] is None
+    assert masked["sf6_sigma_pptv"] is None
+    assert masked["cfc12_pptv"] is None
+    assert masked["cfc12_sigma_pptv"] is None
+    assert masked["c14_pmc"] is None
+    assert masked["c14_sigma_pmc"] is None
+
+
+def test_strict_parity_uses_reported_lpm_name():
+    module = _load_m3_module()
+    assert module._supported_reported_model("DM") == "DM"
+    assert module._supported_reported_model("dm") == "DM"
+    assert module._supported_reported_model("GA") == "GA"
+    assert module._supported_reported_model("BMM-DM-DM") == "BMM-DM-DM"
+
+
+def test_unsupported_reported_model_records_fallback():
+    module = _load_m3_module()
+
+    class FakeFit:
+        model = "GA"
+        parameters = {"mean_age_years": 10.0}
+        objective = 1.0
+        rmse_standardized = 0.1
+        aic = 10.0
+        bic = 12.0
+        n_tracers = 1
+        residuals = []
+        converged = True
+        note = ""
+        age_years = 10.0
+
+    original_fit_lpm_model = module.fit_lpm_model
+    module.fit_lpm_model = lambda *args, **kwargs: FakeFit()
+    try:
+        row = module.pd.Series(
+            {
+                "site_id": "A",
+                "sample_year": 2010.0,
+                "reference_age_years": 20.0,
+                "lat": 0.0,
+                "lon": 0.0,
+                "tritium_TU": 1.0,
+                "tritium_sigma_TU": 0.1,
+                "LPM_Name": "UNKNOWN_MODEL",
+                "LPM_TracersMod": "3H",
+            }
+        )
+        result = module._fit_prepared_benchmark_row(
+            row,
+            age_steps=8,
+            factors={"lpm_strategy": "reported", "tracer_set": "reported"},
+        )
+        assert result["reported_model_supported"] is False
+        assert "Unsupported model" in result["reported_model_fallback_reason"]
+        assert result["multi_model"] == "GA"
+    finally:
+        module.fit_lpm_model = original_fit_lpm_model
+
+
+def test_reported_uztt_missing_returns_zero():
+    module = _load_m3_module()
+    assert module._reported_uztt_years({}) == 0.0
+    assert module._reported_uztt_years({"Rpt_UZtt_yrs": None}) == 0.0
+    assert module._reported_uztt_years({"Rpt_UZtt_yrs": float("nan")}) == 0.0
+    assert module._reported_uztt_years({"Rpt_UZtt_yrs": -5.0}) == 0.0
+
+
+def test_apply_age_target_add_reported():
+    module = _load_m3_module()
+    row = {"Rpt_UZtt_yrs": 5.0, "Rpt_TotAge_yrs": 30.0}
+    factors = {"age_target_mode": "reported_total", "uztt_mode": "add_reported"}
+    est_age, diag = module._apply_age_target_mode(20.0, row, factors)
+    assert est_age == 25.0
+    assert diag["est_age_total_years"] == 25.0
+    assert diag["reference_age_years"] == 30.0
+
+
+def test_apply_age_target_saturated_only_never_below_0_1():
+    module = _load_m3_module()
+    row = {"Rpt_UZtt_yrs": 5.0, "Rpt_TotAge_yrs": 5.0}
+    factors = {"age_target_mode": "saturated_only", "uztt_mode": "ignore"}
+    est_age, diag = module._apply_age_target_mode(2.0, row, factors)
+    assert est_age == 2.0
+    assert diag["reference_age_years"] == 0.1
+
+
+# --- Phase 3: Site-Specific Input Histories ---
+
+def test_make_site_context_extracts_latitude_and_study_unit():
+    module = _load_m3_module()
+    ctx = module._make_site_context(
+        {"site_id": "A", "sample_year": 2010.0, "lat": 45.0, "lon": -120.0, "StudyUnit": "SU1", "AqGroup": "AQ1", "recharge_temperature_c": 12.0}
+    )
+    assert ctx.latitude == 45.0
+    assert ctx.study_unit == "SU1"
+    assert ctx.recharge_temperature_c == 12.0
+
+
+def test_get_site_histories_returns_mapping_and_meta():
+    module = _load_m3_module()
+    row = {"site_id": "A", "sample_year": 2010.0, "lat": 45.0, "lon": -120.0, "StudyUnit": "SU1"}
+    histories, meta = module._get_site_histories(row)
+    assert isinstance(histories, dict)
+    assert "input_history_mode" in meta
+    assert "input_history_region" in meta
+
+
+# --- Phase 4: Censored Gas Likelihoods ---
+
+def test_gas_likelihood_counts_zero_when_no_gases():
+    module = _load_m3_module()
+    counts = module._gas_likelihood_counts({"tritium_TU": 1.0, "tritium_sigma_TU": 0.1})
+    assert counts["gaussian"] == 0
+    assert counts["upper_censored"] == 0
+    assert counts["contaminated_mixture"] == 0
+
+
+# --- Phase 5: Hierarchical Old-Water Priors ---
+
+def test_lookup_oldwater_prior_prefers_study_unit():
+    module = _load_m3_module()
+    from hydrosheaf.nuclear.old_groundwater import OldGroundwaterPrior
+
+    priors = {
+        "SU1|AQ1": OldGroundwaterPrior(
+            study_unit="SU1", aquifer_group="AQ1",
+            a0_pmc_mean=100.0, a0_pmc_sigma=5.0,
+            he4_background_mean=1e-7, he4_background_sigma=1e-8,
+            he4_rate_mean=1e-11, he4_rate_sigma=1e-12,
+            n_support=2,
+        ),
+    }
+    prior, scope = module._lookup_oldwater_prior(priors, "SU1", "AQ1")
+    assert scope == "study_unit_aquifer"
+    assert prior.a0_pmc_mean == 100.0
+
+
+# --- Phase 6: Age Fraction Constraints ---
+
+def test_fit_benchmark_row_includes_age_fraction_columns_when_enabled():
+    module = _load_m3_module()
+    row = module.pd.Series(
+        {
+            "site_id": "A",
+            "sample_year": 2010.0,
+            "reference_age_years": 20.0,
+            "lat": 0.0,
+            "lon": 0.0,
+            "tritium_TU": 1.0,
+            "tritium_sigma_TU": 0.1,
+            "LPM_Name": "EM",
+            "LPM_TracersMod": "3H",
+            "FracAnthropocene": 0.8,
+            "FracHolocene": 0.15,
+            "FracPleistocene": 0.05,
+        }
+    )
+    result = module.fit_benchmark_row(
+        row,
+        age_steps=8,
+        model_strategy="reported",
+        factors={"tracer_set": "reported", "use_age_fractions": True, "age_target_mode": "reported_total", "uztt_mode": "add_reported"},
+    )
+    assert "pred_frac_anthropocene" in result
+    assert "age_fraction_loss" in result
+
+
+# --- Phase 7: Gated BMA ---
+
+def test_selection_strategy_records_bma_columns():
+    module = _load_m3_module()
+    row = module.pd.Series(
+        {
+            "site_id": "A",
+            "sample_year": 2010.0,
+            "reference_age_years": 20.0,
+            "lat": 0.0,
+            "lon": 0.0,
+            "tritium_TU": 1.0,
+            "tritium_sigma_TU": 0.1,
+            "sf6_pptv": 5.0,
+            "sf6_sigma_pptv": 0.5,
+            "LPM_Name": "EM",
+            "LPM_TracersMod": "3H, SF6",
+        }
+    )
+    result = module.fit_benchmark_row(
+        row,
+        age_steps=8,
+        model_strategy="selection",
+        factors={"tracer_set": "reported", "age_target_mode": "reported_total", "uztt_mode": "add_reported"},
+    )
+    assert "bma_used" in result
+    assert "bma_skip_reason" in result
+    assert "bma_n_models" in result
+
+
+# --- Phase 8: BMM Refinement Diagnostics ---
+
+def test_bmm_refinement_diagnostics_exist():
+    module = _load_m3_module()
+    row = module.pd.Series(
+        {
+            "site_id": "A",
+            "sample_year": 2010.0,
+            "reference_age_years": 20.0,
+            "lat": 0.0,
+            "lon": 0.0,
+            "tritium_TU": 1.0,
+            "tritium_sigma_TU": 0.1,
+            "LPM_Name": "BMM-DM-DM",
+            "LPM_TracersMod": "3H",
+        }
+    )
+    result = module.fit_benchmark_row(
+        row,
+        age_steps=8,
+        model_strategy="reported",
+        factors={"tracer_set": "reported"},
+    )
+    assert "refinement_attempted" in result
+    assert "refinement_success" in result
+    assert "refinement_message" in result
+
+
+# --- Phase 10: Figure/Table Loaders ---
+
+def test_figure_primary_results_prefers_strict_parity_scenario():
+    import importlib.util
+    fig_script = (
+        REPO_ROOT
+        / "M3"
+        / "m3_age_benchmark"
+        / "scripts"
+        / "make_publication_figures.py"
+    )
+    if not fig_script.exists():
+        pytest.skip("Figure script not found")
+    spec = importlib.util.spec_from_file_location("make_publication_figures", fig_script)
+    fig_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fig_module)
+    # _mode_label_from_df should recognize strict parity
+    df = pd.DataFrame({"scenario_id": ["tracerlpm_strict_parity"], "model_strategy": ["reported"]})
+    assert "strict TracerLPM parity" in fig_module._mode_label_from_df(df)

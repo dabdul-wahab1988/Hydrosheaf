@@ -42,6 +42,11 @@ def main() -> None:
     parser.add_argument("--skip-psi", action="store_true", help="Do not rebuild field edge PSI outputs.")
     parser.add_argument("--skip-tables", action="store_true", help="Do not rebuild publication Markdown tables.")
     parser.add_argument("--skip-figures", action="store_true", help="Do not rebuild manuscript-ready figures.")
+    parser.add_argument(
+        "--run-m3-public-age",
+        action="store_true",
+        help="Refresh the canonical full M3 screened USGS public-age benchmark used by M2 Fig. 5.",
+    )
     args = parser.parse_args()
 
     if not args.skip_synthetic:
@@ -63,6 +68,21 @@ def main() -> None:
         if args.max_psi_edges_per_site is not None:
             cmd.extend(["--max-edges-per-site", str(args.max_psi_edges_per_site)])
         _run(cmd)
+
+    if args.run_m3_public_age:
+        _run(
+            [
+                sys.executable,
+                str(PROJECT_ROOT / "M3" / "m3_age_benchmark" / "scripts" / "run_m3_design_matrix.py"),
+                "--full",
+                "--age-steps",
+                "35",
+                "--scenario",
+                "screened_dgm_gases",
+                "--output",
+                str(PROJECT_ROOT / "M3" / "m3_age_benchmark" / "results" / "m3_phase4_screened_full_results.csv"),
+            ]
+        )
 
     if not args.skip_tables:
         _run([sys.executable, str(BENCHMARK_ROOT / "scripts" / "make_publication_tables.py")])

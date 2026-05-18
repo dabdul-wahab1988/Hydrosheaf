@@ -9,8 +9,10 @@ from matplotlib.ticker import MaxNLocator
 
 # --- Path Configuration ---
 BENCHMARK_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 EXTERNAL_DIR = BENCHMARK_ROOT / "external"
 RESULT_DIR = BENCHMARK_ROOT / "results"
+M3_RESULT_DIR = PROJECT_ROOT / "M3" / "m3_age_benchmark" / "results"
 # Output directly to Manuscript folder
 FIGURE_DIR = BENCHMARK_ROOT / "figures" / "Manuscript_Ready"
 
@@ -35,16 +37,59 @@ def _save_supp(fig: plt.Figure, name: str) -> None:
     temp.replace(target)
     plt.close(fig)
 
+
+def _load_public_age_validation() -> tuple[pd.DataFrame, str]:
+    m3_candidates = [
+        (M3_RESULT_DIR / "m3_tracerlpm_strict_parity_full.csv", "M3 strict TracerLPM parity"),
+        (M3_RESULT_DIR / "m3_design_matrix_results.csv", "M3 design-matrix USGS benchmark"),
+        (M3_RESULT_DIR / "m3_phase4_screened_full_results.csv", "M3 full screened USGS benchmark"),
+        (M3_RESULT_DIR / "m3_usgs_benchmark_results.csv", "M3 primary USGS benchmark"),
+    ]
+    for path, label in m3_candidates:
+        if not path.exists():
+            continue
+        df = pd.read_csv(path)
+        if {"ref_age", "est_age_multi"}.issubset(df.columns):
+            preferred_scenario = None
+            if "scenario_id" in df.columns:
+                scenarios = set(df["scenario_id"].dropna())
+                for pref in ("tracerlpm_strict_parity", "tracerlpm_parity_hier_oldwater", "screened_dgm_gases", "parity_reported_corrected"):
+                    if pref in scenarios:
+                        preferred_scenario = pref
+                        break
+                if preferred_scenario:
+                    df = df[df["scenario_id"] == preferred_scenario].copy()
+                    label = f"{label} ({preferred_scenario})"
+            out = pd.DataFrame(
+                {
+                    "reference_mean_age_years": pd.to_numeric(df["ref_age"], errors="coerce"),
+                    "hydrosheaf_age_years": pd.to_numeric(df["est_age_multi"], errors="coerce"),
+                    "supported_tracers": df.get("tracer_mode", pd.Series("", index=df.index)).astype(str),
+                    "log10_error": pd.to_numeric(df.get("log10_error", pd.Series(np.nan, index=df.index)), errors="coerce"),
+                    "within_factor_2": df.get("within_factor_2", pd.Series(np.nan, index=df.index)),
+                    "inside_hydrosheaf_ci": df.get("within_factor_10", pd.Series(np.nan, index=df.index)),
+                }
+            )
+            out = out.dropna(subset=["reference_mean_age_years", "hydrosheaf_age_years"])
+            if not out.empty:
+                return out, label
+
+    legacy_path = EXTERNAL_DIR / "usgs_age" / "results" / "usgs_age_validation.csv"
+    if legacy_path.exists():
+        return pd.read_csv(legacy_path), "M2 legacy E1 USGS age benchmark"
+    return pd.DataFrame(), ""
+
+
 def plot_s1_age_parity() -> None:
     """Figure S1: Regional Residence-Time Validation (USGS Dataset)."""
-    path = EXTERNAL_DIR / "usgs_age" / "results" / "usgs_age_validation.csv"
-    if not path.exists():
+    df, source_label = _load_public_age_validation()
+    if df.empty:
         print("Skipping S1: USGS age data not found.")
         return
 
-    df = pd.read_csv(path)
     df_clean = df.dropna(subset=["reference_mean_age_years", "hydrosheaf_age_years"]).copy()
-    df_clean = df_clean[df_clean["reference_mean_age_years"] <= 50000]
+    df_clean["plot_reference_age_years"] = np.maximum(df_clean["reference_mean_age_years"], 0.01)
+    df_clean["plot_hydrosheaf_age_years"] = np.maximum(df_clean["hydrosheaf_age_years"], 0.01)
 
     def get_category(row):
         tracers = str(row["supported_tracers"])
@@ -54,12 +99,20 @@ def plot_s1_age_parity() -> None:
 
     df_clean["Category"] = df_clean.apply(get_category, axis=1)
 
-    log_ref = np.log10(np.maximum(df_clean["reference_mean_age_years"], 0.1))
-    log_inf = np.log10(np.maximum(df_clean["hydrosheaf_age_years"], 0.1))
+    log_ref = np.log10(df_clean["plot_reference_age_years"])
+    log_inf = np.log10(df_clean["plot_hydrosheaf_age_years"])
 
     r2_global = np.corrcoef(log_ref, log_inf)[0,1]**2
-    mae_log = np.mean(np.abs(log_ref - log_inf))
-    within_ci = (df_clean["inside_hydrosheaf_ci"] == True).mean() * 100
+    metric_log = pd.to_numeric(
+        df_clean.get("log10_error", pd.Series(np.nan, index=df_clean.index)),
+        errors="coerce",
+    ).abs()
+    mae_log = float(metric_log.mean()) if metric_log.notna().any() else np.mean(np.abs(log_ref - log_inf))
+    within_ci = (df_clean["inside_hydrosheaf_ci"] == True).mean() * 100 if "inside_hydrosheaf_ci" in df_clean else np.nan
+    within_raw = df_clean.get("within_factor_2", pd.Series(np.nan, index=df_clean.index))
+    within_numeric = pd.to_numeric(within_raw, errors="coerce")
+    within_bool = within_raw.astype(str).str.lower().map({"true": 1.0, "false": 0.0})
+    within_factor_2 = within_numeric.where(within_numeric.notna(), within_bool).fillna(0.0).mean() * 100
 
     fig = plt.figure(figsize=(10, 10))
     gs = fig.add_gridspec(4, 4, left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.05, hspace=0.05)
@@ -71,38 +124,48 @@ def plot_s1_age_parity() -> None:
     colors = {"Modern (3H/SF6/CFC)": COLOR_PRIMARY, "14C Inclusive": COLOR_ACCENT, "Other": "#64748b"}
     for cat, color in colors.items():
         sub = df_clean[df_clean["Category"] == cat]
-        ax_main.scatter(sub["reference_mean_age_years"], sub["hydrosheaf_age_years"],
+        ax_main.scatter(sub["plot_reference_age_years"], sub["plot_hydrosheaf_age_years"],
                         c=color, alpha=0.5, s=30, label=cat, edgecolors='white', linewidth=0.3)
 
-    lims = np.logspace(-1, 5, 100)
+    lim_max = max(
+        1e5,
+        float(df_clean["plot_reference_age_years"].max()),
+        float(df_clean["plot_hydrosheaf_age_years"].max()),
+    ) * 1.25
+    lims = np.logspace(-2, np.log10(lim_max), 120)
     ax_main.plot(lims, lims, color="#1f2937", ls="--", alpha=0.8, lw=1.5, label="1:1 Line")
     ax_main.fill_between(lims, lims/10, lims*10, color="#94a3b8", alpha=0.15, label="±1 Order of Mag")
 
-    bins = np.logspace(-1, 5, 40)
-    ax_histx.hist(df_clean["reference_mean_age_years"], bins=bins, color="#cbd5e1", edgecolor="white")
-    ax_histy.hist(df_clean["hydrosheaf_age_years"], bins=bins, orientation='horizontal', color="#cbd5e1", edgecolor="white")
+    bins = np.logspace(-2, np.log10(lim_max), 40)
+    ax_histx.hist(df_clean["plot_reference_age_years"], bins=bins, color="#cbd5e1", edgecolor="white")
+    ax_histy.hist(df_clean["plot_hydrosheaf_age_years"], bins=bins, orientation='horizontal', color="#cbd5e1", edgecolor="white")
 
     ax_main.set_xscale("log")
     ax_main.set_yscale("log")
-    ax_main.set_xlim(0.1, 100000)
-    ax_main.set_ylim(0.1, 100000)
+    ax_main.set_xlim(0.01, lim_max)
+    ax_main.set_ylim(0.01, lim_max)
     ax_main.set_xlabel("Reference Tracer Age (Years)", fontsize=FONT_LABEL, fontweight="bold")
     ax_main.set_ylabel("Hydrosheaf Inferred Age (Years)", fontsize=FONT_LABEL, fontweight="bold")
     ax_main.tick_params(labelsize=FONT_TICK)
 
-    stats_text = (f"Global $R^2 = {r2_global:.2f}$\n"
-                  f"MAE = {mae_log:.2f} orders\n"
-                  f"Within 95% CI = {within_ci:.1f}%")
+    stats_text = (f"N = {len(df_clean)} ({metric_log.notna().sum()} finite log errors)\n"
+                  f"Global $R^2 = {r2_global:.2f}$\n"
+                  f"Mean |log10 err| = {mae_log:.2f}\n"
+                  f"Within factor 2 = {within_factor_2:.1f}%")
+    if np.isfinite(within_ci):
+        stats_text += f"\nLegacy CI/proxy = {within_ci:.1f}%"
     ax_main.text(0.05, 0.95, stats_text, transform=ax_main.transAxes,
                  verticalalignment='top', fontsize=FONT_ANNOTATE, fontweight="bold",
                  bbox=dict(boxstyle="round,pad=0.5", facecolor="white", edgecolor="#d1d5db", alpha=0.9))
+    ax_main.text(0.05, 0.04, source_label, transform=ax_main.transAxes,
+                 fontsize=FONT_ANNOTATE, color="#64748b", ha="left", va="bottom")
 
     ax_main.legend(loc="lower right", fontsize=FONT_LEGEND, frameon=True)
     ax_main.grid(True, which="major", ls="-", alpha=GRID_ALPHA)
 
     ax_histx.axis("off")
     ax_histy.axis("off")
-    ax_histx.set_title("Supplementary Figure S1: Regional Residence-Time Validation (USGS Dataset)",
+    ax_histx.set_title("Supplementary Figure S1: Public USGS Residence-Time Screening Check",
                        fontsize=FONT_TITLE, fontweight="bold", pad=20)
 
     _save_supp(fig, "Manuscript_Supp_FigS1_Public_Age_Validation.png")
@@ -115,9 +178,9 @@ def plot_s2_geochemical_validation() -> None:
         return
 
     df = pd.read_csv(path)
-    # 2x2 Grid, one empty panel
-    fig, axes = plt.subplots(2, 2, figsize=(14, 12))
-    ((ax1, ax2), (ax3, ax4)) = axes
+    # 1x3 Grid for clean supplementary layout
+    fig, axes = plt.subplots(1, 3, figsize=(16, 6))
+    ax1, ax2, ax3 = axes
 
     # (a) RMSE Histogram
     ax1.hist(df["rmse_mmolL"], bins=20, color=COLOR_PRIMARY, alpha=0.7, edgecolor="white")
@@ -140,23 +203,17 @@ def plot_s2_geochemical_validation() -> None:
     ax2.tick_params(labelsize=FONT_TICK)
     ax2.legend(loc='lower right', fontsize=FONT_LEGEND)
 
-    # (c) Mineral Saturation Indices
-    si_cols = [c for c in df.columns if c.startswith("si_")]
-    if si_cols:
-        labels = [c.replace("si_", "").capitalize() for c in si_cols]
-        ax3.boxplot([df[c].dropna() for c in si_cols], patch_artist=True,
-                    boxprops=dict(facecolor="#f1f5f9", color="#334155"),
-                    medianprops=dict(color=COLOR_ACCENT))
-        ax3.set_xticklabels(labels, rotation=45, fontsize=FONT_TICK)
-        ax3.axhline(0, color="black", ls="-", lw=1)
-        ax3.axhline(0.2, color="gray", ls=":", alpha=0.5)
-        ax3.axhline(-0.2, color="gray", ls=":", alpha=0.5)
-        ax3.set_title("(c) Mineral Saturation Indices", fontsize=FONT_TITLE, fontweight="bold")
-        ax3.set_ylabel("Saturation Index (SI)", fontsize=FONT_LABEL, fontweight="bold")
-        ax3.tick_params(axis='y', labelsize=FONT_TICK)
-
-    # Hide the 4th panel
-    ax4.axis("off")
+    # (c) Percent Bias (PBIAS) Distribution
+    pbias_clean = df["pbias_percent"].dropna()
+    ax3.hist(pbias_clean, bins=20, color=COLOR_WARNING, alpha=0.7, edgecolor="white")
+    ax3.axvline(pbias_clean.median(), color=COLOR_ACCENT, ls="--", lw=2,
+                label=f"Median: {pbias_clean.median():.1f}%")
+    ax3.axvline(0, color="black", ls="-", lw=1)
+    ax3.set_title("(c) Percent Bias (PBIAS)", fontsize=FONT_TITLE, fontweight="bold")
+    ax3.set_xlabel("PBIAS (%)", fontsize=FONT_LABEL, fontweight="bold")
+    ax3.set_ylabel("Frequency", fontsize=FONT_LABEL, fontweight="bold")
+    ax3.tick_params(labelsize=FONT_TICK)
+    ax3.legend(fontsize=FONT_LEGEND)
 
     for ax in [ax1, ax2, ax3]:
         ax.grid(True, which="major", ls="-", alpha=GRID_ALPHA)

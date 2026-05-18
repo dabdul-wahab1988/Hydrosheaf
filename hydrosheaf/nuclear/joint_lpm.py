@@ -46,6 +46,7 @@ class TracerFitObservation:
     units: str
     note: str = ""
     weight: float = 1.0
+    likelihood: str = "gaussian"
 
 
 @dataclass(frozen=True)
@@ -65,10 +66,15 @@ class JointLpmFit:
     rmse_standardized: float
     aic: float
     bic: float
+    aicc: float
+    effective_n_params: int
     n_tracers: int
     residuals: List[TracerFitResidual]
     converged: bool
     note: str = ""
+    refinement_attempted: bool = False
+    refinement_success: bool = False
+    refinement_message: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -78,9 +84,14 @@ class JointLpmFit:
             "rmse_standardized": float(self.rmse_standardized),
             "aic": float(self.aic),
             "bic": float(self.bic),
+            "aicc": float(self.aicc),
+            "effective_n_params": int(self.effective_n_params),
             "n_tracers": int(self.n_tracers),
             "converged": bool(self.converged),
             "note": self.note,
+            "refinement_attempted": bool(self.refinement_attempted),
+            "refinement_success": bool(self.refinement_success),
+            "refinement_message": self.refinement_message,
             "residuals": [r.__dict__ for r in self.residuals],
         }
 
@@ -183,10 +194,10 @@ def build_lpm_tracer_observations(
         ("CFC113", "cfc113_pptv", "cfc113_sigma_pptv"),
     ]
     
-    from .multi_tracer import calculate_tracer_reliability_weights
+    from .multi_tracer import calculate_tracer_reliability_weights, historical_max_concentration
     sample_year = _finite_float(observations.get("sample_year")) or 2026.0
     weighted_obs, _ = calculate_tracer_reliability_weights(observations, sample_year)
-    
+
     for tracer, value_key, sigma_key in gas_specs:
         value = _finite_float(observations.get(value_key))
         if value is None or value < 0:
@@ -194,6 +205,12 @@ def build_lpm_tracer_observations(
         weight = _finite_float(weighted_obs.get(f"{tracer.lower()}_weight"))
         if weight is None or weight < 0:
             weight = 1.0
+
+        # Phase 4: mark supersaturated gas as upper-censored
+        max_hist = historical_max_concentration(tracer, sample_year)
+        likelihood = "gaussian"
+        if value > max_hist * 1.02:
+            likelihood = "upper_censored"
 
         out.append(
             TracerFitObservation(
@@ -203,6 +220,7 @@ def build_lpm_tracer_observations(
                 "pptv",
                 note="expects atmospheric-equivalent corrected gas input",
                 weight=weight,
+                likelihood=likelihood,
             )
         )
 
@@ -335,6 +353,43 @@ def transit_time_pdf(
 
     g = _component_pdf(model_key, float(parameters["mean_age_years"]), taus, parameters)
     return _normalize_pdf(g, d_tau)
+
+
+def age_fraction_predictions(
+    model: str,
+    parameters: Mapping[str, float],
+    max_age_years: float = 50000.0,
+) -> dict[str, float]:
+    """Return predicted Anthropocene/Holocene/Pleistocene fractions for a parameter set."""
+    model_key = model.upper()
+    if model_key.startswith("BMM-"):
+        age_scale = max(
+            float(parameters.get("mean_age_1_years", 1.0)),
+            float(parameters.get("mean_age_2_years", 1.0)),
+        )
+    else:
+        age_scale = float(parameters.get("mean_age_years", 1.0))
+    taus, d_tau = _integration_grid(age_scale, max_age_years)
+    pdf = transit_time_pdf(model_key, parameters, taus, d_tau)
+
+    # Simple fixed-age cutoffs for first implementation
+    anthropocene_mask = taus <= 70.0
+    holocene_mask = (taus > 70.0) & (taus <= 11700.0)
+    pleistocene_mask = taus > 11700.0
+
+    frac_anthro = float(np.sum(pdf[anthropocene_mask]) * d_tau) if np.any(anthropocene_mask) else 0.0
+    frac_holocene = float(np.sum(pdf[holocene_mask]) * d_tau) if np.any(holocene_mask) else 0.0
+    frac_pleistocene = float(np.sum(pdf[pleistocene_mask]) * d_tau) if np.any(pleistocene_mask) else 0.0
+    total = frac_anthro + frac_holocene + frac_pleistocene
+    if total > 0:
+        frac_anthro /= total
+        frac_holocene /= total
+        frac_pleistocene /= total
+    return {
+        "anthropocene": frac_anthro,
+        "holocene": frac_holocene,
+        "pleistocene": frac_pleistocene,
+    }
 
 
 def _predict_from_history(
@@ -526,6 +581,308 @@ def _parameter_candidates(model: str, age_grid: np.ndarray) -> Tuple[List[Dict[s
     )
 
 
+def _pack_parameters(
+    model: str,
+    params: Mapping[str, float],
+    max_age_years: float = 50000.0,
+) -> tuple[np.ndarray, list[str], list[tuple[float, float]]]:
+    """Pack model parameters into a flat array for optimization with transforms."""
+    m = model.upper()
+    is_bmm = m.startswith("BMM-")
+    keys: list[str] = []
+    values: list[float] = []
+    bounds: list[tuple[float, float]] = []
+
+    if is_bmm:
+        age1 = float(params.get("mean_age_1_years", 1.0))
+        age2 = float(params.get("mean_age_2_years", 10.0))
+        frac = float(params.get("binary_fraction", 0.5))
+
+        keys.extend(["mean_age_1_years", "mean_age_2_years", "binary_fraction"])
+        values.extend([math.log10(max(age1, 0.01)), math.log10(max(age2, 0.01)), math.log(max(frac, 1e-6) / max(1 - frac, 1e-6))])
+        log_min = math.log10(0.01)
+        log_max = math.log10(max(max_age_years, 1.0))
+        bounds.extend([(log_min, log_max), (log_min, log_max), (-6.0, 6.0)])
+
+        if "dispersion" in params:
+            keys.append("dispersion")
+            values.append(float(params["dispersion"]))
+            bounds.append((1e-4, 2.0))
+        if "dispersion_2" in params:
+            keys.append("dispersion_2")
+            values.append(float(params["dispersion_2"]))
+            bounds.append((1e-4, 2.0))
+        if "capture_fraction" in params:
+            keys.append("capture_fraction")
+            values.append(float(params["capture_fraction"]))
+            bounds.append((0.05, 1.0))
+        if "capture_fraction_2" in params:
+            keys.append("capture_fraction_2")
+            values.append(float(params["capture_fraction_2"]))
+            bounds.append((0.05, 1.0))
+    else:
+        if "mean_age_years" in params:
+            keys.append("mean_age_years")
+            values.append(float(params["mean_age_years"]))
+            bounds.append((0.01, max(max_age_years, 1.0)))
+
+        for key in ("dispersion", "shape", "piston_fraction", "capture_fraction"):
+            if key in params:
+                keys.append(key)
+                values.append(float(params[key]))
+                if key == "dispersion":
+                    bounds.append((1e-4, 2.0))
+                elif key == "shape":
+                    bounds.append((0.1, 10.0))
+                elif key == "piston_fraction":
+                    bounds.append((0.0, 0.95))
+                elif key == "capture_fraction":
+                    bounds.append((0.05, 1.0))
+
+    return np.array(values, dtype=float), keys, bounds
+
+
+def _unpack_parameters(
+    model: str,
+    x: np.ndarray,
+    keys: list[str],
+    bounds: list[tuple[float, float]],
+) -> dict[str, float]:
+    """Unpack array into parameter dict with model-specific constraints."""
+    m = model.upper()
+    is_bmm = m.startswith("BMM-")
+    p: dict[str, float] = {}
+    for key, v, (lb, ub) in zip(keys, x, bounds):
+        clipped = float(min(max(v, lb), ub))
+        if key == "mean_age_1_years":
+            p[key] = 10.0 ** clipped
+        elif key == "mean_age_2_years":
+            p[key] = 10.0 ** clipped
+        elif key == "binary_fraction":
+            p[key] = 1.0 / (1.0 + math.exp(-clipped))
+        else:
+            p[key] = clipped
+
+    if is_bmm:
+        age1 = p.get("mean_age_1_years", 0.01)
+        age2 = p.get("mean_age_2_years", 0.01)
+        if age2 <= age1:
+            p["mean_age_2_years"] = age1 + 0.1
+        if "binary_fraction" in p:
+            p["binary_fraction"] = min(max(p["binary_fraction"], 0.001), 0.999)
+    else:
+        if "mean_age_years" in p:
+            p["mean_age_years"] = max(0.01, p["mean_age_years"])
+        if "dispersion" in p:
+            p["dispersion"] = min(max(p["dispersion"], 1e-4), 2.0)
+        if "shape" in p:
+            p["shape"] = min(max(p["shape"], 0.1), 10.0)
+        if "piston_fraction" in p:
+            p["piston_fraction"] = min(max(p["piston_fraction"], 0.0), 0.95)
+        if "capture_fraction" in p:
+            p["capture_fraction"] = min(max(p["capture_fraction"], 0.05), 1.0)
+
+    return p
+
+
+def _aicc(aic: float, n: int, k: int) -> float:
+    """Corrected AIC for small sample sizes."""
+    if n <= k + 1:
+        return float("inf")
+    return aic + (2 * k * (k + 1)) / (n - k - 1)
+
+
+def compute_gated_bma_age(
+    fits: list[JointLpmFit],
+    *,
+    max_delta_aicc: float = 4.0,
+    max_log_age_span: float = 0.7,
+) -> dict[str, Any]:
+    """Compute a gated Bayesian model average age.
+
+    Rules:
+    - Ignore non-converged fits.
+    - Use only fits within delta_aicc <= max_delta_aicc.
+    - If contributing model ages span more than max_log_age_span, use top model.
+    - If fewer than two models pass gates, use top model.
+    - Record whether BMA was used or skipped.
+    """
+    converged = [f for f in fits if f.converged and math.isfinite(f.aicc)]
+    if not converged:
+        return {
+            "age_years": float("nan"),
+            "bma_used": False,
+            "bma_skip_reason": "no_converged_fits",
+            "bma_n_models": 0,
+            "bma_log_age_span": float("nan"),
+            "top_model_age_years": float("nan"),
+        }
+
+    best_aicc = min(f.aicc for f in converged)
+    within_delta = [f for f in converged if f.aicc - best_aicc <= max_delta_aicc]
+
+    if len(within_delta) < 2:
+        top = converged[0]
+        top_age = _extract_scalar_age(top.parameters)
+        return {
+            "age_years": top_age,
+            "bma_used": False,
+            "bma_skip_reason": "insufficient_models_within_delta_aicc",
+            "bma_n_models": len(within_delta),
+            "bma_log_age_span": float("nan"),
+            "top_model_age_years": top_age,
+        }
+
+    ages = [_extract_scalar_age(f.parameters) for f in within_delta]
+    ages = [a for a in ages if math.isfinite(a) and a > 0]
+    if len(ages) < 2:
+        top_age = ages[0] if ages else float("nan")
+        return {
+            "age_years": top_age,
+            "bma_used": False,
+            "bma_skip_reason": "insufficient_finite_ages",
+            "bma_n_models": len(within_delta),
+            "bma_log_age_span": float("nan"),
+            "top_model_age_years": top_age,
+        }
+
+    log_ages = [math.log10(a) for a in ages]
+    log_span = max(log_ages) - min(log_ages)
+    if log_span > max_log_age_span:
+        top_age = ages[0]
+        return {
+            "age_years": top_age,
+            "bma_used": False,
+            "bma_skip_reason": "log_age_span_exceeded",
+            "bma_n_models": len(within_delta),
+            "bma_log_age_span": log_span,
+            "top_model_age_years": top_age,
+        }
+
+    # Compute AICc weights
+    delta_aiccs = [f.aicc - best_aicc for f in within_delta]
+    weights = [math.exp(-0.5 * d) for d in delta_aiccs]
+    total_w = sum(weights)
+    if total_w <= 0 or not math.isfinite(total_w):
+        top_age = ages[0]
+        return {
+            "age_years": top_age,
+            "bma_used": False,
+            "bma_skip_reason": "weight_computation_failed",
+            "bma_n_models": len(within_delta),
+            "bma_log_age_span": log_span,
+            "top_model_age_years": top_age,
+        }
+
+    bma_age = sum(w * a for w, a in zip(weights, ages)) / total_w
+    return {
+        "age_years": bma_age,
+        "bma_used": True,
+        "bma_skip_reason": "",
+        "bma_n_models": len(within_delta),
+        "bma_log_age_span": log_span,
+        "top_model_age_years": ages[0],
+    }
+
+
+def _extract_scalar_age(parameters: Dict[str, float]) -> float:
+    """Extract a scalar mean age from parameters."""
+    if "mean_age_years" in parameters:
+        return float(parameters["mean_age_years"])
+    if "mean_age_1_years" in parameters and "mean_age_2_years" in parameters:
+        fraction = float(parameters.get("binary_fraction", 0.5))
+        return fraction * parameters["mean_age_1_years"] + (1.0 - fraction) * parameters["mean_age_2_years"]
+    return float("nan")
+
+
+def _standardized_observation_loss(obs: TracerFitObservation, predicted: float) -> float:
+    """Return a loss contribution for a single observation-prediction pair."""
+    standardized = (obs.value - predicted) / obs.sigma
+    if obs.likelihood == "upper_censored":
+        # No penalty when predicted <= observed; penalty only when predicted > observed
+        if predicted <= obs.value:
+            return 0.0
+        return float(standardized * standardized)
+    if obs.likelihood == "lower_censored":
+        # No penalty when predicted >= observed; penalty only when predicted < observed
+        if predicted >= obs.value:
+            return 0.0
+        return float(standardized * standardized)
+    if obs.likelihood == "contaminated_mixture":
+        # Student-t-like robust loss (Cauchy-like tails)
+        return float(math.log1p(standardized * standardized))
+    # Default gaussian
+    return float(standardized * standardized)
+
+
+def _refine_best_candidate(
+    model: str,
+    best_params: Dict[str, float],
+    sample_year: float,
+    tracer_names: list[str],
+    fit_observations: list[TracerFitObservation],
+    *,
+    histories: Optional[Mapping[str, InputHistory]] = None,
+    initial_c14_pmc: float = 100.0,
+    max_age_years: float = 50000.0,
+    age_fraction_obs: Optional[Mapping[str, float]] = None,
+) -> tuple[Dict[str, float], bool, str]:
+    """Refine a grid-best candidate with local optimization.
+
+    Returns (refined_params, success, message).
+    """
+    try:
+        from scipy.optimize import minimize
+    except Exception:
+        return best_params, False, "scipy not available"
+
+    x0, keys, bounds = _pack_parameters(model, best_params, max_age_years=max_age_years)
+
+    def objective_fn(x: np.ndarray) -> float:
+        params = _unpack_parameters(model, x, keys, bounds)
+        predicted = predict_lpm_tracers(
+            model, params, sample_year, tracer_names,
+            histories=histories, initial_c14_pmc=initial_c14_pmc, max_age_years=max_age_years,
+        )
+        obj = 0.0
+        for obs in fit_observations:
+            pred = predicted.get(obs.tracer)
+            if pred is None or not math.isfinite(pred):
+                return 1e12
+            obj += _standardized_observation_loss(obs, pred) * obs.weight
+        if age_fraction_obs is not None:
+            frac_pred = age_fraction_predictions(model, params, max_age_years=max_age_years)
+            sigma_fraction = float(age_fraction_obs.get("sigma_fraction", 0.10))
+            for key in ("anthropocene", "holocene", "pleistocene"):
+                obs_val = age_fraction_obs.get(key)
+                if obs_val is not None and math.isfinite(obs_val):
+                    pred_val = frac_pred.get(key, 0.0)
+                    resid = (obs_val - pred_val) / sigma_fraction
+                    obj += resid * resid
+        return obj
+
+    # Nelder-Mead first
+    try:
+        res_nm = minimize(objective_fn, x0, method="Nelder-Mead", options={"maxiter": 300, "xatol": 1e-4, "fatol": 1e-4})
+        if res_nm.success and res_nm.fun < objective_fn(x0):
+            refined = _unpack_parameters(model, res_nm.x, keys, bounds)
+            return refined, True, "Nelder-Mead refined"
+        x0 = res_nm.x
+    except Exception as exc:
+        pass
+
+    # L-BFGS-B fallback on bounded transformed parameters
+    try:
+        res_bfgs = minimize(objective_fn, x0, method="L-BFGS-B", bounds=bounds, options={"maxiter": 300})
+        if res_bfgs.success and res_bfgs.fun < objective_fn(x0):
+            refined = _unpack_parameters(model, res_bfgs.x, keys, bounds)
+            return refined, True, "L-BFGS-B refined"
+    except Exception as exc:
+        return best_params, False, f"refinement failed: {exc}"
+
+    return best_params, False, "refinement did not improve objective"
+
+
 def fit_lpm_model(
     observations: Mapping[str, Any],
     *,
@@ -537,6 +894,8 @@ def fit_lpm_model(
     age_steps: int = 90,
     use_helium4: bool = False,
     initial_c14_pmc: float = 100.0,
+    refine: bool = False,
+    age_fraction_obs: Optional[Mapping[str, float]] = None,
 ) -> JointLpmFit:
     """Fit one LPM family jointly to all supported tracer observations."""
     fit_observations = build_lpm_tracer_observations(observations, use_helium4=use_helium4)
@@ -552,10 +911,15 @@ def fit_lpm_model(
             rmse_standardized=float("nan"),
             aic=float("nan"),
             bic=float("nan"),
+            aicc=float("nan"),
+            effective_n_params=0,
             n_tracers=0,
             residuals=[],
             converged=False,
             note="no supported tracer observations",
+            refinement_attempted=False,
+            refinement_success=False,
+            refinement_message="",
         )
 
     has_old_tracer = any(obs.tracer in {"14C", "4He"} for obs in fit_observations)
@@ -584,8 +948,9 @@ def fit_lpm_model(
             if pred is None or not math.isfinite(pred):
                 missing_prediction = True
                 break
+            loss = _standardized_observation_loss(obs, pred) * obs.weight
+            objective += loss
             standardized = (obs.value - pred) / obs.sigma
-            objective += (standardized * standardized) * obs.weight
             residuals.append(
                 TracerFitResidual(
                     tracer=obs.tracer,
@@ -595,6 +960,17 @@ def fit_lpm_model(
                     standardized_residual=float(standardized),
                 )
             )
+        # Phase 6: age-fraction constraints
+        if age_fraction_obs is not None:
+            frac_pred = age_fraction_predictions(model, params, max_age_years=max_age)
+            sigma_fraction = float(age_fraction_obs.get("sigma_fraction", 0.10))
+            for key in ("anthropocene", "holocene", "pleistocene"):
+                obs_val = age_fraction_obs.get(key)
+                if obs_val is not None and math.isfinite(obs_val):
+                    pred_val = frac_pred.get(key, 0.0)
+                    resid = (obs_val - pred_val) / sigma_fraction
+                    objective += resid * resid
+
         if missing_prediction:
             continue
         if best is None or objective < best[0]:
@@ -608,17 +984,76 @@ def fit_lpm_model(
             rmse_standardized=float("nan"),
             aic=float("nan"),
             bic=float("nan"),
+            aicc=float("nan"),
+            effective_n_params=n_params,
             n_tracers=len(fit_observations),
             residuals=[],
             converged=False,
             note="no finite model prediction",
+            refinement_attempted=False,
+            refinement_success=False,
+            refinement_message="",
         )
 
     objective, params, residuals = best
+
+    # Phase 8: local refinement
+    refinement_attempted = False
+    refinement_success = False
+    refinement_message = ""
+    if refine:
+        refinement_attempted = True
+        refined_params, refinement_success, refinement_message = _refine_best_candidate(
+            model,
+            params,
+            sample_year,
+            tracer_names,
+            fit_observations,
+            histories=resolved_histories,
+            initial_c14_pmc=initial_c14_pmc,
+            max_age_years=max_age,
+            age_fraction_obs=age_fraction_obs,
+        )
+        if refinement_success:
+            params = refined_params
+            # Recompute objective with refined parameters
+            predicted = predict_lpm_tracers(
+                model,
+                params,
+                sample_year,
+                tracer_names,
+                histories=resolved_histories,
+                initial_c14_pmc=initial_c14_pmc,
+                max_age_years=max_age,
+            )
+            new_residuals: List[TracerFitResidual] = []
+            new_objective = 0.0
+            missing_prediction = False
+            for obs in fit_observations:
+                pred = predicted.get(obs.tracer)
+                if pred is None or not math.isfinite(pred):
+                    missing_prediction = True
+                    break
+                standardized = (obs.value - pred) / obs.sigma
+                new_objective += (standardized * standardized) * obs.weight
+                new_residuals.append(
+                    TracerFitResidual(
+                        tracer=obs.tracer,
+                        observed=float(obs.value),
+                        predicted=float(pred),
+                        sigma=float(obs.sigma),
+                        standardized_residual=float(standardized),
+                    )
+                )
+            if not missing_prediction and new_objective < objective:
+                objective = new_objective
+                residuals = new_residuals
+
     n = len(residuals)
     rss_per_obs = max(objective / max(n, 1), 1.0e-12)
     aic = n * math.log(rss_per_obs) + 2.0 * n_params
     bic = n * math.log(rss_per_obs) + n_params * math.log(max(n, 2))
+    aicc_val = _aicc(aic, n, n_params)
     return JointLpmFit(
         model=model.upper(),
         parameters=params,
@@ -626,9 +1061,14 @@ def fit_lpm_model(
         rmse_standardized=math.sqrt(rss_per_obs),
         aic=float(aic),
         bic=float(bic),
+        aicc=float(aicc_val),
+        effective_n_params=n_params,
         n_tracers=n,
         residuals=residuals,
         converged=True,
+        refinement_attempted=refinement_attempted,
+        refinement_success=refinement_success,
+        refinement_message=refinement_message,
     )
 
 
@@ -643,6 +1083,8 @@ def fit_lpm_models(
     age_steps: int = 90,
     use_helium4: bool = False,
     initial_c14_pmc: float = 100.0,
+    refine: bool = False,
+    age_fraction_obs: Optional[Mapping[str, float]] = None,
 ) -> List[JointLpmFit]:
     """Fit and rank several LPM families by AIC."""
     model_list = list(models or SUPPORTED_LPM_MODELS[:6])
@@ -657,6 +1099,7 @@ def fit_lpm_models(
             age_steps=age_steps,
             use_helium4=use_helium4,
             initial_c14_pmc=initial_c14_pmc,
+            age_fraction_obs=age_fraction_obs,
         )
         for model in model_list
     ]

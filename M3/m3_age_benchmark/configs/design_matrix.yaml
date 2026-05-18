@@ -5,7 +5,7 @@ description: >
   changes in correction mode, tracer set, and LPM strategy.
 
 defaults:
-  age_steps: 35
+  age_steps: 90
   row_filter:
     finite_reference_age: true
 
@@ -109,3 +109,37 @@ scenarios:
     he4_mode: calibrated
     tracer_set: reported
     lpm_strategy: selection
+
+  - scenario_id: tracerlpm_strict_parity
+    label: Strict TracerLPM parity
+    purpose: Match USGS reported LPM family, reported tracer set, corrected inputs, and reported total-age convention as closely as Hydrosheaf supports.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: selected
+    he4_mode: calibrated
+    tracer_set: reported
+    lpm_strategy: reported
+    age_target_mode: reported_total
+    uztt_mode: add_reported
+
+  - scenario_id: tracerlpm_parity_hier_oldwater
+    label: Strict parity plus hierarchical old-water priors
+    purpose: Apply study-unit/aquifer-level priors for 14C A0 and 4He background/rate.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: hierarchical
+    he4_mode: hierarchical
+    tracer_set: reported
+    lpm_strategy: reported
+    age_target_mode: reported_total
+    uztt_mode: add_reported
+
+  - scenario_id: tracerlpm_parity_agefractions
+    label: Strict parity plus age-fraction constraints
+    purpose: Add USGS-reported age fractions as additional TTD shape constraints.
+    gas_correction_mode: usgs_dgm
+    c14_correction_mode: selected
+    he4_mode: calibrated
+    tracer_set: reported
+    lpm_strategy: reported
+    age_target_mode: reported_total
+    uztt_mode: add_reported
+    use_age_fractions: true

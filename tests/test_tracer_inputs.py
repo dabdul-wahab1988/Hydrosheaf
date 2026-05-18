@@ -2,8 +2,11 @@ from pathlib import Path
 
 from hydrosheaf.nuclear.joint_lpm import fit_lpm_model, predict_lpm_tracers
 from hydrosheaf.nuclear.tracer_inputs import (
+    SiteInputContext,
+    build_site_tracer_histories,
     dissolved_gas_to_atmospheric_equivalent,
     load_tracer_histories_csv,
+    site_input_history_metadata,
     standardize_gas_observations,
 )
 
@@ -78,3 +81,32 @@ def test_joint_fit_accepts_local_history_paths(tmp_path: Path):
 
     assert fit.converged
     assert abs(fit.parameters["mean_age_years"] - 10.0) < 1.5
+
+
+# --- Phase 3: Site-Specific Input Histories ---
+
+def test_northern_latitude_returns_northern_hemisphere_histories():
+    ctx = SiteInputContext(site_id="A", sample_year=2020.0, latitude=45.0)
+    histories = build_site_tracer_histories(ctx)
+    meta = site_input_history_metadata(ctx)
+    assert "3H" in histories
+    assert "SF6" in histories
+    assert meta["input_history_region"] == "northern_hemisphere"
+    assert "northern" in meta["input_history_source"]
+
+
+def test_southern_latitude_records_fallback():
+    ctx = SiteInputContext(site_id="B", sample_year=2020.0, latitude=-35.0)
+    histories = build_site_tracer_histories(ctx)
+    meta = site_input_history_metadata(ctx)
+    assert meta["input_history_region"] == "southern_hemisphere"
+    assert "fallback" in meta["input_history_source"]
+
+
+def test_build_site_tracer_histories_returns_non_empty_mapping():
+    ctx = SiteInputContext(site_id="C", sample_year=2020.0)
+    histories = build_site_tracer_histories(ctx)
+    assert len(histories) >= 2
+    for key, hist in histories.items():
+        assert hasattr(hist, "years")
+        assert hasattr(hist, "values")

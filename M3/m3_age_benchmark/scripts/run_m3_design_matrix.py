@@ -118,6 +118,17 @@ def run_design_matrix(
         raise ValueError("No design-matrix scenarios selected.")
 
     df_run = select_rows(df, max_rows)
+
+    # Phase 5: pre-compute hierarchical old-water priors once
+    oldwater_priors = None
+    needs_hierarchical = any(
+        scenario.get("c14_correction_mode") == "hierarchical" or scenario.get("he4_mode") == "hierarchical"
+        for scenario in scenarios
+    )
+    if needs_hierarchical:
+        from hydrosheaf.nuclear.old_groundwater import build_old_groundwater_priors
+        oldwater_priors = build_old_groundwater_priors(df_run)
+
     rows: list[dict] = []
     for scenario in scenarios:
         scenario_id = scenario["scenario_id"]
@@ -131,6 +142,7 @@ def run_design_matrix(
                 age_steps=base_age_steps,
                 model_strategy=model_strategy,
                 factors=scenario,
+                oldwater_priors=oldwater_priors,
             )
             result.update(
                 {

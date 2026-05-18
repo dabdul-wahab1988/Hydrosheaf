@@ -23,6 +23,25 @@ def _read_csv(path: Path) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def _primary_pointwise_results() -> pd.DataFrame:
+    for candidate in (
+        RESULT_DIR / "m3_tracerlpm_strict_parity_full.csv",
+        RESULT_DIR / "m3_design_matrix_results.csv",
+        RESULT_DIR / "m3_phase4_screened_full_results.csv",
+        RESULT_DIR / "m3_phase4_younggas_full_results.csv",
+        RESULT_DIR / "m3_phase4_younggas_results.csv",
+        RESULT_DIR / "m3_usgs_benchmark_results.csv",
+    ):
+        df = _read_csv(candidate)
+        if df.empty:
+            continue
+        for preferred in ("tracerlpm_strict_parity", "tracerlpm_parity_hier_oldwater", "screened_dgm_gases", "parity_reported_corrected"):
+            if "scenario_id" in df.columns and preferred in set(df["scenario_id"].dropna()):
+                return df[df["scenario_id"] == preferred].copy()
+        return df
+    return pd.DataFrame()
+
+
 def _log_rmse(series: pd.Series) -> float:
     values = pd.to_numeric(series, errors="coerce").dropna()
     return float(np.sqrt(np.mean(values**2))) if len(values) else np.nan
@@ -96,8 +115,64 @@ def make_table4() -> None:
     )
 
 
-def make_supp_tables() -> None:
+def _scenario_metrics(df: pd.DataFrame, scenario_id: str) -> dict[str, float]:
+    """Compute core parity metrics for a specific scenario."""
+    subset = df[df["scenario_id"] == scenario_id].copy() if "scenario_id" in df.columns else df.copy()
+    subset = subset[subset["ref_age"].notna() & subset["est_age_multi"].notna()]
+    if subset.empty:
+        return {}
+    log_err = pd.to_numeric(subset.get("log10_error"), errors="coerce").dropna()
+    within_2 = pd.to_numeric(subset.get("within_factor_2"), errors="coerce").dropna()
+    return {
+        "N": int(len(subset)),
+        "finite_metrics": int(len(log_err)),
+        "median_abs_log10_error": float(log_err.median()) if len(log_err) else float("nan"),
+        "log10_rmse": float(np.sqrt(np.mean(log_err**2))) if len(log_err) else float("nan"),
+        "within_factor_2": float(within_2.mean()) if len(within_2) else float("nan"),
+    }
+
+
+def make_table5_mode_comparison() -> None:
+    """Report strict parity, selection, and calibrated-emulation metrics separately."""
     design = _read_csv(RESULT_DIR / "m3_design_matrix_results.csv")
+    rows: list[dict] = []
+    if not design.empty and "scenario_id" in design.columns:
+        for scenario_id, label in (
+            ("tracerlpm_strict_parity", "Strict TracerLPM parity"),
+            ("tracerlpm_parity_hier_oldwater", "Strict parity + hierarchical old-water priors"),
+            ("tracerlpm_parity_agefractions", "Strict parity + age-fraction constraints"),
+            ("hydrosheaf_selection_corrected", "Hydrosheaf model selection"),
+            ("screened_dgm_gases", "Screened young-gas correction"),
+            ("parity_reported_corrected", "Reported-model parity"),
+        ):
+            if scenario_id in set(design["scenario_id"].dropna()):
+                metrics = _scenario_metrics(design, scenario_id)
+                if metrics:
+                    rows.append({"mode": label, **metrics})
+
+    calibrated = _read_csv(RESULT_DIR / "m3_usgs_calibrated_parity.csv")
+    if not calibrated.empty:
+        target = pd.to_numeric(calibrated.get("log10_reported_age"), errors="coerce").dropna()
+        pred = pd.to_numeric(calibrated.get("log10_calibrated_age"), errors="coerce").dropna()
+        if len(target) and len(pred):
+            residual = (pred - target).abs()
+            rows.append({
+                "mode": "USGS-calibrated benchmark emulation",
+                "N": int(len(calibrated)),
+                "finite_metrics": int(len(residual)),
+                "median_abs_log10_error": float(residual.median()),
+                "log10_rmse": float(np.sqrt(np.mean(residual**2))),
+                "within_factor_2": float("nan"),
+            })
+
+    if rows:
+        pd.DataFrame(rows).to_csv(
+            TABLE_DIR / "Manuscript_Table5_Mode_Comparison.csv", index=False
+        )
+
+
+def make_supp_tables() -> None:
+    design = _primary_pointwise_results()
     if not design.empty:
         age_class = (
             design[design["log10_error"].notna()]
@@ -136,6 +211,7 @@ def main() -> int:
     make_table2()
     make_table3()
     make_table4()
+    make_table5_mode_comparison()
     make_supp_tables()
     print(f"Wrote M3 manuscript tables to {TABLE_DIR}")
     return 0

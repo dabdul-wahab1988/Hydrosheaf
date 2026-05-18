@@ -2,10 +2,91 @@ from __future__ import annotations
 
 import json
 import math
-from typing import Any, Iterable, Mapping, Sequence
+from dataclasses import dataclass
+from typing import Any, Dict, Iterable, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
+
+
+@dataclass(frozen=True)
+class OldGroundwaterPrior:
+    study_unit: str
+    aquifer_group: str
+    a0_pmc_mean: float
+    a0_pmc_sigma: float
+    he4_background_mean: float
+    he4_background_sigma: float
+    he4_rate_mean: float
+    he4_rate_sigma: float
+    n_support: int
+
+
+def build_old_groundwater_priors(df: pd.DataFrame) -> dict[str, OldGroundwaterPrior]:
+    """Build study-unit/aquifer-level priors from available USGS rows."""
+    priors: dict[str, OldGroundwaterPrior] = {}
+    if df.empty:
+        return priors
+
+    required = {"StudyUnit", "AqGroup"}
+    if not required.issubset(df.columns):
+        return priors
+
+    for (su, aq), group in df.groupby(["StudyUnit", "AqGroup"], dropna=False):
+        su_str = str(su) if su is not None else ""
+        aq_str = str(aq) if aq is not None else ""
+
+        a0_vals = pd.to_numeric(group.get("Corrected_Ao_pmC"), errors="coerce").dropna()
+        he4_bg_vals = pd.to_numeric(group.get("he4_background_ccpg"), errors="coerce").dropna()
+        he4_rate_vals = pd.to_numeric(group.get("he4_accumulation_rate_ccpg_per_year"), errors="coerce").dropna()
+
+        if len(a0_vals) < 2 and len(he4_bg_vals) < 2 and len(he4_rate_vals) < 2:
+            continue
+
+        priors[f"{su_str}|{aq_str}"] = OldGroundwaterPrior(
+            study_unit=su_str,
+            aquifer_group=aq_str,
+            a0_pmc_mean=float(a0_vals.mean()) if len(a0_vals) >= 1 else 100.0,
+            a0_pmc_sigma=float(a0_vals.std(ddof=1)) if len(a0_vals) >= 2 else 10.0,
+            he4_background_mean=float(he4_bg_vals.mean()) if len(he4_bg_vals) >= 1 else 4.6e-8,
+            he4_background_sigma=float(he4_bg_vals.std(ddof=1)) if len(he4_bg_vals) >= 2 else 1.0e-8,
+            he4_rate_mean=float(he4_rate_vals.mean()) if len(he4_rate_vals) >= 1 else 2.0e-11,
+            he4_rate_sigma=float(he4_rate_vals.std(ddof=1)) if len(he4_rate_vals) >= 2 else 1.0e-11,
+            n_support=int(len(group)),
+        )
+
+    # Global fallback
+    a0_vals = pd.to_numeric(df.get("Corrected_Ao_pmC"), errors="coerce").dropna()
+    he4_bg_vals = pd.to_numeric(df.get("he4_background_ccpg"), errors="coerce").dropna()
+    he4_rate_vals = pd.to_numeric(df.get("he4_accumulation_rate_ccpg_per_year"), errors="coerce").dropna()
+
+    priors["global|fallback"] = OldGroundwaterPrior(
+        study_unit="",
+        aquifer_group="",
+        a0_pmc_mean=float(a0_vals.mean()) if len(a0_vals) >= 1 else 100.0,
+        a0_pmc_sigma=float(a0_vals.std(ddof=1)) if len(a0_vals) >= 2 else 10.0,
+        he4_background_mean=float(he4_bg_vals.mean()) if len(he4_bg_vals) >= 1 else 4.6e-8,
+        he4_background_sigma=float(he4_bg_vals.std(ddof=1)) if len(he4_bg_vals) >= 2 else 1.0e-8,
+        he4_rate_mean=float(he4_rate_vals.mean()) if len(he4_rate_vals) >= 1 else 2.0e-11,
+        he4_rate_sigma=float(he4_rate_vals.std(ddof=1)) if len(he4_rate_vals) >= 2 else 1.0e-11,
+        n_support=int(len(df)),
+    )
+
+    return priors
+
+
+def _lookup_oldwater_prior(
+    priors: Mapping[str, OldGroundwaterPrior],
+    study_unit: str,
+    aquifer_group: str,
+) -> tuple[OldGroundwaterPrior, str]:
+    """Return the best available prior and its scope label."""
+    key = f"{study_unit}|{aquifer_group}"
+    if key in priors:
+        return priors[key], "study_unit_aquifer"
+    if "global|fallback" in priors:
+        return priors["global|fallback"], "global_fallback"
+    return OldGroundwaterPrior("", "", 100.0, 10.0, 4.6e-8, 1.0e-8, 2.0e-11, 1.0e-11, 0), "none"
 
 
 def _finite_float(value: Any) -> float:
@@ -97,6 +178,7 @@ def prepare_c14_observation(
     candidate_corrected_pmcs: Any = None,
     candidate_initial_pmcs: Any = None,
     candidate_models: Any = None,
+    prior: OldGroundwaterPrior | None = None,
 ) -> tuple[dict[str, Any], float, dict[str, Any]]:
     out = dict(observations)
     corrected_candidates, initial_candidates, models = _effective_c14_candidates(
@@ -123,6 +205,17 @@ def prepare_c14_observation(
         out["c14_initial_pmc"] = initial
         diagnostics["c14_effective_source"] = "fixed_a0"
         diagnostics["c14_effective_pmc"] = _finite_float(out.get("c14_pmc"))
+        return out, initial, diagnostics
+
+    if mode == "hierarchical" and prior is not None:
+        initial = prior.a0_pmc_mean
+        out["c14_initial_pmc"] = initial
+        diagnostics["c14_effective_source"] = "hierarchical_prior"
+        diagnostics["c14_effective_pmc"] = _finite_float(out.get("c14_pmc"))
+        diagnostics["oldwater_prior_scope"] = "study_unit_aquifer" if prior.study_unit else "global_fallback"
+        diagnostics["oldwater_prior_n_support"] = prior.n_support
+        diagnostics["a0_prior_mean"] = prior.a0_pmc_mean
+        diagnostics["a0_prior_sigma"] = prior.a0_pmc_sigma
         return out, initial, diagnostics
 
     if mode == "ensemble" and corrected_candidates:
@@ -185,6 +278,7 @@ def apply_he4_uncertainty_mode(
     observations: Mapping[str, Any],
     *,
     mode: str = "calibrated",
+    prior: OldGroundwaterPrior | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     out = dict(observations)
     diagnostics = {
@@ -192,6 +286,17 @@ def apply_he4_uncertainty_mode(
         "he4_rate_uncertainty_fraction": float("nan"),
         "he4_sigma_effective_ccpg": _finite_float(out.get("he4_sigma_ccpg")),
     }
+    if mode == "hierarchical" and prior is not None:
+        out["he4_background_ccpg"] = prior.he4_background_mean
+        out["he4_accumulation_rate_ccpg_per_year"] = prior.he4_rate_mean
+        diagnostics["he4_uncertainty_mode"] = "hierarchical"
+        diagnostics["oldwater_prior_scope"] = "study_unit_aquifer" if prior.study_unit else "global_fallback"
+        diagnostics["oldwater_prior_n_support"] = prior.n_support
+        diagnostics["he4_background_prior_mean"] = prior.he4_background_mean
+        diagnostics["he4_rate_prior_mean"] = prior.he4_rate_mean
+        diagnostics["he4_rate_prior_sigma"] = prior.he4_rate_sigma
+        return out, diagnostics
+
     if mode != "calibrated_uncertainty":
         return out, diagnostics
 

@@ -53,18 +53,28 @@ def _save(fig: plt.Figure, name: str) -> None:
     plt.close(fig)
 
 
-def _primary_results() -> pd.DataFrame:
-    primary = _read_csv(RESULT_DIR / "m3_usgs_benchmark_results.csv")
-    if not primary.empty:
-        return primary
-    design = _read_csv(RESULT_DIR / "m3_design_matrix_results.csv")
-    if design.empty:
-        return design
-    if "screened_dgm_gases" in set(design["scenario_id"]):
-        return design[design["scenario_id"] == "screened_dgm_gases"].copy()
-    if "parity_reported_corrected" in set(design["scenario_id"]):
-        return design[design["scenario_id"] == "parity_reported_corrected"].copy()
-    return design.copy()
+def _primary_results(scenario_id: str | None = None) -> pd.DataFrame:
+    """Load primary pointwise results, preferring strict parity scenarios."""
+    candidates = (
+        RESULT_DIR / "m3_tracerlpm_strict_parity_full.csv",
+        RESULT_DIR / "m3_design_matrix_results.csv",
+        RESULT_DIR / "m3_phase4_screened_full_results.csv",
+        RESULT_DIR / "m3_phase4_younggas_full_results.csv",
+        RESULT_DIR / "m3_phase4_younggas_results.csv",
+        RESULT_DIR / "m3_usgs_benchmark_results.csv",
+    )
+    for candidate in candidates:
+        df = _read_csv(candidate)
+        if df.empty:
+            continue
+        if scenario_id and "scenario_id" in df.columns and scenario_id in set(df["scenario_id"].dropna()):
+            return df[df["scenario_id"] == scenario_id].copy()
+        # Prefer strict parity, then hierarchical oldwater, then screened, then parity_reported_corrected
+        for preferred in ("tracerlpm_strict_parity", "tracerlpm_parity_hier_oldwater", "screened_dgm_gases", "parity_reported_corrected"):
+            if "scenario_id" in df.columns and preferred in set(df["scenario_id"].dropna()):
+                return df[df["scenario_id"] == preferred].copy()
+        return df
+    return pd.DataFrame()
 
 
 def plot_fig1_atmospheric_histories() -> None:
@@ -118,19 +128,49 @@ def plot_fig2_design_matrix_performance() -> None:
     _save(fig, "Manuscript_Fig2_Design_Matrix_Performance.png")
 
 
+def _mode_label_from_df(df: pd.DataFrame) -> str:
+    """Return a human-readable mode label from the dataframe's scenario or strategy columns."""
+    if "scenario_id" in df.columns and not df.empty:
+        scenarios = set(df["scenario_id"].dropna().unique())
+        if len(scenarios) == 1:
+            sid = next(iter(scenarios))
+            mapping = {
+                "tracerlpm_strict_parity": "strict TracerLPM parity",
+                "tracerlpm_parity_hier_oldwater": "strict parity + hierarchical old-water priors",
+                "tracerlpm_parity_agefractions": "strict parity + age-fraction constraints",
+                "screened_dgm_gases": "screened young-gas correction",
+                "parity_reported_corrected": "reported-model parity",
+                "hydrosheaf_selection_corrected": "Hydrosheaf model selection",
+            }
+            return mapping.get(sid, sid)
+    if "model_strategy" in df.columns and not df.empty:
+        strategies = set(df["model_strategy"].dropna().unique())
+        if len(strategies) == 1:
+            strat = next(iter(strategies))
+            if strat == "reported":
+                return "reported-model parity"
+            if strat == "selection":
+                return "Hydrosheaf model selection"
+            return strat
+    return "benchmark"
+
+
 def plot_fig3_parity_plot() -> None:
     df = _primary_results().dropna(subset=["ref_age", "est_age_multi"])
-    df = df[(df["ref_age"] > 0) & (df["est_age_multi"] > 0)].copy()
+    df = df[df["ref_age"] > 0].copy()
     if df.empty:
         return
+    mode_label = _mode_label_from_df(df)
+    df["plot_ref_age"] = np.maximum(df["ref_age"], 0.01)
+    df["plot_est_age"] = np.maximum(df["est_age_multi"], 0.01)
     fig, ax = plt.subplots(figsize=(6.2, 5.8))
     classes = sorted(df["age_class"].dropna().unique())
     cmap = plt.get_cmap("tab10")
     for idx, age_class in enumerate(classes):
         subset = df[df["age_class"] == age_class]
         ax.scatter(
-            subset["ref_age"],
-            subset["est_age_multi"],
+            subset["plot_ref_age"],
+            subset["plot_est_age"],
             s=42,
             alpha=0.78,
             color=cmap(idx),
@@ -138,7 +178,7 @@ def plot_fig3_parity_plot() -> None:
             linewidth=0.5,
             label=str(age_class).replace("_", " "),
         )
-    lims = [0.1, max(df["ref_age"].max(), df["est_age_multi"].max()) * 1.2]
+    lims = [0.01, max(df["plot_ref_age"].max(), df["plot_est_age"].max(), 1e5) * 1.2]
     ax.plot(lims, lims, color="black", ls="--", lw=1.3)
     ax.fill_between(lims, np.array(lims) / 2.0, np.array(lims) * 2.0, color="#94a3b8", alpha=0.18)
     ax.set_xscale("log")
@@ -148,10 +188,14 @@ def plot_fig3_parity_plot() -> None:
     ax.set_xlabel("USGS reference age (yr)")
     ax.set_ylabel("Hydrosheaf estimated age (yr)")
     metric = df["log10_error"].dropna()
+    within_raw = df.get("within_factor_2", pd.Series(np.nan, index=df.index))
+    within_numeric = pd.to_numeric(within_raw, errors="coerce")
+    within_bool = within_raw.astype(str).str.lower().map({"true": 1.0, "false": 0.0})
+    within_factor_2 = within_numeric.where(within_numeric.notna(), within_bool).fillna(0.0).mean()
     ax.text(
         0.04,
         0.96,
-        f"N = {len(df)}\nMedian |log10 error| = {metric.median():.3f}\nWithin factor 2 = {df['within_factor_2'].mean():.2f}",
+        f"N = {len(df)} ({len(metric)} finite log errors)\nMedian |log10 error| = {metric.median():.3f}\nWithin factor 2 = {within_factor_2:.2f}\nMode: {mode_label}",
         transform=ax.transAxes,
         va="top",
         ha="left",
@@ -185,12 +229,13 @@ def plot_fig5_age_class_diagnostics() -> None:
     df = _primary_results().dropna(subset=["log10_error", "age_class"])
     if df.empty:
         return
+    mode_label = _mode_label_from_df(df)
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.3))
     age_classes = sorted(df["age_class"].unique())
     data = [df.loc[df["age_class"] == age_class, "log10_error"].dropna() for age_class in age_classes]
     axes[0].boxplot(data, tick_labels=age_classes, showfliers=False)
     axes[0].set_ylabel("Absolute log10 error")
-    axes[0].set_title("a  Error by age class", loc="left", fontweight="bold")
+    axes[0].set_title(f"a  Error by age class ({mode_label})", loc="left", fontweight="bold")
     axes[0].tick_params(axis="x", rotation=35)
 
     diag = df.dropna(subset=["young_gas_proxy_coherence", "log10_error"])
@@ -206,7 +251,7 @@ def plot_fig5_age_class_diagnostics() -> None:
     )
     axes[1].set_xlabel("Young-tracer proxy coherence (log10-age SD)")
     axes[1].set_ylabel("Absolute log10 error")
-    axes[1].set_title("b  Discordance diagnostic", loc="left", fontweight="bold")
+    axes[1].set_title(f"b  Discordance diagnostic ({mode_label})", loc="left", fontweight="bold")
     axes[1].grid(True, ls=":", alpha=0.4)
     _save(fig, "Manuscript_Fig5_Age_Class_Diagnostics.png")
 

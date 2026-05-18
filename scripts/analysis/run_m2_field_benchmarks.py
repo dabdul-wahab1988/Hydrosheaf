@@ -18,6 +18,34 @@ from hydrosheaf.api import fit_network_pipeline
 from hydrosheaf.data.units import mgL_to_mmolL
 from hydrosheaf.graph.types import Edge
 
+
+def configure_local_mixing_endmember(config, samples, label):
+    """Use the lowest ionic-strength sample as a transparent local dilution endmember."""
+    candidates = []
+    for sample in samples:
+        vector = []
+        valid = True
+        for ion in config.ion_order:
+            value = sample.get(ion)
+            if value is None or not np.isfinite(float(value)):
+                valid = False
+                break
+            vector.append(float(value))
+        if valid:
+            ionic_strength_proxy = sum(max(value, 0.0) for value in vector)
+            candidates.append((ionic_strength_proxy, str(sample["site_id"]), vector, sample))
+    if not candidates:
+        return
+
+    _, site_id, vector, sample = min(candidates, key=lambda item: item[0])
+    endmember_name = f"{label}_local_dilute_{site_id}"
+    config.mixing_endmembers = {endmember_name: vector}
+    if "18O" in sample and "2H" in sample:
+        config.mixing_endmembers_isotopes = {
+            endmember_name: (float(sample["18O"]), float(sample["2H"]))
+        }
+
+
 def process_manu():
     print("Processing Manu (LowerAnayari)...")
     df = pd.read_csv(ROOT / "data" / "LowerAnayari" / "manu.csv")
@@ -54,6 +82,7 @@ def process_manu():
         honest_modeling=True,
         geologic_bias="crystalline"
     )
+    configure_local_mixing_endmember(config, samples, "manu")
 
     # Use a more realistic topology: Connect to 2 nearest spatial neighbors
     from scipy.spatial import cKDTree
@@ -105,6 +134,7 @@ def process_talensi():
         honest_modeling=True,
         geologic_bias="crystalline"
     )
+    configure_local_mixing_endmember(config, samples, "talensi")
 
     # Use a more realistic topology: Connect to 2 nearest spatial neighbors
     from scipy.spatial import cKDTree
@@ -133,7 +163,9 @@ def main():
             "chemistry_r2": r.chemistry_r2,
             "objective_score": r.objective_score,
             "transport_model": r.transport_model,
-            "gamma": r.gamma
+            "gamma": r.gamma,
+            "f": r.f,
+            "endmember_id": r.endmember_id,
         }
         # Flatten extents
         if r.z_labels and r.z_extents:

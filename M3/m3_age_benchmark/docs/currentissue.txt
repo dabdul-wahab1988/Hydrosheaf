@@ -1,0 +1,16 @@
+Created the Markdown plan here:
+
+[M3 remaining problem and experimental design plan](C:/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M3/m3_age_benchmark/docs/m3_remaining_problem_and_experimental_design_plan.md)
+
+Main characterisation: the remaining problem is not simply “Hydrosheaf model failure.” It is now a benchmark-evidence problem: the old-groundwater path is improved, but the full post-fix USGS benchmark has not yet been regenerated and frozen. The existing main result CSV is stale and still reflects the old all-NaN multi-tracer failure state.
+
+Critical flaws identified in the plan:
+- full post-fix USGS benchmark still needs regeneration;
+- several manuscript-ready tables/figures are mock, synthetic, or hard-coded;
+- graph regularization evidence is still mostly synthetic, not yet a real USGS graph benchmark;
+- uncertainty calibration is missing;
+- old-groundwater physics is improved but still needs rate uncertainty and stronger 14C/4He diagnostics;
+- dissolved-gas corrections are now used from USGS outputs but not yet independently audited;
+- Ar-39/Kr-85 claims must be separated unless real supporting data are added.
+
+And yes: experimental design should be used. The plan proposes a factorial benchmark with controlled factors for gas correction, 14C correction, 4He mode, tracer set, LPM strategy, graph prior, age class, and aquifer grouping. That is the right way to prove Hydrosheaf capabilities without overclaiming.

@@ -16,6 +16,7 @@ RESULT_DIR = BENCHMARK_ROOT / "results"
 BENCHMARK_TABLE_DIR = BENCHMARK_ROOT / "tables"
 ROOT_TABLE_DIR = PROJECT_ROOT / "tables"
 EXTERNAL_DIR = BENCHMARK_ROOT / "external"
+M3_RESULT_DIR = PROJECT_ROOT / "M3" / "m3_age_benchmark" / "results"
 M6_RESULT_DIR = PROJECT_ROOT / "M6" / "m6_robustness_benchmark" / "results"
 
 
@@ -23,6 +24,32 @@ def _read_csv(path: Path) -> pd.DataFrame:
     if not path.exists():
         return pd.DataFrame()
     return pd.read_csv(path)
+
+
+def _public_age_results() -> tuple[pd.DataFrame, str]:
+    for path, label in (
+        (M3_RESULT_DIR / "m3_phase4_screened_full_results.csv", "M3 full screened public USGS benchmark"),
+        (M3_RESULT_DIR / "m3_usgs_benchmark_results.csv", "M3 primary public USGS benchmark"),
+        (M3_RESULT_DIR / "m3_design_matrix_results.csv", "M3 design-matrix public USGS benchmark"),
+    ):
+        df = _read_csv(path)
+        if df.empty or not {"ref_age", "est_age_multi"}.issubset(df.columns):
+            continue
+        if "scenario_id" in df.columns and "screened_dgm_gases" in set(df["scenario_id"].dropna()):
+            df = df[df["scenario_id"] == "screened_dgm_gases"].copy()
+        out = pd.DataFrame(
+            {
+                "reference_mean_age_years": pd.to_numeric(df["ref_age"], errors="coerce"),
+                "hydrosheaf_age_years": pd.to_numeric(df["est_age_multi"], errors="coerce"),
+                "supported_tracers": df.get("tracer_mode", pd.Series("", index=df.index)).astype(str),
+                "log10_error": pd.to_numeric(df.get("log10_error", pd.Series(np.nan, index=df.index)), errors="coerce"),
+            }
+        ).dropna(subset=["reference_mean_age_years", "hydrosheaf_age_years"])
+        if not out.empty:
+            return out, label
+
+    legacy = _read_csv(EXTERNAL_DIR / "usgs_age" / "results" / "usgs_age_validation.csv")
+    return legacy, "M2 legacy E1 public USGS benchmark" if not legacy.empty else ""
 
 
 def _fmt(value: Any, digits: int = 2) -> str:
@@ -323,7 +350,7 @@ def write_validation_tables() -> None:
     forward = _read_csv(RESULT_DIR / "phreeqc_forward_validation.csv")
     age = _read_csv(RESULT_DIR / "age_inference_validation.csv")
     consistency = _read_csv(RESULT_DIR / "age_network_consistency.csv")
-    usgs = _read_csv(EXTERNAL_DIR / "usgs_age" / "results" / "usgs_age_validation.csv")
+    usgs, usgs_source = _public_age_results()
     modpath = _read_csv(EXTERNAL_DIR / "modpath" / "results" / "modpath_topology_summary.csv")
     field = _read_csv(RESULT_DIR / "field_discovery_results.csv")
     psi = _read_csv(RESULT_DIR / "top_edges_psi.csv")
@@ -339,7 +366,7 @@ def write_validation_tables() -> None:
     rows = [
         {"Validation tier": "Synthetic benchmark", "Dataset/source": "simulated benchmark suite", "What is tested": "transport and reaction recovery", "Reference/target": "known truth", "Main metric": f"median R2={_fmt(synthetic_r2)}", "Related figure": "Fig. 3"},
         {"Validation tier": "MODPATH topology", "Dataset/source": "particle-tracking reference", "What is tested": "directed-edge recovery", "Reference/target": "MODPATH edges", "Main metric": f"precision={_fmt(mod.get('edge_precision'))}, recall={_fmt(mod.get('edge_recall'))}", "Related figure": "Fig. 2"},
-        {"Validation tier": "Residence-time validation", "Dataset/source": "synthetic/public tracer age", "What is tested": "age agreement", "Reference/target": "known MRT/public age", "Main metric": f"R2={_fmt(age_r2)}, median AE={_fmt(age_mae)} y", "Related figure": "Fig. 5, Fig. S1"},
+        {"Validation tier": "Residence-time benchmarking", "Dataset/source": f"synthetic + {usgs_source or 'public tracer age pending'}", "What is tested": "age agreement", "Reference/target": "known MRT/public age", "Main metric": f"synthetic R2={_fmt(age_r2)}, median AE={_fmt(age_mae)} y", "Related figure": "Fig. 5, Fig. S1"},
         {"Validation tier": "PHREEQC validation", "Dataset/source": "geochemical forward check", "What is tested": "reaction feasibility", "Reference/target": "SI/forward model", "Main metric": f"RMSE={_fmt(phreeqc_rmse)}, NSE={_fmt(phreeqc_nse)}", "Related figure": "Fig. S2"},
         {"Validation tier": "Ghana field demonstration", "Dataset/source": "Lower Anayari/Talensi", "What is tested": "field process discovery", "Reference/target": "hydrochemical consistency", "Main metric": f"median R2={_fmt(field_r2)}, PSI={_fmt(field_psi)}", "Related figure": "Fig. 4, Fig. 7"},
     ]
@@ -363,15 +390,19 @@ def write_validation_tables() -> None:
             )
     if not usgs.empty:
         clean = usgs.dropna(subset=["reference_mean_age_years", "hydrosheaf_age_years"])
+        log_error = np.abs(
+            np.log10(np.maximum(clean["hydrosheaf_age_years"], 0.1))
+            - np.log10(np.maximum(clean["reference_mean_age_years"], 0.1))
+        )
         rt_rows.append(
             {
-                "Validation group": "Public (USGS)",
+                "Validation group": "Public USGS screening",
                 "Reference age range (y)": f"{_fmt(clean['reference_mean_age_years'].min(), 1)} - {_fmt(clean['reference_mean_age_years'].max(), 1)}",
                 "Hydrosheaf inferred range (y)": f"{_fmt(clean['hydrosheaf_age_years'].min(), 1)} - {_fmt(clean['hydrosheaf_age_years'].max(), 1)}",
                 "R2": _fmt(_r2(np.log10(np.maximum(clean["reference_mean_age_years"], 0.1)), np.log10(np.maximum(clean["hydrosheaf_age_years"], 0.1))), 2),
-                "MAE (y)": _fmt(np.abs(clean["hydrosheaf_age_years"] - clean["reference_mean_age_years"]).median(), 2),
-                "Age-order consistency": "external parity",
-                "Interpretation": "public tracer-age check",
+                "MAE (y)": f"median |log10| {_fmt(log_error.median(), 2)}",
+                "Age-order consistency": usgs_source,
+                "Interpretation": "screening-level public tracer-age check",
             }
         )
     _write(ROOT_TABLE_DIR / "table4_residence_time.md", rt_rows, ["Validation group", "Reference age range (y)", "Hydrosheaf inferred range (y)", "R2", "MAE (y)", "Age-order consistency", "Interpretation"])

@@ -20,18 +20,31 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from hydrosheaf.log import get_logger
-from hydrosheaf.nuclear.joint_lpm import SUPPORTED_LPM_MODELS, fit_lpm_model, fit_lpm_models
+from hydrosheaf.nuclear.joint_lpm import (
+    SUPPORTED_LPM_MODELS,
+    age_fraction_predictions,
+    compute_gated_bma_age,
+    fit_lpm_model,
+    fit_lpm_models,
+)
 from hydrosheaf.nuclear.dissolved_gas import fit_and_correct_dissolved_gases
 from hydrosheaf.nuclear.multi_tracer import (
-    build_atmospheric_tracer_input,
     calculate_tracer_reliability_weights,
     infer_multi_tracer_age,
 )
+from hydrosheaf.nuclear.tracer_inputs import (
+    SiteInputContext,
+    build_site_tracer_histories,
+    site_input_history_metadata,
+)
 from hydrosheaf.nuclear.old_groundwater import (
+    OldGroundwaterPrior,
     aggregate_c14_correction_candidates,
     apply_he4_uncertainty_mode,
+    build_old_groundwater_priors,
     diagnose_old_groundwater_constraints,
     prepare_c14_observation,
+    _lookup_oldwater_prior,
 )
 
 logger = get_logger("m3.usgs_benchmark")
@@ -42,11 +55,26 @@ M2_USGS_DATA = REPO_ROOT / "M2" / "m2_benchmark" / "external" / "usgs_age" / "in
 RESULT_DIR = BENCHMARK_DIR / "results"
 QA_DIR = BENCHMARK_DIR / "docs"
 
-M3_DEFAULT_AGE_STEPS = 35
+M3_DEFAULT_AGE_STEPS = 90
 
-@lru_cache(maxsize=None)
-def get_localized_input(site_id: str, lat: float | None = None, lon: float | None = None):
-    return build_atmospheric_tracer_input("tritium")
+def _make_site_context(row: Mapping[str, Any]) -> SiteInputContext:
+    return SiteInputContext(
+        site_id=str(row.get("site_id", "")),
+        sample_year=float(row.get("sample_year", 2020.0)),
+        latitude=_finite_float(row.get("lat")),
+        longitude=_finite_float(row.get("lon")),
+        study_unit=str(row.get("StudyUnit", "")),
+        aquifer_group=str(row.get("AqGroup", "")),
+        recharge_temperature_c=_finite_float(row.get("recharge_temperature_c")),
+        elevation_m=_finite_float(row.get("elevation_m")),
+    )
+
+
+def _get_site_histories(row: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str, str]]:
+    ctx = _make_site_context(row)
+    histories = build_site_tracer_histories(ctx)
+    meta = site_input_history_metadata(ctx)
+    return histories, meta
 
 def _finite_float(val: Any) -> float | None:
     try:
@@ -113,9 +141,109 @@ def _nonidentifiability_reason(obs, lpm_tracers_mod):
             return "3H/3He requires finite positive tritium"
     return None
 
+
+def _gas_likelihood_counts(obs: Mapping[str, Any]) -> dict[str, int]:
+    """Count how many gas observations are marked with each likelihood type."""
+    from hydrosheaf.nuclear.joint_lpm import build_lpm_tracer_observations
+    fit_obs = build_lpm_tracer_observations(obs)
+    counts = {"gaussian": 0, "upper_censored": 0, "lower_censored": 0, "contaminated_mixture": 0}
+    for o in fit_obs:
+        if o.tracer in {"SF6", "CFC11", "CFC12", "CFC113"}:
+            counts[o.likelihood] = counts.get(o.likelihood, 0) + 1
+    return counts
+
 def _supported_reported_model(value: Any) -> str:
     model = str(value or "").strip().upper()
     return model if model in SUPPORTED_LPM_MODELS else "GA"
+
+def _reported_tracer_tokens(value: Any) -> set[str]:
+    """Map USGS reported tracer text into Hydrosheaf keys."""
+    text = str(value or "").strip()
+    tokens = set()
+    if not text:
+        return tokens
+    
+    mapping = {
+        "3H": {"tritium_TU"},
+        "3HE(TRIT)": {"tritium_TU", "he3_trit_TU"},
+        "3H/3HE": {"tritium_TU", "he3_trit_TU"},
+        "SF6": {"sf6_pptv"},
+        "CFC-11": {"cfc11_pptv"},
+        "CFC11": {"cfc11_pptv"},
+        "CFC-12": {"cfc12_pptv"},
+        "CFC12": {"cfc12_pptv"},
+        "CFC-113": {"cfc113_pptv"},
+        "CFC113": {"cfc113_pptv"},
+        "14C": {"c14_pmc"},
+        "4HE": {"he4_ccpg"},
+        "39AR": {"ar39_pmc"},
+        "85KR": {"kr85_pptv"},
+    }
+    
+    # Split by common delimiters
+    parts = [p.strip().upper() for p in text.replace(",", "|").replace(";", "|").split("|")]
+    for p in parts:
+        if p in mapping:
+            tokens.update(mapping[p])
+    return tokens
+
+def _apply_reported_tracer_mask(obs: dict[str, Any], lpm_tracers_mod: Any) -> dict[str, Any]:
+    """Set non-reported tracer values and sigmas to None."""
+    reported = _reported_tracer_tokens(lpm_tracers_mod)
+    if not reported:
+        return obs
+        
+    all_tracers = {
+        "tritium_TU", "he3_trit_TU", "sf6_pptv", 
+        "cfc11_pptv", "cfc12_pptv", "cfc113_pptv", 
+        "c14_pmc", "he4_ccpg", "ar39_pmc", "kr85_pptv"
+    }
+    
+    result = obs.copy()
+    for tracer in all_tracers:
+        if tracer not in reported:
+            result[tracer] = None
+            sigma_key = tracer.replace("_TU", "_sigma_TU").replace("_pptv", "_sigma_pptv").replace("_pmc", "_sigma_pmc").replace("_ccpg", "_sigma_ccpg")
+            if sigma_key in result:
+                result[sigma_key] = None
+    return result
+
+def _reported_uztt_years(row: Mapping[str, Any]) -> float:
+    """Return reported UZ travel time, defaulting to 0.0."""
+    val = _finite_float(row.get("Rpt_UZtt_yrs"))
+    return max(0.0, val) if val is not None else 0.0
+
+def _apply_age_target_mode(est_saturated_age: float, row: Mapping[str, Any], factors: Mapping[str, Any]) -> tuple[float, dict[str, Any]]:
+    """Apply UZ travel-time corrections based on age_target_mode and uztt_mode."""
+    uztt = _reported_uztt_years(row)
+    uztt_mode = factors.get("uztt_mode", "ignore")
+    age_target_mode = factors.get("age_target_mode", "saturated_only")
+    
+    est_total = est_saturated_age
+    if uztt_mode == "add_reported":
+        est_total = est_saturated_age + uztt
+        
+    diag = {
+        "est_age_saturated_years": est_saturated_age,
+        "est_age_total_years": est_total,
+        "reported_uztt_years": uztt,
+        "age_target_mode": age_target_mode,
+        "uztt_mode": uztt_mode,
+    }
+    
+    # If comparing to total age, the target age is Rpt_TotAge_yrs
+    # If comparing to saturated age, the reference is Rpt_TotAge_yrs - Rpt_UZtt_yrs
+    ref_total = _finite_float(row.get("Rpt_TotAge_yrs"))
+    if age_target_mode == "reported_total":
+        diag["est_age_multi"] = est_total
+        if ref_total is not None:
+            diag["reference_age_years"] = ref_total
+    else:
+        diag["est_age_multi"] = est_saturated_age
+        if ref_total is not None:
+            diag["reference_age_years"] = max(0.1, ref_total - uztt)
+
+    return diag["est_age_multi"], diag
 
 def _safe_join(values: Iterable[Any]) -> str:
     return "|".join(str(value) for value in values if str(value).strip())
@@ -365,6 +493,7 @@ def _fit_prepared_benchmark_row(
     age_steps=M3_DEFAULT_AGE_STEPS,
     factors=None,
     model_strategy: str | None = None,
+    oldwater_priors: Mapping[str, OldGroundwaterPrior] | None = None,
 ):
     factors = dict(factors or {})
     sample_year = float(row["sample_year"])
@@ -394,28 +523,68 @@ def _fit_prepared_benchmark_row(
     }
 
     obs, factors = _apply_design_factors(obs, row, factors)
+
+    # Phase 5: hierarchical old-water priors
+    c14_mode = factors.get("c14_correction_mode", "selected")
+    he4_mode = factors.get("he4_mode", "calibrated")
+    prior = None
+    if (c14_mode == "hierarchical" or he4_mode == "hierarchical") and oldwater_priors is not None:
+        prior, prior_scope = _lookup_oldwater_prior(
+            oldwater_priors,
+            str(row.get("StudyUnit", "")),
+            str(row.get("AqGroup", "")),
+        )
+
     obs, c14_initial_pmc, c14_diag = prepare_c14_observation(
         obs,
-        mode=factors.get("c14_correction_mode", "selected"),
+        mode=c14_mode,
         candidate_corrected_pmcs=row.get("c14_candidate_corrected_pmc_json"),
         candidate_initial_pmcs=row.get("c14_candidate_a0_pmc_json"),
         candidate_models=row.get("c14_candidate_models_json"),
+        prior=prior,
     )
     obs, he4_diag = apply_he4_uncertainty_mode(
         obs,
-        mode=factors.get("he4_mode", "calibrated"),
+        mode=he4_mode,
+        prior=prior,
     )
-    obs = _apply_tracer_set(obs, factors.get("tracer_set", "reported"))
+    
+    # Phase 1: TracerLPM-parity tracer set masking
+    if factors.get("tracer_set") == "reported":
+        obs = _apply_reported_tracer_mask(obs, row.get("LPM_TracersMod"))
+    else:
+        obs = _apply_tracer_set(obs, factors.get("tracer_set", "reported"))
 
     weighted_obs, diag = calculate_tracer_reliability_weights(obs, sample_year, ref_age)
     proxy_coherence, proxy_names, proxy_values = _proxy_age_coherence(weighted_obs, sample_year)
     diag["young_gas_proxy_coherence"] = proxy_coherence
 
     strategy = model_strategy or factors.get("lpm_strategy", "reported")
-    reported_model = str(row.get("LPM_Name", "") or "").strip()
-    model = _supported_reported_model(reported_model)
+    reported_model_str = str(row.get("LPM_Name", "") or "").strip()
+    model = _supported_reported_model(reported_model_str)
+    
+    if strategy == "reported":
+        diag["reported_model_supported"] = (model == reported_model_str.upper())
+        if not diag["reported_model_supported"]:
+            diag["reported_model_fallback_reason"] = f"Unsupported model: {reported_model_str}"
+            
     use_helium4 = factors.get("he4_mode", "calibrated") != "disabled"
     fit_note = ""
+    fits = []
+
+    # Phase 3: Site-specific input histories
+    histories, input_meta = _get_site_histories(row)
+
+    # Phase 6: age-fraction constraints
+    age_fraction_obs = None
+    if factors.get("use_age_fractions"):
+        age_fraction_obs = {
+            "anthropocene": _finite_float(row.get("FracAnthropocene")),
+            "holocene": _finite_float(row.get("FracHolocene")),
+            "pleistocene": _finite_float(row.get("FracPleistocene")),
+            "sigma_fraction": 0.10,
+        }
+
     try:
         if strategy == "selection":
             fits = fit_lpm_models(
@@ -425,8 +594,20 @@ def _fit_prepared_benchmark_row(
                 age_steps=age_steps,
                 use_helium4=use_helium4,
                 initial_c14_pmc=c14_initial_pmc,
+                refine=True,
+                histories=histories,
+                age_fraction_obs=age_fraction_obs,
             )
             fit_multi = fits[0]
+            # Phase 7: gated AICc/LOO BMA for selection scenarios
+            bma = compute_gated_bma_age(fits)
+            est_saturated_age = bma["age_years"]
+            diag["bma_used"] = bma.get("bma_used")
+            diag["bma_skip_reason"] = bma.get("bma_skip_reason", "")
+            diag["bma_n_models"] = bma.get("bma_n_models")
+            diag["bma_log_age_span"] = bma.get("bma_log_age_span")
+            diag["top_model_age_years"] = bma.get("top_model_age_years")
+            diag["bma_age_years"] = bma.get("age_years")
         else:
             fit_multi = fit_lpm_model(
                 weighted_obs,
@@ -435,7 +616,12 @@ def _fit_prepared_benchmark_row(
                 age_steps=age_steps,
                 use_helium4=use_helium4,
                 initial_c14_pmc=c14_initial_pmc,
+                refine=True,
+                histories=histories,
+                age_fraction_obs=age_fraction_obs,
             )
+            est_saturated_age = _fit_age(fit_multi)
+            fits = [fit_multi]
     except Exception as exc:
         fit_note = str(exc)
         fit_multi = fit_lpm_model(
@@ -446,21 +632,60 @@ def _fit_prepared_benchmark_row(
             use_helium4=False,
             initial_c14_pmc=c14_initial_pmc,
         )
+        est_saturated_age = np.nan
 
     fit_tau, fit_secondary_name, fit_secondary_value = _extract_fit_parameters(fit_multi)
-    fit_model_aiccs = _extract_model_aiccs(fits if strategy == "selection" else [fit_multi])
+    fit_model_aiccs = _extract_model_aiccs(fits)
 
-    est_age = _fit_age(fit_multi)
+    # Phase 6: compute predicted age fractions from best fit
+    pred_fracs = {"anthropocene": np.nan, "holocene": np.nan, "pleistocene": np.nan}
+    age_fraction_loss = np.nan
+    if getattr(fit_multi, "converged", False):
+        try:
+            pred_fracs = age_fraction_predictions(
+                getattr(fit_multi, "model", model),
+                fit_multi.parameters,
+            )
+            if age_fraction_obs is not None:
+                loss = 0.0
+                sigma = 0.10
+                for key in ("anthropocene", "holocene", "pleistocene"):
+                    obs_val = age_fraction_obs.get(key)
+                    if obs_val is not None and math.isfinite(obs_val):
+                        loss += ((obs_val - pred_fracs.get(key, 0.0)) / sigma) ** 2
+                age_fraction_loss = float(loss)
+        except Exception:
+            pass
+
+    # Phase 2: UZ travel-time and age-target handling
+    est_age, age_diag = _apply_age_target_mode(est_saturated_age, row, factors)
+    diag.update(age_diag)
+    ref_age_eff = diag.get("reference_age_years", ref_age)
+
+    # est_age is already computed above via BMA or single model plus UZ corrections
     est_age_3h = _estimate_3h_age(weighted_obs, sample_year)
     old_diag = diagnose_old_groundwater_constraints(weighted_obs, c14_initial_pmc=c14_initial_pmc)
-    error_multi = abs(est_age - ref_age) if math.isfinite(est_age) and math.isfinite(ref_age) else np.nan
+    error_multi = abs(est_age - ref_age_eff) if math.isfinite(est_age) and math.isfinite(ref_age_eff) else np.nan
     he4_value = _finite_float(weighted_obs.get("he4_ccpg"))
     he4_rate = _finite_float(weighted_obs.get("he4_accumulation_rate_ccpg_per_year"))
 
+    # Phase 4: gas likelihood diagnostics
+    gas_counts = _gas_likelihood_counts(weighted_obs)
+
     res = {
         "site_id": row["site_id"],
-        "ref_age": ref_age,
+        "ref_age": ref_age_eff,
         "est_age_multi": est_age,
+        "est_age_saturated_years": diag.get("est_age_saturated_years"),
+        "est_age_total_years": diag.get("est_age_total_years"),
+        "reported_uztt_years": diag.get("reported_uztt_years"),
+        "age_target_mode": diag.get("age_target_mode"),
+        "uztt_mode": diag.get("uztt_mode"),
+        "reported_model_supported": diag.get("reported_model_supported"),
+        "reported_model_fallback_reason": diag.get("reported_model_fallback_reason"),
+        "input_history_mode": input_meta.get("input_history_mode"),
+        "input_history_region": input_meta.get("input_history_region"),
+        "input_history_source": input_meta.get("input_history_source"),
         "est_age_3h": est_age_3h,
         "fit_aic": getattr(fit_multi, "aic", np.nan),
         "fit_objective": getattr(fit_multi, "objective", np.nan),
@@ -469,15 +694,16 @@ def _fit_prepared_benchmark_row(
         "fit_secondary_param_value": fit_secondary_value,
         "fit_model_aiccs_json": fit_model_aiccs,
         "young_gas_proxy_coherence": proxy_coherence,
-        "age_class": _age_class(ref_age),
+        "age_class": _age_class(ref_age_eff),
         "factor_gas_correction_mode": factors.get("factor_gas_correction_mode", "corrected"),
         "modern_fraction": _modern_fraction_proxy(est_age),
         "modern_age": est_age_3h,
         "old_age": old_diag.get("old_groundwater_apparent_c14_age", np.nan),
-        "reported_model": reported_model,
+        "reported_model": reported_model_str,
         "multi_model": getattr(fit_multi, "model", model),
         "model_strategy": strategy,
         "tracer_mode": row.get("LPM_TracersMod", ""),
+        "tracer_set_used": factors.get("tracer_set", "reported"),
         "n_tracers": getattr(fit_multi, "n_tracers", 0),
         "c14_initial_pmc": c14_initial_pmc,
         "c14_correction_mode": factors.get("c14_correction_mode", "selected"),
@@ -497,6 +723,22 @@ def _fit_prepared_benchmark_row(
         "dissolved_gas_correction": row.get("dissolved_gas_correction", ""),
         "dgm_name": row.get("dgm_name", ""),
         "young_gas_masking_mode": factors.get("gas_masking_mode", "soft_reliability"),
+        "gas_likelihood_mode": "mixed" if sum(gas_counts.values()) > 0 else "gaussian",
+        "censored_gas_count": gas_counts.get("upper_censored", 0) + gas_counts.get("lower_censored", 0),
+        "contaminated_gas_count": gas_counts.get("contaminated_mixture", 0),
+        "pred_frac_anthropocene": pred_fracs.get("anthropocene", np.nan),
+        "pred_frac_holocene": pred_fracs.get("holocene", np.nan),
+        "pred_frac_pleistocene": pred_fracs.get("pleistocene", np.nan),
+        "age_fraction_loss": age_fraction_loss,
+        "bma_used": np.nan,
+        "bma_skip_reason": "",
+        "bma_n_models": np.nan,
+        "bma_log_age_span": np.nan,
+        "top_model_age_years": np.nan,
+        "bma_age_years": np.nan,
+        "refinement_attempted": getattr(fit_multi, "refinement_attempted", False),
+        "refinement_success": getattr(fit_multi, "refinement_success", False),
+        "refinement_message": getattr(fit_multi, "refinement_message", ""),
         "young_gas_proxy_names": proxy_names,
         "young_gas_proxy_count": len([name for name in proxy_names.split("|") if name]),
         "young_gas_proxy_values": proxy_values,
@@ -512,9 +754,9 @@ def _fit_prepared_benchmark_row(
         "young_gas_delta_objective_raw_minus_corrected": np.nan,
         "fit_converged": bool(getattr(fit_multi, "converged", False)),
         "error_multi": error_multi,
-        "log10_error": _log10_abs_error(est_age, ref_age),
-        "within_factor_2": _ratio_within(est_age, ref_age, 2.0),
-        "within_factor_10": _ratio_within(est_age, ref_age, 10.0),
+        "log10_error": _log10_abs_error(est_age, ref_age_eff),
+        "within_factor_2": _ratio_within(est_age, ref_age_eff, 2.0),
+        "within_factor_10": _ratio_within(est_age, ref_age_eff, 10.0),
         "failure_reason": fit_note or getattr(fit_multi, "note", ""),
     }
     res.update(diag)
@@ -528,6 +770,7 @@ def fit_benchmark_row(
     age_steps=M3_DEFAULT_AGE_STEPS,
     factors=None,
     model_strategy: str | None = None,
+    oldwater_priors: Mapping[str, OldGroundwaterPrior] | None = None,
     **kwargs,
 ):
     factors = dict(factors or {})
@@ -540,6 +783,7 @@ def fit_benchmark_row(
                 age_steps=age_steps,
                 factors=corrected_factors,
                 model_strategy=strategy,
+                oldwater_priors=oldwater_priors,
             )
             res["young_gas_screen_reason"] = "no_screenable_difference"
             res["young_gas_selected_mode"] = "usgs_dgm"
@@ -547,8 +791,8 @@ def fit_benchmark_row(
 
         corrected_factors = {**factors, "gas_correction_mode": "usgs_dgm"}
         raw_factors = {**factors, "gas_correction_mode": "raw"}
-        res_corr = _fit_prepared_benchmark_row(row, age_steps=age_steps, factors=corrected_factors, model_strategy=strategy)
-        res_raw = _fit_prepared_benchmark_row(row, age_steps=age_steps, factors=raw_factors, model_strategy=strategy)
+        res_corr = _fit_prepared_benchmark_row(row, age_steps=age_steps, factors=corrected_factors, model_strategy=strategy, oldwater_priors=oldwater_priors)
+        res_raw = _fit_prepared_benchmark_row(row, age_steps=age_steps, factors=raw_factors, model_strategy=strategy, oldwater_priors=oldwater_priors)
         selected, reason = _choose_screened_gas_result(res_corr, res_raw)
         res = dict(res_raw if selected == "raw" else res_corr)
         res.update(
@@ -566,7 +810,7 @@ def fit_benchmark_row(
             }
         )
         return res
-    return _fit_prepared_benchmark_row(row, age_steps=age_steps, factors=factors, model_strategy=strategy)
+    return _fit_prepared_benchmark_row(row, age_steps=age_steps, factors=factors, model_strategy=strategy, oldwater_priors=oldwater_priors)
 
 if __name__ == "__main__":
     df = load_usgs_national_dataset()
