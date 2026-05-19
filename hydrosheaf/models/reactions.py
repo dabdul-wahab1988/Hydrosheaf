@@ -11,8 +11,8 @@ from ..log import get_logger
 
 logger = get_logger("models.reactions")
 
-# Mapping of reactions to their mandatory indicator ions (M2-M5 PhD Remediation)
-# If honest_modeling is enabled, these reactions are pruned if indicators are missing.
+# Reactions that require diagnostic ions to be present in the input chemistry.
+# When enabled, strict modeling avoids selecting reactions with missing indicators.
 INDICATOR_IONS = {
     "pyrite_oxidation_aerobic": ["Fe", "SO4"],
     "pyrite_oxidation_denit": ["Fe", "SO4"],
@@ -40,7 +40,6 @@ def build_reaction_dictionary(
 
     reactions: List[Tuple[str, Mapping[str, float], bool, float]] = []
 
-    # Geologic Bias Scaling (M2-M5 PhD Remediation & Winner-Takes-All Priority)
     def get_penalty_scale(name: str) -> float:
         n = name.lower().replace(" ", "_")
         if config.geologic_bias == "crystalline":
@@ -48,34 +47,30 @@ def build_reaction_dictionary(
                 return 0.5
             if any(e in n for e in ["gypsum", "anhydrite", "halite", "sylvite"]):
                 return 10.0
-            # Winner-Takes-All: Massive penalty for carbonates in basement rock unless strongly supported
             if any(c in n for c in ["calcite", "dolomite", "magnesite", "aragonite"]):
-                return 50.0 
+                return 50.0
         elif config.geologic_bias == "sedimentary":
             if any(c in n for c in ["calcite", "dolomite", "magnesite", "aragonite"]):
                 return 0.5
-            # Winner-Takes-All: Massive penalty for primary silicates in mature sedimentary basins
             if any(s in n for s in ["albite", "anorthite", "feldspar", "biotite", "chlorite", "pyroxene"]):
                 return 50.0
         return 1.0
 
     # 1. Add User-Selected Minerals
     for name in config.active_minerals:
-        # Check Technical Remediation: Honest Modeling
         if config.honest_modeling:
             indicators = INDICATOR_IONS.get(name.lower().replace(" ", "_"))
             if indicators:
                 missing = [ion for ion in indicators if ion not in available]
                 if missing:
-                    # Specific Remediation: Pyrite Auto-Substitution (Fixes Flaw 1)
                     if name.lower() == "pyrite_oxidation_aerobic" and "Fe" in missing:
-                        logger.warning(f"Honest Modeling: Substituting 'pyrite_net' for '{name}' (Iron not measured).")
+                        logger.warning(f"Strict modeling: Substituting 'pyrite_net' for '{name}' because iron was not measured.")
                         try:
                             reactions.append(("pyrite_net", get_mineral_stoich("pyrite_net"), True, get_penalty_scale("pyrite_net")))
                             continue
                         except ValueError: pass
 
-                    logger.warning(f"Honest Modeling: Pruning mineral '{name}' because indicators {missing} are not measured.")
+                    logger.warning(f"Strict modeling: Pruning mineral '{name}' because indicators {missing} are not measured.")
                     continue
 
         # Check Thermodynamic Logic Gate

@@ -1,12 +1,9 @@
 """
 Plotting utilities for Network-Enhanced Nuclear Dating.
 
-This module generates publication-quality (PhD-level) visualizations for the
-Bayesian groundwater aging results. It focuses on:
-1. Identifying "Modern" vs "Fossil" waters.
-2. Visualizing the "Aging Gradient" along the flow network.
-3. Displaying posterior uncertainty (Credible Intervals).
-4. Diagnosing the "Bomb Peak" fit and input scaling.
+This module generates publication-quality visualizations for Bayesian
+groundwater-age results. It focuses on age classes, network age gradients,
+posterior uncertainty, and input-history diagnostics.
 """
 from __future__ import annotations
 

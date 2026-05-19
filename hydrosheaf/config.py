@@ -108,13 +108,13 @@ class Config:
     sensitivity_perturbation_scale: float = 0.1
     export_3d_network: bool = False
     
-    # Technical Remediation (M2-M5 PhD Upgrades)
-    # Moving from 'Speculative Mineralogy' to 'Honest Process Modeling'
+    # Strict reaction selection uses indicator ions and geologic context to
+    # reduce unsupported mineral assignments.
     honest_modeling: bool = True
-    measured_ions: List[str] = field(default_factory=list) # Ions actually in the lab report
+    measured_ions: List[str] = field(default_factory=list) # Ions available in the input chemistry
     geologic_bias: str = "crystalline" # "crystalline" (favor silicates) or "sedimentary" (favor carbonates)
-    
-    # Kinetic Feasibility Filter (Flaw 4 remediation)
+
+    # Optional kinetic feasibility screen.
     kinetic_filter_enabled: bool = False
     kinetic_surface_area_m2_L: float = 0.1 # Assumed reactive surface area
     # Mapping of mineral names to log10(k) mol/m2/s

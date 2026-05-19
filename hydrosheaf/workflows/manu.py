@@ -293,7 +293,7 @@ class ManuWorkflow:
         # 3. Source Identification
         virtual = [s for s in samples if s.get('type') == 'virtual']
         if virtual:
-            print(f"\n[3] AI-DISCOVERED SOURCES (Potential Pollution)")
+            print(f"\n[3] INFERRED SOURCE CANDIDATES (Potential Pollution)")
             for vn in virtual:
                 no3_mg = mmolL_to_mgL(vn.get('NO3', 0), 'NO3')
                 cl_mg = mmolL_to_mgL(vn.get('Cl', 0), 'Cl')

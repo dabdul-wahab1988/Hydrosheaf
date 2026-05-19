@@ -1,7 +1,4 @@
-"""
-M6 Structural Robustness and Bias Stress Testing.
-Addresses Flaws 1, 2, and 3 from the expert reviewer critique.
-"""
+"""M6 structural robustness and bias stress tests."""
 
 import sys
 import pandas as pd
@@ -22,8 +19,7 @@ RESULT_DIR = BENCHMARK_DIR / "results"
 
 def run_leave_one_out_test(residual, config, weights):
     """
-    Flaw 1: Structural Uncertainty (Leave-One-Out Mineral Test).
-    Systematically removes one mineral from the library and observes AICc response.
+    Estimate structural uncertainty with a leave-one-out mineral test.
     """
     print("\n--- Running Leave-One-Out (LOO) Structural Test ---")
     
@@ -45,10 +41,7 @@ def run_leave_one_out_test(residual, config, weights):
         m_loo, l_loo, _, p_loo = build_reaction_dictionary(config_loo)
         fit_loo = fit_reactions(residual, m_loo, weights, lambda_l1=0.01, penalty_scales=p_loo, lambda_l2=config.lambda_l2)
         
-        # Calculate AICc delta
         delta_aicc = fit_loo.aicc - base_aicc
-        
-        # Is this mineral "Essential"? (If AICc increases significantly)
         is_essential = delta_aicc > 2.0
         
         loo_results.append({
@@ -65,8 +58,7 @@ def run_leave_one_out_test(residual, config, weights):
 
 def run_regional_bias_test(config):
     """
-    Flaw 2: Systematic Bias vs Random Noise.
-    Applies a systematic shift to inputs and evaluates if the discovery flips.
+    Apply a systematic input shift and evaluate whether the selected process set changes.
     """
     print("\n--- Running Regional Bias Stress Test ---")
     ion_order = ["Ca", "Mg", "Na", "K", "HCO3", "Cl", "SO4", "NO3", "F", "Fe"]
@@ -97,8 +89,7 @@ def run_regional_bias_test(config):
 
 def run_process_grouping_stability(config):
     """
-    Flaw 3: L1-Jitter (Equifinality).
-    Evaluates the stability of 'Groups' (e.g., Total Silicates) instead of just species.
+    Evaluate process-family stability under mineral-level equifinality.
     """
     print("\n--- Running Process Grouping Stability Analysis ---")
     # We define groups: Silicates (albite, anorthite), Carbonates (calcite, dolomite)
@@ -135,8 +126,8 @@ def run_process_grouping_stability(config):
     print(f"  Species Stability (Anorthite): {species_hits['anorthite']/n_trials*100:5.1f}%")
     print(f"  GROUP Stability (Silicates):   {group_hits['Silicates']/n_trials*100:5.1f}%")
     
-    print("\n  INTERPRETATION: If GROUP stability > Species stability, the model suffers from ")
-    print("  mineral equifinality but preserves physical process discovery.")
+    print("\n  Summary: Process-family stability above species stability indicates")
+    print("  mineral-level equifinality with stable process-family discovery.")
 
 def main():
     RESULT_DIR.mkdir(parents=True, exist_ok=True)

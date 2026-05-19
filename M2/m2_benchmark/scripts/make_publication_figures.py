@@ -54,14 +54,14 @@ PROCESS_LABEL_MAP = {
     "dolomite_open": "Dolomite Dissolution (Open)",
     "dolomite_closed": "Dolomite Dissolution (Closed)",
     "gypsum": "Gypsum Dissolution",
-    "albite": "Plagioclase Weathering",
-    "anorthite": "Plagioclase Weathering",
+    "albite": "Albite Weathering",
+    "anorthite": "Anorthite Weathering",
     "k_feldspar": "K-Feldspar Weathering",
-    "microcline": "K-Feldspar Weathering",
-    "biotite": "Ferromagnesian Weathering",
-    "chlorite": "Ferromagnesian Weathering",
-    "enstatite": "Ferromagnesian Weathering",
-    "diopside": "Ferromagnesian Weathering",
+    "microcline": "Microcline Weathering",
+    "biotite": "Biotite Weathering",
+    "chlorite": "Chlorite Weathering",
+    "enstatite": "Enstatite Weathering",
+    "diopside": "Diopside Weathering",
     "halite": "Halite Dissolution",
     "fluorite": "Fluorite Dissolution",
     "NO3src": "Nitrate Input",
@@ -924,10 +924,12 @@ def plot_manuscript_fig7_psi_robustness_guarantee() -> None:
     import seaborn as sns
     from matplotlib.patches import Patch
 
-    fig, ax = plt.subplots(figsize=(12.5, 10.5))
+    fig_height = max(10.5, 3.8 + 0.48 * len(pivot_df))
+    annot_size = 10 if len(pivot_df) > 16 else 12
+    fig, ax = plt.subplots(figsize=(12.5, fig_height))
     sns.heatmap(pivot_df * 100, annot=True, fmt=".1f", cmap="YlGnBu",
                 cbar_kws={'label': 'Identification Probability (%)', 'shrink': 0.84},
-                linewidths=.5, ax=ax, annot_kws={"weight": "bold", "size": 12})
+                linewidths=.5, ax=ax, annot_kws={"weight": "bold", "size": annot_size})
 
     cbar = ax.collections[0].colorbar
     cbar.ax.tick_params(labelsize=FONT_LEGEND)
@@ -935,7 +937,7 @@ def plot_manuscript_fig7_psi_robustness_guarantee() -> None:
 
     ax.set_title("Detailed Process Stability Matrix (PSI)\nStability under Analysed Perturbations", fontsize=FONT_TITLE, fontweight="bold", pad=20)
     ax.set_xticklabels(["Lower Anayari\n(Basement)", "Talensi\n(Mining/Agriculture)"], rotation=0, fontweight="bold", fontsize=FONT_LEGEND)
-    ax.set_yticklabels([fill(label, width=24) for label in pivot_df.index], rotation=0, ha="right", va="center", fontsize=FONT_LEGEND)
+    ax.set_yticklabels([fill(label, width=28) for label in pivot_df.index], rotation=0, ha="right", va="center", fontsize=FONT_LEGEND)
     for tick_label, process_label in zip(ax.get_yticklabels(), pivot_df.index):
         tick_label.set_color(PROCESS_FAMILY_COLORS.get(label_family.get(process_label, ""), "#1f2937"))
         tick_label.set_fontweight("bold")

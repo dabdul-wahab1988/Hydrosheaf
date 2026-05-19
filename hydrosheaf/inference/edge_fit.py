@@ -155,13 +155,10 @@ def fit_edge(
             no3src_scale = 0.1
             logger.debug("Logic Gate: Forcing 'NO3src' selection (NO3 > 0.8 mmol/L)")
 
-    # Topology Redox Proxy (Data-Independent Forensic Fix #2)
-    # If residence time is < 30 days OR flow path is shallow (e.g. gamma indicates high recharge), 
-    # denitrification is thermodynamically unlikely (too much oxygen). We penalize it.
+    # Short residence times are treated as unfavorable for denitrification.
     if residence_time_days is not None and residence_time_days < 30.0:
         denit_scale = 10.0
         logger.debug("Topology Redox Proxy: Penalizing denitrification (short residence time < 30d)")
-    # We will pass this dynamic scale into the dictionary builder
     reaction_matrix, labels, mineral_mask, penalty_scales = build_reaction_dictionary(
         config, pre_si_mask=pre_si_mask, sample=obs_u, dynamic_denit_scale=denit_scale
     )
@@ -278,7 +275,7 @@ def fit_edge(
                     mismatch = abs(cl_ratio - gamma_value)
                     if mismatch > 0.5: iso_consistency_penalty = config.isotope_consistency_weight * mismatch
 
-        # Kinetic Penalty (Flaw 4 Remediation)
+        # Penalize reactions that are implausibly fast for the available residence time.
         kin_penalty = apply_kinetic_penalties(chem_fit.extents, labels, residence_time_days or residence_time_days, config)
 
         mean_v = sum(x_v) / len(x_v) if x_v else 0.0

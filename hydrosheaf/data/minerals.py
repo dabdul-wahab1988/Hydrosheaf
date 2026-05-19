@@ -90,8 +90,7 @@ MINERAL_LIBRARY: Dict[str, Stoich] = {
         "HCO3": 4,
     },  # Updated to match typical Anorthite/Pyroxene mix
     
-    # "Honest" Process Proxies (M2-M5 PhD Remediation)
-    # Use these when specific indicator ions like Iron or Aluminum are not measured.
+    # Process proxies used when diagnostic indicator ions are unavailable.
     "SO4_input": {"SO4": 1}, # Generic sulfate source (Atmospheric/diffuse salts)
     "NO3_input": {"NO3": 1}, # Generic nitrate source (Fertilizer/Septic)
 }

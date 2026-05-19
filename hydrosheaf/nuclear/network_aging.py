@@ -85,11 +85,9 @@ def infer_network_ages_bayesian(
     """
     Infer groundwater mean residence times (ages) for an entire network simultaneously.
     
-    This version includes fixes for PhD-level flaws:
-    - Flaw 1: TTD interpretation (PFM vs EM).
-    - Flaw 2: Bayesian scaling for input uncertainty.
-    - Flaw 3: Velocity-distance constraints.
-    - Flaw 4: Joint inference of C14 Dead Carbon Fraction (DCF).
+    The network model supports multiple transit-time assumptions, input-history
+    scaling, velocity-distance priors, and optional joint inference of the
+    radiocarbon dead-carbon fraction.
     """
     pm, pt, nutpie = _load_network_aging_dependencies()
     

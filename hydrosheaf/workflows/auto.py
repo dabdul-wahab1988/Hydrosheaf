@@ -196,7 +196,7 @@ class HydrosheafAnalyzer:
         
         virtual = [s for s in samples if s.get('type') == 'virtual']
         if virtual:
-            print(f"\n[AI DISCOVERY] Found {len(virtual)} Hidden Sources:")
+            print(f"\n[SOURCE DISCOVERY] Found {len(virtual)} inferred source candidates:")
             for vn in virtual:
                 no3_mg = mmolL_to_mgL(vn.get('NO3', 0), 'NO3')
                 cl_mg = mmolL_to_mgL(vn.get('Cl', 0), 'Cl')
