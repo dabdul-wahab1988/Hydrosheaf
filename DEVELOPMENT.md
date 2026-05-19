@@ -19,7 +19,6 @@ This guide is for **developers** and **contributors** who want to build PEST++ f
 - Git
 - Visual Studio 2022 Build Tools (for PEST++ compilation on Windows)
 - CMake and Ninja (for PEST++ compilation)
-- Node.js >= 18.x and npm >= 9.x (for web development)
 
 ### Clone and Install
 
@@ -150,20 +149,6 @@ python -m pytest tests/test_phreeqc*.py -v
 
 # Run accuracy/regression tests
 python -m pytest tests/test_accuracy*.py -v
-```
-
-### Web Backend Tests
-
-```bash
-cd web/backend
-python -m pytest --cov=app
-```
-
-### Web Frontend Tests
-
-```bash
-cd web/frontend
-npm test
 ```
 
 ---
@@ -339,9 +324,6 @@ Hydrosheaf/
 │   ├── calibration/      # PEST++ integration
 │   └── ...
 ├── tests/                # Test suite
-├── web/                  # Web application
-│   ├── backend/          # FastAPI backend
-│   └── frontend/         # React frontend
 ├── pestpp/               # PEST++ source code (optional)
 ├── docs/                 # Additional documentation
 ├── HYDROSHEAF_USER_MANUAL.md  # User reference

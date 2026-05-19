@@ -7,7 +7,6 @@ It summarizes build/lint/test commands and local coding conventions.
 
 - Core Python package lives in `hydrosheaf/`.
 - Tests live in `tests/` (pytest + unittest-style tests).
-- Web app lives in `web/` with FastAPI backend and Vite React frontend.
 
 ## Cursor/Copilot Rules
 
@@ -17,7 +16,6 @@ It summarizes build/lint/test commands and local coding conventions.
 ## Environment Prerequisites
 
 - Python >= 3.8
-- Node.js >= 18.x and npm >= 9.x for the frontend
 - Optional: PHREEQC and related Python bindings for thermodynamic constraints
 
 ## Core Package: Install & Run
@@ -37,20 +35,6 @@ It summarizes build/lint/test commands and local coding conventions.
 - Accuracy/regression tests: `python -m pytest tests/test_accuracy*.py`
 - Documentation examples: `python -m pytest tests/test_doc_examples.py`
 
-## Web Backend (FastAPI)
-
-- Install dependencies: `pip install -r web/backend/requirements.txt`
-- Install core package for backend: `pip install ../../` (run from `web/backend`)
-- Start dev server: `uvicorn app.main:app --reload --port 8000` (run from `web/backend`)
-- Run integration test: `python test_integration.py` (run from `web/backend`)
-
-## Web Frontend (Vite React)
-
-- Install dependencies: `npm install` (run from `web/frontend`)
-- Start dev server: `npm run dev`
-- Build for production: `npm run build`
-- Lint: `npm run lint`
-- Preview build: `npm run preview`
 
 ## General Coding Guidelines
 
@@ -82,7 +66,6 @@ It summarizes build/lint/test commands and local coding conventions.
 ## Data & Units Conventions
 
 - Internal concentration units are mmol/L.
-- Web frontend uses mg/L and converts via adapters.
 - Ion order defaults to `Config.DEFAULT_ION_ORDER` (10-ion order).
 - Respect configured `Config.ion_order` and `Config.weights` when fitting.
 
@@ -106,18 +89,7 @@ It summarizes build/lint/test commands and local coding conventions.
 - The core package primarily uses returned objects for diagnostics.
 - If adding logging, keep it lightweight and optional.
 
-## Backend (FastAPI) Style
 
-- Keep API handlers thin; delegate to adapters and core functions.
-- Use Pydantic models for request/response where present.
-- Ensure mg/L to mmol/L conversion happens only in adapters.
-- Return structured JSON with explicit fields; avoid ad-hoc dicts.
-
-## Frontend (React) Style
-
-- Keep components functional and small.
-- Use descriptive component and prop names.
-- Align data shape to backend API contracts (lowercase keys, mg/L inputs).
 
 ## When Updating This File
 

@@ -28,7 +28,6 @@ The framework integrates:
 - **3D Flow Networks**: Analyzes layered aquifer systems with vertical anisotropy and topographic Bayesian priors.
 - **Temporal Dynamics**: Resolves time-variant signals with cross-correlation residence times and seasonal decomposition.
 - **Uncertainty Quantification**: Provides rigorous confidence intervals via Bayesian MCMC (NUTS) and Bias-Corrected Bootstrap (BCa).
-- **Web Application**: Full-stack web interface with FastAPI backend and React frontend that supports **Real-time Analysis** monitoring via WebSockets.
 - **Verified Documentation**: All mathematical examples in the technical reference are computationally verified by the test suite.
 
 ## Installation
@@ -52,77 +51,6 @@ No manual compilation or download is required.
 **Note:**
 1. **Core inverse modeling** works entirely within Python and needs no external tools.
 2. **Advanced calibration** (using PEST++) triggers the auto-download on first use.
-
-### Web Application
-
-The web application provides a modern browser-based interface for Hydrosheaf. It consists of a FastAPI backend and a React frontend.
-
-#### Prerequisites
-
-- Python >= 3.8
-- Node.js >= 18.x
-- npm >= 9.x
-
-#### Backend Setup
-
-```bash
-# Navigate to the backend directory
-cd web/backend
-
-# Create a virtual environment (recommended)
-python -m venv venv
-
-# Activate the virtual environment
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Start the backend server
-uvicorn app.main:app --reload --port 8000
-```
-
-The API will be available at `http://localhost:8000` with interactive documentation at `http://localhost:8000/api/docs`.
-
-#### Frontend Setup
-
-```bash
-# Navigate to the frontend directory
-cd web/frontend
-
-# Install dependencies
-npm install
-
-# Start the development server
-npm run dev
-```
-
-The frontend will be available at `http://localhost:5173` and expects the backend at `http://localhost:8000` (override with `VITE_API_BASE`).
-
-#### Development Roadmap
-
-For details on the current integration status, known issues, and future plans for the web interface, please refer to the [Integration Roadmap](web/INTEGRATION_ROADMAP.md).
-
-#### Running Both Services
-
-For development, run the backend and frontend in separate terminal windows:
-
-**Terminal 1 (Backend):**
-```bash
-cd web/backend
-uvicorn app.main:app --reload --port 8000
-```
-
-**Terminal 2 (Frontend):**
-```bash
-cd web/frontend
-npm run dev
-```
-
-Open your browser and navigate to `http://localhost:5173` to access the Hydrosheaf web application.
 
 ## Quick Start
 
@@ -297,8 +225,6 @@ For comprehensive reference, see:
 ### Q: I got an error about missing dependencies
 **A:** Ensure you have installed the package using `pip install .`. All necessary dependencies are now included by default.
 
-### Q: How do I run the web interface?
-**A: Follow the Web Application section above.** It requires Node.js, but Python setup is the same.
 
 ---
 

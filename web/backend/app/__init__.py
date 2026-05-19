@@ -1,1 +1,0 @@
-"""Hydrosheaf Web Backend Application"""
