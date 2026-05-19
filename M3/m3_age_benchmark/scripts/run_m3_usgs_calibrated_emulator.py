@@ -39,7 +39,8 @@ def _log10(val: Any) -> float | None:
 def _build_features(df: pd.DataFrame) -> pd.DataFrame:
     """Return feature matrix from strict-parity output."""
     feats = pd.DataFrame()
-    feats["log10_est_age"] = df["est_age_total_years"].apply(lambda x: _log10(x))
+    age_source = df["est_age_total_years"] if "est_age_total_years" in df.columns else df["est_age_multi"]
+    feats["log10_est_age"] = age_source.apply(lambda x: _log10(x))
     feats["n_tracers"] = pd.to_numeric(df.get("n_tracers", 0), errors="coerce")
     feats["reported_model_dm"] = (df.get("reported_model", "") == "DM").astype(float)
     feats["reported_model_em"] = (df.get("reported_model", "") == "EM").astype(float)
@@ -59,7 +60,13 @@ def _build_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def _target_log10_age(df: pd.DataFrame) -> np.ndarray:
     """Return log10 of USGS reported total age."""
-    return np.array([_log10(v) for v in df["Rpt_TotAge_yrs"]])
+    if "Rpt_TotAge_yrs" in df.columns:
+        source = df["Rpt_TotAge_yrs"]
+    elif "ref_age" in df.columns:
+        source = df["ref_age"]
+    else:
+        raise ValueError("Input must contain `Rpt_TotAge_yrs` or `ref_age`.")
+    return np.array([_log10(v) for v in source], dtype=object)
 
 
 def leave_study_unit_out_calibration(
@@ -77,15 +84,19 @@ def leave_study_unit_out_calibration(
     df["_residual"] = np.nan
     df["_held_out_study_unit"] = ""
 
+    if study_unit_col not in df.columns:
+        raise ValueError(f"Input must contain `{study_unit_col}` for leave-study-unit-out calibration.")
+
     study_units = df[study_unit_col].dropna().unique()
     features = _build_features(df)
     feature_cols = list(features.columns)
     X = features.values
-    y = df["_target"].values
+    y = pd.to_numeric(df["_target"], errors="coerce").values
 
     for su in study_units:
         test_mask = df[study_unit_col] == su
-        train_mask = ~test_mask
+        train_mask = (~test_mask) & np.isfinite(y) & np.isfinite(X).all(axis=1)
+        test_mask = test_mask & np.isfinite(X).all(axis=1)
         if train_mask.sum() < 10 or test_mask.sum() < 1:
             continue
 
@@ -103,7 +114,7 @@ def leave_study_unit_out_calibration(
             raise ValueError(f"Unknown calibration method: {method}")
 
         model.fit(X_train, y_train)
-        raw_pred = X_test[:, 0] if method == "isotonic" else model.predict(X_test)
+        raw_pred = X_test if method == "isotonic" else X_test[:, 0]
         calibrated = model.predict(X_test)
 
         df.loc[test_mask, "_fold"] = su
@@ -113,6 +124,37 @@ def leave_study_unit_out_calibration(
         df.loc[test_mask, "_held_out_study_unit"] = su
 
     return df
+
+
+def summarize_calibration(result: pd.DataFrame) -> pd.DataFrame:
+    """Return headline metrics for calibrated-emulation predictions."""
+    target = pd.to_numeric(result["_target"], errors="coerce")
+    raw = pd.to_numeric(result["_raw_pred"], errors="coerce")
+    calibrated = pd.to_numeric(result["_calibrated"], errors="coerce")
+    valid_raw = target.notna() & raw.notna()
+    valid_calibrated = target.notna() & calibrated.notna()
+
+    def metrics(pred: pd.Series, valid: pd.Series, label: str) -> dict[str, float | str]:
+        residual = pred[valid] - target[valid]
+        y = target[valid]
+        ss_tot = float(((y - y.mean()) ** 2).sum()) if len(y) else float("nan")
+        ss_res = float((residual**2).sum()) if len(residual) else float("nan")
+        return {
+            "mode": label,
+            "N": int(valid.sum()),
+            "median_abs_log10_error": float(residual.abs().median()) if len(residual) else float("nan"),
+            "log10_rmse": float(np.sqrt(np.mean(residual**2))) if len(residual) else float("nan"),
+            "log10_r2": 1.0 - ss_res / ss_tot if ss_tot and math.isfinite(ss_tot) else float("nan"),
+            "within_factor_2": float((residual.abs() <= math.log10(2.0)).mean()) if len(residual) else float("nan"),
+            "within_factor_10": float((residual.abs() <= 1.0).mean()) if len(residual) else float("nan"),
+        }
+
+    return pd.DataFrame(
+        [
+            metrics(raw, valid_raw, "uncalibrated_strict_parity_on_heldout_folds"),
+            metrics(calibrated, valid_calibrated, "usgs_calibrated_benchmark_emulation"),
+        ]
+    )
 
 
 def main() -> int:
@@ -138,6 +180,25 @@ def main() -> int:
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(args.output, index=False)
+    summary = summarize_calibration(result)
+    summary_path = args.output.with_name(f"{args.output.stem}_summary.csv")
+    summary.to_csv(summary_path, index=False)
+    manifest_path = args.output.with_name(f"{args.output.stem}_manifest.json")
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "input": str(args.input),
+                "output": str(args.output),
+                "summary": str(summary_path),
+                "method": args.method,
+                "mode": "USGS-calibrated benchmark emulation",
+                "n_rows": int(len(out)),
+                "n_calibrated_rows": int(pd.to_numeric(out["log10_calibrated_age"], errors="coerce").notna().sum()),
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
     print(f"Wrote {len(out)} rows to {args.output}")
     return 0
 

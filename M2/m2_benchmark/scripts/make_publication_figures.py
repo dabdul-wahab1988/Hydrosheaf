@@ -172,6 +172,8 @@ def _fmt_metric(value: float, digits: int = 2) -> str:
 def _load_public_age_validation() -> tuple[pd.DataFrame, str]:
     """Return the best available public USGS age benchmark in M2 figure schema."""
     m3_candidates = [
+        (M3_RESULT_DIR / "m3_tracerlpm_parity_agefractions_full.csv", "M3 age-fraction parity"),
+        (M3_RESULT_DIR / "m3_tracerlpm_parity_modes_full.csv", "M3 parity-mode comparison"),
         (M3_RESULT_DIR / "m3_tracerlpm_strict_parity_full.csv", "M3 strict TracerLPM parity"),
         (M3_RESULT_DIR / "m3_design_matrix_results.csv", "M3 design-matrix USGS benchmark"),
         (M3_RESULT_DIR / "m3_phase4_screened_full_results.csv", "M3 full screened USGS benchmark"),
@@ -182,17 +184,22 @@ def _load_public_age_validation() -> tuple[pd.DataFrame, str]:
             continue
         df = pd.read_csv(path)
         if {"ref_age", "est_age_multi"}.issubset(df.columns):
-            # Prefer strict parity, then screened, then any available scenario
+            # Prefer the best full independent parity benchmark, then fall back conservatively.
             preferred_scenario = None
             if "scenario_id" in df.columns:
                 scenarios = set(df["scenario_id"].dropna())
-                for pref in ("tracerlpm_strict_parity", "tracerlpm_parity_hier_oldwater", "screened_dgm_gases", "parity_reported_corrected"):
+                for pref in (
+                    "tracerlpm_parity_agefractions",
+                    "tracerlpm_strict_parity",
+                    "parity_reported_corrected",
+                    "screened_dgm_gases",
+                    "tracerlpm_parity_hier_oldwater",
+                ):
                     if pref in scenarios:
                         preferred_scenario = pref
                         break
                 if preferred_scenario:
                     df = df[df["scenario_id"] == preferred_scenario].copy()
-                    label = f"{label} ({preferred_scenario})"
             out = pd.DataFrame(
                 {
                     "reference_mean_age_years": pd.to_numeric(df["ref_age"], errors="coerce"),
@@ -205,6 +212,7 @@ def _load_public_age_validation() -> tuple[pd.DataFrame, str]:
                 }
             )
             out = out.dropna(subset=["reference_mean_age_years", "hydrosheaf_age_years"])
+            out = out[(out["reference_mean_age_years"] > 0) & (out["hydrosheaf_age_years"] > 0)]
             if not out.empty:
                 return out, label
 
@@ -798,13 +806,19 @@ def plot_manuscript_fig5_residence_time_validation() -> None:
         within_numeric = pd.to_numeric(within_raw, errors="coerce")
         within_bool = within_raw.astype(str).str.lower().map({"true": 1.0, "false": 0.0})
         within_values = within_numeric.where(within_numeric.notna(), within_bool).fillna(0.0)
-        within_factor_2 = float(within_values.mean())
+        within_factor_2 = 100.0 * float(within_values.mean())
+        within_raw_10 = pub.get("within_factor_10", pd.Series(np.nan, index=pub.index))
+        within_numeric_10 = pd.to_numeric(within_raw_10, errors="coerce")
+        within_bool_10 = within_raw_10.astype(str).str.lower().map({"true": 1.0, "false": 0.0})
+        within_values_10 = within_numeric_10.where(within_numeric_10.notna(), within_bool_10).fillna(0.0)
+        within_factor_10 = 100.0 * float(within_values_10.mean())
         ax_pub.text(
             0.05,
             0.95,
             f"N = {len(pub)} ({metric_log.notna().sum()} finite log errors)\n$R^2$ = {_fmt_metric(r2)}\n"
             f"Median |log10 err| = {median_log:.2f}\n"
-            f"Within factor 2 = {within_factor_2:.2f}",
+            f"Within factor 2 = {within_factor_2:.1f}%\n"
+            f"Within factor 10 = {within_factor_10:.1f}%",
             transform=ax_pub.transAxes,
             ha="left",
             va="top",
@@ -830,7 +844,7 @@ def plot_manuscript_fig5_residence_time_validation() -> None:
 
     for ax, title in [
         (ax_syn, "(a) Synthetic Network Bayesian Age Recovery"),
-        (ax_pub, "(b) Public USGS Tracer-Age Screening Check"),
+        (ax_pub, "(b) Public USGS Tracer-Age Parity Check"),
     ]:
         ax.set_xscale("log")
         ax.set_yscale("log")
@@ -840,7 +854,7 @@ def plot_manuscript_fig5_residence_time_validation() -> None:
         ax.tick_params(labelsize=FONT_TICK)
         ax.grid(True, which="major", ls=":", alpha=0.25)
 
-    plt.suptitle("Residence-Time Benchmarking: Synthetic Recovery and Public USGS Screening", fontsize=22, fontweight="bold", y=1.02)
+    plt.suptitle("Residence-Time Benchmarking: Synthetic Recovery and Public USGS Parity", fontsize=22, fontweight="bold", y=1.02)
     fig.tight_layout()
     _save(fig, "Manuscript_Fig5_Residence_Time_Validation.png")
 

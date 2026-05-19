@@ -9,6 +9,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -165,6 +166,16 @@ def summarize_results(results: pd.DataFrame) -> pd.DataFrame:
     metric_rows = results[results["ref_age"].notna() & results["est_age_multi"].notna()].copy()
     if metric_rows.empty:
         return totals
+    ref = pd.to_numeric(metric_rows["ref_age"], errors="coerce")
+    est = pd.to_numeric(metric_rows["est_age_multi"], errors="coerce")
+    valid = (ref > 0) & (est > 0)
+    metric_rows = metric_rows[valid].copy()
+    if metric_rows.empty:
+        return totals
+    metric_rows["log10_ref_age"] = np.log10(pd.to_numeric(metric_rows["ref_age"], errors="coerce"))
+    metric_rows["signed_log10_residual"] = (
+        np.log10(pd.to_numeric(metric_rows["est_age_multi"], errors="coerce")) - metric_rows["log10_ref_age"]
+    )
     metrics = (
         metric_rows.groupby("scenario_id")
         .agg(
@@ -178,6 +189,16 @@ def summarize_results(results: pd.DataFrame) -> pd.DataFrame:
         )
         .reset_index()
     )
+    r2_rows = []
+    for scenario_id, group in metric_rows.groupby("scenario_id"):
+        y = group["log10_ref_age"].dropna()
+        residual = group.loc[y.index, "signed_log10_residual"].dropna()
+        y = y.loc[residual.index]
+        ss_tot = float(((y - y.mean()) ** 2).sum()) if len(y) else float("nan")
+        ss_res = float((residual**2).sum()) if len(residual) else float("nan")
+        r2 = 1.0 - ss_res / ss_tot if ss_tot and math.isfinite(ss_tot) else float("nan")
+        r2_rows.append({"scenario_id": scenario_id, "log10_r2": r2})
+    metrics = metrics.merge(pd.DataFrame(r2_rows), on="scenario_id", how="left")
     return pd.merge(totals, metrics, on="scenario_id", how="left")
 
 
@@ -282,6 +303,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--scenario", action="append", help="Scenario ID to run. May be repeated.")
     parser.add_argument("--skip-selection", action="store_true", help="Skip Hydrosheaf model-selection scenarios.")
+    parser.add_argument("--skip-primary-output", action="store_true", help="Do not update m3_usgs_benchmark_results.csv.")
     args = parser.parse_args(argv)
 
     config = load_design_matrix(args.config)
@@ -307,13 +329,13 @@ def main(argv: list[str] | None = None) -> int:
     primary_scenario = next(
         (
             scenario
-            for scenario in ("screened_dgm_gases", "parity_reported_corrected")
+            for scenario in ("tracerlpm_strict_parity", "screened_dgm_gases", "parity_reported_corrected")
             if scenario in set(results["scenario_id"])
         ),
         str(results["scenario_id"].iloc[0]) if not results.empty else "",
     )
     primary_output = RESULT_DIR / "m3_usgs_benchmark_results.csv"
-    if primary_scenario:
+    if primary_scenario and not args.skip_primary_output:
         results[results["scenario_id"] == primary_scenario].to_csv(primary_output, index=False)
     summary = summarize_results(results)
     summary.to_csv(paths["summary"], index=False)
@@ -327,8 +349,8 @@ def main(argv: list[str] | None = None) -> int:
         "summary": str(paths["summary"]),
         "pairwise": str(paths["pairwise"]),
         "qa": str(paths["qa"]),
-        "primary_pointwise_output": str(primary_output) if primary_scenario else "",
-        "primary_pointwise_scenario": primary_scenario,
+        "primary_pointwise_output": str(primary_output) if primary_scenario and not args.skip_primary_output else "",
+        "primary_pointwise_scenario": primary_scenario if not args.skip_primary_output else "",
         "max_rows": max_rows,
         "age_steps": resolved_age_steps,
         "scenario_ids": sorted(results["scenario_id"].unique().tolist()),

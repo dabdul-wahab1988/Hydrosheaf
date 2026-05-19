@@ -40,6 +40,8 @@ def _save_supp(fig: plt.Figure, name: str) -> None:
 
 def _load_public_age_validation() -> tuple[pd.DataFrame, str]:
     m3_candidates = [
+        (M3_RESULT_DIR / "m3_tracerlpm_parity_agefractions_full.csv", "M3 age-fraction parity"),
+        (M3_RESULT_DIR / "m3_tracerlpm_parity_modes_full.csv", "M3 parity-mode comparison"),
         (M3_RESULT_DIR / "m3_tracerlpm_strict_parity_full.csv", "M3 strict TracerLPM parity"),
         (M3_RESULT_DIR / "m3_design_matrix_results.csv", "M3 design-matrix USGS benchmark"),
         (M3_RESULT_DIR / "m3_phase4_screened_full_results.csv", "M3 full screened USGS benchmark"),
@@ -53,13 +55,18 @@ def _load_public_age_validation() -> tuple[pd.DataFrame, str]:
             preferred_scenario = None
             if "scenario_id" in df.columns:
                 scenarios = set(df["scenario_id"].dropna())
-                for pref in ("tracerlpm_strict_parity", "tracerlpm_parity_hier_oldwater", "screened_dgm_gases", "parity_reported_corrected"):
+                for pref in (
+                    "tracerlpm_parity_agefractions",
+                    "tracerlpm_strict_parity",
+                    "parity_reported_corrected",
+                    "screened_dgm_gases",
+                    "tracerlpm_parity_hier_oldwater",
+                ):
                     if pref in scenarios:
                         preferred_scenario = pref
                         break
                 if preferred_scenario:
                     df = df[df["scenario_id"] == preferred_scenario].copy()
-                    label = f"{label} ({preferred_scenario})"
             out = pd.DataFrame(
                 {
                     "reference_mean_age_years": pd.to_numeric(df["ref_age"], errors="coerce"),
@@ -67,10 +74,11 @@ def _load_public_age_validation() -> tuple[pd.DataFrame, str]:
                     "supported_tracers": df.get("tracer_mode", pd.Series("", index=df.index)).astype(str),
                     "log10_error": pd.to_numeric(df.get("log10_error", pd.Series(np.nan, index=df.index)), errors="coerce"),
                     "within_factor_2": df.get("within_factor_2", pd.Series(np.nan, index=df.index)),
-                    "inside_hydrosheaf_ci": df.get("within_factor_10", pd.Series(np.nan, index=df.index)),
+                    "within_factor_10": df.get("within_factor_10", pd.Series(np.nan, index=df.index)),
                 }
             )
             out = out.dropna(subset=["reference_mean_age_years", "hydrosheaf_age_years"])
+            out = out[(out["reference_mean_age_years"] > 0) & (out["hydrosheaf_age_years"] > 0)]
             if not out.empty:
                 return out, label
 
@@ -107,12 +115,15 @@ def plot_s1_age_parity() -> None:
         df_clean.get("log10_error", pd.Series(np.nan, index=df_clean.index)),
         errors="coerce",
     ).abs()
-    mae_log = float(metric_log.mean()) if metric_log.notna().any() else np.mean(np.abs(log_ref - log_inf))
-    within_ci = (df_clean["inside_hydrosheaf_ci"] == True).mean() * 100 if "inside_hydrosheaf_ci" in df_clean else np.nan
+    median_log = float(metric_log.median()) if metric_log.notna().any() else float(np.median(np.abs(log_ref - log_inf)))
     within_raw = df_clean.get("within_factor_2", pd.Series(np.nan, index=df_clean.index))
     within_numeric = pd.to_numeric(within_raw, errors="coerce")
     within_bool = within_raw.astype(str).str.lower().map({"true": 1.0, "false": 0.0})
     within_factor_2 = within_numeric.where(within_numeric.notna(), within_bool).fillna(0.0).mean() * 100
+    within10_raw = df_clean.get("within_factor_10", pd.Series(np.nan, index=df_clean.index))
+    within10_numeric = pd.to_numeric(within10_raw, errors="coerce")
+    within10_bool = within10_raw.astype(str).str.lower().map({"true": 1.0, "false": 0.0})
+    within_factor_10 = within10_numeric.where(within10_numeric.notna(), within10_bool).fillna(0.0).mean() * 100
 
     fig = plt.figure(figsize=(10, 10))
     gs = fig.add_gridspec(4, 4, left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.05, hspace=0.05)
@@ -150,14 +161,13 @@ def plot_s1_age_parity() -> None:
 
     stats_text = (f"N = {len(df_clean)} ({metric_log.notna().sum()} finite log errors)\n"
                   f"Global $R^2 = {r2_global:.2f}$\n"
-                  f"Mean |log10 err| = {mae_log:.2f}\n"
-                  f"Within factor 2 = {within_factor_2:.1f}%")
-    if np.isfinite(within_ci):
-        stats_text += f"\nLegacy CI/proxy = {within_ci:.1f}%"
+                  f"Median |log10 err| = {median_log:.2f}\n"
+                  f"Within factor 2 = {within_factor_2:.1f}%\n"
+                  f"Within factor 10 = {within_factor_10:.1f}%")
     ax_main.text(0.05, 0.95, stats_text, transform=ax_main.transAxes,
                  verticalalignment='top', fontsize=FONT_ANNOTATE, fontweight="bold",
                  bbox=dict(boxstyle="round,pad=0.5", facecolor="white", edgecolor="#d1d5db", alpha=0.9))
-    ax_main.text(0.05, 0.04, source_label, transform=ax_main.transAxes,
+    ax_main.text(0.05, 0.08, source_label, transform=ax_main.transAxes,
                  fontsize=FONT_ANNOTATE, color="#64748b", ha="left", va="bottom")
 
     ax_main.legend(loc="lower right", fontsize=FONT_LEGEND, frameon=True)
@@ -165,7 +175,7 @@ def plot_s1_age_parity() -> None:
 
     ax_histx.axis("off")
     ax_histy.axis("off")
-    ax_histx.set_title("Supplementary Figure S1: Public USGS Residence-Time Screening Check",
+    ax_histx.set_title("Supplementary Figure S1: Public USGS Residence-Time Parity Check",
                        fontsize=FONT_TITLE, fontweight="bold", pad=20)
 
     _save_supp(fig, "Manuscript_Supp_FigS1_Public_Age_Validation.png")

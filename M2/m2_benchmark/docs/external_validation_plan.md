@@ -46,10 +46,10 @@ Hydrosheaf task:
 - Ingest the seven USGS tables.
 - Map site metadata, tracer measurements, and reference LPM outputs into
   Hydrosheaf's residence-time validation schema.
-- Run the canonical M3 screened USGS benchmark for samples with enough tracer
-  data:
+- Use the canonical M3 age-fraction-constrained parity benchmark for samples
+  with enough tracer and reported TTD-fraction data:
 
-  `python M3\m3_age_benchmark\scripts\run_m3_design_matrix.py --full --age-steps 35 --scenario screened_dgm_gases --output M3\m3_age_benchmark\results\m3_phase4_screened_full_results.csv`
+  `python M3\m3_age_benchmark\scripts\run_m3_design_matrix.py --full --age-steps 90 --scenario tracerlpm_parity_agefractions --output M3\m3_age_benchmark\results\m3_tracerlpm_parity_agefractions_full.csv`
 
 - Compare Hydrosheaf age estimates against published LPM mean age and young /
   Holocene / Pleistocene fractions.
@@ -59,7 +59,7 @@ Required outputs:
 - `external/usgs_age/input/usgs_age_sites.csv`
 - `external/usgs_age/results/usgs_age_validation.csv`
 - `external/usgs_age/results/usgs_age_validation_summary.csv`
-- `M3/m3_age_benchmark/results/m3_phase4_screened_full_results.csv`
+- `M3/m3_age_benchmark/results/m3_tracerlpm_parity_agefractions_full.csv`
 - `figures/Manuscript_Ready/Manuscript_Fig5_Residence_Time_Validation.png`
 - `figures/Manuscript_Ready/Manuscript_Supp_FigS1_Public_Age_Validation.png`
 
@@ -176,8 +176,8 @@ Required outputs:
 ## Correction To Current M2 Package
 
 The generated synthetic benchmark is valid for Section 3.2 and part of Table 4.
-The public-age claim should now be sourced from the M3 full screened USGS
-benchmark, while the MODPATH result should be described as topology-only
-agreement. PHREEQC remains a proxy unless a live PHREEQC backend is configured
-and rerun. The Ghana field network remains a field-hydrochemistry demonstration
-because no independent process-truth graph is available.
+The public-age claim should now be sourced from the M3 age-fraction-constrained
+USGS parity benchmark, while the MODPATH result should be described as
+topology-only agreement. PHREEQC remains a proxy unless a live PHREEQC backend
+is configured and rerun. The Ghana field network remains a field-hydrochemistry
+demonstration because no independent process-truth graph is available.

@@ -550,6 +550,7 @@ def _fit_prepared_benchmark_row(
     )
     
     # Phase 1: TracerLPM-parity tracer set masking
+    reported_tracer_keys = _reported_tracer_tokens(row.get("LPM_TracersMod"))
     if factors.get("tracer_set") == "reported":
         obs = _apply_reported_tracer_mask(obs, row.get("LPM_TracersMod"))
     else:
@@ -674,6 +675,22 @@ def _fit_prepared_benchmark_row(
 
     res = {
         "site_id": row["site_id"],
+        "StudyUnit": row.get("StudyUnit", row.get("StudyUnit_x", "")),
+        "AqGroup": row.get("AqGroup", row.get("AqGroup_x", "")),
+        "Depth_m": row.get("depth_m", row.get("Depth_m", np.nan)),
+        "LPM_Name": row.get("LPM_Name", ""),
+        "LPM_TracersMod": row.get("LPM_TracersMod", ""),
+        "Rpt_TotAge_yrs": row.get("reference_age_years", row.get("Rpt_TotAge_yrs", np.nan)),
+        "Rept_TotAge_Err_yrs": row.get("Rept_TotAge_Err_yrs", np.nan),
+        "Rpt_UZtt_yrs": row.get("Rpt_UZtt_yrs", np.nan),
+        "Rpt_UZtt_Err_yrs": row.get("Rpt_UZtt_Err_yrs", np.nan),
+        "Rpt_ChiSquare": row.get("Rpt_ChiSquare", np.nan),
+        "Rpt_Probability": row.get("Rpt_Probability", np.nan),
+        "FracAnthropocene": row.get("FracAnthropocene", np.nan),
+        "FracHolocene": row.get("FracHolocene", np.nan),
+        "FracPleistocene": row.get("FracPleistocene", np.nan),
+        "AgeCat": row.get("AgeCat", ""),
+        "Comments": row.get("Comments", ""),
         "ref_age": ref_age_eff,
         "est_age_multi": est_age,
         "est_age_saturated_years": diag.get("est_age_saturated_years"),
@@ -699,9 +716,11 @@ def _fit_prepared_benchmark_row(
         "modern_fraction": _modern_fraction_proxy(est_age),
         "modern_age": est_age_3h,
         "old_age": old_diag.get("old_groundwater_apparent_c14_age", np.nan),
+        "reported_model_name": reported_model_str,
         "reported_model": reported_model_str,
         "multi_model": getattr(fit_multi, "model", model),
         "model_strategy": strategy,
+        "reported_tracer_mask": _safe_join(sorted(reported_tracer_keys)),
         "tracer_mode": row.get("LPM_TracersMod", ""),
         "tracer_set_used": factors.get("tracer_set", "reported"),
         "n_tracers": getattr(fit_multi, "n_tracers", 0),

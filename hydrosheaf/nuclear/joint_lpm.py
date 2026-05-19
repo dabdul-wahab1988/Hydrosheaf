@@ -206,9 +206,12 @@ def build_lpm_tracer_observations(
         if weight is None or weight < 0:
             weight = 1.0
 
-        # Phase 4: mark supersaturated gas as upper-censored
+        # Phase 4: mark suspect gases with likelihoods rather than treating
+        # them as ordinary Gaussian observations.
         max_hist = historical_max_concentration(tracer, sample_year)
-        likelihood = "gaussian"
+        likelihood = str(weighted_obs.get(f"{tracer.lower()}_likelihood") or "gaussian")
+        if likelihood not in {"gaussian", "upper_censored", "lower_censored", "contaminated_mixture"}:
+            likelihood = "gaussian"
         if value > max_hist * 1.02:
             likelihood = "upper_censored"
 

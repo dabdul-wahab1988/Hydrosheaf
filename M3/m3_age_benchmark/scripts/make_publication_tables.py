@@ -23,9 +23,53 @@ def _read_csv(path: Path) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def _design_summary() -> pd.DataFrame:
+    frames = []
+    for candidate in (
+        RESULT_DIR / "m3_tracerlpm_strict_parity_full_summary.csv",
+        RESULT_DIR / "m3_tracerlpm_parity_hier_oldwater_full_summary.csv",
+        RESULT_DIR / "m3_tracerlpm_parity_agefractions_full_summary.csv",
+        RESULT_DIR / "m3_hydrosheaf_selection_corrected_full_summary.csv",
+        RESULT_DIR / "m3_parity_reported_corrected_full_summary.csv",
+        RESULT_DIR / "m3_design_matrix_summary.csv",
+    ):
+        df = _read_csv(candidate)
+        if not df.empty:
+            frames.append(df)
+    if not frames:
+        return pd.DataFrame()
+    summary = pd.concat(frames, ignore_index=True)
+    if "scenario_id" in summary.columns:
+        summary = summary.drop_duplicates("scenario_id", keep="first")
+    return summary
+
+
+def _mode_results() -> pd.DataFrame:
+    frames = []
+    for candidate in (
+        RESULT_DIR / "m3_tracerlpm_strict_parity_full.csv",
+        RESULT_DIR / "m3_tracerlpm_parity_hier_oldwater_full.csv",
+        RESULT_DIR / "m3_tracerlpm_parity_agefractions_full.csv",
+        RESULT_DIR / "m3_hydrosheaf_selection_corrected_full.csv",
+        RESULT_DIR / "m3_parity_reported_corrected_full.csv",
+        RESULT_DIR / "m3_design_matrix_results.csv",
+    ):
+        df = _read_csv(candidate)
+        if not df.empty:
+            frames.append(df)
+    if not frames:
+        return pd.DataFrame()
+    out = pd.concat(frames, ignore_index=True)
+    if {"scenario_id", "site_id"}.issubset(out.columns):
+        out = out.drop_duplicates(["scenario_id", "site_id"], keep="first")
+    return out
+
+
 def _primary_pointwise_results() -> pd.DataFrame:
     for candidate in (
         RESULT_DIR / "m3_tracerlpm_strict_parity_full.csv",
+        RESULT_DIR / "m3_tracerlpm_parity_hier_oldwater_full.csv",
+        RESULT_DIR / "m3_tracerlpm_parity_agefractions_full.csv",
         RESULT_DIR / "m3_design_matrix_results.csv",
         RESULT_DIR / "m3_phase4_screened_full_results.csv",
         RESULT_DIR / "m3_phase4_younggas_full_results.csv",
@@ -64,7 +108,7 @@ def make_table1() -> None:
 
 
 def make_table2() -> None:
-    summary = _read_csv(RESULT_DIR / "m3_design_matrix_summary.csv")
+    summary = _design_summary()
     if summary.empty:
         return
     columns = [
@@ -73,6 +117,7 @@ def make_table2() -> None:
         "metric_rows",
         "median_abs_log10_error",
         "log10_rmse",
+        "log10_r2",
         "within_factor_2",
         "within_factor_10",
         "calibrated_he4_rows",
@@ -119,22 +164,34 @@ def _scenario_metrics(df: pd.DataFrame, scenario_id: str) -> dict[str, float]:
     """Compute core parity metrics for a specific scenario."""
     subset = df[df["scenario_id"] == scenario_id].copy() if "scenario_id" in df.columns else df.copy()
     subset = subset[subset["ref_age"].notna() & subset["est_age_multi"].notna()]
+    subset = subset[pd.to_numeric(subset.get("log10_error"), errors="coerce").notna()]
     if subset.empty:
         return {}
     log_err = pd.to_numeric(subset.get("log10_error"), errors="coerce").dropna()
-    within_2 = pd.to_numeric(subset.get("within_factor_2"), errors="coerce").dropna()
+    within_raw = subset.get("within_factor_2", pd.Series(np.nan, index=subset.index))
+    within_2 = pd.to_numeric(within_raw, errors="coerce")
+    within_bool = within_raw.astype(str).str.lower().map({"true": 1.0, "false": 0.0})
+    within_2 = within_2.where(within_2.notna(), within_bool).dropna()
+    ref = pd.to_numeric(subset.get("ref_age"), errors="coerce")
+    est = pd.to_numeric(subset.get("est_age_multi"), errors="coerce")
+    valid = (ref > 0) & (est > 0)
+    y = np.log10(ref[valid])
+    residual = np.log10(est[valid]) - y
+    ss_tot = float(((y - y.mean()) ** 2).sum()) if len(y) else float("nan")
+    ss_res = float((residual**2).sum()) if len(residual) else float("nan")
     return {
         "N": int(len(subset)),
         "finite_metrics": int(len(log_err)),
         "median_abs_log10_error": float(log_err.median()) if len(log_err) else float("nan"),
         "log10_rmse": float(np.sqrt(np.mean(log_err**2))) if len(log_err) else float("nan"),
+        "log10_r2": 1.0 - ss_res / ss_tot if ss_tot and np.isfinite(ss_tot) else float("nan"),
         "within_factor_2": float(within_2.mean()) if len(within_2) else float("nan"),
     }
 
 
 def make_table5_mode_comparison() -> None:
     """Report strict parity, selection, and calibrated-emulation metrics separately."""
-    design = _read_csv(RESULT_DIR / "m3_design_matrix_results.csv")
+    design = _mode_results()
     rows: list[dict] = []
     if not design.empty and "scenario_id" in design.columns:
         for scenario_id, label in (
@@ -152,17 +209,23 @@ def make_table5_mode_comparison() -> None:
 
     calibrated = _read_csv(RESULT_DIR / "m3_usgs_calibrated_parity.csv")
     if not calibrated.empty:
-        target = pd.to_numeric(calibrated.get("log10_reported_age"), errors="coerce").dropna()
-        pred = pd.to_numeric(calibrated.get("log10_calibrated_age"), errors="coerce").dropna()
-        if len(target) and len(pred):
-            residual = (pred - target).abs()
+        target = pd.to_numeric(calibrated.get("log10_reported_age"), errors="coerce")
+        pred = pd.to_numeric(calibrated.get("log10_calibrated_age"), errors="coerce")
+        valid = target.notna() & pred.notna()
+        if valid.any():
+            signed_residual = pred[valid] - target[valid]
+            residual = signed_residual.abs()
+            y = target[valid]
+            ss_tot = float(((y - y.mean()) ** 2).sum()) if len(y) else float("nan")
+            ss_res = float((signed_residual**2).sum()) if len(signed_residual) else float("nan")
             rows.append({
                 "mode": "USGS-calibrated benchmark emulation",
-                "N": int(len(calibrated)),
+                "N": int(valid.sum()),
                 "finite_metrics": int(len(residual)),
                 "median_abs_log10_error": float(residual.median()),
                 "log10_rmse": float(np.sqrt(np.mean(residual**2))),
-                "within_factor_2": float("nan"),
+                "log10_r2": 1.0 - ss_res / ss_tot if ss_tot and np.isfinite(ss_tot) else float("nan"),
+                "within_factor_2": float((residual <= np.log10(2.0)).mean()),
             })
 
     if rows:

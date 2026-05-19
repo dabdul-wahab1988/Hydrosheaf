@@ -220,6 +220,20 @@ def test_m3_young_gas_masking_keeps_plausible_sf6():
     assert diag["young_gas_masked_count"] == 0
 
 
+def test_m3_young_gas_conflict_marks_contaminated_mixture():
+    module = _load_m3_module()
+    masked, diag = module.calculate_tracer_reliability_weights(
+        {
+            "sf6_pptv": 7.0,
+            "sf6_sigma_pptv": 0.2,
+        },
+        2010.0,
+        100.0,
+    )
+    assert masked["sf6_likelihood"] == "contaminated_mixture"
+    assert "SF6:contaminated_mixture" in diag["young_gas_likelihood_assignments"]
+
+
 def test_m3_detects_screenable_gas_difference():
     module = _load_m3_module()
     row = module.pd.Series(
@@ -573,6 +587,19 @@ def test_gas_likelihood_counts_zero_when_no_gases():
     assert counts["gaussian"] == 0
     assert counts["upper_censored"] == 0
     assert counts["contaminated_mixture"] == 0
+
+
+def test_gas_likelihood_counts_tracks_contaminated_gas():
+    module = _load_m3_module()
+    counts = module._gas_likelihood_counts(
+        {
+            "sample_year": 2010.0,
+            "sf6_pptv": 7.0,
+            "sf6_sigma_pptv": 0.2,
+            "sf6_likelihood": "contaminated_mixture",
+        }
+    )
+    assert counts["contaminated_mixture"] == 1
 
 
 # --- Phase 5: Hierarchical Old-Water Priors ---

@@ -151,7 +151,9 @@ def test_prepare_c14_observation_uses_prior_when_hierarchical():
     )
     out, initial, diag = prepare_c14_observation(obs, mode="hierarchical", prior=prior)
     assert diag["c14_effective_source"] == "hierarchical_prior"
-    assert initial == 95.0
+    assert initial == 98.75
+    assert out["c14_initial_pmc"] == 98.75
+    assert out["c14_pmc"] == 62.0
 
 
 def test_apply_he4_uses_prior_when_hierarchical():

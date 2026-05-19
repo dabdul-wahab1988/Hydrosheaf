@@ -22,6 +22,14 @@ class OldGroundwaterPrior:
     n_support: int
 
 
+def _numeric_column(df: pd.DataFrame, *names: str) -> pd.Series:
+    """Return the first available numeric column as a clean Series."""
+    for name in names:
+        if name in df.columns:
+            return pd.to_numeric(df[name], errors="coerce").dropna()
+    return pd.Series(dtype=float)
+
+
 def build_old_groundwater_priors(df: pd.DataFrame) -> dict[str, OldGroundwaterPrior]:
     """Build study-unit/aquifer-level priors from available USGS rows."""
     priors: dict[str, OldGroundwaterPrior] = {}
@@ -36,9 +44,9 @@ def build_old_groundwater_priors(df: pd.DataFrame) -> dict[str, OldGroundwaterPr
         su_str = str(su) if su is not None else ""
         aq_str = str(aq) if aq is not None else ""
 
-        a0_vals = pd.to_numeric(group.get("Corrected_Ao_pmC"), errors="coerce").dropna()
-        he4_bg_vals = pd.to_numeric(group.get("he4_background_ccpg"), errors="coerce").dropna()
-        he4_rate_vals = pd.to_numeric(group.get("he4_accumulation_rate_ccpg_per_year"), errors="coerce").dropna()
+        a0_vals = _numeric_column(group, "Corrected_Ao_pmC", "corrected_a0_pmc")
+        he4_bg_vals = _numeric_column(group, "he4_background_ccpg")
+        he4_rate_vals = _numeric_column(group, "he4_accumulation_rate_ccpg_per_year")
 
         if len(a0_vals) < 2 and len(he4_bg_vals) < 2 and len(he4_rate_vals) < 2:
             continue
@@ -56,9 +64,9 @@ def build_old_groundwater_priors(df: pd.DataFrame) -> dict[str, OldGroundwaterPr
         )
 
     # Global fallback
-    a0_vals = pd.to_numeric(df.get("Corrected_Ao_pmC"), errors="coerce").dropna()
-    he4_bg_vals = pd.to_numeric(df.get("he4_background_ccpg"), errors="coerce").dropna()
-    he4_rate_vals = pd.to_numeric(df.get("he4_accumulation_rate_ccpg_per_year"), errors="coerce").dropna()
+    a0_vals = _numeric_column(df, "Corrected_Ao_pmC", "corrected_a0_pmc")
+    he4_bg_vals = _numeric_column(df, "he4_background_ccpg")
+    he4_rate_vals = _numeric_column(df, "he4_accumulation_rate_ccpg_per_year")
 
     priors["global|fallback"] = OldGroundwaterPrior(
         study_unit="",
@@ -208,10 +216,18 @@ def prepare_c14_observation(
         return out, initial, diagnostics
 
     if mode == "hierarchical" and prior is not None:
-        initial = prior.a0_pmc_mean
+        corrected_c14 = _finite_float(out.get("corrected_c14_pmc"))
+        if _valid_pmc(corrected_c14):
+            out["c14_pmc"] = corrected_c14
+        selected_a0 = _finite_float(out.get("corrected_a0_pmc"))
+        if _valid_pmc(selected_a0):
+            initial = 0.75 * selected_a0 + 0.25 * prior.a0_pmc_mean
+        else:
+            initial = prior.a0_pmc_mean
         out["c14_initial_pmc"] = initial
         diagnostics["c14_effective_source"] = "hierarchical_prior"
         diagnostics["c14_effective_pmc"] = _finite_float(out.get("c14_pmc"))
+        diagnostics["c14_effective_a0_pmc"] = initial
         diagnostics["oldwater_prior_scope"] = "study_unit_aquifer" if prior.study_unit else "global_fallback"
         diagnostics["oldwater_prior_n_support"] = prior.n_support
         diagnostics["a0_prior_mean"] = prior.a0_pmc_mean
@@ -287,14 +303,26 @@ def apply_he4_uncertainty_mode(
         "he4_sigma_effective_ccpg": _finite_float(out.get("he4_sigma_ccpg")),
     }
     if mode == "hierarchical" and prior is not None:
-        out["he4_background_ccpg"] = prior.he4_background_mean
-        out["he4_accumulation_rate_ccpg_per_year"] = prior.he4_rate_mean
+        selected_background = _finite_float(out.get("he4_background_ccpg"))
+        selected_rate = _finite_float(out.get("he4_accumulation_rate_ccpg_per_year"))
+        out["he4_background_ccpg"] = (
+            0.75 * selected_background + 0.25 * prior.he4_background_mean
+            if math.isfinite(selected_background) and selected_background > 0
+            else prior.he4_background_mean
+        )
+        out["he4_accumulation_rate_ccpg_per_year"] = (
+            0.75 * selected_rate + 0.25 * prior.he4_rate_mean
+            if math.isfinite(selected_rate) and selected_rate > 0
+            else prior.he4_rate_mean
+        )
         diagnostics["he4_uncertainty_mode"] = "hierarchical"
         diagnostics["oldwater_prior_scope"] = "study_unit_aquifer" if prior.study_unit else "global_fallback"
         diagnostics["oldwater_prior_n_support"] = prior.n_support
         diagnostics["he4_background_prior_mean"] = prior.he4_background_mean
         diagnostics["he4_rate_prior_mean"] = prior.he4_rate_mean
         diagnostics["he4_rate_prior_sigma"] = prior.he4_rate_sigma
+        diagnostics["he4_background_effective_ccpg"] = out["he4_background_ccpg"]
+        diagnostics["he4_rate_effective_ccpg_per_year"] = out["he4_accumulation_rate_ccpg_per_year"]
         return out, diagnostics
 
     if mode != "calibrated_uncertainty":

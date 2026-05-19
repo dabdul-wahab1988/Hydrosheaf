@@ -430,8 +430,10 @@ def calculate_tracer_reliability_weights(
         max_hist = historical_max_concentration(tracer, sample_year)
         
         tracer_weight = 1.0
+        tracer_likelihood = "gaussian"
         if value > max_hist * 1.02:
             tracer_weight *= 0.05
+            tracer_likelihood = "upper_censored"
             tracer_reasons.append("above_historical_max_downweighted")
             
         proxy_age = float("nan")
@@ -449,10 +451,13 @@ def calculate_tracer_reliability_weights(
             and proxy_age <= max(0.5, reference_age * 0.2)
         ):
             tracer_weight *= 0.1
+            if tracer_likelihood == "gaussian":
+                tracer_likelihood = "contaminated_mixture"
             tracer_reasons.append("excessively_modern_vs_independent_proxy_downweighted")
             
         if tracer_reasons:
             out[f"{tracer.lower()}_weight"] = tracer_weight
+            out[f"{tracer.lower()}_likelihood"] = tracer_likelihood
             masked.append(tracer)
             reasons.append(f"{tracer}:{'+'.join(tracer_reasons)}")
             
@@ -460,5 +465,9 @@ def calculate_tracer_reliability_weights(
         "young_gas_masked_tracers": "|".join(masked),
         "young_gas_masked_reason": "|".join(reasons),
         "young_gas_masked_count": len(masked),
+        "young_gas_likelihood_assignments": "|".join(
+            f"{tracer}:{out.get(f'{tracer.lower()}_likelihood')}"
+            for tracer in masked
+            if out.get(f"{tracer.lower()}_likelihood")
+        ),
     }
-

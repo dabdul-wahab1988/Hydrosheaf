@@ -1,15 +1,15 @@
 # M2 Analysis Consistency Review
 
-Updated: 2026-05-17
+Updated: 2026-05-19
 
 ## Reviewer Gate
 
-The M2 figure package is usable only with conservative captions. The synthetic benchmark, MODPATH topology check, M3 public-age screen, PHREEQC proxy, and Ghana field demonstration are different evidence tiers and must not be collapsed into one claim of full validation.
+The M2 figure package is usable only with conservative captions. The synthetic benchmark, MODPATH topology check, M3 public-age parity benchmark, PHREEQC proxy, and Ghana field demonstration are different evidence tiers and must not be collapsed into one claim of full validation.
 
 ## Corrections Applied
 
-- Fig. 5 now prefers `M3/m3_age_benchmark/results/m3_phase4_screened_full_results.csv` for the public USGS age panel, with the older M2 E1 CSV kept only as fallback.
-- M3 was rerun at the canonical full setting: `--full --age-steps 35 --scenario screened_dgm_gases`.
+- Fig. 5 and Supplementary Fig. S1 now prefer `M3/m3_age_benchmark/results/m3_tracerlpm_parity_agefractions_full.csv` for the public USGS age panel, with older M3/M2 outputs kept only as fallbacks.
+- M3 was rerun at the canonical full setting: `--full --age-steps 90 --scenario tracerlpm_parity_agefractions`.
 - The Ghana field runner now configures a transparent local dilute mixing endmember, so field edges actually compare `evap` against `mix`.
 - Fig. 3 wording was changed from proof language to synthetic benchmark evidence.
 - Fig. 3B now reports all benchmark reactions and treats signed exchange extents as active when `abs(true extent) > 0`.
@@ -36,15 +36,16 @@ Pointwise isotope-shift recovery is weaker than edge-mean recovery because the s
 
 ### Fig. 5 Public Age Validation
 
-The refreshed M3 full screened public-age benchmark is weak-to-moderate:
+The refreshed M3 age-fraction-constrained parity benchmark is the strongest independent public-age benchmark currently available:
 
-- rows: `1272`
-- median absolute log10 error: `0.383`
-- log10 RMSE: `1.065`
-- within factor 2: `0.410`
-- within factor 10: `0.678`
+- rows: `1272`; finite log-error rows: `1249`
+- median absolute log10 error: `0.167`
+- log10 RMSE: `0.740`
+- log10 R2: `0.681`
+- within factor 2: `0.614`
+- within factor 10: `0.859`
 
-The reason is not a missing run anymore. The result reflects heterogeneous public tracer support, ambiguous tritium/bomb-pulse solutions, young-gas contamination or correction sensitivity, and old-groundwater uncertainty in `14C`/`4He`. Fig. 5 should say screening-level public agreement.
+This result uses USGS reported age fractions as TTD-shape constraints, so Fig. 5 should describe parity to USGS reported model outputs, not direct true-age validation or TracerLPM equivalence.
 
 ### Fig. 4 Ghana Field Network
 
@@ -58,6 +59,6 @@ This improves internal consistency, but the Ghana network is still generated fro
 
 ## Required Claim Discipline
 
-- Use `benchmark evidence`, `screening check`, `topology-only comparison`, `proxy`, and `field demonstration`.
+- Use `benchmark evidence`, `reported-model parity`, `topology-only comparison`, `proxy`, and `field demonstration`.
 - Avoid `proof`, `guarantee`, `validated process truth`, and `TracerLPM equivalence`.
 - Keep PHREEQC as proxy evidence until a live PHREEQC backend is configured and rerun.

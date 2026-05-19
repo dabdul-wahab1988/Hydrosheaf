@@ -47,6 +47,7 @@ class WiserInputLibrary:
         self._shared_strings: Optional[list[str]] = None
         self._tracer_frame_cache: Dict[tuple[str, ...], pd.DataFrame] = {}
         self._history_cache: Dict[tuple[str, str], InputHistory] = {}
+        self._station_frame_cache: Dict[str, pd.DataFrame] = {}
 
     @property
     def df(self) -> pd.DataFrame:
@@ -372,14 +373,18 @@ class WiserInputLibrary:
             tracer_frame = self._read_xlsx_symbol_rows(symbols)
         else:
             tracer_frame = self.df[self.df["Measurand Symbol"].isin(symbols)]
-        stations = (
-            tracer_frame
-            .dropna(subset=["Latitude", "Longitude"])
-            .groupby(["Sample Site Name", "WMO Code"], dropna=False)
-            .agg(Latitude=("Latitude", "mean"), Longitude=("Longitude", "mean"), n=("Measurand Amount", "count"))
-            .reset_index()
-        )
-        stations = stations[stations["n"] > 0]
+        station_frame_key = str(measurand).lower()
+        stations = self._station_frame_cache.get(station_frame_key)
+        if stations is None:
+            stations = (
+                tracer_frame
+                .dropna(subset=["Latitude", "Longitude"])
+                .groupby(["Sample Site Name", "WMO Code"], dropna=False)
+                .agg(Latitude=("Latitude", "mean"), Longitude=("Longitude", "mean"), n=("Measurand Amount", "count"))
+                .reset_index()
+            )
+            stations = stations[stations["n"] > 0]
+            self._station_frame_cache[station_frame_key] = stations
         if stations.empty:
             raise ValueError(f"No coordinate-indexed WISER stations found for {measurand} in {self.path.name}")
 

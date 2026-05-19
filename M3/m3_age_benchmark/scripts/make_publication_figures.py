@@ -45,6 +45,27 @@ def _read_csv(path: Path) -> pd.DataFrame:
     return pd.read_csv(path) if path.exists() else pd.DataFrame()
 
 
+def _design_summary() -> pd.DataFrame:
+    frames = []
+    for candidate in (
+        RESULT_DIR / "m3_tracerlpm_strict_parity_full_summary.csv",
+        RESULT_DIR / "m3_tracerlpm_parity_hier_oldwater_full_summary.csv",
+        RESULT_DIR / "m3_tracerlpm_parity_agefractions_full_summary.csv",
+        RESULT_DIR / "m3_hydrosheaf_selection_corrected_full_summary.csv",
+        RESULT_DIR / "m3_parity_reported_corrected_full_summary.csv",
+        RESULT_DIR / "m3_design_matrix_summary.csv",
+    ):
+        df = _read_csv(candidate)
+        if not df.empty:
+            frames.append(df)
+    if not frames:
+        return pd.DataFrame()
+    summary = pd.concat(frames, ignore_index=True)
+    if "scenario_id" in summary.columns:
+        summary = summary.drop_duplicates("scenario_id", keep="first")
+    return summary
+
+
 def _save(fig: plt.Figure, name: str) -> None:
     out = FIGURE_DIR / name
     tmp = out.with_suffix(out.suffix + ".tmp.png")
@@ -57,6 +78,8 @@ def _primary_results(scenario_id: str | None = None) -> pd.DataFrame:
     """Load primary pointwise results, preferring strict parity scenarios."""
     candidates = (
         RESULT_DIR / "m3_tracerlpm_strict_parity_full.csv",
+        RESULT_DIR / "m3_tracerlpm_parity_hier_oldwater_full.csv",
+        RESULT_DIR / "m3_tracerlpm_parity_agefractions_full.csv",
         RESULT_DIR / "m3_design_matrix_results.csv",
         RESULT_DIR / "m3_phase4_screened_full_results.csv",
         RESULT_DIR / "m3_phase4_younggas_full_results.csv",
@@ -96,7 +119,7 @@ def plot_fig1_atmospheric_histories() -> None:
 
 
 def plot_fig2_design_matrix_performance() -> None:
-    summary = _read_csv(RESULT_DIR / "m3_design_matrix_summary.csv")
+    summary = _design_summary()
     if summary.empty:
         return
     summary = summary.sort_values("median_abs_log10_error")

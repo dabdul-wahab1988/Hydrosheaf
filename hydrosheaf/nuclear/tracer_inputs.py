@@ -27,28 +27,41 @@ class SiteInputContext:
 def build_site_tracer_histories(context: SiteInputContext) -> dict[str, InputHistory]:
     """Return site-aware tracer input histories.
 
-    First implementation is simple but structured:
-    - Choose hemisphere by latitude.
-    - Return tritium history (regional scaling).
-    - Return gas histories (currently Northern Hemisphere screening defaults).
-    - Record metadata so callers know which history mode was used.
+    Prefer the nearest WISER tritium station when the bundled North America
+    workbook is available, then fall back to deterministic latitude-region
+    histories. Gas histories remain compact atmospheric histories, but are
+    adjusted by broad latitude band to avoid treating southern/tropical
+    recharge as identical to the Northern Hemisphere reference curve.
     """
     lat = context.latitude
     region = "northern_continental"
-    history_source = "default_northern_hemisphere"
     if lat is not None and lat < 0:
         region = "southern_hemisphere"
-        history_source = "default_southern_hemisphere_fallback"
+    elif lat is not None and abs(lat) <= 23.5:
+        region = "tropical"
+
+    tritium_history: InputHistory
+    try:
+        from .wiser_loader import WISER_NA
+
+        if WISER_NA is not None and context.latitude is not None and context.longitude is not None:
+            tritium_history = WISER_NA.get_nearest_input_history(
+                context.latitude,
+                context.longitude,
+                "Tritium",
+            )
+            tritium_history = _compact_history(tritium_history)
+        else:
+            raise ValueError("nearest WISER lookup requires bundled data and coordinates")
+    except Exception:
+        tritium_history = build_default_tritium_input(region)
 
     histories: dict[str, InputHistory] = {
-        "3H": build_default_tritium_input(region),
+        "3H": tritium_history,
     }
 
-    # Gas histories: use compact atmospheric defaults for now.
-    # TODO: Replace with hemisphere-specific station histories when available.
-    from .multi_tracer import build_atmospheric_tracer_input
     for tracer in ("SF6", "CFC11", "CFC12", "CFC113", "85Kr"):
-        histories[tracer] = build_atmospheric_tracer_input(tracer)
+        histories[tracer] = _localized_gas_history(tracer, context)
 
     return histories
 
@@ -56,17 +69,66 @@ def build_site_tracer_histories(context: SiteInputContext) -> dict[str, InputHis
 def site_input_history_metadata(context: SiteInputContext) -> dict[str, str]:
     """Return metadata tags describing which histories were selected."""
     lat = context.latitude
-    if lat is not None and lat < 0:
-        return {
-            "input_history_mode": "hemisphere_scaled",
-            "input_history_region": "southern_hemisphere",
-            "input_history_source": "default_southern_hemisphere_fallback",
-        }
+    region = _history_region(context)
+    try:
+        from .wiser_loader import WISER_NA
+
+        has_wiser = WISER_NA is not None and context.latitude is not None and context.longitude is not None
+    except Exception:
+        has_wiser = False
     return {
-        "input_history_mode": "hemisphere_scaled",
-        "input_history_region": "northern_hemisphere",
-        "input_history_source": "default_northern_hemisphere",
+        "input_history_mode": "wiser_nearest_plus_site_adjusted_gases" if has_wiser else "hemisphere_scaled",
+        "input_history_region": region,
+        "input_history_source": "wiser_north_america_nearest" if has_wiser else f"default_{region}_fallback",
     }
+
+
+def _history_region(context: SiteInputContext) -> str:
+    lat = context.latitude
+    if lat is not None and lat < 0:
+        return "southern_hemisphere"
+    if lat is not None and abs(lat) <= 23.5:
+        return "tropical"
+    return "northern_hemisphere"
+
+
+def _localized_gas_history(tracer: str, context: SiteInputContext) -> InputHistory:
+    from .multi_tracer import build_atmospheric_tracer_input
+
+    base = build_atmospheric_tracer_input(tracer)
+    region = _history_region(context)
+    scale = 1.0
+    lag_years = 0.0
+    if region == "southern_hemisphere":
+        scale = 0.94
+        lag_years = 1.25
+    elif region == "tropical":
+        scale = 0.97
+        lag_years = 0.5
+
+    years = np.asarray(base.years, dtype=float) + lag_years
+    values = np.asarray(base.values, dtype=float) * scale
+    sigma = np.maximum(np.asarray(base.sigma, dtype=float) * scale, np.abs(values) * 0.03)
+    return InputHistory(years, values, sigma)
+
+
+def _compact_history(history: InputHistory, *, step_years: float = 0.5, max_points: int = 220) -> InputHistory:
+    """Aggregate dense station histories to a stable grid for repeated fitting."""
+    years = np.asarray(history.years, dtype=float)
+    values = np.asarray(history.values, dtype=float)
+    sigma = np.asarray(history.sigma, dtype=float)
+    if len(years) <= max_points:
+        return history
+
+    bins = np.round(years / step_years) * step_years
+    unique_bins, inverse = np.unique(bins, return_inverse=True)
+    out_values = np.zeros_like(unique_bins, dtype=float)
+    out_sigma = np.zeros_like(unique_bins, dtype=float)
+    for idx in range(len(unique_bins)):
+        mask = inverse == idx
+        out_values[idx] = float(np.mean(values[mask]))
+        out_sigma[idx] = float(np.sqrt(np.mean(sigma[mask] ** 2))) if np.any(mask) else 0.0
+    return InputHistory(unique_bins, out_values, out_sigma)
 
 
 GAS_TRACERS = ("SF6", "CFC11", "CFC12", "CFC113", "85KR")
