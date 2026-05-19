@@ -1,9 +1,7 @@
 import pandas as pd
-import numpy as np
-import math
 import sys
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict
 
 # Attempt absolute import if package installed, else relative
 try:
@@ -195,7 +193,6 @@ class ManuWorkflow:
         from hydrosheaf.outputs.plots import plot_gibbs, plot_ilr, plot_edge_anomalies
         from hydrosheaf.outputs.plots_3d import plot_network_3d
         from hydrosheaf.outputs.utils import PlotConfig
-        import os
         
         out_path = Path(output_dir)
         out_path.mkdir(exist_ok=True, parents=True)
@@ -293,7 +290,7 @@ class ManuWorkflow:
         # 3. Source Identification
         virtual = [s for s in samples if s.get('type') == 'virtual']
         if virtual:
-            print(f"\n[3] INFERRED SOURCE CANDIDATES (Potential Pollution)")
+            print("\n[3] INFERRED SOURCE CANDIDATES (Potential Pollution)")
             for vn in virtual:
                 no3_mg = mmolL_to_mgL(vn.get('NO3', 0), 'NO3')
                 cl_mg = mmolL_to_mgL(vn.get('Cl', 0), 'Cl')

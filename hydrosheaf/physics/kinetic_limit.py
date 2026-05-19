@@ -1,7 +1,6 @@
 """Kinetic feasibility filtering for inverse geochemical models."""
 
-from typing import Dict, List, Mapping, Optional, Tuple
-import math
+from typing import List, Optional
 
 from ..config import Config
 

@@ -1,7 +1,7 @@
 """Isotope-derived metrics for sheaf scoring."""
 
 from dataclasses import dataclass
-from typing import Iterable, Mapping, Optional, Tuple
+from typing import Iterable, Mapping, Optional
 import math
 
 import numpy as np

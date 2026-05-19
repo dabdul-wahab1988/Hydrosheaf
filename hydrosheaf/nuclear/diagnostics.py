@@ -7,7 +7,7 @@ are not identifiable from the available tracer suite.
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
+from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 from .joint_lpm import JointLpmFit, fit_lpm_models
 from .multi_tracer import TracerAgeEstimate, combine_tracer_age_estimates

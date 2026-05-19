@@ -4,7 +4,6 @@ Lumped Parameter Models (LPMs) for groundwater dating.
 from __future__ import annotations
 
 import numpy as np
-from typing import Callable, Tuple
 
 def piston_flow_model(tau_m: float, t: np.ndarray) -> np.ndarray:
     """

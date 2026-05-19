@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from datetime import datetime
 from statistics import median
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from .config import Config
 from .data.parsing import (
     extract_sample_decimal_year as _extract_sample_decimal_year,
-    parse_decimal_year as _parse_decimal_year,
     sample_list as _sample_list,
 )
 from .data.schema import parse_numeric

@@ -1,7 +1,7 @@
 """Latent Endmember Identification (Virtual Nodes)."""
 
 import math
-from typing import Dict, List, Mapping, Tuple
+from typing import List, Mapping
 
 try:
     import numpy as np

@@ -1,7 +1,6 @@
 """Convex parameter-level graph regularization for groundwater age inference."""
 from __future__ import annotations
-import json, math
-from typing import Any, Mapping
+import math
 import numpy as np
 from scipy.optimize import minimize
 

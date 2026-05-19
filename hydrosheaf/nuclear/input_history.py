@@ -3,7 +3,7 @@ Input history handling for transient tracers (e.g., Tritium).
 """
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 from pathlib import Path

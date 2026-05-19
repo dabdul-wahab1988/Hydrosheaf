@@ -10,7 +10,7 @@ from dataclasses import replace
 logger = get_logger("inference.network_fit")
 
 
-from ..data.schema import normalize_sample, vector_from_sample
+from ..data.schema import vector_from_sample
 from ..graph.build import (
     EdgeInput,
     build_edges,
@@ -29,7 +29,6 @@ from ..sheaf.topology_refine import refine_edges_with_sheaf
 from .edge_fit import EdgeResult, fit_edge
 from ..nitrate_source_v2 import infer_node_posteriors
 import pandas as pd
-import numpy as np
 
 
 def _safe_float(value: object) -> Optional[float]:
@@ -575,3 +574,47 @@ def infer_edges(
         gradient_min=config.edge_gradient_min,
         depth_mismatch=config.edge_depth_mismatch,
     )
+
+
+def edge_process_maps(results: List[EdgeResult]) -> Dict[str, List[Dict[str, object]]]:
+    transport_rows: List[Dict[str, object]] = []
+    reaction_rows: List[Dict[str, object]] = []
+    for result in results:
+        transport_row = {"edge_id": result.edge_id, **result.transport_probabilities}
+        reaction_row = {
+            "edge_id": result.edge_id,
+            **{
+                label: abs(value)
+                for label, value in zip(result.z_labels, result.z_extents)
+            },
+        }
+        transport_rows.append(transport_row)
+        reaction_rows.append(reaction_row)
+    return {
+        "transport_likelihoods": transport_rows,
+        "reaction_intensity": reaction_rows,
+    }
+
+
+def predict_node_ec_tds(samples: object, config: Config) -> List[Dict[str, object]]:
+    sample_map = _sample_map(samples)
+    rows: List[Dict[str, object]] = []
+    for site_id, sample in sample_map.items():
+        values, sample_norm = vector_from_sample(
+            sample,
+            config.ion_order,
+            config.missing_policy,
+            config.detection_limit_policy,
+        )
+        if values is None:
+            continue
+        ec_pred, tds_pred = predict_ec_tds(values, config)
+        rows.append(
+            {
+                "site_id": site_id,
+                "sample_id": sample_norm.get("sample_id"),
+                "ec_pred": ec_pred,
+                "tds_pred": tds_pred,
+            }
+        )
+    return rows

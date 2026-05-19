@@ -11,13 +11,13 @@
 | **EPM** | Piston delay + exponential tail | `mean_age_years`, `piston_fraction` | Piston fraction ∈ [0, 0.95]; remainder is EM |
 | **PEM** | Truncated exponential (short-circuited) | `mean_age_years`, `capture_fraction` | Capture fraction ∈ [0.05, 1.0]; cutoff = −τ·ln(1−η) |
 | **EMM** | Two-component EM mixture | `mean_age_years`, `young_fraction`, `old_age_ratio` | Old/young ratio ∈ [2, 10]; only 2 components |
-| **BMM-DM-DM** | Binary mix of two DMs | `mean_age_1_years`, `mean_age_2_years`, `binary_fraction`, `dispersion`, `dispersion_2` | Age₂ > Age₁ always; fraction ∈ [0.001, 0.999] |
-| **BMM-PEM-PEM** | Binary mix of two PEMs | Same pattern + `capture_fraction`, `capture_fraction_2` | Same binary constraints |
+| **BMM-DM-DM** | Binary mix of two DMs | `mean_age_1_years`, `mean_age_2_years`, `binary_fraction`, `dispersion`, `dispersion_2` | Age₂ is clamped to ≥ Age₁ + 0.1; fraction ∈ [0.001, 0.999] |
+| **BMM-PEM-PEM** | Binary mix of two PEMs | Same pattern + `capture_fraction`, `capture_fraction_2` | Same binary and clamping constraints |
 
 ### Common LPM assumptions
 
 - Integration: dτ = 0.25 yr (age ≤ 250), 1.0 yr (≤ 2000), 10 yr (otherwise)
-- Upper bound: max(100, 6·τ_mean, max_age)
+- Upper bound: max(100, 6·τ_mean)
 - PDFs always re-normalized to unit area
 - PFM pre-bomb fallback: 0.5 TU when recharge date precedes history
 
@@ -28,7 +28,7 @@
 | Nuclide | Half-life | Units | Decay Model |
 |---------|-----------|-------|-------------|
 | ³H | 12.32 yr | TU | exp(−λt), year = 365.25 days |
-| ¹⁴C | 5730 yr (Libby) | pmc | exp(−λt), mean life = 8033 yr |
+| ¹⁴C | 5730 yr (Cambridge) / 5568 yr (Libby) | pmc | exp(−λt); Cambridge physical half-life (5730 yr) used for decay calculations, Libby mean life (8033 yr) used for traditional apparent ages |
 | ³⁹Ar | 269 yr | pmc | exp(−λt), initial = 100 pmc |
 | ⁸⁵Kr | 10.76 yr | dpm/cc | exp(−λt) |
 
@@ -187,11 +187,12 @@ Mandatory ions must be present for each reaction:
 
 | Condition | Threshold |
 |-----------|----------|
-| Gypsum SO₄ minimum | 0.208 mmol/L |
-| Halite Cl minimum | 0.564 mmol/L |
+| Gypsum/Anhydrite SO₄ minimum | 0.208 mmol/L |
+| Gypsum/Anhydrite crystalline SO₄ maximum | 0.52 mmol/L |
+| Halite/Sylvite Cl minimum | 0.564 mmol/L |
 | Fluorite F minimum | 0.026 mmol/L |
 | Denitrification NO₃ pruning | < 0.16 mmol/L |
-| High NO₃ source forcing | > 0.8 mmol/L |
+| High NO₃ source forcing (prioritizes NO3src) | > 0.8 mmol/L (reduces penalty scale to 0.1) |
 
 ### Ion exchange
 
@@ -246,9 +247,9 @@ Five methods in priority order:
 | Method | Approach | Assumptions |
 |--------|----------|------------|
 | Cross-correlation | Multi-tracer (Cl, δ¹⁸O, δ²H) consensus | Minimum 3 points; agreement tolerance 0.4 spread |
-| Bayesian lag | Jeffreys prior on log(τ) | Truncated normal prior; 5-point minimum |
+| Bayesian lag | Truncated normal prior on τ (incorporates physics-based Darcy gradient when no explicit prior is provided) | Marginal likelihood under Jeffreys prior on (a, b, σ) linear parameters; 5-point minimum overlapping pairs |
 | TTD convolution | NNLS non-negative weights | Toeplitz lag matrix; smoothness penalty |
-| Darcy gradient | τ = L·φ/(K·i) | 50% uncertainty |
+| Darcy gradient | τ = L·φ/(K·i) | 50% uncertainty; default fallback hydraulic gradient: 0.001 |
 | Tracer decay | PFM age difference | Negative differences clamped to 0 |
 
 ### Quality gates
@@ -286,7 +287,8 @@ Five methods in priority order:
 
 | Reaction | Rate Expression | Condition |
 |----------|----------------|-----------|
-| calcite, dolomite, gypsum, halite, fluorite | k·A·(1 − 10^SI) | Dissolution + precipitation |
+| calcite, gypsum, halite, fluorite | k·A·(1 − 10^SI) | Dissolution + precipitation |
+| dolomite | k·A·(1 − 10^(0.5·SI)) | Dissolution + precipitation |
 | albite, anorthite | k·A·(1 − 10^SI) | Dissolution only (SI < 0) |
 | pyrite_oxidation_aerobic | k·A·[O₂]^0.5 | O₂ > 1e−6 |
 | denitrification | −k·[NO₃] | NO₃ > 1e−6 |
@@ -317,10 +319,10 @@ Five methods in priority order:
 ### Nuclear / Decay
 
 - Tritium half-life: 12.32 years
-- ¹⁴C half-life: 5730.0 years (Libby)
+- ¹⁴C half-life: 5730.0 years (Cambridge physical half-life)
 - ³⁹Ar half-life: 269.0 years
 - ⁸⁵Kr half-life: 10.76 years
-- ¹⁴C mean life: 8033 years
+- ¹⁴C mean life: 8033 years (Libby; used for traditional apparent age equation)
 - Year length: 365.25 days
 
 ### Atmospheric / Dissolved Gas
@@ -342,12 +344,14 @@ Five methods in priority order:
 - Pleistocene: τ > 11,700 years
 - Old groundwater: ¹⁴C age > 1,000 years
 - Young gas tracer max age: 85 years
+- Young tracer disagreement threshold: 80.0 years
 
 ### Geochemical
 
 - Denitrification NO₃ pruning: < 0.16 mmol/L
 - High nitrate forcing: > 0.8 mmol/L
 - Gypsum SO₄ threshold: < 0.208 mmol/L
+- Gypsum crystalline SO₄ maximum: 0.52 mmol/L
 - Halite Cl threshold: < 0.564 mmol/L
 - Fluorite F threshold: < 0.026 mmol/L
 
@@ -356,7 +360,7 @@ Five methods in priority order:
 - Default porosity: 0.25
 - Default dispersivity: 1.0 m
 - Default denitrification rate: 0.001 day⁻¹
-- Default hydraulic gradient: 0.01
+- Default hydraulic gradient: 0.001
 
 ### Numerical
 

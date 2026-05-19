@@ -2,7 +2,7 @@
 
 import math
 from dataclasses import dataclass, field
-from typing import Dict, List, Mapping, Optional, Tuple
+from typing import Dict, List, Mapping, Optional
 
 from ..config import Config
 from ..log import get_logger
@@ -12,7 +12,6 @@ logger = get_logger("inference.edge_fit")
 from ..models.ec_tds import ec_tds_penalty
 from ..models.gibbs import gibbs_evaporation_penalty, compute_gibbs_metrics
 from ..models.reactions import ReactionFit, build_reaction_dictionary, fit_reactions
-from ..models.mixing import fit_evaporation, fit_mixing
 from ..isotopes import extract_isotopes, isotope_penalty
 from ..physics.kinetic_limit import apply_kinetic_penalties
 

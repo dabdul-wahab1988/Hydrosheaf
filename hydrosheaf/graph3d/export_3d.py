@@ -1,8 +1,7 @@
 """3D Process Mapping and Export for Hydrosheaf."""
 
 import json
-from typing import Any, Dict, List, Optional
-from ..graph.types import Edge
+from typing import Any, Dict, List
 
 def export_network_3d_json(
     nodes_info: List[Dict[str, Any]],

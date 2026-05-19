@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from typing import Iterable, List, Mapping, Optional, Sequence, Tuple
 import math
-import numpy as np
 
 from ..config import Config, DEFAULT_ION_ORDER
 from ..data.minerals import get_mineral_stoich

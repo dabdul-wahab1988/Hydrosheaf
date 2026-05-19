@@ -871,7 +871,7 @@ def _refine_best_candidate(
             refined = _unpack_parameters(model, res_nm.x, keys, bounds)
             return refined, True, "Nelder-Mead refined"
         x0 = res_nm.x
-    except Exception as exc:
+    except Exception:
         pass
 
     # L-BFGS-B fallback on bounded transformed parameters

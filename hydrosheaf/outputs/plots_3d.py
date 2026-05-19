@@ -2,9 +2,8 @@
 3D Visualization of Flow Networks using PyVista.
 """
 
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 import logging
-import numpy as np
 from ..graph3d.types_3d import Network3D, Node3D, Edge3D
 from ..graph.types import Edge
 from .utils import PlotConfig

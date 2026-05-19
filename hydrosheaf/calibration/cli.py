@@ -7,16 +7,15 @@ import os
 import json
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from .config import load_calibration_config, load_observations_from_csv
+from .config import load_calibration_config
 from .glm import PESTGLM
 from .pestpp.runner import run_pestpp
 from .definitions import AdjustableParameter
 from .adapters import (
     TransportCalibrationAdapter,
     TransportExperiment,
-    VadoseCalibrationAdapter,
     CompositeCalibrationAdapter,
     KineticCalibrationAdapter,
     KineticExperiment

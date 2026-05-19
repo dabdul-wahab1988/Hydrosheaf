@@ -4,8 +4,8 @@ Inverse modeling for radioactive tracers.
 from __future__ import annotations
 
 import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
-from .nuclides import Nuclide, TRITIUM
+from typing import Dict, Optional, Tuple, Any
+from .nuclides import Nuclide
 from .input_history import InputHistory, get_input_history
 from .lpm import convolve_input
 from ..log import get_logger

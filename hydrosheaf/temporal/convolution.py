@@ -1,7 +1,7 @@
 """Temporal Convolution Utilities."""
 
 import math
-from typing import List, Tuple
+from typing import List
 
 def convolve_reactive_ttd(
     c_in: float,
