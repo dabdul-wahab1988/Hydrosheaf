@@ -73,7 +73,6 @@ python -m pytest tests/test_accuracy_reactive.py
 ## Data Units Notes
 
 - CLI input units are configurable via `--unit` (default `mmol/L`).
-- Web frontend uses `mg/L` and converts via backend adapters.
 - Research objectives demo expects `*_mg_L` columns in the synthetic CSVs.
 
 ## Optional Dependencies
@@ -301,13 +300,7 @@ hydrosheaf \
 
 - Sample CSVs: `hydrosheaf/examples/sample_data.csv`, `hydrosheaf/examples/edges.csv`.
 - Synthetic demo data: `hydrosheaf_synthetic_csv/` at repo root.
-- Demo API endpoints: `http://localhost:8000/api/demo`.
 
-## Web Demo
-
-- Start backend: `uvicorn app.main:app --reload --port 8000` from `web/backend`.
-- Start frontend: `npm run dev` from `web/frontend`.
-- Demo page uses `/api/demo` endpoints and expects the synthetic CSVs.
 
 ## Next Steps
 

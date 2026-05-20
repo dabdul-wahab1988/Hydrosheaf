@@ -14,7 +14,7 @@ class RegressionSmallNetworkTests(unittest.TestCase):
             (fixtures_dir / "small_network_expected.json").read_text()
         )
 
-        config = Config(lambda_sparse=0.0, missing_policy="impute_zero")
+        config = Config(lambda_sparse=0.0, missing_policy="impute_zero", honest_modeling=False)
         results = fit_network(samples, [("A", "B")], config)
 
         self.assertEqual(len(results), 1)

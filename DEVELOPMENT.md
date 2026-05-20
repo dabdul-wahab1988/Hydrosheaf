@@ -161,7 +161,7 @@ python -m pytest tests/test_accuracy*.py -v
 2. Add `__init__.py` with public exports
 3. Write implementation files
 4. Add corresponding tests in `tests/test_my_module.py`
-5. Update documentation in `HYDROSHEAF_USER_MANUAL.md`
+5. Update documentation in `docs/` (e.g. `USER_GUIDE.md` or `EXTENSIONS_SUMMARY.md`)
 6. Run tests: `pytest tests/test_my_module.py`
 
 ### Modifying Core Functions
@@ -170,7 +170,7 @@ python -m pytest tests/test_accuracy*.py -v
 2. Run relevant tests to ensure no regressions
 3. Update docstrings and type hints
 4. Add/update tests if behavior changed
-5. Update user manual if API changed
+5. Update user guide / extensions documentation if API changed
 6. Commit with descriptive message
 
 ### Code Style
@@ -206,7 +206,7 @@ mypy hydrosheaf/
 
 4. **Update documentation:**
    - Update docstrings
-   - Update `HYDROSHEAF_USER_MANUAL.md` if API changed
+   - Update `docs/USER_GUIDE.md` if API changed
    - Update `README.md` if user-facing
 
 5. **Run quality checks:**
@@ -245,7 +245,7 @@ mypy hydrosheaf/
 
 ### Updating User Manual
 
-All code changes that affect user-facing APIs should update `HYDROSHEAF_USER_MANUAL.md`:
+All code changes that affect user-facing APIs should update the relevant files in `docs/`:
 
 ```markdown
 ### New Function
@@ -302,7 +302,7 @@ See `.github/workflows/` for configuration details.
 - **Questions about code?** Open a GitHub Discussion
 - **Found a bug?** Open a GitHub Issue with reproduction steps
 - **Want to contribute?** See [Contributing](#contributing) section above
-- **Documentation questions?** Check `HYDROSHEAF_USER_MANUAL.md`
+- **Documentation questions?** Check `docs/USER_GUIDE.md` and files in the `docs/` directory
 
 ---
 
@@ -325,8 +325,7 @@ Hydrosheaf/
 │   └── ...
 ├── tests/                # Test suite
 ├── pestpp/               # PEST++ source code (optional)
-├── docs/                 # Additional documentation
-├── HYDROSHEAF_USER_MANUAL.md  # User reference
+├── docs/                 # Additional documentation (User Guide, Examples, etc.)
 ├── README.md             # User overview
 └── DEVELOPMENT.md        # This file
 ```

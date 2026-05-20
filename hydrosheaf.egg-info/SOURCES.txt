@@ -41,11 +41,13 @@ hydrosheaf/examples/transport_validation.py
 hydrosheaf/graph/__init__.py
 hydrosheaf/graph/build.py
 hydrosheaf/graph/head_inference.py
+hydrosheaf/graph/parameter_regularize.py
 hydrosheaf/graph/types.py
 hydrosheaf/graph3d/__init__.py
 hydrosheaf/graph3d/build_3d.py
 hydrosheaf/graph3d/constraints.py
 hydrosheaf/graph3d/distance.py
+hydrosheaf/graph3d/export_3d.py
 hydrosheaf/graph3d/layers.py
 hydrosheaf/graph3d/types_3d.py
 hydrosheaf/inference/__init__.py
@@ -73,8 +75,10 @@ hydrosheaf/nuclear/lpm.py
 hydrosheaf/nuclear/multi_tracer.py
 hydrosheaf/nuclear/network_aging.py
 hydrosheaf/nuclear/nuclides.py
+hydrosheaf/nuclear/old_groundwater.py
 hydrosheaf/nuclear/plots.py
 hydrosheaf/nuclear/tracer_inputs.py
+hydrosheaf/nuclear/wiser_loader.py
 hydrosheaf/outputs/__init__.py
 hydrosheaf/outputs/export.py
 hydrosheaf/outputs/interpret.py
@@ -90,6 +94,7 @@ hydrosheaf/phreeqc/outputs.py
 hydrosheaf/phreeqc/runner.py
 hydrosheaf/phreeqc/templates.py
 hydrosheaf/physics/__init__.py
+hydrosheaf/physics/kinetic_limit.py
 hydrosheaf/physics/modpath.py
 hydrosheaf/physics/priors.py
 hydrosheaf/reactive_transport/__init__.py
@@ -119,6 +124,7 @@ hydrosheaf/uncertainty/__init__.py
 hydrosheaf/uncertainty/bayesian.py
 hydrosheaf/uncertainty/bootstrap.py
 hydrosheaf/uncertainty/propagation.py
+hydrosheaf/uncertainty/sensitivity.py
 hydrosheaf/vadose/__init__.py
 hydrosheaf/vadose/calibrate.py
 hydrosheaf/vadose/contracts.py
@@ -167,9 +173,15 @@ tests/test_isotope_flaw.py
 tests/test_isotopes.py
 tests/test_joint_lpm.py
 tests/test_kinetic_improvements.py
+tests/test_latent_discovery.py
+tests/test_m3_advanced_nuclear.py
+tests/test_m3_calibrated_emulator.py
+tests/test_m3_real_graph_benchmark.py
+tests/test_m3_usgs_benchmark.py
 tests/test_mcmc_mixing.py
 tests/test_minerals.py
 tests/test_missing_values.py
+tests/test_mixing_model.py
 tests/test_multi_tracer_age.py
 tests/test_negative_concentrations.py
 tests/test_network_aging.py
@@ -178,6 +190,7 @@ tests/test_nitrate_isotopes.py
 tests/test_nitrate_source.py
 tests/test_nuclear.py
 tests/test_nuclear_diagnostics.py
+tests/test_old_groundwater.py
 tests/test_pest_adapters.py
 tests/test_pest_advanced.py
 tests/test_pest_calibration.py

@@ -953,7 +953,7 @@ def main() -> None:
         "--anisotropy",
         type=float,
         default=0.1,
-        help="Vertical anisotropy factor α_v (default: 0.1)",
+        help="Vertical anisotropy factor alpha_v (default: 0.1)",
     )
     parser.add_argument("--layer-file", type=str, help="Layer definition YAML file")
     parser.add_argument(

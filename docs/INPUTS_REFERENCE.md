@@ -9,7 +9,7 @@ All concentrations are assumed to be in mmol/L unless noted otherwise.
   `sample_id` is accepted and often required for file I/O, but `site_id` is the
   canonical node key during inference.
 - **Ion order**: Uses `config.ion_order` (default: Ca, Mg, Na, HCO3, Cl, SO4, NO3, F, Fe, PO4).
-- **Units**: Default is mmol/L. The CLI can convert from mg/L or meq/L. Web requests are in mg/L and convert via adapters.
+- **Units**: Default is mmol/L. The CLI can convert from mg/L or meq/L.
 
 - **Missing data**:
   - If `missing_policy="skip"`, missing ions skip the sample.

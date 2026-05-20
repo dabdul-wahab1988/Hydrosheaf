@@ -147,7 +147,7 @@ config = Config(
 )
 ```
 
-For detailed configuration reference, see [HYDROSHEAF_USER_MANUAL.md](HYDROSHEAF_USER_MANUAL.md#16-configuration-reference).
+For detailed configuration reference, see [User Guide](docs/USER_GUIDE.md#2-cli-options-reference).
 
 ### Data Input Format
 
@@ -196,14 +196,14 @@ edges = [
 
 For comprehensive reference, see:
 
-- **[HYDROSHEAF_USER_MANUAL.md](HYDROSHEAF_USER_MANUAL.md)**: Complete technical reference for all modules and functions (v0.1.0)
+- **[User Guide](docs/USER_GUIDE.md)**: Extended usage instructions, CLI options, and workflows
 - **[DEVELOPMENT.md](DEVELOPMENT.md)**: For developers and contributors (building from source, running tests, contributing)
 - **[Technical Document (PDF)](docs/papers/hydrosheaf_technical_document.pdf)**: Mathematical theory and proofs
-- **[User Guide](docs/USER_GUIDE.md)**: Extended usage instructions and workflows
 - **[Mathematical Reference](docs/math.md)**: Compact math notes aligned with the codebase
-- **[Technical Reference](docs/TECHNICAL_REFERENCE.md)**: Code architecture and module details
 - **[PHREEQC Integration](docs/phreeqc.md)**: Setting up thermodynamic constraints
 - **[Examples](docs/examples.md)**: Walkthroughs of common scenarios
+- **[Inputs Reference](docs/INPUTS_REFERENCE.md)**: Detailed description of required inputs per module
+- **[Extensions Summary](docs/EXTENSIONS_SUMMARY.md)**: Deep dive into 3D, vadose, uncertainty, age, and temporal extensions
 
 ## Troubleshooting & Common Questions
 
@@ -225,6 +225,28 @@ For comprehensive reference, see:
 ### Q: I got an error about missing dependencies
 **A:** Ensure you have installed the package using `pip install .`. All necessary dependencies are now included by default.
 
+
+---
+
+## Reference Data & External Citations
+
+This project utilizes reference data and documentation from the following official sources:
+
+*   **USGS Groundwater Age Distribution Data:**
+    *   **Title:** Data for distribution of groundwater age in aquifers used for public supply, United States
+    *   **Source of data:** Reference data
+    *   **Repository name:** Other (USGS Data Release)
+    *   **DOI:** [https://doi.org/10.5066/P9W7T0DN](https://doi.org/10.5066/P9W7T0DN)
+*   **USGS Savage Well Site Model Archive (MODFLOW/MODPATH):**
+    *   **Title:** MODFLOW-2005, MODPATH, and MOC3D model archive for the Savage Municipal Water-Supply Well site
+    *   **Source of data:** Reference data
+    *   **Repository name:** Other (USGS Data Release)
+    *   **DOI:** [https://doi.org/10.5066/F7J102FK](https://doi.org/10.5066/F7J102FK)
+*   **PHREEQC Documentation & Examples:**
+    *   **Title:** PHREEQC version 3 examples and documentation
+    *   **Source of data:** Reference data
+    *   **Repository name:** Other (USGS Techniques and Methods)
+    *   **DOI:** [https://doi.org/10.3133/tm6A43](https://doi.org/10.3133/tm6A43)
 
 ---
 

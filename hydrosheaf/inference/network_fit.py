@@ -528,52 +528,7 @@ def fit_edges(
     return fit_network(samples, edges, config, phreeqc_results=phreeqc_results)
 
 
-def infer_edges(
-    samples: object,
-    max_neighbors: int = 1,
-    allow_uphill: bool = False,
-    head_key: str = "hydraulic_head",
-    elevation_key: str = "elevation",
-    method: str = "simple",
-    config: Optional[Config] = None,
-) -> List[Edge]:
-    """Helper for inferring flow edges from sample coordinates and topography."""
-    if isinstance(samples, Mapping):
-        samples_iter = list(samples.values())
-    elif isinstance(samples, Sequence):
-        samples_iter = list(samples)
-    else:
-        raise TypeError("Unsupported samples input type.")
-        
-    if method == "simple":
-        return infer_edges_from_coordinates(
-            samples_iter,
-            max_neighbors=max_neighbors,
-            allow_uphill=allow_uphill,
-            head_key=head_key,
-            elevation_key=elevation_key,
-        )
-    
-    # Default to probabilistic if config provided
-    config = config or Config()
-    return infer_edges_probabilistic(
-        samples_iter,
-        radius_km=config.edge_radius_km,
-        max_neighbors=config.edge_max_neighbors,
-        p_min=config.edge_p_min,
-        head_key=config.edge_head_key,
-        dtw_key=config.edge_dtw_key,
-        elevation_key=config.edge_elevation_key,
-        aquifer_key=config.edge_aquifer_key,
-        screen_depth_key=config.edge_screen_depth_key,
-        well_depth_key=config.edge_well_depth_key,
-        sigma_meas=config.edge_sigma_meas,
-        sigma_dtw=config.edge_sigma_dtw,
-        sigma_elev=config.edge_sigma_elev,
-        sigma_topo=config.edge_sigma_topo,
-        gradient_min=config.edge_gradient_min,
-        depth_mismatch=config.edge_depth_mismatch,
-    )
+
 
 
 def edge_process_maps(results: List[EdgeResult]) -> Dict[str, List[Dict[str, object]]]:

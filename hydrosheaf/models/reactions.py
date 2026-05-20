@@ -80,7 +80,7 @@ def build_reaction_dictionary(
                 continue
 
         # Check Concentration Logic Gate
-        if sample is not None:
+        if config.honest_modeling and sample is not None:
             so4_val = float(sample.get("SO4") or 0.0)
             cl_val = float(sample.get("Cl") or 0.0)
             f_val = float(sample.get("F") or 0.0)

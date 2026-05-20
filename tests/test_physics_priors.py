@@ -39,8 +39,8 @@ class TestPhysicsPriors(unittest.TestCase):
 
     def test_explicit_tau_override_used(self):
         cfg = Config()
-        tau = estimate_edge_residence_time_days({"edge_residence_time_days": 42.0}, cfg)
-        self.assertAlmostEqual(float(tau or 0.0), 42.0)
+        tau_mean, tau_std = estimate_edge_residence_time_days({"edge_residence_time_days": 42.0}, cfg)
+        self.assertAlmostEqual(float(tau_mean or 0.0), 42.0)
 
     def test_compact_modpath5_endpoint_fallback(self):
         content = "\n".join(

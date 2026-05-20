@@ -19,7 +19,7 @@ $$x_i\ (\mathrm{mmol/L}) = \frac{C_i\ (\mathrm{mg/L})}{M_i}$$
 Charge equivalents:
 $$x_i\ (\mathrm{meq/L}) = |q_i| \cdot x_i\ (\mathrm{mmol/L})$$
 
-The CLI accepts `mg/L` or `meq/L` and converts to mmol/L; the web frontend sends `mg/L` and converts in the backend adapter.
+The CLI accepts `mg/L` or `meq/L` and converts to mmol/L.
 
 
 ## Transport + Reaction Residual
