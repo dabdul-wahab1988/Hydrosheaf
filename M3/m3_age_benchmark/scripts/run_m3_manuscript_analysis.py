@@ -37,6 +37,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--full", action="store_true", help="Run all eligible USGS rows.")
     parser.add_argument("--age-steps", type=int, default=35)
     parser.add_argument("--skip-selection", action="store_true")
+    parser.add_argument(
+        "--allow-coarse-full-grid",
+        action="store_true",
+        help="Allow a full run to use age_steps below the canonical M3 default.",
+    )
     args = parser.parse_args(argv)
 
     for directory in (RESULT_DIR, DOCS_DIR, FIGURE_DIR, TABLE_DIR):
@@ -52,6 +57,8 @@ def main(argv: list[str] | None = None) -> int:
         design_cmd.append("--full")
     else:
         design_cmd.extend(["--max-rows", str(args.max_rows)])
+    if args.allow_coarse_full_grid:
+        design_cmd.append("--allow-coarse-full-grid")
     if args.skip_selection:
         design_cmd.append("--skip-selection")
 

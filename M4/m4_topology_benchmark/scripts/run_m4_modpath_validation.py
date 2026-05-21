@@ -25,6 +25,8 @@ from hydrosheaf.validation import validate_independent_graph_against_modpath
 BENCHMARK_ROOT = Path(__file__).resolve().parents[1]
 M2_MODPATH_DATA = REPO_ROOT / "M2" / "m2_benchmark" / "external" / "modpath" / "input" / "selected_output"
 RESULT_DIR = BENCHMARK_ROOT / "results"
+RANDOM_SEED = 20260521
+SPARSITY_TRIALS = 20
 
 def load_modpath_reference():
     endpoint_file = M2_MODPATH_DATA / "base-MP.end"
@@ -81,7 +83,14 @@ def run_topology_benchmark():
         "scenario": "2.6.1_spatial_only",
         "precision": m["precision"],
         "recall": m["recall"],
-        "f1": m["f1"]
+        "f1": m["f1"],
+        "false_positive_rate": m["false_positive_rate"],
+        "false_negative_rate": m["false_negative_rate"],
+        "tp": m["tp"],
+        "fp": m["fp"],
+        "fn": m["fn"],
+        "n_reference_edges": m["n_reference_edges"],
+        "n_inferred_edges": m["n_inferred_edges"],
     })
     print(f"  F1: {m['f1']:.3f} (TP={m['tp']}, FP={m['fp']}, FN={m['fn']})")
 
@@ -97,7 +106,14 @@ def run_topology_benchmark():
         "scenario": "2.6.2_head_constrained",
         "precision": m["precision"],
         "recall": m["recall"],
-        "f1": m["f1"]
+        "f1": m["f1"],
+        "false_positive_rate": m["false_positive_rate"],
+        "false_negative_rate": m["false_negative_rate"],
+        "tp": m["tp"],
+        "fp": m["fp"],
+        "fn": m["fn"],
+        "n_reference_edges": m["n_reference_edges"],
+        "n_inferred_edges": m["n_inferred_edges"],
     })
     print(f"  F1: {m['f1']:.3f}")
     
@@ -126,7 +142,14 @@ def run_topology_benchmark():
         "scenario": "2.6.3_hydrostratigraphic",
         "precision": m["precision"],
         "recall": m["recall"],
-        "f1": m["f1"]
+        "f1": m["f1"],
+        "false_positive_rate": m["false_positive_rate"],
+        "false_negative_rate": m["false_negative_rate"],
+        "tp": m["tp"],
+        "fp": m["fp"],
+        "fn": m["fn"],
+        "n_reference_edges": m["n_reference_edges"],
+        "n_inferred_edges": m["n_inferred_edges"],
     })
     print(f"  F1: {m['f1']:.3f} (TP={m['tp']}, FP={m['fp']}, FN={m['fn']})")
 
@@ -135,12 +158,13 @@ def run_topology_benchmark():
     res_df.to_csv(RESULT_DIR / "m4_topology_benchmark_summary.csv", index=False)
     print(f"\nM4 Benchmark results saved to {RESULT_DIR}")
 
-def run_sparsity_sensitivity(samples, ref_edges):
+def run_sparsity_sensitivity(samples, ref_edges, *, trials=SPARSITY_TRIALS, random_seed=RANDOM_SEED):
     """
     Evaluates how inference performance decays as the number of available nodes decreases.
     """
     print("\nRunning Scenario 2.6.4: Node Sparsity Sensitivity...")
     sensitivity_results = []
+    rng = np.random.default_rng(random_seed)
     
     # Total nodes available
     total_nodes = len(samples)
@@ -150,12 +174,13 @@ def run_sparsity_sensitivity(samples, ref_edges):
         n_count = int(total_nodes * frac)
         if n_count < 5: continue
         
-        # Run 5 random trials per fraction for robustness
+        # Run deterministic random trials per fraction for reproducibility.
         trials_f1 = []
         trials_recall = []
-        for _ in range(5):
+        for _ in range(trials):
             # Sub-sample nodes
-            sub_samples = pd.DataFrame(samples).sample(n_count).to_dict("records")
+            trial_seed = int(rng.integers(0, np.iinfo(np.int32).max))
+            sub_samples = pd.DataFrame(samples).sample(n_count, random_state=trial_seed).to_dict("records")
             sub_ids = {s["id"] for s in sub_samples}
             
             # Filter reference edges: both u and v must be in sub-sample
@@ -181,7 +206,11 @@ def run_sparsity_sensitivity(samples, ref_edges):
                 "node_count": n_count,
                 "mean_f1": np.mean(trials_f1),
                 "std_f1": np.std(trials_f1),
-                "mean_recall": np.mean(trials_recall)
+                "mean_recall": np.mean(trials_recall),
+                "std_recall": np.std(trials_recall),
+                "successful_trials": len(trials_f1),
+                "planned_trials": trials,
+                "random_seed": random_seed,
             })
             print(f"  Frac {frac:.2f} ({n_count} nodes): Mean F1={np.mean(trials_f1):.3f}")
 

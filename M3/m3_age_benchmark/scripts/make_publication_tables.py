@@ -160,9 +160,12 @@ def make_table4() -> None:
     )
 
 
-def _scenario_metrics(df: pd.DataFrame, scenario_id: str) -> dict[str, float]:
-    """Compute core parity metrics for a specific scenario."""
+def _scenario_metrics_filtered(df: pd.DataFrame, scenario_id: str, site_ids: set | None = None) -> dict[str, float]:
+    """Compute core parity metrics for a specific scenario, optionally filtered by site_ids."""
     subset = df[df["scenario_id"] == scenario_id].copy() if "scenario_id" in df.columns else df.copy()
+    if site_ids is not None:
+        subset = subset[subset["site_id"].isin(site_ids)].copy()
+    
     subset = subset[subset["ref_age"].notna() & subset["est_age_multi"].notna()]
     subset = subset[pd.to_numeric(subset.get("log10_error"), errors="coerce").notna()]
     if subset.empty:
@@ -189,49 +192,222 @@ def _scenario_metrics(df: pd.DataFrame, scenario_id: str) -> dict[str, float]:
     }
 
 
-def make_table5_mode_comparison() -> None:
-    """Report strict parity, selection, and calibrated-emulation metrics separately."""
-    design = _mode_results()
-    rows: list[dict] = []
-    if not design.empty and "scenario_id" in design.columns:
-        for scenario_id, label in (
-            ("tracerlpm_strict_parity", "Strict TracerLPM parity"),
-            ("tracerlpm_parity_hier_oldwater", "Strict parity + hierarchical old-water priors"),
-            ("tracerlpm_parity_agefractions", "Strict parity + age-fraction constraints"),
-            ("hydrosheaf_selection_corrected", "Hydrosheaf model selection"),
-            ("screened_dgm_gases", "Screened young-gas correction"),
-            ("parity_reported_corrected", "Reported-model parity"),
-        ):
-            if scenario_id in set(design["scenario_id"].dropna()):
-                metrics = _scenario_metrics(design, scenario_id)
-                if metrics:
-                    rows.append({"mode": label, **metrics})
+def _calibrated_metrics_filtered(df: pd.DataFrame, site_ids: set | None = None) -> dict[str, float]:
+    """Compute core parity metrics for calibrated emulation, optionally filtered by site_ids."""
+    subset = df.copy()
+    if site_ids is not None:
+        subset = subset[subset["site_id"].isin(site_ids)].copy()
+        
+    target = pd.to_numeric(subset.get("log10_reported_age"), errors="coerce")
+    pred = pd.to_numeric(subset.get("log10_calibrated_age"), errors="coerce")
+    valid = target.notna() & pred.notna()
+    if not valid.any():
+        return {}
+    
+    signed_residual = pred[valid] - target[valid]
+    residual = signed_residual.abs()
+    y = target[valid]
+    ss_tot = float(((y - y.mean()) ** 2).sum()) if len(y) else float("nan")
+    ss_res = float((signed_residual**2).sum()) if len(signed_residual) else float("nan")
+    return {
+        "N": int(valid.sum()),
+        "finite_metrics": int(len(residual)),
+        "median_abs_log10_error": float(residual.median()),
+        "log10_rmse": float(np.sqrt(np.mean(residual**2))),
+        "log10_r2": 1.0 - ss_res / ss_tot if ss_tot and np.isfinite(ss_tot) else float("nan"),
+        "within_factor_2": float((residual <= np.log10(2.0)).mean()),
+    }
 
+
+def make_table5_mode_comparison() -> None:
+    """Report strict parity, selection, and calibrated-emulation metrics across three subsets:
+    1. Full Available
+    2. High-N Common Support (N=655)
+    3. Design Common Support (N=43)
+    """
+    design = _mode_results()
     calibrated = _read_csv(RESULT_DIR / "m3_usgs_calibrated_parity.csv")
+
+    scenarios = [
+        ("tracerlpm_strict_parity", "Strict TracerLPM parity"),
+        ("tracerlpm_parity_hier_oldwater", "Strict parity + hierarchical old-water priors"),
+        ("tracerlpm_parity_agefractions", "Strict parity + age-fraction constraints"),
+        ("hydrosheaf_selection_corrected", "Hydrosheaf model selection"),
+        ("screened_dgm_gases", "Screened young-gas correction"),
+        ("parity_reported_corrected", "Reported-model parity"),
+    ]
+
+    # Step 1: Compute valid site IDs for each scenario
+    valid_sites = {}
+    for scenario_id, _ in scenarios:
+        if not design.empty and "scenario_id" in design.columns:
+            sub = design[design["scenario_id"] == scenario_id]
+            valid_sub = sub[sub["ref_age"].notna() & sub["est_age_multi"].notna()]
+            valid_sub = valid_sub[pd.to_numeric(valid_sub.get("log10_error"), errors="coerce").notna()]
+            valid_sites[scenario_id] = set(valid_sub["site_id"].dropna().unique())
+        else:
+            valid_sites[scenario_id] = set()
+
     if not calibrated.empty:
         target = pd.to_numeric(calibrated.get("log10_reported_age"), errors="coerce")
         pred = pd.to_numeric(calibrated.get("log10_calibrated_age"), errors="coerce")
-        valid = target.notna() & pred.notna()
-        if valid.any():
-            signed_residual = pred[valid] - target[valid]
-            residual = signed_residual.abs()
-            y = target[valid]
-            ss_tot = float(((y - y.mean()) ** 2).sum()) if len(y) else float("nan")
-            ss_res = float((signed_residual**2).sum()) if len(signed_residual) else float("nan")
-            rows.append({
-                "mode": "USGS-calibrated benchmark emulation",
-                "N": int(valid.sum()),
-                "finite_metrics": int(len(residual)),
-                "median_abs_log10_error": float(residual.median()),
-                "log10_rmse": float(np.sqrt(np.mean(residual**2))),
-                "log10_r2": 1.0 - ss_res / ss_tot if ss_tot and np.isfinite(ss_tot) else float("nan"),
-                "within_factor_2": float((residual <= np.log10(2.0)).mean()),
-            })
+        valid_sub = calibrated[target.notna() & pred.notna()]
+        valid_sites["calibrated_emulation"] = set(valid_sub["site_id"].dropna().unique())
+    else:
+        valid_sites["calibrated_emulation"] = set()
+
+    # Step 2: Define intersections for the subsets
+    # 2a. High-N intersection (N=655)
+    high_n_scenarios = [
+        "tracerlpm_strict_parity",
+        "tracerlpm_parity_hier_oldwater",
+        "tracerlpm_parity_agefractions",
+        "parity_reported_corrected",
+        "calibrated_emulation"
+    ]
+    high_n_sets = [valid_sites[sid] for sid in high_n_scenarios if sid in valid_sites and valid_sites[sid]]
+    high_n_intersection = set.intersection(*high_n_sets) if high_n_sets else set()
+
+    # 2b. Design intersection (N=43)
+    all_sets = [s for s in valid_sites.values() if s]
+    design_intersection = set.intersection(*all_sets) if all_sets else set()
+
+    rows: list[dict] = []
+
+    # --- Subset 1: Full Available ---
+    for scenario_id, label in scenarios:
+        if not design.empty and scenario_id in set(design["scenario_id"].dropna()):
+            metrics = _scenario_metrics_filtered(design, scenario_id)
+            if metrics:
+                rows.append({"subset": "Full Available", "mode": label, **metrics})
+    if not calibrated.empty:
+        metrics = _calibrated_metrics_filtered(calibrated)
+        if metrics:
+            rows.append({"subset": "Full Available", "mode": "USGS-calibrated benchmark emulation", **metrics})
+
+    # --- Subset 2: High-N Common Support (N=655) ---
+    for scenario_id, label in scenarios:
+        if scenario_id in high_n_scenarios and not design.empty and scenario_id in set(design["scenario_id"].dropna()):
+            metrics = _scenario_metrics_filtered(design, scenario_id, high_n_intersection)
+            if metrics:
+                rows.append({"subset": "High-N Common Support (N=655)", "mode": label, **metrics})
+    if not calibrated.empty:
+        metrics = _calibrated_metrics_filtered(calibrated, high_n_intersection)
+        if metrics:
+            rows.append({"subset": "High-N Common Support (N=655)", "mode": "USGS-calibrated benchmark emulation", **metrics})
+
+    # --- Subset 3: Design Common Support (N=43) ---
+    for scenario_id, label in scenarios:
+        if not design.empty and scenario_id in set(design["scenario_id"].dropna()):
+            metrics = _scenario_metrics_filtered(design, scenario_id, design_intersection)
+            if metrics:
+                rows.append({"subset": "Design Common Support (N=43)", "mode": label, **metrics})
+    if not calibrated.empty:
+        metrics = _calibrated_metrics_filtered(calibrated, design_intersection)
+        if metrics:
+            rows.append({"subset": "Design Common Support (N=43)", "mode": "USGS-calibrated benchmark emulation", **metrics})
 
     if rows:
         pd.DataFrame(rows).to_csv(
             TABLE_DIR / "Manuscript_Table5_Mode_Comparison.csv", index=False
         )
+
+
+def make_table6_statistical_significance() -> None:
+    """Compute Wilcoxon signed-rank, paired t-test, and bootstrap CIs for strict vs age-fraction constraints."""
+    df_strict = _read_csv(RESULT_DIR / "m3_tracerlpm_strict_parity_full.csv")
+    df_frac = _read_csv(RESULT_DIR / "m3_tracerlpm_parity_agefractions_full.csv")
+    
+    if df_strict.empty or df_frac.empty:
+        return
+
+    df_strict = df_strict[df_strict["ref_age"].notna() & df_strict["est_age_multi"].notna()]
+    df_strict["log10_err_strict"] = pd.to_numeric(df_strict["log10_error"], errors="coerce")
+    df_strict = df_strict.dropna(subset=["log10_err_strict"])
+
+    df_frac = df_frac[df_frac["ref_age"].notna() & df_frac["est_age_multi"].notna()]
+    df_frac["log10_err_frac"] = pd.to_numeric(df_frac["log10_error"], errors="coerce")
+    df_frac = df_frac.dropna(subset=["log10_err_frac"])
+
+    merged = pd.merge(
+        df_strict[["site_id", "log10_err_strict"]],
+        df_frac[["site_id", "log10_err_frac"]],
+        on="site_id",
+        how="inner"
+    )
+
+    if merged.empty:
+        return
+
+    x_strict = merged["log10_err_strict"].values
+    x_frac = merged["log10_err_frac"].values
+
+    import scipy.stats as stats
+    res_wilc = stats.wilcoxon(x_strict, x_frac)
+    res_ttest = stats.ttest_rel(x_strict, x_frac)
+
+    np.random.seed(42)
+    n_boot = 5000
+    boot_diff_mae = []
+    boot_diff_rmse = []
+
+    for _ in range(n_boot):
+        idx = np.random.choice(len(merged), size=len(merged), replace=True)
+        strict_b = x_strict[idx]
+        frac_b = x_frac[idx]
+        
+        mae_strict = np.median(strict_b)
+        mae_frac = np.median(frac_b)
+        boot_diff_mae.append(mae_strict - mae_frac)
+        
+        rmse_strict = np.sqrt(np.mean(strict_b**2))
+        rmse_frac = np.sqrt(np.mean(frac_b**2))
+        boot_diff_rmse.append(rmse_strict - rmse_frac)
+
+    ci_mae = np.percentile(boot_diff_mae, [2.5, 97.5])
+    ci_rmse = np.percentile(boot_diff_rmse, [2.5, 97.5])
+
+    rows = [
+        {
+            "test_or_metric": "Paired Wilcoxon signed-rank test",
+            "comparison": "Strict Parity vs Age-Fraction Constraints",
+            "statistic": float(res_wilc.statistic),
+            "p_value": float(res_wilc.pvalue),
+            "ci_lower": np.nan,
+            "ci_upper": np.nan,
+            "interpretation": "Significant difference in absolute error distributions (p < 0.05)." if res_wilc.pvalue < 0.05 else "No significant difference."
+        },
+        {
+            "test_or_metric": "Paired t-test",
+            "comparison": "Strict Parity vs Age-Fraction Constraints",
+            "statistic": float(res_ttest.statistic),
+            "p_value": float(res_ttest.pvalue),
+            "ci_lower": np.nan,
+            "ci_upper": np.nan,
+            "interpretation": "Significant difference in mean absolute errors (p < 0.05)." if res_ttest.pvalue < 0.05 else "No significant difference."
+        },
+        {
+            "test_or_metric": "Bootstrap Difference in MAE (strict - agefractions)",
+            "comparison": "Strict Parity vs Age-Fraction Constraints",
+            "statistic": float(np.mean(boot_diff_mae)),
+            "p_value": np.nan,
+            "ci_lower": float(ci_mae[0]),
+            "ci_upper": float(ci_mae[1]),
+            "interpretation": "Positive difference indicates age-fraction constraints reduce median absolute error (MAE)."
+        },
+        {
+            "test_or_metric": "Bootstrap Difference in RMSE (strict - agefractions)",
+            "comparison": "Strict Parity vs Age-Fraction Constraints",
+            "statistic": float(np.mean(boot_diff_rmse)),
+            "p_value": np.nan,
+            "ci_lower": float(ci_rmse[0]),
+            "ci_upper": float(ci_rmse[1]),
+            "interpretation": "Positive difference indicates age-fraction constraints reduce RMSE."
+        }
+    ]
+
+    pd.DataFrame(rows).to_csv(TABLE_DIR / "Manuscript_Table6_Statistical_Significance.csv", index=False)
+
 
 
 def make_supp_tables() -> None:
@@ -275,6 +451,7 @@ def main() -> int:
     make_table3()
     make_table4()
     make_table5_mode_comparison()
+    make_table6_statistical_significance()
     make_supp_tables()
     print(f"Wrote M3 manuscript tables to {TABLE_DIR}")
     return 0

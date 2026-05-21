@@ -99,6 +99,27 @@ def select_rows(df: pd.DataFrame, max_rows: int | None) -> pd.DataFrame:
     return selected.drop(columns=["_m3_ref_age", "_m3_age_class"], errors="ignore")
 
 
+def _fit_single_task(task_args) -> dict:
+    row, age_steps, model_strategy, scenario, oldwater_priors = task_args
+    import run_m3_usgs_benchmark as usgs
+    result = usgs.fit_benchmark_row(
+        row,
+        age_steps=age_steps,
+        model_strategy=model_strategy,
+        factors=scenario,
+        oldwater_priors=oldwater_priors,
+    )
+    result.update(
+        {
+            "scenario_id": scenario["scenario_id"],
+            "scenario_label": scenario.get("label", scenario["scenario_id"]),
+            "scenario_purpose": scenario.get("purpose", ""),
+            "design_age_steps": age_steps,
+        }
+    )
+    return result
+
+
 def run_design_matrix(
     df: pd.DataFrame,
     config: dict,
@@ -130,30 +151,36 @@ def run_design_matrix(
         from hydrosheaf.nuclear.old_groundwater import build_old_groundwater_priors
         oldwater_priors = build_old_groundwater_priors(df_run)
 
-    rows: list[dict] = []
+    tasks = []
     for scenario in scenarios:
         scenario_id = scenario["scenario_id"]
         model_strategy = scenario.get("lpm_strategy", "reported")
-        print(f"Running scenario {scenario_id} on {len(df_run)} rows...", flush=True)
-        for i, (_, row) in enumerate(df_run.iterrows(), start=1):
-            if i == 1 or i % 10 == 0:
-                print(f"  {scenario_id}: row {i}/{len(df_run)}", flush=True)
-            result = usgs.fit_benchmark_row(
-                row,
-                age_steps=base_age_steps,
-                model_strategy=model_strategy,
-                factors=scenario,
-                oldwater_priors=oldwater_priors,
-            )
-            result.update(
-                {
-                    "scenario_id": scenario_id,
-                    "scenario_label": scenario.get("label", scenario_id),
-                    "scenario_purpose": scenario.get("purpose", ""),
-                    "design_age_steps": base_age_steps,
-                }
-            )
-            rows.append(result)
+        for _, row in df_run.iterrows():
+            tasks.append((row, base_age_steps, model_strategy, scenario, oldwater_priors))
+
+    import concurrent.futures
+    import os
+
+    max_workers = os.cpu_count() or 4
+    max_workers = min(61, max_workers)
+    print(f"Submitting {len(tasks)} row-fitting tasks across {max_workers} processes...", flush=True)
+
+    rows: list[dict] = []
+    completed = 0
+    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_fit_single_task, task): task for task in tasks}
+        for future in concurrent.futures.as_completed(futures):
+            completed += 1
+            if completed == 1 or completed % 100 == 0 or completed == len(tasks):
+                print(f"  Progress: {completed}/{len(tasks)} fits completed ({(completed / len(tasks) * 100):.1f}%)", flush=True)
+            try:
+                result = future.result()
+                rows.append(result)
+            except Exception as e:
+                task_arg = futures[future]
+                scenario_id = task_arg[3]["scenario_id"]
+                print(f"Error processing row in scenario {scenario_id}: {e}", file=sys.stderr, flush=True)
+
     return pd.DataFrame(rows)
 
 
