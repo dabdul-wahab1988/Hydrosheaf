@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: hydrosheaf
-Version: 0.5.0
+Version: 0.5.1
 Summary: Graph-sheaf groundwater inference for hydrogeochemistry, tracer ages, and flow topology
 Author-email: Hydrosheaf Team <info@hydrosheaf.org>
 Requires-Python: >=3.10

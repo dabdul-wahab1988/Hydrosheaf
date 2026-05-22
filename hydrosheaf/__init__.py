@@ -89,7 +89,7 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
 }
 
 __all__ = list(_EXPORTS)
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 
 def __getattr__(name: str) -> Any:
