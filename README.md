@@ -2,19 +2,35 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18157915.svg)](https://doi.org/10.5281/zenodo.18157915)
 
-**Sheaf-Theoretic Methods in Groundwater Hydrogeochemistry: A Mathematical Framework for Inverse Geochemical Modeling**
+**Hydrosheaf: A Graph-Sheaf Framework for Hydrogeochemical, Groundwater-Age, and Flow-Topology Inference**
+
+## Naming Options
+
+The package name remains **Hydrosheaf**. For manuscripts, documentation, and repository description, the most accurate long-form names are:
+
+1. **Hydrosheaf: A Graph-Sheaf Framework for Hydrogeochemical, Groundwater-Age, and Flow-Topology Inference**  
+   Best overall name. It captures the current scope of the package: inverse hydrogeochemistry, nuclear-tracer age inference, graph-based flow networks, and topology benchmarking.
+
+2. **Hydrosheaf: An Integrated Framework for Groundwater Hydrogeochemistry, Tracer-Age Inference, and Network Validation**  
+   Best reader-facing name for applied hydrogeology audiences. It is less mathematical and emphasizes what the software does.
+
+3. **Hydrosheaf: Sheaf-Guided Groundwater Inference for Reactive Transport, Tracer Ages, and Flow Networks**  
+   Best method-focused name. It foregrounds the sheaf-theoretic idea while still naming the major scientific tasks.
+
+Recommended choice: **Option 1** for the repository and software paper title, with Option 2 useful as a plain-language subtitle in abstracts, cover letters, or graphical summaries.
 
 ## Overview
 
-Hydrosheaf is a Python-based framework for solving inverse problems in groundwater hydrogeochemistry. It determines optimal transport processes (evaporation, mixing) and geochemical reactions that explain observed chemical evolution along flow paths in aquifer networks.
+Hydrosheaf is a Python-based framework for groundwater inference across hydrogeochemistry, environmental tracers, and flow-network topology. It combines inverse geochemical modeling, nuclear-tracer age estimation, graph-based aquifer connectivity, uncertainty quantification, and benchmark workflows against public groundwater-age and MODFLOW/MODPATH reference datasets.
 
 The framework integrates:
 
 - **Weighted Least Squares Optimization** for transport model selection.
 - **Sparse LASSO Regression** with coordinate descent for parsimonious reaction fitting.
 - **Thermodynamic Constraints** utilizing PHREEQC for saturation index calculations.
-- **Isotope Hydrogeology** for independent process validation (Deuterium Excess, LMWL).
-- **Graph Theory** for probabilistic flow network inference.
+- **Isotope and Nuclear-Tracer Hydrogeology** for process validation and groundwater-age inference.
+- **Graph and Sheaf-Based Network Inference** for probabilistic flow connectivity and topology refinement.
+- **MODFLOW/MODPATH Benchmarking** for testing reduced-order graph topology against reference particle-tracking outputs.
 
 ## Features
 
