@@ -56,6 +56,12 @@ cd Hydrosheaf
 pip install .
 ```
 
+Optional 3D visualization and VTK export support can be installed with:
+
+```bash
+pip install ".[viz3d]"
+```
+
 ### External Dependencies
 
 **For PEST++ Calibration (Auto-handled):**
@@ -78,12 +84,12 @@ When you do `pip install .`, you get **full functionality** for:
 - Isotope analysis and forensics
 - Nitrate source discrimination (Bayesian MCMC)
 - Network inference and topology refinement
-- 3D flow networks
+- 3D flow-network inference
 - Temporal dynamics and residence time estimation
 - Uncertainty quantification (Bootstrap, MCMC)
 - **Advanced Calibration (PEST++)**: Binaries are auto-downloaded when needed.
 
-**This is sufficient for 95% of use cases!**
+**This is sufficient for 95% of use cases.** Install `.[viz3d]` only when you need PyVista/VTK-based 3D plotting or VTK file export.
 
 ### Python API Usage
 
@@ -239,7 +245,7 @@ For comprehensive reference, see:
 **A: Yes!** While the PHREEQC library is installed by default, you can disable thermodynamic constraints in your configuration if you don't need them.
 
 ### Q: I got an error about missing dependencies
-**A:** Ensure you have installed the package using `pip install .`. All necessary dependencies are now included by default.
+**A:** Ensure you have installed the package using `pip install .`. For PyVista/VTK-based 3D plotting or VTK export, install the optional visualization extra with `pip install ".[viz3d]"`.
 
 
 ---

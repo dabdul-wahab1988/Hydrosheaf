@@ -10,7 +10,7 @@ authors = [
   { name="Hydrosheaf Team", email="info@hydrosheaf.org" },
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "numpy",
     "pandas",
@@ -22,8 +22,6 @@ dependencies = [
     "flopy",
     "seaborn",
     "phreeqpython",
-    "pyvista",
-    "vtk",
     "pymc",
     "nutpie",
     "PyYAML",
@@ -31,6 +29,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "black", "mypy"]
+viz3d = ["pyvista", "vtk"]
 
 [tool.setuptools.packages.find]
 include = ["hydrosheaf*"]

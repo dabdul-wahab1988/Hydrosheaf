@@ -8,8 +8,6 @@ typer
 flopy
 seaborn
 phreeqpython
-pyvista
-vtk
 pymc
 nutpie
 PyYAML
@@ -18,3 +16,7 @@ PyYAML
 pytest
 black
 mypy
+
+[viz3d]
+pyvista
+vtk
