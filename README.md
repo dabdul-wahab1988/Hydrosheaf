@@ -1,6 +1,6 @@
 # Hydrosheaf
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18157915.svg)](https://doi.org/10.5281/zenodo.18157915)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18157915.svg)](https://doi.org/10.5281/zenodo.20339942)
 
 **Hydrosheaf: A Graph-Sheaf Framework for Hydrogeochemical, Groundwater-Age, and Flow-Topology Inference**
 
