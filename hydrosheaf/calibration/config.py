@@ -12,7 +12,7 @@ from .definitions import AdjustableParameter, Observation
 
 @dataclass
 class CalibrationConfig:
-    problem_type: str  # "kinetic", "transport", "vadose", "composite"
+    problem_type: str  # "kinetic", "transport", "vadose", "nitrate", "age", "topology", "composite"
     n_workers: int = 1
     max_nfev: int = 50
     output_dir: str = "calibration_results"
@@ -21,6 +21,7 @@ class CalibrationConfig:
     engine: str = "internal"  # "internal" (PESTGLM), "pestpp-glm", "pestpp-ies"
     work_dir: Optional[str] = None # Workspace for PEST++ files
     ies_settings: Dict[str, Any] = field(default_factory=dict) # IES specific settings (n_ensemble, etc)
+    loss: str = "linear"  # Robust loss options: linear, huber, soft_l1, cauchy
 
     # Generic Parameter Definitions (for simple/generic problems)
     parameters: List[AdjustableParameter] = field(default_factory=list)
@@ -51,6 +52,7 @@ def load_calibration_config(path: str) -> CalibrationConfig:
         engine=settings.get("engine", "internal"),
         work_dir=settings.get("work_dir"),
         ies_settings=settings.get("ies", {}),
+        loss=settings.get("loss", "linear"),
         observations_file=cal_section.get("observations", {}).get("file"),
         model_config_file=cal_section.get("model", {}).get("config_file"),
         adapter_settings=cal_section.get("model", {}),

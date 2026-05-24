@@ -22,6 +22,7 @@ hydrosheaf/calibration/config.py
 hydrosheaf/calibration/definitions.py
 hydrosheaf/calibration/glm.py
 hydrosheaf/calibration/problem.py
+hydrosheaf/calibration/templates.py
 hydrosheaf/calibration/pestpp/__init__.py
 hydrosheaf/calibration/pestpp/runner.py
 hydrosheaf/data/__init__.py
@@ -138,6 +139,7 @@ hydrosheaf/vadose/ttd.py
 hydrosheaf/validation/__init__.py
 hydrosheaf/validation/claims.py
 hydrosheaf/validation/metrics.py
+hydrosheaf/validation/modpath_archive.py
 hydrosheaf/validation/reaction.py
 hydrosheaf/validation/topology.py
 hydrosheaf/workflows/__init__.py
@@ -149,6 +151,7 @@ tests/test_accuracy_temporal.py
 tests/test_accuracy_uncertainty.py
 tests/test_api_autodisable.py
 tests/test_calibration_cli.py
+tests/test_calibration_frontier_adapters.py
 tests/test_calibration_isotopes_adapter.py
 tests/test_calibration_pestpp.py
 tests/test_cli_smoke.py
@@ -178,10 +181,13 @@ tests/test_m3_advanced_nuclear.py
 tests/test_m3_calibrated_emulator.py
 tests/test_m3_real_graph_benchmark.py
 tests/test_m3_usgs_benchmark.py
+tests/test_m4_claim_guardrails.py
+tests/test_m4_public_archive_pipeline.py
 tests/test_mcmc_mixing.py
 tests/test_minerals.py
 tests/test_missing_values.py
 tests/test_mixing_model.py
+tests/test_modpath_archive_reference_graph.py
 tests/test_multi_tracer_age.py
 tests/test_negative_concentrations.py
 tests/test_network_aging.py

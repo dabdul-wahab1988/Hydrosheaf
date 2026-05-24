@@ -32,6 +32,16 @@ from .reaction import (
     thermodynamic_bound_violations,
     validate_sparse_inverse_reaction_model,
 )
+from .modpath_archive import (
+    scan_modpath_archive,
+    load_modpath_endpoints,
+    load_modpath_pathlines,
+    standardise_endpoint_columns,
+    standardise_pathline_columns,
+    build_node_mapping,
+    build_reference_edges,
+    summarise_archive_evidence,
+)
 
 __all__ = [
     "ClaimRecord",
@@ -53,4 +63,12 @@ __all__ = [
     "missing_ion_sensitivity",
     "thermodynamic_bound_violations",
     "validate_sparse_inverse_reaction_model",
+    "scan_modpath_archive",
+    "load_modpath_endpoints",
+    "load_modpath_pathlines",
+    "standardise_endpoint_columns",
+    "standardise_pathline_columns",
+    "build_node_mapping",
+    "build_reference_edges",
+    "summarise_archive_evidence",
 ]

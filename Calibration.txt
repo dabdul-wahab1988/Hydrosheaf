@@ -1,0 +1,133 @@
+Yes. Here is a phased roadmap to fully resolve calibration integration in Hydrosheaf.
+
+**Phase 0: Baseline Safety**
+Goal: make sure future work does not break working calibration paths.
+
+1. Add a `hydrosheaf-cal` console-script smoke test.
+2. Fix the console entry point if needed: `pyproject.toml` currently points directly to `run_calibration_cli`, which expects `args`; better to expose a no-argument `main()`.
+3. Add minimal YAML fixtures for each calibration type.
+4. Define a calibration result schema shared by all adapters.
+5. Add regression tests for internal GLM and PEST++ export.
+
+Done when: `hydrosheaf-cal config.yaml` works from the installed CLI for every supported problem type.
+
+**Phase 1: Adapter Hardening**
+Goal: make each adapter scientifically and technically reliable.
+
+1. Kinetic: improve joint calibration of `k`, `A`, and reaction extent `xi`.
+2. Kinetic: add clear parameter naming rules for global, per-edge, per-layer, per-aquifer, and per-site-group scopes.
+3. Vadose: support `Ks`, `alpha`, `n`, `Kc`, preferential-flow fraction, and TTD CV in one adapter.
+4. Nitrate: calibrate evidence weights, priors, nitrate threshold, isotope QC thresholds, and process-constraint strengths.
+5. Age/temporal: support direct fitting from time-series node pairs, not only summary age targets.
+6. Topology: expose edge probabilities, selected edges, and diagnostic scores after calibration.
+
+Done when: every adapter has deterministic tests, failure-mode tests, and at least one realistic synthetic recovery test.
+
+**Phase 2: CLI Parity**
+Goal: make `hydrosheaf-cal` as usable as the Python API.
+
+1. Add full YAML examples for:
+   - `kinetic`
+   - `transport`
+   - `vadose`
+   - `nitrate`
+   - `age_temporal`
+   - `topology`
+   - `composite`
+2. Add helpful validation errors for missing files/columns.
+3. Add CLI output summaries, not just raw `results.json`.
+4. Add `--dry-run` to validate config and show resolved parameters/observations.
+5. Add `--write-template` to generate starter YAML configs.
+
+Done when: a user can run each calibration from CLI without reading source code.
+
+**Phase 3: Main Pipeline Coupling**
+Goal: calibrated parameters must feed back into normal Hydrosheaf analysis.
+
+1. Extend `Config.load_from_calibration_json()` for new parameter families.
+2. Map calibrated nitrate weights back into nitrate config overrides.
+3. Map calibrated age/temporal parameters into residence-time settings.
+4. Map topology probabilities into edge selection/refinement.
+5. Map vadose calibration into vadose priors and recharge/TTD settings.
+6. Add provenance fields showing which outputs used calibrated parameters.
+
+Done when: `hydrosheaf-cal` output can be passed to `hydrosheaf --load-calibration` and actually changes downstream results correctly.
+
+**Phase 4: True Topology Calibration**
+Goal: move beyond soft edge probability fitting.
+
+1. Implement outer-loop topology search:
+   - generate candidate edges
+   - calibrate edge probabilities
+   - select topology
+   - run network chemistry fit
+   - score residuals
+   - iterate
+2. Add add/remove/swap edge operations.
+3. Add constraints: acyclicity, max neighbors, head direction, depth/layer compatibility.
+4. Add model-selection criteria: AIC/BIC/CV score/held-out edge prediction.
+5. Add uncertainty over topology ensembles.
+
+Done when: topology calibration can recover known synthetic networks and improve held-out fit on benchmark networks.
+
+**Phase 5: Advanced Solvers**
+Goal: improve numerical robustness and uncertainty.
+
+1. Add robust loss options: Huber, soft-L1, Cauchy.
+2. Add parameter tying and equality constraints.
+3. Add bounded transforms beyond log: logit, softplus.
+4. Add SVD truncation controls for ill-conditioned problems.
+5. Add multistart support to CLI.
+6. Add PEST++ IES/localization config passthrough with tested `.pst` output.
+7. Add covariance diagnostics: rank, condition number, identifiable/non-identifiable flags.
+
+Done when: difficult inverse problems fail informatively or converge stably.
+
+**Phase 6: Composite Scientific Calibration**
+Goal: calibrate modules together, not only separately.
+
+1. Kinetic + transport joint calibration.
+2. Vadose + groundwater age calibration.
+3. Nitrate + denitrification extent calibration.
+4. Topology + chemistry + age calibration.
+5. Shared parameters across submodels.
+6. Observation-group weighting and objective decomposition.
+
+Done when: composite calibration reports per-module phi, shared parameters, and interpretable tradeoffs.
+
+**Phase 7: Validation Benchmarks**
+Goal: prove calibration is scientifically accurate.
+
+1. Synthetic recovery tests for each adapter.
+2. Noise sensitivity tests.
+3. Missing-data tests.
+4. Identifiability tests.
+5. Public benchmark datasets for age, topology, vadose, nitrate.
+6. Compare internal GLM vs PEST++ results on the same configs.
+7. Add expected tolerances and acceptance criteria.
+
+Done when: calibration claims are backed by repeatable benchmark evidence.
+
+**Phase 8: Documentation and User Trust**
+Goal: make the system usable and defensible.
+
+1. Calibration user guide.
+2. YAML schema reference.
+3. Adapter-specific examples.
+4. “Which calibration should I use?” decision table.
+5. Known limitations section.
+6. Troubleshooting guide.
+7. Output interpretation guide.
+
+Done when: a new user can prepare inputs, run calibration, interpret results, and know the limitations.
+
+**Recommended Order**
+Start with:
+
+1. Phase 0: console script + baseline CLI smoke tests.
+2. Phase 2: YAML examples and config validation.
+3. Phase 3: make calibrated outputs feed into the main pipeline.
+4. Phase 4: true topology calibration.
+5. Phase 6 and 7: composite calibration and benchmark validation.
+
+That order closes the biggest practical gap first: calibration should not just run; it should reliably affect Hydrosheaf’s scientific outputs.

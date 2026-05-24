@@ -1,0 +1,40 @@
+archive_id: "long_island_nitrogen"
+archive_name: "Long Island Nitrogen MODFLOW 6/MODPATH 7"
+archive_role: "scalability_archive_stub"
+validation_tier: "tier_3_long_island"
+source_url: "https://www.sciencebase.gov/catalog/item/609da029d34e6a607548b87d"
+source_doi: "10.5066/P97VFXZ4"
+local_archive_root: "M4/data/Teir_3"
+zip_file: "output.zip"
+modflow_version: "MODFLOW 6"
+modpath_version: 7
+model_name: "child-flow_mp"
+simulation_type: "large_archive_scalability_inspection"
+coordinate_system: "model_coordinates_archive_units"
+length_unit: "model_length_units"
+time_unit: "days"
+endpoint_files:
+  - "output/output.inset_future_lgr/mp/child-flow_mp.mplst"
+pathline_files:
+  - "output/output.inset_future_lgr/mp/child-flow_mp.mplst"
+endpoint_file_in_zip: "output/output.inset_future_lgr/mp/child-flow_mp.mplst"
+pathline_file_in_zip: "output/output.inset_future_lgr/mp/child-flow_mp.mplst"
+grid_files: []
+head_files: []
+budget_files: []
+particle_release_definition: "Listing-file-only placeholder until parseable endpoint/pathline outputs are configured."
+source_node_definition: "Not available in current parsed outputs."
+receptor_node_definition: "Not available in current parsed outputs."
+node_mapping_strategy: "Fallback stub; no scientific node mapping."
+edge_mapping_strategy: "Fallback stub; no reference edges generated."
+candidate_edge_strategy: "Not applicable in fallback mode."
+independent_validation_allowed: false
+prior_assisted_allowed: false
+capture_zone_polygon_available: false
+travel_time_harmonised: false
+node_match_distance: 100.0
+time_unit_days: 1.0
+allowed_claim: "Long Island archive is currently a scalability/inspection placeholder only."
+required_guardrail: "No Long Island scientific validation claim is allowed until parseable endpoint/pathline files are configured and processed."
+notes: "The pipeline writes empty guarded stub outputs for this archive."
+

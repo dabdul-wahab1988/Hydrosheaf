@@ -167,7 +167,11 @@ def load_profile(path: str) -> VadoseProfile:
                 alpha_1_m=entry.get("alpha_1_m"),
                 n=entry.get("n"),
                 ks_m_day=entry.get("ks_m_day"),
-                l=float(entry.get("l", 0.5)),
+                pore_connectivity=float(
+                    entry.get("pore_connectivity", entry.get("l", 0.5))
+                ),
+                dip_angle_deg=float(entry.get("dip_angle_deg", 0.0)),
+                anisotropy_ratio=float(entry.get("anisotropy_ratio", 1.0)),
             )
         )
     return VadoseProfile(

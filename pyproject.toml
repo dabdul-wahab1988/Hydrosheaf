@@ -36,4 +36,4 @@ include = ["hydrosheaf*"]
 
 [project.scripts]
 hydrosheaf = "hydrosheaf.cli:main"
-hydrosheaf-cal = "hydrosheaf.calibration.cli:run_calibration_cli"
+hydrosheaf-cal = "hydrosheaf.calibration.cli:main"

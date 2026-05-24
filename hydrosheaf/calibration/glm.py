@@ -28,12 +28,14 @@ class PESTGLM:
         model_runner: Callable[[Dict[str, float]], Dict[str, float]],
         n_workers: int = 1,  # Number of parallel workers
         worker_type: str = "thread",  # "thread" or "process"
+        loss: str = "linear",  # Robust loss options: linear, huber, soft_l1, cauchy
     ):
         self.parameters = parameters
         self.observations = observations
         self.model_runner = model_runner
         self.n_workers = n_workers
         self.worker_type = worker_type
+        self.loss = loss
 
         # Internal state
         self.iteration = 0
@@ -57,6 +59,7 @@ class PESTGLM:
         problem: CalibrationProblem,
         n_workers: int = 1,
         worker_type: str = "thread",
+        loss: str = "linear",
     ) -> "PESTGLM":
         """
         Create PESTGLM instance from a CalibrationProblem.
@@ -67,6 +70,7 @@ class PESTGLM:
             model_runner=problem.run_model,
             n_workers=n_workers,
             worker_type=worker_type,
+            loss=loss,
         )
 
     def _get_residuals(
@@ -251,7 +255,7 @@ class PESTGLM:
             jac=cast(Any, jac_arg),
             bounds=self.bounds,
             method="trf",
-            loss="linear",
+            loss=self.loss,
             max_nfev=max_nfev,
             verbose=1,
             ftol=1e-4,
@@ -278,12 +282,19 @@ class PESTGLM:
         phi_final = result.cost * 2.0
         sigma2 = phi_final / dof
 
+        covariance_method = "inverse"
         try:
             cov_x = np.linalg.inv(jac_weighted.T @ jac_weighted) * sigma2
             uncertainties = np.sqrt(np.diag(cov_x))
         except np.linalg.LinAlgError:
-            cov_x = None
-            uncertainties = np.zeros(n_par)
+            try:
+                cov_x = np.linalg.pinv(jac_weighted.T @ jac_weighted, rcond=1e-12) * sigma2
+                uncertainties = np.sqrt(np.maximum(np.diag(cov_x), 0.0))
+                covariance_method = "svd_pseudoinverse"
+            except np.linalg.LinAlgError:
+                cov_x = None
+                uncertainties = np.zeros(n_par)
+                covariance_method = "unavailable"
 
         # Map uncertainties back to real space
         param_uncertainties = {}
@@ -306,6 +317,7 @@ class PESTGLM:
             "n_iterations": result.nfev,
             "success": result.success,
             "message": result.message,
+            "covariance_method": covariance_method,
         }
 
 

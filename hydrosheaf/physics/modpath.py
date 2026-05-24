@@ -125,7 +125,8 @@ def _load_flopy_endpoint_records(endpoints_path: str) -> List[ModpathEndpoint]:
         time = _field(rec, ("time",))
         if x0 is None or y0 is None or x is None or y is None or time is None:
             continue
-        particle_id = int(_field(rec, ("particleid",)) or idx)
+        p_id = _field(rec, ("particleid",))
+        particle_id = int(p_id) if p_id is not None else idx
         initial_cell = _field(rec, ("node0",))
         final_cell = _field(rec, ("node",))
         status = _field(rec, ("status", "ipcode"))
@@ -193,6 +194,13 @@ def _load_compact_modpath5_endpoint_records(endpoints_path: str) -> List[Modpath
 
 def load_modpath_endpoint_records(endpoints_path: str) -> List[ModpathEndpoint]:
     """Load MODPATH endpoint records with a compact MODPATH 5 fallback."""
+    try:
+        with open(endpoints_path, "r", encoding="utf-8", errors="replace") as f:
+            first_line = f.readline()
+        if first_line.startswith("@"):
+            return _load_compact_modpath5_endpoint_records(endpoints_path)
+    except Exception:
+        pass
     try:
         return _load_flopy_endpoint_records(endpoints_path)
     except Exception:
@@ -270,6 +278,13 @@ def _load_compact_modpath5_pathline_points(pathline_path: str) -> List[ModpathPa
 
 def load_modpath_pathline_points(pathline_path: str) -> List[ModpathPathlinePoint]:
     """Load MODPATH pathline points with a compact MODPATH 5 fallback."""
+    try:
+        with open(pathline_path, "r", encoding="utf-8", errors="replace") as f:
+            first_line = f.readline()
+        if first_line.startswith("@"):
+            return _load_compact_modpath5_pathline_points(pathline_path)
+    except Exception:
+        pass
     try:
         return _load_flopy_pathline_points(pathline_path)
     except Exception:
