@@ -216,12 +216,17 @@ calibration:
   settings:
     engine: pestpp-sen
     sen:
-      sen_method: morris           # or sobol
-      sen_num_samples: 100
-      sen_morris_delta: 0.1
-      sen_sobol_samples: 1000
-      sen_sobol_par_dist: uniform
+      gsa_method: morris           # or sobol
+      gsa_morris_r: 100
+      gsa_morris_delta: 0.1
+      # Sobol alternatives:
+      # gsa_sobol_samples: 1000
+      # gsa_sobol_par_dist: unif     # or norm
 ```
+
+Hydrosheaf still accepts older aliases such as `sen_method`,
+`sen_num_samples`, and `sen_morris_delta`, but writes the PEST++ control file
+with the real `gsa_*` option names.
 
 ### PESTPP-SWP (Parameter Sweep)
 
@@ -244,11 +249,16 @@ calibration:
     max_iterations: 50
     opt:
       mou_population_size: 100
-      mou_max_generations: 50
       mou_generator: de               # or pso
       mou_objectives: "cost,rmse"
-      mou_constraints: "limit1,limit2"
+      opt_constraint_groups: "less_than_limit,greater_than_target"
+      opt_risk: 0.95
 ```
+
+PESTPP-MOU uses `max_iterations`/`NOPTMAX` for generations. Objectives and
+constraints must be observations or prior-information equations whose groups
+start with `less_`, `less_than`, `l_`, `greater_`, `greater_than`, or `g_` so
+PEST++ can infer the minimization/maximization direction.
 
 ### PESTPP-OPT (Optimization Under Uncertainty)
 
@@ -257,8 +267,10 @@ calibration:
   settings:
     engine: pestpp-opt
     opt:
-      risk: 0.95
-      dec_var_groups: "dec_var p1 p2 p3"
+      opt_risk: 0.95
+      opt_dec_var_groups: "pargp"
+      opt_constraint_groups: "less_than_limit"
+      opt_direction: min
 ```
 
 ### PESTPP-DA (Data Assimilation)
@@ -269,10 +281,16 @@ calibration:
     engine: pestpp-da
     max_iterations: 5
     da:
-      da_num_cycles: 5
-      da_restart_cycle: 0
+      da_hotstart_cycle: 0
+      # da_stop_cycle: 5
+      # da_noptmax_schedule: "da_noptmax_schedule.dat"
       # da_parameter_ensemble: "initial.par.csv"
 ```
+
+PESTPP-DA cycle count is not controlled by a `da_num_cycles` option. Cycles are
+defined by cycle-aware control-file sections and optional DA cycle tables; the
+number of ensemble-smoother iterations per cycle comes from `max_iterations`
+or `da_noptmax_schedule`.
 
 ---
 
@@ -286,6 +304,12 @@ For **PEST++** engines, setting `n_workers > 1` activates the PANTHER manager/ag
 
 The runner automatically finds a free ephemeral port, handles agent lifecycle, and cleans up processes on completion or failure (Windows-safe `terminate` → `wait(5s)` → `kill` cascade).
 
+On Windows, the PANTHER manager can occasionally keep running after writing
+valid outputs. Set the Hydrosheaf-only runtime option `panther_timeout_secs` to
+make the runner terminate the manager after the timeout and parse outputs if
+the expected files were already written. This option is not written to the
+PEST++ control file.
+
 ### Example
 
 ```yaml
@@ -294,6 +318,8 @@ calibration:
     engine: pestpp-ies
     n_workers: 4
     max_iterations: 20
+    pestpp_options:
+      panther_timeout_secs: 600
 ```
 
 On a 4-core machine, this launches 1 manager + 4 agents, giving 4 concurrent model evaluations.

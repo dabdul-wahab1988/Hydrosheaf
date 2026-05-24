@@ -14,6 +14,7 @@ from hydrosheaf.calibration.pestpp.runner import (
     PestRunner,
     parse_pest_residuals,
     parse_pest_sensitivities,
+    parse_sen_msn,
     parse_pest_identifiability,
     parse_ies_csv,
     generate_sweep_csv
@@ -207,7 +208,7 @@ def test_ies_parser(tmp_path):
     assert result["phi_history"] == [110.0, 55.0, 6.0]
 
 def test_sen_parser(tmp_path):
-    """Verify Sobol and Morris parser works correctly."""
+    """Verify Sobol, Morris, and real PESTPP-SEN .msn parsing works correctly."""
     # Mock Sobol file
     sobol_content = """parameter,first_order,total_order
 p1,0.3,0.85
@@ -221,6 +222,14 @@ p1,4.5,1.2
 p2,0.2,0.01
 """
     (tmp_path / "case.morris.csv").write_text(morris_content)
+
+    msn_content = """parameter_name,n_samples,sen_mean,sen_mean_abs,sen_std_dev
+p3,4,-2.0,2.0,0.4
+"""
+    (tmp_path / "case.msn").write_text(msn_content)
+
+    msn = parse_sen_msn(tmp_path / "case.msn")
+    assert msn["p3"]["sen_mean_abs"] == 2.0
     
     prob = GlobalMockProblem(params=[], obs=[])
         
@@ -243,6 +252,7 @@ p2,0.2,0.01
     assert result["first_order_sobol"]["p1"] == 0.3
     assert result["total_sobol"]["p1"] == 0.85
     assert result["morris_elementary_effects"]["p1"] == [4.5, 1.2]
+    assert result["morris_elementary_effects"]["p3"] == [2.0, 0.4]
     assert result["ranked_importance"] == ["p1", "p2"]
     assert result["recommended_calibratable_subset"] == ["p1"]
 
@@ -458,7 +468,7 @@ def test_ies_forecast_summary_parsing(tmp_path):
 
 
 def test_sen_workflow_defaults(tmp_path):
-    """Verify SEN prepare() sets default Morris/Sobol options in .pst."""
+    """Verify SEN prepare() does not emit rejected legacy option defaults."""
     prob = GlobalMockProblem(
         params=[AdjustableParameter("p1", 1.0), AdjustableParameter("p2", 2.0)],
         obs=[Observation("o1", 5.0)]
@@ -473,7 +483,34 @@ def test_sen_workflow_defaults(tmp_path):
     pst_path = tmp_path / "case.pst"
     assert pst_path.exists()
     content = pst_path.read_text()
-    assert "++sen_method" in content
+    assert "++sen_method" not in content
+    assert "++sen_num_samples" not in content
+    assert "++sen_morris_delta" not in content
+
+
+def test_sen_legacy_options_are_normalized(tmp_path):
+    """Verify old Hydrosheaf SEN option names are translated to PEST++ GSA names."""
+    prob = GlobalMockProblem(
+        params=[AdjustableParameter("p1", 1.0), AdjustableParameter("p2", 2.0)],
+        obs=[Observation("o1", 5.0)]
+    )
+    runner = PestRunner(
+        problem=prob,
+        engine="pestpp-sen",
+        work_dir=str(tmp_path),
+        case_name="case",
+        pestpp_options={
+            "sen_method": "morris",
+            "sen_num_samples": 12,
+            "sen_morris_delta": 0.2,
+        },
+    )
+    runner.prepare()
+    content = (tmp_path / "case.pst").read_text()
+    assert "++gsa_method(morris)" in content
+    assert "++gsa_morris_r(12)" in content
+    assert "++gsa_morris_delta(0.2)" in content
+    assert "++sen_method" not in content
 
 
 def test_swp_workflow_defaults(tmp_path):
@@ -499,10 +536,12 @@ def test_swp_workflow_defaults(tmp_path):
     content = pst_path.read_text()
     assert "++sweep_parameter_csv_file" in content
     assert "++sweep_output_csv_file" in content
+    assert "++sweep_n_runs" not in content
+    assert "++sweep_sampler" not in content
 
 
 def test_mou_workflow_defaults(tmp_path):
-    """Verify MOU prepare() sets population and generator defaults."""
+    """Verify MOU prepare() sets supported population and generator defaults."""
     prob = GlobalMockProblem(
         params=[AdjustableParameter("p1", 1.0)],
         obs=[Observation("o1", 5.0)]
@@ -518,13 +557,43 @@ def test_mou_workflow_defaults(tmp_path):
     pst_path = tmp_path / "case.pst"
     content = pst_path.read_text()
     assert "++mou_population_size" in content
-    assert "++mou_max_generations" in content
     assert "++mou_generator" in content
-    assert "++risk" in content
+    assert "++mou_max_generations" not in content
+    assert "++opt_risk" in content
+
+
+def test_mou_legacy_options_are_normalized(tmp_path):
+    """Verify old MOU/OPT aliases are normalized to supported PEST++ option names."""
+    prob = GlobalMockProblem(
+        params=[
+            AdjustableParameter("p1", 1.0, group="dv"),
+            AdjustableParameter("p2", 2.0, group="uncertain"),
+        ],
+        obs=[Observation("obj_cost", 5.0, group="less_than_obj")]
+    )
+    runner = PestRunner(
+        problem=prob,
+        engine="pestpp-mou",
+        work_dir=str(tmp_path),
+        case_name="case",
+        max_nfev=20,
+        pestpp_options={
+            "mou_max_generations": 3,
+            "dec_var_groups": "dec_var p1",
+            "risk": 0.8,
+        },
+    )
+    pst = runner.prepare()
+    content = (tmp_path / "case.pst").read_text()
+    assert pst.control_data.noptmax == 3
+    assert "++opt_dec_var_groups(dv)" in content
+    assert "++opt_risk(0.8)" in content
+    assert "++mou_max_generations" not in content
+    assert "++dec_var_groups" not in content
 
 
 def test_da_workflow_defaults(tmp_path):
-    """Verify DA prepare() sets cycle defaults in .pst."""
+    """Verify DA prepare() avoids unsupported cycle-count aliases."""
     prob = GlobalMockProblem(
         params=[AdjustableParameter("p1", 1.0)],
         obs=[Observation("o1", 5.0)]
@@ -539,4 +608,73 @@ def test_da_workflow_defaults(tmp_path):
     pst = runner.prepare()
     pst_path = tmp_path / "case.pst"
     content = pst_path.read_text()
-    assert "++da_num_cycles" in content
+    assert "++da_num_cycles" not in content
+
+
+def test_da_internal_state_options_are_not_written(tmp_path):
+    """Verify Hydrosheaf-only DA state helpers generate files without invalid ++ options."""
+    prob = GlobalMockProblem(
+        params=[AdjustableParameter("p1", 1.0, lower_bound=0.1, upper_bound=2.0)],
+        obs=[Observation("o1", 5.0)]
+    )
+    runner = PestRunner(
+        problem=prob,
+        engine="pestpp-da",
+        work_dir=str(tmp_path),
+        case_name="case",
+        pestpp_options={
+            "ies_num_reals": 3,
+            "da_state_names": ["head_1", "head_2"],
+            "da_state_initial_values": [10.0, 11.0],
+        },
+    )
+    runner.prepare()
+    content = (tmp_path / "case.pst").read_text()
+    assert (tmp_path / "case.state.0.par.csv").exists()
+    assert "++da_state_parameter_ensemble(case.state.0.par.csv)" in content
+    assert "++da_state_names" not in content
+    assert "++da_state_initial_values" not in content
+
+
+def test_da_real_output_pattern_parser(tmp_path):
+    """Verify DA parser recognizes real PESTPP-DA cycle/global output names."""
+    import subprocess
+
+    pd.DataFrame({
+        "real_name": ["r0", "r1"],
+        "p1": [1.0, 2.0],
+    }).to_csv(tmp_path / "case.0.0.par.csv", index=False)
+    pd.DataFrame({
+        "real_name": ["r0", "r1"],
+        "o1": [4.0, 5.0],
+    }).to_csv(tmp_path / "case.0.0.obs.csv", index=False)
+    pd.DataFrame({
+        "iteration": [0, 1],
+        "r0": [10.0, 4.0],
+        "r1": [12.0, 6.0],
+    }).to_csv(tmp_path / "case.global.phi.actual.csv", index=False)
+
+    prob = GlobalMockProblem(
+        params=[AdjustableParameter("p1", 1.0)],
+        obs=[Observation("o1", 5.0)]
+    )
+    runner = PestRunner(
+        problem=prob,
+        engine="pestpp-da",
+        work_dir=str(tmp_path),
+        case_name="case",
+        max_nfev=1,
+    )
+
+    orig_run = subprocess.run
+    try:
+        subprocess.run = lambda *args, **kwargs: None
+        result = runner.run()
+    finally:
+        subprocess.run = orig_run
+
+    assert result["success"]
+    assert result["phi_history"] == [11.0, 5.0]
+    assert result["cycles"][0]["cycle"] == 0
+    assert result["cycles"][0]["iteration"] == 0
+    assert result["posterior_parameters"]["p1"] == [1.0, 2.0]

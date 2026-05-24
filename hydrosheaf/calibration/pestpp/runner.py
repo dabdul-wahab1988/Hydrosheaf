@@ -16,6 +16,7 @@ import socket
 import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional
+import re
 import pandas as pd
 import numpy as np
 
@@ -33,7 +34,7 @@ def get_bin_dir(version: Optional[str] = None) -> Path:
     return Path("bin")
 
 def get_executable_suffix() -> str:
-    return ".exe" if platform.system() == "Windows" else ""
+    return ".exe" if os.name == "nt" else ""
 
 def get_executable_path(name: str, version: Optional[str] = None) -> str:
     """
@@ -809,6 +810,32 @@ def parse_pest_sensitivities(sen_path: Path) -> Dict[str, float]:
     return sens
 
 
+def parse_sen_msn(msn_path: Path) -> Dict[str, Dict[str, float]]:
+    """Parse PESTPP-SEN Method of Morris summary files (*.msn)."""
+    if not msn_path.exists():
+        return {}
+    try:
+        df = pd.read_csv(msn_path)
+    except Exception as e:
+        logger.warning(f"Failed to parse SEN msn file {msn_path}: {e}")
+        return {}
+
+    table: Dict[str, Dict[str, float]] = {}
+    for _, row in df.iterrows():
+        name = str(row.get("parameter_name", row.get("parameter", row.get("name", "")))).strip()
+        if not name:
+            continue
+        metrics: Dict[str, float] = {}
+        for key in ("n_samples", "sen_mean", "sen_mean_abs", "sen_std_dev"):
+            if key in row and not pd.isna(row[key]):
+                try:
+                    metrics[key] = float(row[key])
+                except (TypeError, ValueError):
+                    continue
+        table[name] = metrics
+    return table
+
+
 def parse_pest_identifiability(id_path: Path) -> Dict[str, float]:
     ident = {}
     if not id_path.exists():
@@ -839,6 +866,36 @@ def parse_ies_csv(csv_path: Path) -> Optional[Dict[str, List[float]]]:
     except Exception as e:
         logger.warning(f"Failed to parse IES CSV {csv_path}: {e}")
         return None
+
+
+def _parse_csv_records(csv_path: Path) -> Optional[List[Dict[str, Any]]]:
+    if not csv_path.exists():
+        return None
+    try:
+        return pd.read_csv(csv_path).to_dict(orient="records")
+    except Exception as e:
+        logger.warning(f"Failed to parse CSV records {csv_path}: {e}")
+        return None
+
+
+def _parse_phi_history_csv(csv_path: Path) -> List[float]:
+    if not csv_path.exists():
+        return []
+    try:
+        df = pd.read_csv(csv_path)
+        real_cols = [
+            c for c in df.columns
+            if c.lower() not in ("iteration", "iter", "cycle", "real_name", "realname")
+        ]
+        history = []
+        for _, row in df.iterrows():
+            vals = pd.to_numeric(row[real_cols], errors="coerce").dropna()
+            if not vals.empty:
+                history.append(float(vals.mean()))
+        return history
+    except Exception as e:
+        logger.warning(f"Failed to parse phi history {csv_path}: {e}")
+        return []
 
 
 def write_parcov_matrix(filepath: Path, params: List[AdjustableParameter]) -> None:
@@ -884,6 +941,166 @@ def write_localizer_matrix(filepath: Path, params: List[AdjustableParameter], ob
     filepath.write_text("\n".join(lines) + "\n")
 
 
+def _pop_option(options: Dict[str, Any], *names: str) -> Any:
+    for name in names:
+        if name in options:
+            return options.pop(name)
+        prefixed = name if name.startswith("++") else f"++{name}"
+        if prefixed in options:
+            return options.pop(prefixed)
+    return None
+
+
+def _set_if_value(options: Dict[str, Any], name: str, value: Any) -> None:
+    if value is not None and name not in options and f"++{name}" not in options:
+        options[name] = value
+
+
+def _split_option_tokens(value: Any) -> List[str]:
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple, set)):
+        return [str(v).strip() for v in value if str(v).strip()]
+    return [tok for tok in re.split(r"[\s,]+", str(value).strip()) if tok]
+
+
+def _normalize_opt_dec_var_groups(
+    raw_value: Any,
+    params: List[AdjustableParameter],
+) -> Optional[str]:
+    tokens = _split_option_tokens(raw_value)
+    if tokens and tokens[0].lower() in ("dec_var", "decision_variables", "decision_vars"):
+        tokens = tokens[1:]
+    if not tokens:
+        return None
+
+    group_by_param = {}
+    for p in params:
+        group = p.group if (p.group and p.group != "default") else "pargp"
+        group_by_param[p.name.lower()] = group
+
+    groups: List[str] = []
+    seen = set()
+    for token in tokens:
+        mapped = group_by_param.get(token.lower(), token)
+        key = mapped.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        groups.append(mapped)
+    return ",".join(groups) if groups else None
+
+
+def _normalize_constraint_groups(
+    raw_value: Any,
+    obs: List[Observation],
+) -> Optional[str]:
+    tokens = _split_option_tokens(raw_value)
+    if not tokens:
+        return None
+
+    group_by_obs = {}
+    for o in obs:
+        group_by_obs[o.name.lower()] = o.group if (o.group and o.group != "default") else "obsgp"
+
+    groups: List[str] = []
+    seen = set()
+    for token in tokens:
+        group = group_by_obs.get(token.lower(), token)
+        group_l = group.lower()
+        if not group_l.startswith(("l_", "less_", "less_than", "g_", "greater_", "greater_than")):
+            logger.warning(
+                f"Ignoring constraint group '{group}' because PEST++ expects "
+                "constraint groups to start with l_, less_, g_, or greater_."
+            )
+            continue
+        if group_l in seen:
+            continue
+        seen.add(group_l)
+        groups.append(group)
+    return ",".join(groups) if groups else None
+
+
+def _normalize_legacy_pestpp_options(
+    options: Dict[str, Any],
+    engine: str,
+    params: List[AdjustableParameter],
+    obs: List[Observation],
+) -> Optional[int]:
+    """
+    Translate Hydrosheaf's older convenience option names into real PEST++ names.
+
+    Returns an optional NOPTMAX override when a removed iteration-count alias is used.
+    """
+    noptmax_override = None
+
+    if engine == "pestpp-sen":
+        sen_method = _pop_option(options, "sen_method")
+        gsa_method = _pop_option(options, "gsa_method")
+        method = gsa_method or sen_method
+        if method:
+            _set_if_value(options, "gsa_method", method)
+
+        sen_num_samples = _pop_option(options, "sen_num_samples")
+        if sen_num_samples is not None:
+            target_method = str(method or "morris").lower()
+            if target_method == "sobol":
+                _set_if_value(options, "gsa_sobol_samples", sen_num_samples)
+            else:
+                _set_if_value(options, "gsa_morris_r", sen_num_samples)
+
+        _set_if_value(
+            options,
+            "gsa_morris_delta",
+            _pop_option(options, "sen_morris_delta", "morris_delta"),
+        )
+        _set_if_value(
+            options,
+            "gsa_sobol_samples",
+            _pop_option(options, "sen_sobol_samples"),
+        )
+        sobol_dist = _pop_option(options, "sen_sobol_par_dist")
+        if sobol_dist is not None:
+            dist = str(sobol_dist).strip().lower()
+            if dist == "uniform":
+                dist = "unif"
+            elif dist == "normal":
+                dist = "norm"
+            _set_if_value(options, "gsa_sobol_par_dist", dist)
+
+    if engine in ("pestpp-mou", "pestpp-opt"):
+        legacy_risk = _pop_option(options, "risk")
+        _set_if_value(options, "opt_risk", legacy_risk)
+
+        dec_groups = _pop_option(options, "dec_var_groups")
+        normalized_dec_groups = _normalize_opt_dec_var_groups(dec_groups, params)
+        _set_if_value(options, "opt_dec_var_groups", normalized_dec_groups)
+
+        constraint_groups = _pop_option(options, "mou_constraints", "constraint_groups")
+        normalized_constraints = _normalize_constraint_groups(constraint_groups, obs)
+        _set_if_value(options, "opt_constraint_groups", normalized_constraints)
+
+    if engine == "pestpp-mou":
+        mou_max_generations = _pop_option(options, "mou_max_generations")
+        if mou_max_generations is not None:
+            try:
+                noptmax_override = int(mou_max_generations)
+            except (TypeError, ValueError):
+                logger.warning(f"Ignoring invalid mou_max_generations value: {mou_max_generations}")
+
+    if engine == "pestpp-da":
+        da_num_cycles = _pop_option(options, "da_num_cycles")
+        if da_num_cycles is not None:
+            logger.warning(
+                "Ignoring da_num_cycles; PESTPP-DA cycle control is defined by "
+                "cycle-aware control-file sections and da_stop_cycle/da_noptmax_schedule."
+            )
+        da_restart = _pop_option(options, "da_restart_cycle")
+        _set_if_value(options, "da_hotstart_cycle", da_restart)
+
+    return noptmax_override
+
+
 class PestRunner:
     """Wraps PEST++ execution pipeline programmatically."""
 
@@ -904,7 +1121,12 @@ class PestRunner:
         self.case_name = case_name
         self.max_nfev = max_nfev
         self.n_workers = n_workers
-        self.pestpp_options = pestpp_options or {}
+        self.pestpp_options = (pestpp_options or {}).copy()
+        self._runtime_options: Dict[str, Any] = {}
+        for runtime_key in ("panther_timeout_secs",):
+            value = _pop_option(self.pestpp_options, runtime_key)
+            if value is not None:
+                self._runtime_options[runtime_key] = value
         self.pestpp_version = pestpp_version
         self._agents: List[subprocess.Popen] = []
 
@@ -934,6 +1156,12 @@ class PestRunner:
         pst.model_output_file = "results.dat"
         pst.pestpp_options = self.pestpp_options.copy()
         pst.pestpp_options.setdefault("max_run_fail", 1)
+        noptmax_override = _normalize_legacy_pestpp_options(
+            pst.pestpp_options,
+            self.engine,
+            params,
+            obs,
+        )
 
         if self.engine == "pestpp-glm":
             pst.pestpp_options.setdefault("lambdas", "1.0")
@@ -1026,8 +1254,8 @@ class PestRunner:
         # Config Sweep files
         if self.engine == "pestpp-swp":
             sweep_file = self.work_dir / f"{self.case_name}.swp.in.csv"
-            n_runs = int(pst.pestpp_options.get("sweep_n_runs", 50))
-            method = pst.pestpp_options.get("sweep_sampler", "latin_hypercube")
+            n_runs = int(_pop_option(pst.pestpp_options, "sweep_n_runs") or 50)
+            method = _pop_option(pst.pestpp_options, "sweep_sampler") or "latin_hypercube"
             generate_sweep_csv(sweep_file, params, n_runs, method)
             pst.pestpp_options.setdefault("sweep_parameter_csv_file", sweep_file.name)
             # Additional SWP options
@@ -1037,66 +1265,32 @@ class PestRunner:
                 # passthrough - already copied above, no action needed
                 pass
 
-        # Config SEN files
-        if self.engine == "pestpp-sen":
-            sen_method = pst.pestpp_options.get("sen_method", "sobol")
-            pst.pestpp_options.setdefault("sen_method", sen_method)
-            if sen_method == "morris":
-                pst.pestpp_options.setdefault("sen_num_samples", 10)
-                pst.pestpp_options.setdefault("sen_morris_delta", 0.1)
-            elif sen_method == "sobol":
-                pst.pestpp_options.setdefault("sen_sobol_samples", 100)
-                pst.pestpp_options.setdefault("sen_sobol_par_dist", "uniform")
-
         # Config MOU/OPT files
         if self.engine in ("pestpp-mou", "pestpp-opt"):
             if self.engine == "pestpp-mou":
                 pst.pestpp_options.setdefault("mou_population_size", 50)
-                pst.pestpp_options.setdefault("mou_max_generations", self.max_nfev)
                 pst.pestpp_options.setdefault("mou_generator", "de")
 
                 # Auto-detect objectives from observation names/groups
                 obj_names = pst.pestpp_options.get("mou_objectives")
                 if not obj_names:
-                    # Default: all observations prefixed "obj_" or "mou_obj_"
-                    obj_obs = [o.name for o in obs if o.name.startswith(("obj_", "mou_obj_"))]
+                    # Objectives must use PEST++ direction-aware observation groups.
+                    obj_obs = [
+                        o.name for o in obs
+                        if o.name.startswith(("obj_", "mou_obj_"))
+                        or o.group.lower().startswith(("l_", "less_", "less_than", "g_", "greater_", "greater_than"))
+                    ]
                     if obj_obs:
                         pst.pestpp_options.setdefault(
                             "mou_objectives",
                             ",".join(obj_obs)
                         )
-                    elif len(obs) > 0:
-                        # Fall back: first observation as objective if none marked
-                        pst.pestpp_options.setdefault(
-                            "mou_objectives",
-                            obs[0].name
-                        )
-
-                # Auto-detect constraints from observation names/groups
-                con_names = pst.pestpp_options.get("mou_constraints")
-                if not con_names:
-                    con_obs = [o.name for o in obs if o.name.startswith(("con_", "mou_con_"))]
-                    if con_obs:
-                        pst.pestpp_options.setdefault(
-                            "mou_constraints",
-                            ",".join(con_obs)
-                        )
-
-            # Decision variable groups
-            if "dec_var_groups" not in pst.pestpp_options and len(params) > 0:
-                dec_names = [p.name for p in params if not getattr(p, 'fixed', False)]
-                if dec_names:
-                    pst.pestpp_options.setdefault(
-                        "dec_var_groups",
-                        "dec_var " + " ".join(dec_names)
-                    )
 
             # Constraint groups for OPT
             if self.engine == "pestpp-opt":
-                # OPT uses observation group names for constraints
                 con_groups = set(
                     o.group for o in obs
-                    if o.group.startswith(("con_", "cnstr_"))
+                    if o.group.lower().startswith(("l_", "less_", "less_than", "g_", "greater_", "greater_than"))
                 )
                 if con_groups:
                     pst.pestpp_options.setdefault(
@@ -1112,14 +1306,11 @@ class PestRunner:
                     pst.pestpp_options.setdefault("base_jacobian", hot_jac.name)
 
             # Risk level for chance constraints
-            pst.pestpp_options.setdefault("risk", 0.95)
+            pst.pestpp_options.setdefault("opt_risk", 0.95)
 
         # Config DA files
         if self.engine == "pestpp-da":
-            pst.pestpp_options.setdefault("da_num_cycles", self.max_nfev)
-
-            # Restart from cycle
-            da_restart = pst.pestpp_options.get("da_restart_cycle", 0)
+            da_restart = pst.pestpp_options.get("da_hotstart_cycle", 0)
             if isinstance(da_restart, int) and da_restart > 0:
                 pass  # passthrough
 
@@ -1143,14 +1334,21 @@ class PestRunner:
                     pst.pestpp_options["da_observation_cycle_table"] = src.name
 
             # State-parameter ensemble handling
-            state_names = pst.pestpp_options.get("da_state_names", [])
-            if state_names and isinstance(state_names, (list, tuple)):
+            state_names_raw = _pop_option(pst.pestpp_options, "da_state_names")
+            state_names = _split_option_tokens(state_names_raw)
+            if state_names:
                 # If states are provided, generate initial state-parameter ensemble
                 da_state_ens = self.work_dir / f"{self.case_name}.state.0.par.csv"
                 if not da_state_ens.exists():
                     # Combine parameter values with state variable initial values
                     n_reals = int(pst.pestpp_options.get("ies_num_reals", 50))
-                    state_vals = pst.pestpp_options.get("da_state_initial_values", [])
+                    state_vals_raw = _pop_option(pst.pestpp_options, "da_state_initial_values")
+                    state_vals = []
+                    for val in _split_option_tokens(state_vals_raw):
+                        try:
+                            state_vals.append(float(val))
+                        except ValueError:
+                            logger.warning(f"Ignoring non-numeric DA state initial value: {val}")
                     _write_da_state_ensemble(da_state_ens, params, state_names, state_vals, n_reals)
                 if da_state_ens.exists():
                     pst.pestpp_options.setdefault(
@@ -1167,7 +1365,7 @@ class PestRunner:
                         shutil.copy2(str(src), str(dst))
                     pst.pestpp_options["da_parameter_ensemble"] = src.name
 
-        pst.control_data.noptmax = self.max_nfev
+        pst.control_data.noptmax = noptmax_override if noptmax_override is not None else self.max_nfev
 
         for p in params:
             pst.add_parameter(PestParameter.from_adjustable_parameter(p))
@@ -1190,17 +1388,72 @@ class PestRunner:
     def _terminate_agents(self) -> None:
         """Clean up any spawned agent (worker) processes."""
         for agent in list(self._agents):
-            try:
-                if agent.poll() is None:
-                    agent.terminate()
-                    try:
-                        agent.wait(timeout=5)
-                    except subprocess.TimeoutExpired:
-                        agent.kill()
-                        agent.wait(timeout=5)
-            except Exception as e:
-                logger.warning(f"Failed to terminate agent {agent.pid}: {e}")
+            self._terminate_process(agent)
         self._agents = []
+
+    @staticmethod
+    def _terminate_process(proc: Optional[subprocess.Popen]) -> None:
+        """Terminate a spawned PEST++ process and close captured pipes."""
+        if proc is None:
+            return
+        try:
+            if proc.poll() is None:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.wait(timeout=5)
+        except Exception as e:
+            logger.warning(f"Failed to terminate process {getattr(proc, 'pid', '?')}: {e}")
+        for stream in (getattr(proc, "stdout", None), getattr(proc, "stderr", None)):
+            try:
+                if stream:
+                    stream.close()
+            except Exception:
+                pass
+
+    def _has_expected_outputs(self) -> bool:
+        """Return True when the selected engine wrote parseable output files."""
+        case = self.case_name
+        if self.engine == "pestpp-glm":
+            return any((self.work_dir / f"{case}{suffix}").exists() for suffix in (".par", ".rei", ".res"))
+        if self.engine == "pestpp-ies":
+            return (
+                (self.work_dir / f"{case}.phi.actual.csv").exists()
+                or bool(list(self.work_dir.glob(f"{case}.*.par.csv")))
+            )
+        if self.engine == "pestpp-sen":
+            return any(
+                (self.work_dir / f"{case}{suffix}").exists()
+                for suffix in (".msn", ".sbl", ".sobol.si.csv", ".raw.csv")
+            )
+        if self.engine == "pestpp-swp":
+            return (self.work_dir / f"{case}.swp.out.csv").exists()
+        if self.engine == "pestpp-mou":
+            return bool(list(self.work_dir.glob(f"{case}*.dv_pop.csv"))) or any(
+                (self.work_dir / f"{case}{suffix}").exists()
+                for suffix in (".pareto.summary.csv", ".pareto.archive.summary.csv", ".pareto.csv")
+            )
+        if self.engine == "pestpp-opt":
+            return any((self.work_dir / f"{case}{suffix}").exists() for suffix in (".par", ".rei", ".res"))
+        if self.engine == "pestpp-da":
+            return (
+                (self.work_dir / f"{case}.global.phi.actual.csv").exists()
+                or bool(list(self.work_dir.glob(f"{case}.*.*.par.csv")))
+            )
+        return False
+
+    def _accept_return_code(self, returncode: int, cmd: List[str]) -> None:
+        if returncode == 0:
+            return
+        if self._has_expected_outputs():
+            logger.warning(
+                f"{self.engine} exited with code {returncode} after writing expected outputs; "
+                "continuing with output parsing."
+            )
+            return
+        raise subprocess.CalledProcessError(returncode, cmd)
 
     def run(self) -> Dict[str, Any]:
         """Execute PEST++ binary and parse the outputs."""
@@ -1215,7 +1468,8 @@ class PestRunner:
                 # Single-process (serial) execution
                 logger.info(f"Starting {self.engine} (serial)...")
                 cmd = [exe_path, pst_file]
-                subprocess.run(cmd, cwd=str(self.work_dir), check=True)
+                proc = subprocess.run(cmd, cwd=str(self.work_dir), check=False)
+                self._accept_return_code(getattr(proc, "returncode", 0), cmd)
             else:
                 # Parallel manager / agent (PANTHER) execution
                 port = self._find_free_port()
@@ -1255,11 +1509,31 @@ class PestRunner:
                     )
 
                 # Wait for manager to finish
-                manager.wait()
-                if manager.returncode != 0:
-                    raise subprocess.CalledProcessError(
-                        manager.returncode, manager_cmd
-                    )
+                timeout_opt = self._runtime_options.get("panther_timeout_secs")
+                manager_timeout = None
+                if timeout_opt is not None:
+                    try:
+                        manager_timeout = float(timeout_opt)
+                    except (TypeError, ValueError):
+                        logger.warning(f"Ignoring invalid panther_timeout_secs value: {timeout_opt}")
+                try:
+                    if manager_timeout is None:
+                        manager.wait()
+                    else:
+                        manager.wait(timeout=manager_timeout)
+                except subprocess.TimeoutExpired:
+                    if self._has_expected_outputs():
+                        logger.warning(
+                            f"{self.engine} PANTHER manager timed out after "
+                            f"{manager_timeout} seconds after writing expected outputs; "
+                            "terminating manager and parsing outputs."
+                        )
+                        self._terminate_process(manager)
+                    else:
+                        self._terminate_process(manager)
+                        raise subprocess.CalledProcessError(-1, manager_cmd)
+                else:
+                    self._accept_return_code(manager.returncode, manager_cmd)
         except subprocess.CalledProcessError as e:
             logger.error(f"PEST++ failed: {e}")
             return {"success": False, "phi": -1}
@@ -1341,13 +1615,7 @@ class PestRunner:
             phi_history = []
             phi_file = self.work_dir / f"{self.case_name}.phi.actual.csv"
             if phi_file.exists():
-                try:
-                    df = pd.read_csv(phi_file)
-                    real_cols = [c for c in df.columns if c not in ("iteration", "real_name", "realname")]
-                    for idx, row in df.iterrows():
-                        phi_history.append(float(row[real_cols].mean()))
-                except Exception as e:
-                    logger.warning(f"Failed to parse phi history: {e}")
+                phi_history = _parse_phi_history_csv(phi_file)
 
             optimal_params = {}
             if post_par:
@@ -1410,6 +1678,33 @@ class PestRunner:
                             total_sobol[p_name] = float(row.get("total_order", row.get("sti", 0.0)))
                 except Exception as e:
                     logger.warning(f"Failed to parse Sobol csv: {e}")
+
+            sobol_si_file = self.work_dir / f"{self.case_name}.sobol.si.csv"
+            sobol_sti_file = self.work_dir / f"{self.case_name}.sobol.sti.csv"
+            if sobol_si_file.exists():
+                try:
+                    df = pd.read_csv(sobol_si_file)
+                    par_col = next((c for c in df.columns if c.lower() in ("parameter", "parnme", "name", "parameter_name")), df.columns[0])
+                    value_cols = [c for c in df.columns if c != par_col]
+                    for _, row in df.iterrows():
+                        p_name = str(row[par_col]).strip()
+                        vals = pd.to_numeric(row[value_cols], errors="coerce").dropna()
+                        if p_name and not vals.empty:
+                            first_order_sobol[p_name] = float(vals.mean())
+                except Exception as e:
+                    logger.warning(f"Failed to parse Sobol first-order csv: {e}")
+            if sobol_sti_file.exists():
+                try:
+                    df = pd.read_csv(sobol_sti_file)
+                    par_col = next((c for c in df.columns if c.lower() in ("parameter", "parnme", "name", "parameter_name")), df.columns[0])
+                    value_cols = [c for c in df.columns if c != par_col]
+                    for _, row in df.iterrows():
+                        p_name = str(row[par_col]).strip()
+                        vals = pd.to_numeric(row[value_cols], errors="coerce").dropna()
+                        if p_name and not vals.empty:
+                            total_sobol[p_name] = float(vals.mean())
+                except Exception as e:
+                    logger.warning(f"Failed to parse Sobol total-order csv: {e}")
                     
             morris_file = self.work_dir / f"{self.case_name}.morris.csv"
             morris_effects = {}
@@ -1426,22 +1721,31 @@ class PestRunner:
                 except Exception as e:
                     logger.warning(f"Failed to parse Morris csv: {e}")
 
+            morris_summary = parse_sen_msn(self.work_dir / f"{self.case_name}.msn")
+            if morris_summary:
+                for p_name, metrics in morris_summary.items():
+                    morris_effects[p_name] = [
+                        float(metrics.get("sen_mean_abs", metrics.get("sen_mean", 0.0))),
+                        float(metrics.get("sen_std_dev", 0.0)),
+                    ]
+
             ranked_importance = []
             if total_sobol:
                 ranked_importance = sorted(total_sobol.keys(), key=lambda k: total_sobol[k], reverse=True)
             elif morris_effects:
-                ranked_importance = sorted(morris_effects.keys(), key=lambda k: morris_effects[k][0], reverse=True)
+                ranked_importance = sorted(morris_effects.keys(), key=lambda k: abs(morris_effects[k][0]), reverse=True)
             
             recommended_subset = []
             if total_sobol:
                 recommended_subset = [k for k, v in total_sobol.items() if v > 0.1]
             elif morris_effects:
-                recommended_subset = [k for k, v in morris_effects.items() if v[0] > 0.5]
+                recommended_subset = [k for k, v in morris_effects.items() if abs(v[0]) > 0.5]
 
             result.update({
                 "first_order_sobol": first_order_sobol,
                 "total_sobol": total_sobol,
                 "morris_elementary_effects": morris_effects,
+                "sensitivity_table": morris_summary,
                 "ranked_importance": ranked_importance,
                 "recommended_calibratable_subset": recommended_subset
             })
@@ -1462,10 +1766,13 @@ class PestRunner:
 
         # OPT / MOU parser
         elif self.engine in ("pestpp-mou", "pestpp-opt"):
-            pareto_file = self.work_dir / f"{self.case_name}.pareto.csv"
-            if not pareto_file.exists():
-                pareto_file = self.work_dir / f"{self.case_name}.pareto.out.csv"
-                
+            pareto_candidates = [
+                self.work_dir / f"{self.case_name}.pareto.summary.csv",
+                self.work_dir / f"{self.case_name}.pareto.archive.summary.csv",
+                self.work_dir / f"{self.case_name}.pareto.csv",
+                self.work_dir / f"{self.case_name}.pareto.out.csv",
+            ]
+            pareto_file = next((p for p in pareto_candidates if p.exists()), pareto_candidates[0])
             pareto_front = None
             if pareto_file.exists():
                 try:
@@ -1473,6 +1780,28 @@ class PestRunner:
                     pareto_front = df.to_dict(orient="records")
                 except Exception as e:
                     logger.warning(f"Failed to parse Pareto CSV: {e}")
+
+            dv_population = None
+            obs_population = None
+            if self.engine == "pestpp-mou":
+                dv_candidates = (
+                    sorted(self.work_dir.glob(f"{self.case_name}.*.dv_pop.csv"))
+                    + [self.work_dir / f"{self.case_name}.dv_pop.csv"]
+                    + sorted(self.work_dir.glob(f"{self.case_name}*.archive*.dv_pop.csv"))
+                )
+                obs_candidates = (
+                    sorted(self.work_dir.glob(f"{self.case_name}.*.obs_pop.csv"))
+                    + [self.work_dir / f"{self.case_name}.obs_pop.csv"]
+                    + sorted(self.work_dir.glob(f"{self.case_name}*.archive*.obs_pop.csv"))
+                )
+                for candidate in reversed([p for p in dv_candidates if p.exists()]):
+                    dv_population = _parse_csv_records(candidate)
+                    if dv_population is not None:
+                        break
+                for candidate in reversed([p for p in obs_candidates if p.exists()]):
+                    obs_population = _parse_csv_records(candidate)
+                    if obs_population is not None:
+                        break
                     
             opt_par_file = self.work_dir / f"{self.case_name}.par"
             optimal_dec_vars = {}
@@ -1489,6 +1818,8 @@ class PestRunner:
 
             result.update({
                 "pareto_front": pareto_front,
+                "decision_variable_population": dv_population,
+                "objective_population": obs_population,
                 "optimal_decision_variables": optimal_dec_vars,
                 "optimal_parameters": optimal_dec_vars
             })
@@ -1499,11 +1830,26 @@ class PestRunner:
             prior_par = None
             posterior_par = None
             state_summary = {}
+
+            cycle_files = []
             for p_file in sorted(self.work_dir.glob(f"{self.case_name}.da.cycle_*.par.csv")):
                 try:
                     cycle_idx = int(p_file.name.split("cycle_")[1].split(".")[0])
+                    cycle_files.append((cycle_idx, 0, p_file, self.work_dir / f"{self.case_name}.da.cycle_{cycle_idx}.obs.csv"))
+                except Exception:
+                    continue
+            pattern = re.compile(rf"^{re.escape(self.case_name)}\.(\d+)\.(\d+)\.par\.csv$", re.IGNORECASE)
+            for p_file in sorted(self.work_dir.glob(f"{self.case_name}.*.*.par.csv")):
+                match = pattern.match(p_file.name)
+                if not match:
+                    continue
+                cycle_idx = int(match.group(1))
+                iter_idx = int(match.group(2))
+                cycle_files.append((cycle_idx, iter_idx, p_file, self.work_dir / f"{self.case_name}.{cycle_idx}.{iter_idx}.obs.csv"))
+
+            for cycle_idx, iter_idx, p_file, o_file in cycle_files:
+                try:
                     p_data = parse_ies_csv(p_file)
-                    o_file = self.work_dir / f"{self.case_name}.da.cycle_{cycle_idx}.obs.csv"
                     o_data = parse_ies_csv(o_file) if o_file.exists() else None
 
                     # Track state-parameter separation
@@ -1531,6 +1877,7 @@ class PestRunner:
 
                     cycles.append({
                         "cycle": cycle_idx,
+                        "iteration": iter_idx,
                         "parameters": param_ens,
                         "observations": o_data,
                         "state_ensemble": state_ens,
@@ -1538,7 +1885,22 @@ class PestRunner:
                 except Exception:
                     continue
 
+            global_prior = parse_ies_csv(self.work_dir / f"{self.case_name}.global.prior.pe.csv")
+            if global_prior:
+                prior_par = global_prior
+            global_pe_files = sorted(self.work_dir.glob(f"{self.case_name}.global.*.pe.csv"))
+            if global_pe_files:
+                latest_global = parse_ies_csv(global_pe_files[-1])
+                if latest_global:
+                    posterior_par = latest_global
+
+            phi_history = _parse_phi_history_csv(self.work_dir / f"{self.case_name}.global.phi.actual.csv")
+            if not phi_history:
+                phi_history = _parse_phi_history_csv(self.work_dir / f"{self.case_name}.phi.actual.csv")
+
             result.update({
+                "phi": phi_history[-1] if phi_history else 0.0,
+                "phi_history": phi_history,
                 "cycles": cycles,
                 "prior_parameters": prior_par,
                 "posterior_parameters": posterior_par,
