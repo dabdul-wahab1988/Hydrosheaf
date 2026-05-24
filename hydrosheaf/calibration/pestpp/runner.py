@@ -24,20 +24,22 @@ logger = logging.getLogger("calibration.pestpp")
 PESTPP_VERSION = "5.2.25"
 PESTPP_BASE_URL = "https://github.com/usgs/pestpp/releases/download"
 
-def get_bin_dir() -> Path:
-    """Return the local bin directory."""
-    # Assuming running from project root
+def get_bin_dir(version: Optional[str] = None) -> Path:
+    """Return the local bin directory, optionally version-specific."""
+    if version:
+        return Path("bin") / version
     return Path("bin")
 
 def get_executable_suffix() -> str:
     return ".exe" if platform.system() == "Windows" else ""
 
-def get_executable_path(name: str) -> str:
+def get_executable_path(name: str, version: Optional[str] = None) -> str:
     """
     Find the path to a PEST++ executable.
     Downloads it if not found in local bin/.
     """
-    bin_dir = get_bin_dir()
+    v = version or PESTPP_VERSION
+    bin_dir = get_bin_dir(v)
     suffix = get_executable_suffix()
     
     # Check if name already has suffix
@@ -55,9 +57,9 @@ def get_executable_path(name: str) -> str:
         return path_exe
         
     # Not found -> Download
-    logger.info(f"Executable {name} not found. Attempting to download PEST++ binaries...")
+    logger.info(f"Executable {name} not found. Attempting to download PEST++ binaries for version {v}...")
     try:
-        download_pestpp_binaries(bin_dir)
+        download_pestpp_binaries(bin_dir, v)
     except Exception as e:
         logger.error(f"Failed to download PEST++ binaries: {e}")
         # Continue to check if it exists anyway (e.g. partial success)
@@ -67,25 +69,25 @@ def get_executable_path(name: str) -> str:
     
     return name
 
-def download_pestpp_binaries(target_dir: Path):
+def download_pestpp_binaries(target_dir: Path, version: str):
     """Download and extract PEST++ binaries."""
     target_dir.mkdir(parents=True, exist_ok=True)
     
     # Determine URL based on platform
     system = platform.system()
     if system == "Windows":
-        filename = f"pestpp-{PESTPP_VERSION}-win.zip"
+        filename = f"pestpp-{version}-win.zip"
         zip_path_internal = "bin"
     elif system == "Linux":
-        filename = f"pestpp-{PESTPP_VERSION}-linux.zip"
+        filename = f"pestpp-{version}-linux.zip"
         zip_path_internal = "bin"
     elif system == "Darwin":
-        filename = f"pestpp-{PESTPP_VERSION}-mac.zip"
+        filename = f"pestpp-{version}-mac.zip"
         zip_path_internal = "bin"
     else:
         raise OSError(f"Unsupported platform for auto-download: {system}")
 
-    url = f"{PESTPP_BASE_URL}/{PESTPP_VERSION}/{filename}"
+    url = f"{PESTPP_BASE_URL}/{version}/{filename}"
     temp_zip = target_dir / "temp_pestpp.zip"
     
     logger.info(f"Downloading from {url}...")
@@ -129,6 +131,7 @@ def download_pestpp_binaries(target_dir: Path):
                 logger.warning(f"Could not remove temp zip: {e}")
 
     logger.info("PEST++ binaries installed successfully.")
+
 
 
 class PestControlData:
@@ -203,6 +206,9 @@ class PestParameter:
         group: str = "pargp",
         scale: float = 1.0,
         offset: float = 0.0,
+        prior_mean: Optional[float] = None,
+        prior_sigma: Optional[float] = None,
+        tied_to: Optional[str] = None,
     ):
         self.name = name
         self.trans = trans
@@ -213,10 +219,18 @@ class PestParameter:
         self.group = group
         self.scale = scale
         self.offset = offset
+        self.prior_mean = prior_mean
+        self.prior_sigma = prior_sigma
+        self.tied_to = tied_to
 
     @classmethod
     def from_adjustable_parameter(cls, p: AdjustableParameter) -> "PestParameter":
-        trans = "log" if p.log_transform else "none"
+        if getattr(p, "fixed", False):
+            trans = "fixed"
+        elif getattr(p, "tied_to", None):
+            trans = "tied"
+        else:
+            trans = "log" if p.log_transform else "none"
         group = p.group if (p.group and p.group != "default") else "pargp"
         return cls(
             name=p.name,
@@ -226,10 +240,16 @@ class PestParameter:
             lower_bound=p.lower_bound,
             upper_bound=p.upper_bound,
             group=group,
+            prior_mean=p.prior_mean,
+            prior_sigma=p.prior_sigma,
+            tied_to=p.tied_to,
         )
 
     def format(self) -> str:
-        return f"{self.name} {self.trans} {self.change_limit} {self.value} {self.lower_bound} {self.upper_bound} {self.group} {self.scale} {self.offset}"
+        base = f"{self.name} {self.trans} {self.change_limit} {self.value} {self.lower_bound} {self.upper_bound} {self.group} {self.scale} {self.offset}"
+        if self.trans == "tied" and self.tied_to:
+            base += f" {self.tied_to}"
+        return base
 
 
 class PestObservation:
@@ -269,11 +289,53 @@ class PestControlFile:
         self.observation_groups: List[str] = ["obsgp"]
         self.observations: List[PestObservation] = []
         self.model_command_line: str = "python worker.py"
-        self.tpl_file: str = "case.tpl"
-        self.ins_file: str = "case.ins"
-        self.model_input_file: str = "params.csv"
-        self.model_output_file: str = "results.dat"
+        
+        # Support multiple template and instruction files
+        self.tpl_files: List[str] = ["case.tpl"]
+        self.ins_files: List[str] = ["case.ins"]
+        self.model_input_files: List[str] = ["params.csv"]
+        self.model_output_files: List[str] = ["results.dat"]
         self.pestpp_options: Dict[str, Any] = {}
+
+    @property
+    def tpl_file(self) -> str:
+        return self.tpl_files[0] if self.tpl_files else ""
+    @tpl_file.setter
+    def tpl_file(self, val: str):
+        if self.tpl_files:
+            self.tpl_files[0] = val
+        else:
+            self.tpl_files.append(val)
+
+    @property
+    def ins_file(self) -> str:
+        return self.ins_files[0] if self.ins_files else ""
+    @ins_file.setter
+    def ins_file(self, val: str):
+        if self.ins_files:
+            self.ins_files[0] = val
+        else:
+            self.ins_files.append(val)
+
+    @property
+    def model_input_file(self) -> str:
+        return self.model_input_files[0] if self.model_input_files else ""
+    @model_input_file.setter
+    def model_input_file(self, val: str):
+        if self.model_input_files:
+            self.model_input_files[0] = val
+        else:
+            self.model_input_files.append(val)
+
+    @property
+    def model_output_file(self) -> str:
+        return self.model_output_files[0] if self.model_output_files else ""
+    @model_output_file.setter
+    def model_output_file(self, val: str):
+        if self.model_output_files:
+            self.model_output_files[0] = val
+        else:
+            self.model_output_files.append(val)
 
     def add_parameter(self, param: PestParameter):
         self.parameters.append(param)
@@ -285,9 +347,48 @@ class PestControlFile:
 
     def write(self, filepath: Path):
         """Write the complete control file to disk."""
-        # Sync dimensions
+        # Auto-collect parameter groups
+        used_pargps = set(pg.split()[0].lower() for pg in self.parameter_groups)
+        for p in self.parameters:
+            if p.group.lower() not in used_pargps:
+                self.parameter_groups.append(f"{p.group} relative 0.01 0.0 switch 2.0 parabolic")
+                used_pargps.add(p.group.lower())
+
+        # Auto-collect observation groups
+        used_obsgps = set(og.lower() for og in self.observation_groups)
+        for o in self.observations:
+            if o.group.lower() not in used_obsgps:
+                self.observation_groups.append(o.group)
+                used_obsgps.add(o.group.lower())
+
+        # Generate Prior Information equations from parameters
+        prior_lines = []
+        for p in self.parameters:
+            if p.prior_mean is not None and p.prior_sigma is not None:
+                pgp = "prior"
+                if pgp.lower() not in used_obsgps:
+                    self.observation_groups.append(pgp)
+                    used_obsgps.add(pgp.lower())
+                
+                if p.trans == "log":
+                    val = np.log10(max(1e-12, p.prior_mean))
+                    eq = f"1.0 * log({p.name})"
+                else:
+                    val = p.prior_mean
+                    eq = f"1.0 * {p.name}"
+                
+                weight = 1.0 / max(1e-12, p.prior_sigma)
+                pi_name = f"pi_{p.name}"[:20]
+                prior_lines.append(f"{pi_name} {eq} = {val} {weight} {pgp}")
+
+        # Sync control data dimensions
         self.control_data.npar = len(self.parameters)
         self.control_data.nobs = len(self.observations)
+        self.control_data.ntplfle = len(self.tpl_files)
+        self.control_data.ninsfle = len(self.ins_files)
+        self.control_data.npargp = len(self.parameter_groups)
+        self.control_data.nobsgp = len(self.observation_groups)
+        self.control_data.nprior = len(prior_lines)
 
         with open(filepath, "w") as f:
             f.write(self.control_data.format())
@@ -308,12 +409,19 @@ class PestControlFile:
             for o in self.observations:
                 f.write(f"{o.format()}\n")
 
+            if prior_lines:
+                f.write("* prior information\n")
+                for pl in prior_lines:
+                    f.write(f"{pl}\n")
+
             f.write("* model command line\n")
             f.write(f"{self.model_command_line}\n")
 
             f.write("* model input/output\n")
-            f.write(f"{self.tpl_file} {self.model_input_file}\n")
-            f.write(f"{self.ins_file} {self.model_output_file}\n")
+            for tpl, inp in zip(self.tpl_files, self.model_input_files):
+                f.write(f"{tpl} {inp}\n")
+            for ins, out in zip(self.ins_files, self.model_output_files):
+                f.write(f"{ins} {out}\n")
 
             f.write("* pestpp options\n")
             for k, v in self.pestpp_options.items():
@@ -548,6 +656,146 @@ def write_parameter_ensemble(
             f.write(f"{idx},{values_str}\n")
 
 
+def write_observation_ensemble(
+    filepath: Path, obs: List[Observation], n_reals: int
+) -> None:
+    rng = np.random.default_rng(123)
+    header = "real_name," + ",".join(o.name for o in obs)
+    with open(filepath, "w") as f:
+        f.write(f"{header}\n")
+        for idx in range(n_reals):
+            values = []
+            for o in obs:
+                sigma = 1.0 / max(o.weight, 1e-6)
+                if o.weight == 0:
+                    sigma = 0.0
+                val = rng.normal(o.value, sigma)
+                values.append(val)
+            values_str = ",".join(f"{value}" for value in values)
+            f.write(f"{idx},{values_str}\n")
+
+
+def generate_sweep_csv(
+    filepath: Path,
+    params: List[AdjustableParameter],
+    n_runs: int = 50,
+    method: str = "latin_hypercube"
+) -> None:
+    rng = np.random.default_rng(123)
+    header = "run_id," + ",".join(p.name for p in params)
+    
+    if method == "latin_hypercube":
+        samples = np.zeros((n_runs, len(params)))
+        for j in range(len(params)):
+            grid = np.linspace(0.0, 1.0, n_runs + 1)
+            pts = grid[:-1] + rng.uniform(0.0, 1.0 / n_runs, n_runs)
+            rng.shuffle(pts)
+            samples[:, j] = pts
+    elif method == "grid":
+        samples = np.zeros((n_runs, len(params)))
+        for j in range(len(params)):
+            pts = np.linspace(0.0, 1.0, n_runs)
+            samples[:, j] = pts
+    else:  # random prior
+        samples = rng.uniform(0.0, 1.0, size=(n_runs, len(params)))
+        
+    with open(filepath, "w") as f:
+        f.write(f"{header}\n")
+        for idx in range(n_runs):
+            values = []
+            for j, p in enumerate(params):
+                val_01 = samples[idx, j]
+                low = p.lower_bound
+                high = p.upper_bound
+                if p.log_transform:
+                    low = max(low, 1e-12)
+                    high = max(high, low * 10.0)
+                    log_low = np.log10(low)
+                    log_high = np.log10(high)
+                    val = 10 ** (log_low + val_01 * (log_high - log_low))
+                else:
+                    val = low + val_01 * (high - low)
+                values.append(val)
+            values_str = ",".join(f"{v}" for v in values)
+            f.write(f"{idx},{values_str}\n")
+
+
+def parse_pest_residuals(res_path: Path) -> tuple[Dict[str, float], Dict[str, float], Dict[str, float]]:
+    residuals = {}
+    simulated = {}
+    phi_by_group = {}
+    if not res_path.exists():
+        return residuals, simulated, phi_by_group
+
+    with open(res_path, "r") as f:
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) >= 6:
+                name = parts[0]
+                group = parts[1]
+                try:
+                    meas = float(parts[2])
+                    sim = float(parts[3])
+                    res = float(parts[4])
+                    weight = float(parts[5])
+                    residuals[name] = res
+                    simulated[name] = sim
+                    contrib = (res * weight) ** 2
+                    phi_by_group[group] = phi_by_group.get(group, 0.0) + contrib
+                except ValueError:
+                    continue
+    return residuals, simulated, phi_by_group
+
+
+def parse_pest_sensitivities(sen_path: Path) -> Dict[str, float]:
+    sens = {}
+    if not sen_path.exists():
+        return sens
+    with open(sen_path, "r") as f:
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) >= 2:
+                name = parts[0]
+                try:
+                    val = float(parts[1])
+                    sens[name] = val
+                except ValueError:
+                    continue
+    return sens
+
+
+def parse_pest_identifiability(id_path: Path) -> Dict[str, float]:
+    ident = {}
+    if not id_path.exists():
+        return ident
+    with open(id_path, "r") as f:
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) == 2:
+                name = parts[0]
+                try:
+                    val = float(parts[1])
+                    ident[name] = val
+                except ValueError:
+                    continue
+    return ident
+
+
+def parse_ies_csv(csv_path: Path) -> Optional[Dict[str, List[float]]]:
+    if not csv_path.exists():
+        return None
+    try:
+        df = pd.read_csv(csv_path)
+        if "real_name" in df.columns:
+            df = df.drop(columns=["real_name"])
+        elif "realname" in df.columns:
+            df = df.drop(columns=["realname"])
+        return df.to_dict(orient="list")
+    except Exception as e:
+        logger.warning(f"Failed to parse IES CSV {csv_path}: {e}")
+        return None
+
+
 class PestRunner:
     """Wraps PEST++ execution pipeline programmatically."""
 
@@ -560,6 +808,7 @@ class PestRunner:
         max_nfev: int = 100,
         n_workers: int = 1,
         pestpp_options: Optional[Dict[str, Any]] = None,
+        pestpp_version: Optional[str] = None,
     ):
         self.problem = problem
         self.engine = engine
@@ -568,6 +817,7 @@ class PestRunner:
         self.max_nfev = max_nfev
         self.n_workers = n_workers
         self.pestpp_options = pestpp_options or {}
+        self.pestpp_version = pestpp_version
 
     def prepare(self) -> PestControlFile:
         """Create workspace, serialize problem, generate scripts, and construct PestControlFile."""
@@ -599,6 +849,31 @@ class PestRunner:
         if self.engine == "pestpp-glm":
             pst.pestpp_options.setdefault("lambdas", "1.0")
 
+        # Config IES files
+        if self.engine == "pestpp-ies":
+            n_reals = int(pst.pestpp_options.get("ies_num_reals", 100))
+            pst.pestpp_options.setdefault("ies_num_reals", n_reals)
+            
+            # Prior ensemble
+            if "ies_parameter_ensemble" not in pst.pestpp_options:
+                par_ens_file = self.work_dir / f"{self.case_name}.0.par.csv"
+                write_parameter_ensemble(par_ens_file, params, n_reals)
+                pst.pestpp_options["ies_parameter_ensemble"] = par_ens_file.name
+                
+            # Observation ensemble
+            if "ies_observation_ensemble" not in pst.pestpp_options:
+                obs_ens_file = self.work_dir / f"{self.case_name}.obs.csv"
+                write_observation_ensemble(obs_ens_file, obs, n_reals)
+                pst.pestpp_options["ies_observation_ensemble"] = obs_ens_file.name
+
+        # Config Sweep files
+        if self.engine == "pestpp-swp":
+            sweep_file = self.work_dir / f"{self.case_name}.swp.in.csv"
+            n_runs = int(pst.pestpp_options.get("sweep_n_runs", 50))
+            method = pst.pestpp_options.get("sweep_sampler", "latin_hypercube")
+            generate_sweep_csv(sweep_file, params, n_runs, method)
+            pst.pestpp_options.setdefault("sweep_parameter_csv_file", sweep_file.name)
+
         pst.control_data.noptmax = self.max_nfev
 
         for p in params:
@@ -618,7 +893,7 @@ class PestRunner:
         pst_file = f"{self.case_name}.pst"
 
         # Find Executable
-        exe_path = get_executable_path(self.engine)
+        exe_path = get_executable_path(self.engine, self.pestpp_version)
 
         logger.info(f"Starting {self.engine}...")
         cmd = [exe_path, pst_file]
@@ -635,26 +910,215 @@ class PestRunner:
         # Parse Results
         result = {"success": True, "phi": 0.0}
 
-        # Try reading phi.csv (IES)
-        phi_file = self.work_dir / f"{self.case_name}.phi.actual.csv"
-        if phi_file.exists():
-            df = pd.read_csv(phi_file)
-            result["phi"] = df.iloc[-1].mean()
+        # GLM parser
+        if self.engine == "pestpp-glm":
+            optimal_params = {}
+            par_file = self.work_dir / f"{self.case_name}.par"
+            if par_file.exists():
+                try:
+                    with open(par_file, "r") as f:
+                        next(f)
+                        for line in f:
+                            parts = line.strip().split()
+                            if len(parts) >= 2:
+                                optimal_params[parts[0]] = float(parts[1])
+                except Exception as e:
+                    logger.warning(f"Failed to read par file: {e}")
+            
+            res_file = self.work_dir / f"{self.case_name}.rei"
+            if not res_file.exists():
+                res_file = self.work_dir / f"{self.case_name}.res"
+            residuals, simulated, phi_by_group = parse_pest_residuals(res_file)
+            
+            sen_file = self.work_dir / f"{self.case_name}.sen"
+            sensitivities = parse_pest_sensitivities(sen_file)
+            
+            id_file = self.work_dir / f"{self.case_name}.id"
+            ident = parse_pest_identifiability(id_file)
+            
+            cov_path = self.work_dir / f"{self.case_name}.cov"
+            cov_str = str(cov_path.absolute()) if cov_path.exists() else None
+            
+            cor_path = self.work_dir / f"{self.case_name}.cor"
+            cor_str = str(cor_path.absolute()) if cor_path.exists() else None
 
-        # Try reading .par (GLM best parameters)
-        par_file = self.work_dir / f"{self.case_name}.par"
-        if par_file.exists():
-            try:
-                optimal_params = {}
-                with open(par_file, "r") as f:
-                    next(f)  # skip header
-                    for line in f:
-                        parts = line.strip().split()
-                        if len(parts) >= 2:
-                            optimal_params[parts[0]] = float(parts[1])
-                result["optimal_parameters"] = optimal_params
-            except Exception as e:
-                logger.warning(f"Failed to read par file: {e}")
+            phi_total = sum(phi_by_group.values()) if phi_by_group else sum(r**2 for r in residuals.values())
+
+            result.update({
+                "phi": phi_total,
+                "optimal_parameters": optimal_params,
+                "residuals": residuals,
+                "simulated_observations": simulated,
+                "phi_by_group": phi_by_group,
+                "covariance_matrix_path": cov_str,
+                "correlation_matrix_path": cor_str,
+                "sensitivity_table": sensitivities,
+                "identifiability": ident
+            })
+
+        # IES parser
+        elif self.engine == "pestpp-ies":
+            prior_par = parse_ies_csv(self.work_dir / f"{self.case_name}.0.par.csv")
+            
+            post_par = None
+            for i in sorted(range(self.max_nfev + 1), reverse=True):
+                path = self.work_dir / f"{self.case_name}.{i}.par.csv"
+                if path.exists():
+                    post_par = parse_ies_csv(path)
+                    break
+            
+            prior_obs = parse_ies_csv(self.work_dir / f"{self.case_name}.0.obs.csv")
+            
+            post_obs = None
+            for i in sorted(range(self.max_nfev + 1), reverse=True):
+                path = self.work_dir / f"{self.case_name}.{i}.obs.csv"
+                if path.exists():
+                    post_obs = parse_ies_csv(path)
+                    break
+
+            phi_history = []
+            phi_file = self.work_dir / f"{self.case_name}.phi.actual.csv"
+            if phi_file.exists():
+                try:
+                    df = pd.read_csv(phi_file)
+                    real_cols = [c for c in df.columns if c not in ("iteration", "real_name", "realname")]
+                    for idx, row in df.iterrows():
+                        phi_history.append(float(row[real_cols].mean()))
+                except Exception as e:
+                    logger.warning(f"Failed to parse phi history: {e}")
+
+            optimal_params = {}
+            if post_par:
+                for k, vals in post_par.items():
+                    optimal_params[k] = float(np.mean(vals))
+
+            result.update({
+                "phi": phi_history[-1] if phi_history else 0.0,
+                "optimal_parameters": optimal_params,
+                "prior_parameters": prior_par,
+                "posterior_parameters": post_par,
+                "prior_observations": prior_obs,
+                "simulated_observations": post_obs,
+                "phi_history": phi_history
+            })
+
+        # SEN parser
+        elif self.engine == "pestpp-sen":
+            sobol_file = self.work_dir / f"{self.case_name}.sobol.csv"
+            first_order_sobol = {}
+            total_sobol = {}
+            if sobol_file.exists():
+                try:
+                    df = pd.read_csv(sobol_file)
+                    for _, row in df.iterrows():
+                        p_name = str(row.get("parameter", row.get("name", "")))
+                        if p_name:
+                            first_order_sobol[p_name] = float(row.get("first_order", row.get("si", 0.0)))
+                            total_sobol[p_name] = float(row.get("total_order", row.get("sti", 0.0)))
+                except Exception as e:
+                    logger.warning(f"Failed to parse Sobol csv: {e}")
+                    
+            morris_file = self.work_dir / f"{self.case_name}.morris.csv"
+            morris_effects = {}
+            if morris_file.exists():
+                try:
+                    df = pd.read_csv(morris_file)
+                    for _, row in df.iterrows():
+                        p_name = str(row.get("parameter", row.get("name", "")))
+                        if p_name:
+                            morris_effects[p_name] = [
+                                float(row.get("mean", row.get("mu_star", 0.0))),
+                                float(row.get("std", row.get("sigma", 0.0)))
+                            ]
+                except Exception as e:
+                    logger.warning(f"Failed to parse Morris csv: {e}")
+
+            ranked_importance = []
+            if total_sobol:
+                ranked_importance = sorted(total_sobol.keys(), key=lambda k: total_sobol[k], reverse=True)
+            elif morris_effects:
+                ranked_importance = sorted(morris_effects.keys(), key=lambda k: morris_effects[k][0], reverse=True)
+            
+            recommended_subset = []
+            if total_sobol:
+                recommended_subset = [k for k, v in total_sobol.items() if v > 0.1]
+            elif morris_effects:
+                recommended_subset = [k for k, v in morris_effects.items() if v[0] > 0.5]
+
+            result.update({
+                "first_order_sobol": first_order_sobol,
+                "total_sobol": total_sobol,
+                "morris_elementary_effects": morris_effects,
+                "ranked_importance": ranked_importance,
+                "recommended_calibratable_subset": recommended_subset
+            })
+
+        # SWP parser
+        elif self.engine == "pestpp-swp":
+            swp_file = self.work_dir / f"{self.case_name}.swp.out.csv"
+            sweep_table = None
+            if swp_file.exists():
+                try:
+                    df = pd.read_csv(swp_file)
+                    sweep_table = df.to_dict(orient="list")
+                except Exception as e:
+                    logger.warning(f"Failed to parse sweep csv: {e}")
+            result.update({
+                "sweep_table": sweep_table
+            })
+
+        # OPT / MOU parser
+        elif self.engine in ("pestpp-mou", "pestpp-opt"):
+            pareto_file = self.work_dir / f"{self.case_name}.pareto.csv"
+            if not pareto_file.exists():
+                pareto_file = self.work_dir / f"{self.case_name}.pareto.out.csv"
+                
+            pareto_front = None
+            if pareto_file.exists():
+                try:
+                    df = pd.read_csv(pareto_file)
+                    pareto_front = df.to_dict(orient="records")
+                except Exception as e:
+                    logger.warning(f"Failed to parse Pareto CSV: {e}")
+                    
+            opt_par_file = self.work_dir / f"{self.case_name}.par"
+            optimal_dec_vars = {}
+            if opt_par_file.exists():
+                try:
+                    with open(opt_par_file, "r") as f:
+                        next(f)
+                        for line in f:
+                            parts = line.strip().split()
+                            if len(parts) >= 2:
+                                optimal_dec_vars[parts[0]] = float(parts[1])
+                except Exception as e:
+                    logger.warning(f"Failed to read decision variables: {e}")
+
+            result.update({
+                "pareto_front": pareto_front,
+                "optimal_decision_variables": optimal_dec_vars,
+                "optimal_parameters": optimal_dec_vars
+            })
+
+        # DA parser
+        elif self.engine == "pestpp-da":
+            cycles = []
+            for p_file in sorted(self.work_dir.glob(f"{self.case_name}.da.cycle_*.par.csv")):
+                try:
+                    cycle_idx = int(p_file.name.split("cycle_")[1].split(".")[0])
+                    p_data = parse_ies_csv(p_file)
+                    o_file = self.work_dir / f"{self.case_name}.da.cycle_{cycle_idx}.obs.csv"
+                    o_data = parse_ies_csv(o_file) if o_file.exists() else None
+                    cycles.append({
+                        "cycle": cycle_idx,
+                        "parameters": p_data,
+                        "observations": o_data
+                    })
+                except Exception:
+                    continue
+            result.update({
+                "cycles": cycles
+            })
 
         return result
 
@@ -667,6 +1131,7 @@ def run_pestpp(
     max_nfev: int = 100,
     n_workers: int = 1,
     pestpp_options: Optional[Dict[str, Any]] = None,
+    pestpp_version: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Run PEST++ calibration.
@@ -679,5 +1144,6 @@ def run_pestpp(
         max_nfev=max_nfev,
         n_workers=n_workers,
         pestpp_options=pestpp_options,
+        pestpp_version=pestpp_version,
     )
     return runner.run()

@@ -792,7 +792,18 @@ def run_calibration_cli(args):
         result = calibrator.search()
     elif config.engine.startswith("pestpp"):
         # Use external PEST++ binary
-        # Updated to pass IES settings
+        pestpp_opts = config.pestpp_options.copy()
+        if config.engine == "pestpp-ies":
+            pestpp_opts.update(config.ies_settings)
+        elif config.engine == "pestpp-sen":
+            pestpp_opts.update(config.sen_settings)
+        elif config.engine == "pestpp-swp":
+            pestpp_opts.update(config.swp_settings)
+        elif config.engine in ("pestpp-mou", "pestpp-opt"):
+            pestpp_opts.update(config.opt_settings)
+        elif config.engine == "pestpp-da":
+            pestpp_opts.update(config.da_settings)
+
         result = run_pestpp(
             problem=problem,
             engine=config.engine,
@@ -800,7 +811,8 @@ def run_calibration_cli(args):
             case_name="calibration",
             max_nfev=config.max_nfev,
             n_workers=config.n_workers,
-            pestpp_options=config.ies_settings
+            pestpp_options=pestpp_opts,
+            pestpp_version=config.pestpp_version
         )
     else:
         # Internal PESTGLM (Python)

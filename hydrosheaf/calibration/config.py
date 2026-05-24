@@ -18,9 +18,15 @@ class CalibrationConfig:
     output_dir: str = "calibration_results"
     
     # Engine configuration
-    engine: str = "internal"  # "internal" (PESTGLM), "pestpp-glm", "pestpp-ies"
+    engine: str = "internal"  # "internal" (PESTGLM), "pestpp-glm", "pestpp-ies", "pestpp-sen", "pestpp-swp", "pestpp-mou", "pestpp-opt", "pestpp-da"
     work_dir: Optional[str] = None # Workspace for PEST++ files
-    ies_settings: Dict[str, Any] = field(default_factory=dict) # IES specific settings (n_ensemble, etc)
+    pestpp_version: Optional[str] = None
+    pestpp_options: Dict[str, Any] = field(default_factory=dict)
+    ies_settings: Dict[str, Any] = field(default_factory=dict)
+    sen_settings: Dict[str, Any] = field(default_factory=dict)
+    swp_settings: Dict[str, Any] = field(default_factory=dict)
+    opt_settings: Dict[str, Any] = field(default_factory=dict)
+    da_settings: Dict[str, Any] = field(default_factory=dict)
     loss: str = "linear"  # Robust loss options: linear, huber, soft_l1, cauchy
 
     # Generic Parameter Definitions (for simple/generic problems)
@@ -51,11 +57,17 @@ def load_calibration_config(path: str) -> CalibrationConfig:
         output_dir=settings.get("output_dir", "calibration_results"),
         engine=settings.get("engine", "internal"),
         work_dir=settings.get("work_dir"),
+        pestpp_version=settings.get("pestpp_version"),
+        pestpp_options=settings.get("pestpp_options", {}),
         ies_settings=settings.get("ies", {}),
+        sen_settings=settings.get("sen", {}),
+        swp_settings=settings.get("swp", {}),
+        opt_settings=settings.get("opt", {}),
+        da_settings=settings.get("da", {}),
         loss=settings.get("loss", "linear"),
-        observations_file=cal_section.get("observations", {}).get("file"),
-        model_config_file=cal_section.get("model", {}).get("config_file"),
-        adapter_settings=cal_section.get("model", {}),
+        observations_file=cal_section.get("observations", {}).get("file") if isinstance(cal_section.get("observations"), dict) else None,
+        model_config_file=cal_section.get("model", {}).get("config_file") if isinstance(cal_section.get("model"), dict) else None,
+        adapter_settings=cal_section.get("model", {}) if isinstance(cal_section.get("model"), dict) else {},
         sub_models=cal_section.get("sub_models", [])
     )
 
