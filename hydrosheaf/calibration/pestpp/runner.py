@@ -12,6 +12,8 @@ import platform
 import zipfile
 import urllib.request
 import logging
+import socket
+import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 import pandas as pd
@@ -796,6 +798,49 @@ def parse_ies_csv(csv_path: Path) -> Optional[Dict[str, List[float]]]:
         return None
 
 
+def write_parcov_matrix(filepath: Path, params: List[AdjustableParameter]) -> None:
+    """Write a diagonal parameter covariance matrix from parameter bounds."""
+    header = "name," + ",".join(p.name for p in params)
+    lines = [header]
+    for i, p in enumerate(params):
+        row = [p.name]
+        for j, _ in enumerate(params):
+            if i == j:
+                # variance = (range / par_sigma_range) ** 2   ; par_sigma_range default = 4
+                rng_val = p.upper_bound - p.lower_bound
+                if p.log_transform:
+                    rng_val = np.log10(p.upper_bound) - np.log10(max(p.lower_bound, 1e-12))
+                var = (rng_val / 4.0) ** 2
+                row.append(f"{var:.6e}")
+            else:
+                row.append("0.0")
+        lines.append(",".join(row))
+    filepath.write_text("\n".join(lines) + "\n")
+
+
+def write_obscov_matrix(filepath: Path, obs: List[Observation]) -> None:
+    """Write a diagonal observation covariance matrix from observation weights."""
+    header = "name," + ",".join(o.name for o in obs)
+    lines = [header]
+    for i, o in enumerate(obs):
+        row = [o.name]
+        variance = (1.0 / max(o.weight, 1e-6)) ** 2
+        for j, _ in enumerate(obs):
+            row.append(f"{variance:.6e}" if i == j else "0.0")
+        lines.append(",".join(row))
+    filepath.write_text("\n".join(lines) + "\n")
+
+
+def write_localizer_matrix(filepath: Path, params: List[AdjustableParameter], obs: List[Observation]) -> None:
+    """Write a default identity localizer matrix (all parameters influence all observations)."""
+    header = "name," + ",".join(p.name for p in params)
+    lines = [header]
+    for o in obs:
+        row = [o.name] + ["1.0"] * len(params)
+        lines.append(",".join(row))
+    filepath.write_text("\n".join(lines) + "\n")
+
+
 class PestRunner:
     """Wraps PEST++ execution pipeline programmatically."""
 
@@ -818,6 +863,7 @@ class PestRunner:
         self.n_workers = n_workers
         self.pestpp_options = pestpp_options or {}
         self.pestpp_version = pestpp_version
+        self._agents: List[subprocess.Popen] = []
 
     def prepare(self) -> PestControlFile:
         """Create workspace, serialize problem, generate scripts, and construct PestControlFile."""
@@ -866,6 +912,74 @@ class PestRunner:
                 write_observation_ensemble(obs_ens_file, obs, n_reals)
                 pst.pestpp_options["ies_observation_ensemble"] = obs_ens_file.name
 
+            # Parameter covariance (parcov)
+            parcov_opt = pst.pestpp_options.get("parcov")
+            if parcov_opt is True:  # auto-generate from bounds
+                parcov_file = self.work_dir / f"{self.case_name}.parcov.csv"
+                write_parcov_matrix(parcov_file, params)
+                pst.pestpp_options["parcov"] = parcov_file.name
+            elif isinstance(parcov_opt, (str, Path)):
+                src = Path(parcov_opt)
+                if src.exists():
+                    dst = self.work_dir / src.name
+                    if not dst.exists():
+                        shutil.copy2(str(src), str(dst))
+                    pst.pestpp_options["parcov"] = src.name
+
+            # Observation covariance (obscov)
+            obscov_opt = pst.pestpp_options.get("obscov")
+            if obscov_opt is True:
+                obscov_file = self.work_dir / f"{self.case_name}.obscov.csv"
+                write_obscov_matrix(obscov_file, obs)
+                pst.pestpp_options["obscov"] = obscov_file.name
+            elif isinstance(obscov_opt, (str, Path)):
+                src = Path(obscov_opt)
+                if src.exists():
+                    dst = self.work_dir / src.name
+                    if not dst.exists():
+                        shutil.copy2(str(src), str(dst))
+                    pst.pestpp_options["obscov"] = src.name
+
+            # Localizer
+            loc_opt = pst.pestpp_options.get("ies_localizer")
+            if loc_opt is True:
+                loc_file = self.work_dir / f"{self.case_name}.localizer.csv"
+                write_localizer_matrix(loc_file, params, obs)
+                pst.pestpp_options["ies_localizer"] = loc_file.name
+            elif isinstance(loc_opt, (str, Path)):
+                src = Path(loc_opt)
+                if src.exists():
+                    dst = self.work_dir / src.name
+                    if not dst.exists():
+                        shutil.copy2(str(src), str(dst))
+                    pst.pestpp_options["ies_localizer"] = src.name
+
+            # Restart ensembles
+            restart_par = pst.pestpp_options.get("ies_restart_parameter_ensemble")
+            restart_obs = pst.pestpp_options.get("ies_restart_observation_ensemble")
+            if restart_par and isinstance(restart_par, (str, Path)):
+                src = Path(restart_par)
+                if not src.is_absolute():
+                    src = Path.cwd() / src
+                if src.exists():
+                    dst = self.work_dir / src.name
+                    if not dst.exists():
+                        shutil.copy2(str(src), str(dst))
+                    pst.pestpp_options["ies_restart_parameter_ensemble"] = src.name
+                else:
+                    logger.warning(f"Restart parameter ensemble not found: {restart_par}")
+            if restart_obs and isinstance(restart_obs, (str, Path)):
+                src = Path(restart_obs)
+                if not src.is_absolute():
+                    src = Path.cwd() / src
+                if src.exists():
+                    dst = self.work_dir / src.name
+                    if not dst.exists():
+                        shutil.copy2(str(src), str(dst))
+                    pst.pestpp_options["ies_restart_observation_ensemble"] = src.name
+                else:
+                    logger.warning(f"Restart observation ensemble not found: {restart_obs}")
+
         # Config Sweep files
         if self.engine == "pestpp-swp":
             sweep_file = self.work_dir / f"{self.case_name}.swp.in.csv"
@@ -873,6 +987,56 @@ class PestRunner:
             method = pst.pestpp_options.get("sweep_sampler", "latin_hypercube")
             generate_sweep_csv(sweep_file, params, n_runs, method)
             pst.pestpp_options.setdefault("sweep_parameter_csv_file", sweep_file.name)
+            # Additional SWP options
+            if "sweep_output_csv_file" not in pst.pestpp_options:
+                pst.pestpp_options["sweep_output_csv_file"] = f"{self.case_name}.swp.out.csv"
+            if "sweep_forgive" in self.pestpp_options:
+                # passthrough - already copied above, no action needed
+                pass
+
+        # Config SEN files
+        if self.engine == "pestpp-sen":
+            sen_method = pst.pestpp_options.get("sen_method", "sobol")
+            pst.pestpp_options.setdefault("sen_method", sen_method)
+            if sen_method == "morris":
+                pst.pestpp_options.setdefault("sen_num_samples", 10)
+                pst.pestpp_options.setdefault("sen_morris_delta", 0.1)
+            elif sen_method == "sobol":
+                pst.pestpp_options.setdefault("sen_sobol_samples", 100)
+                pst.pestpp_options.setdefault("sen_sobol_par_dist", "uniform")
+
+        # Config MOU/OPT files
+        if self.engine in ("pestpp-mou", "pestpp-opt"):
+            if self.engine == "pestpp-mou":
+                pst.pestpp_options.setdefault("mou_population_size", 50)
+                pst.pestpp_options.setdefault("mou_max_generations", self.max_nfev)
+                pst.pestpp_options.setdefault("mou_generator", "de")
+            # common OPT options
+            pst.pestpp_options.setdefault("risk", 0.95)
+            if "dec_var_groups" not in pst.pestpp_options and len(params) > 0:
+                # Auto-create a decision variable group from non-fixed parameters
+                dec_names = [p.name for p in params if not getattr(p, 'fixed', False)]
+                if dec_names:
+                    pst.pestpp_options.setdefault(
+                        "dec_var_groups",
+                        "dec_var " + " ".join(dec_names)
+                    )
+
+        # Config DA files
+        if self.engine == "pestpp-da":
+            pst.pestpp_options.setdefault("da_num_cycles", self.max_nfev)
+            da_restart = pst.pestpp_options.get("da_restart_cycle", 0)
+            if isinstance(da_restart, int) and da_restart > 0:
+                # passthrough
+                pass
+            da_ens = pst.pestpp_options.get("da_parameter_ensemble")
+            if da_ens and isinstance(da_ens, (str, Path)):
+                src = Path(da_ens)
+                if src.exists():
+                    dst = self.work_dir / src.name
+                    if not dst.exists():
+                        shutil.copy2(str(src), str(dst))
+                    pst.pestpp_options["da_parameter_ensemble"] = src.name
 
         pst.control_data.noptmax = self.max_nfev
 
@@ -887,6 +1051,28 @@ class PestRunner:
 
         return pst
 
+    @staticmethod
+    def _find_free_port() -> int:
+        """Find an ephemeral TCP port available on localhost."""
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("", 0))
+            return int(s.getsockname()[1])
+
+    def _terminate_agents(self) -> None:
+        """Clean up any spawned agent (worker) processes."""
+        for agent in list(self._agents):
+            try:
+                if agent.poll() is None:
+                    agent.terminate()
+                    try:
+                        agent.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        agent.kill()
+                        agent.wait(timeout=5)
+            except Exception as e:
+                logger.warning(f"Failed to terminate agent {agent.pid}: {e}")
+        self._agents = []
+
     def run(self) -> Dict[str, Any]:
         """Execute PEST++ binary and parse the outputs."""
         pst = self.prepare()
@@ -895,17 +1081,64 @@ class PestRunner:
         # Find Executable
         exe_path = get_executable_path(self.engine, self.pestpp_version)
 
-        logger.info(f"Starting {self.engine}...")
-        cmd = [exe_path, pst_file]
-
         try:
-            subprocess.run(cmd, cwd=str(self.work_dir), check=True)
+            if self.n_workers <= 1:
+                # Single-process (serial) execution
+                logger.info(f"Starting {self.engine} (serial)...")
+                cmd = [exe_path, pst_file]
+                subprocess.run(cmd, cwd=str(self.work_dir), check=True)
+            else:
+                # Parallel manager / agent (PANTHER) execution
+                port = self._find_free_port()
+                logger.info(
+                    f"Starting {self.engine} manager on port {port} "
+                    f"with {self.n_workers} agents ..."
+                )
+
+                # Default parallel options if not already set
+                self.pestpp_options.setdefault("max_run_fail", 3)
+                self.pestpp_options.setdefault("panther_agent_restart_on_error", True)
+                self.pestpp_options.setdefault("panther_agent_no_ping_timeout_secs", 300)
+                self.pestpp_options.setdefault("overdue_resched_fac", 1.15)
+                self.pestpp_options.setdefault("overdue_giveup_fac", 2.0)
+                # Re-write .pst with updated options
+                pst.pestpp_options = self.pestpp_options.copy()
+                pst.write(self.work_dir / f"{self.case_name}.pst")
+
+                # Launch manager (non-blocking)
+                manager_cmd = [exe_path, pst_file, "/h", f":{port}"]
+                manager = subprocess.Popen(
+                    manager_cmd, cwd=str(self.work_dir)
+                )
+
+                # Allow manager time to bind and start listening
+                time.sleep(2)
+
+                # Launch agents
+                for i in range(self.n_workers):
+                    agent_cmd = [exe_path, pst_file, "/h", f"localhost:{port}"]
+                    agent = subprocess.Popen(
+                        agent_cmd, cwd=str(self.work_dir)
+                    )
+                    self._agents.append(agent)
+                    logger.debug(
+                        f"Spawned agent {i + 1}/{self.n_workers} (pid={agent.pid})"
+                    )
+
+                # Wait for manager to finish
+                manager.wait()
+                if manager.returncode != 0:
+                    raise subprocess.CalledProcessError(
+                        manager.returncode, manager_cmd
+                    )
         except subprocess.CalledProcessError as e:
             logger.error(f"PEST++ failed: {e}")
             return {"success": False, "phi": -1}
         except FileNotFoundError:
             logger.error(f"Executable {exe_path} not found.")
             return {"success": False, "phi": -1}
+        finally:
+            self._terminate_agents()
 
         # Parse Results
         result = {"success": True, "phi": 0.0}
@@ -992,6 +1225,32 @@ class PestRunner:
                 for k, vals in post_par.items():
                     optimal_params[k] = float(np.mean(vals))
 
+            # Posterior forecast summaries (if ++forecasts option set)
+            forecasts = []
+            for key in ("forecasts", "++forecasts"):
+                fc = self.pestpp_options.get(key, "")
+                if fc:
+                    forecasts = [f.strip() for f in str(fc).split(",") if f.strip()]
+                    break
+            posterior_forecast_summaries = {}
+            if post_obs and forecasts:
+                for fc_name in forecasts:
+                    if fc_name in post_obs:
+                        vals = post_obs[fc_name]
+                        posterior_forecast_summaries[fc_name] = {
+                            "mean": float(np.mean(vals)),
+                            "std": float(np.std(vals)),
+                            "min": float(np.min(vals)),
+                            "max": float(np.max(vals)),
+                            "median": float(np.median(vals)),
+                        }
+
+            # Track generated covariance / localizer file paths
+            parcov_path = self.pestpp_options.get("parcov")
+            obscov_path = self.pestpp_options.get("obscov")
+            localizer_path = self.pestpp_options.get("ies_localizer")
+            restart_from = self.pestpp_options.get("ies_restart_parameter_ensemble")
+
             result.update({
                 "phi": phi_history[-1] if phi_history else 0.0,
                 "optimal_parameters": optimal_params,
@@ -999,7 +1258,12 @@ class PestRunner:
                 "posterior_parameters": post_par,
                 "prior_observations": prior_obs,
                 "simulated_observations": post_obs,
-                "phi_history": phi_history
+                "phi_history": phi_history,
+                "posterior_forecast_summaries": posterior_forecast_summaries if posterior_forecast_summaries else None,
+                "parcov_path": parcov_path,
+                "obscov_path": obscov_path,
+                "localizer_path": localizer_path,
+                "restart_from": restart_from,
             })
 
         # SEN parser

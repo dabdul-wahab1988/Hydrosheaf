@@ -77,6 +77,10 @@ class EnsembleResult:
     simulated_observations: Optional[Dict[str, List[float]]] = None # observation name -> realization values
     phi_history: Optional[List[float]] = None
     posterior_forecast_summaries: Optional[Dict[str, Dict[str, float]]] = None
+    parcov_path: Optional[str] = None
+    obscov_path: Optional[str] = None
+    localizer_path: Optional[str] = None
+    restart_from: Optional[str] = None
 
 
 @dataclass

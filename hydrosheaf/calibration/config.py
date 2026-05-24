@@ -82,6 +82,8 @@ def load_calibration_config(path: str) -> CalibrationConfig:
                 log_transform=p_def.get("log", False),
                 prior_mean=p_def.get("prior_mean"),
                 prior_sigma=p_def.get("prior_sigma"),
+                fixed=p_def.get("fixed", False),
+                tied_to=p_def.get("tied_to", None),
             )
         )
 

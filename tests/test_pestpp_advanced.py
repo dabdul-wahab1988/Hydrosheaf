@@ -262,3 +262,281 @@ def test_sweep_generator(tmp_path):
     assert list(df.columns) == ["run_id", "p1", "p2"]
     assert (df["p1"] >= 1.0).all() and (df["p1"] <= 10.0).all()
     assert (df["p2"] >= 0.01).all() and (df["p2"] <= 1.0).all()
+
+
+def test_parallel_spawn_flags(tmp_path):
+    """Verify that n_workers > 1 triggers manager/agent /h flags."""
+    from unittest.mock import patch, MagicMock
+
+    prob = GlobalMockProblem(
+        params=[AdjustableParameter("p1", 1.0), AdjustableParameter("p2", 20.0)],
+        obs=[Observation("o1", 5.0)]
+    )
+
+    runner = PestRunner(
+        problem=prob,
+        engine="pestpp-ies",
+        work_dir=str(tmp_path),
+        case_name="case",
+        max_nfev=1,
+        n_workers=3,
+    )
+
+    # Create dummy PST so prepare() succeeds
+    (tmp_path / "case.pst").write_text("dummy")
+
+    # Capture both Popen calls (manager + agents)
+    popen_calls = []
+
+    def mock_popen(cmd, **kwargs):
+        mock_proc = MagicMock()
+        mock_proc.pid = 12345
+        mock_proc.returncode = 0
+        mock_proc.poll.return_value = 0
+        popen_calls.append(cmd)
+        return mock_proc
+
+    with patch("subprocess.Popen", side_effect=mock_popen):
+        result = runner.run()
+
+    # Manager should be first call with /h :<port>
+    assert popen_calls, "No Popen calls were made"
+    manager_cmd = popen_calls[0]
+    assert manager_cmd[0].endswith("pestpp-ies") or "pestpp-ies" in str(manager_cmd[0])
+    assert "/h" in manager_cmd
+    # Port should be somewhere after /h
+    port_arg = manager_cmd[manager_cmd.index("/h") + 1]
+    assert port_arg.startswith(":")
+
+    # Should have 1 manager + 3 agents
+    assert len(popen_calls) == 4, f"Expected 4 Popen calls, got {len(popen_calls)}"
+    for agent_cmd in popen_calls[1:]:
+        assert "/h" in agent_cmd
+        host_port = agent_cmd[agent_cmd.index("/h") + 1]
+        assert host_port.startswith("localhost:")
+
+
+def test_ies_covariance_and_localizer_generated(tmp_path):
+    """Verify auto-generated parcov, obscov, and localizer files for IES."""
+    from hydrosheaf.calibration.pestpp.runner import (
+        write_parcov_matrix, write_obscov_matrix, write_localizer_matrix
+    )
+
+    params = [
+        AdjustableParameter("p1", 5.0, lower_bound=1.0, upper_bound=10.0),
+        AdjustableParameter("p2", 0.1, lower_bound=0.01, upper_bound=1.0, log_transform=True)
+    ]
+    obs = [
+        Observation("o1", 10.0, weight=2.0),
+        Observation("o2", 20.0, weight=1.0)
+    ]
+
+    parcov_file = tmp_path / "parcov.csv"
+    write_parcov_matrix(parcov_file, params)
+    content = parcov_file.read_text()
+    assert "p1" in content
+    assert "p2" in content
+    # Check diagonal non-zero
+    lines = content.strip().splitlines()
+    header = lines[0].split(",")
+    assert header[1] == "p1"
+    assert header[2] == "p2"
+
+    obscov_file = tmp_path / "obscov.csv"
+    write_obscov_matrix(obscov_file, obs)
+    content = obscov_file.read_text()
+    assert "o1" in content
+    assert "o2" in content
+
+    loc_file = tmp_path / "localizer.csv"
+    write_localizer_matrix(loc_file, params, obs)
+    content = loc_file.read_text()
+    lines = content.strip().splitlines()
+    assert lines[0].split(",")[1] == "p1"
+    assert lines[1] == "o1,1.0,1.0"
+    assert lines[2] == "o2,1.0,1.0"
+
+
+def test_ies_prepare_covariance_pass_passthrough(tmp_path):
+    """Verify that parcov/obscov/localizer paths are passed into pestpp_options when specified in options."""
+    import subprocess
+
+    prob = GlobalMockProblem(
+        params=[AdjustableParameter("p1", 1.0, lower_bound=0.1, upper_bound=10.0),
+                AdjustableParameter("p2", 2.0, lower_bound=0.1, upper_bound=10.0)],
+        obs=[Observation("o1", 5.0, weight=1.0)]
+    )
+
+    # Provide explicit covariance paths
+    runner = PestRunner(
+        problem=prob,
+        engine="pestpp-ies",
+        work_dir=str(tmp_path),
+        case_name="case",
+        pestpp_options={
+            "parcov": "user_parcov.csv",
+            "obscov": "user_obscov.csv",
+            "ies_localizer": "user_loc.csv",
+            "ies_restart_parameter_ensemble": "restart_par.csv",
+            "ies_restart_observation_ensemble": "restart_obs.csv",
+        }
+    )
+    pst = runner.prepare()
+
+    # Verify paths appear in written .pst file
+    pst_path = tmp_path / "case.pst"
+    assert pst_path.exists()
+    content = pst_path.read_text()
+    assert "++parcov(user_parcov.csv)" in content
+    assert "++obscov(user_obscov.csv)" in content
+    assert "++ies_localizer(user_loc.csv)" in content
+    assert "++ies_restart_parameter_ensemble(restart_par.csv)" in content
+    assert "++ies_restart_observation_ensemble(restart_obs.csv)" in content
+
+    # Run mocked
+    orig_run = subprocess.run
+    try:
+        subprocess.run = lambda *args, **kwargs: None
+        result = runner.run()
+    finally:
+        subprocess.run = orig_run
+
+    assert result["success"]
+    assert result.get("parcov_path") == "user_parcov.csv"
+    assert result.get("obscov_path") == "user_obscov.csv"
+    assert result.get("localizer_path") == "user_loc.csv"
+    assert result.get("restart_from") == "restart_par.csv"
+
+
+def test_ies_forecast_summary_parsing(tmp_path):
+    """Verify that forecast summaries are computed when forecasts option is set."""
+    import subprocess
+
+    prior_df = pd.DataFrame({
+        "real_name": ["r0", "r1"],
+        "p1": [1.0, 1.2],
+    })
+    prior_df.to_csv(tmp_path / "case.0.par.csv", index=False)
+
+    # Posterior with forecast observations
+    post_df = pd.DataFrame({
+        "realname": ["r0", "r1"],
+        "p1": [1.5, 1.6],
+        "fc1": [10.0, 12.0],
+        "fc2": [5.0, 6.0],
+    })
+    post_df.to_csv(tmp_path / "case.2.obs.csv", index=False)
+
+    prob = GlobalMockProblem(
+        params=[AdjustableParameter("p1", 1.0)],
+        obs=[Observation("fc1", 10.0), Observation("fc2", 5.0)]
+    )
+
+    runner = PestRunner(
+        problem=prob,
+        engine="pestpp-ies",
+        work_dir=str(tmp_path),
+        case_name="case",
+        max_nfev=2,
+        pestpp_options={"forecasts": "fc1,fc2"}
+    )
+
+    orig_run = subprocess.run
+    try:
+        subprocess.run = lambda *args, **kwargs: None
+        result = runner.run()
+    finally:
+        subprocess.run = orig_run
+
+    assert result["success"]
+    assert "posterior_forecast_summaries" in result
+    assert "fc1" in result["posterior_forecast_summaries"]
+    assert "fc2" in result["posterior_forecast_summaries"]
+    fc1 = result["posterior_forecast_summaries"]["fc1"]
+    assert np.isclose(fc1["mean"], 11.0)
+    assert np.isclose(fc1["std"], 1.0)
+
+
+def test_sen_workflow_defaults(tmp_path):
+    """Verify SEN prepare() sets default Morris/Sobol options in .pst."""
+    prob = GlobalMockProblem(
+        params=[AdjustableParameter("p1", 1.0), AdjustableParameter("p2", 2.0)],
+        obs=[Observation("o1", 5.0)]
+    )
+    runner = PestRunner(
+        problem=prob,
+        engine="pestpp-sen",
+        work_dir=str(tmp_path),
+        case_name="case",
+    )
+    pst = runner.prepare()
+    pst_path = tmp_path / "case.pst"
+    assert pst_path.exists()
+    content = pst_path.read_text()
+    assert "++sen_method" in content
+
+
+def test_swp_workflow_defaults(tmp_path):
+    """Verify SWP prepare() generates sweep CSV and sets output CSV."""
+    prob = GlobalMockProblem(
+        params=[AdjustableParameter("p1", 5.0, lower_bound=1.0, upper_bound=10.0)],
+        obs=[Observation("o1", 5.0)]
+    )
+    runner = PestRunner(
+        problem=prob,
+        engine="pestpp-swp",
+        work_dir=str(tmp_path),
+        case_name="case",
+        pestpp_options={"sweep_n_runs": 5}
+    )
+    pst = runner.prepare()
+    sweep_file = tmp_path / "case.swp.in.csv"
+    assert sweep_file.exists()
+    df = pd.read_csv(sweep_file)
+    assert len(df) == 5
+
+    pst_path = tmp_path / "case.pst"
+    content = pst_path.read_text()
+    assert "++sweep_parameter_csv_file" in content
+    assert "++sweep_output_csv_file" in content
+
+
+def test_mou_workflow_defaults(tmp_path):
+    """Verify MOU prepare() sets population and generator defaults."""
+    prob = GlobalMockProblem(
+        params=[AdjustableParameter("p1", 1.0)],
+        obs=[Observation("o1", 5.0)]
+    )
+    runner = PestRunner(
+        problem=prob,
+        engine="pestpp-mou",
+        work_dir=str(tmp_path),
+        case_name="case",
+        max_nfev=20,
+    )
+    pst = runner.prepare()
+    pst_path = tmp_path / "case.pst"
+    content = pst_path.read_text()
+    assert "++mou_population_size" in content
+    assert "++mou_max_generations" in content
+    assert "++mou_generator" in content
+    assert "++risk" in content
+
+
+def test_da_workflow_defaults(tmp_path):
+    """Verify DA prepare() sets cycle defaults in .pst."""
+    prob = GlobalMockProblem(
+        params=[AdjustableParameter("p1", 1.0)],
+        obs=[Observation("o1", 5.0)]
+    )
+    runner = PestRunner(
+        problem=prob,
+        engine="pestpp-da",
+        work_dir=str(tmp_path),
+        case_name="case",
+        max_nfev=3,
+    )
+    pst = runner.prepare()
+    pst_path = tmp_path / "case.pst"
+    content = pst_path.read_text()
+    assert "++da_num_cycles" in content

@@ -592,24 +592,32 @@ class Config:
         """
         Load optimized parameters from a PEST calibration JSON file.
         Updates Config fields if parameter names match known config keys.
+
+        Supports both single-point (GLM/OPT) and ensemble (IES) results.
+        When loading ensemble results, optimal_parameters are derived
+        from the posterior parameter means.
         """
         import json
+        import re
 
         with open(path, "r") as f:
             data = json.load(f)
 
+        # If loaded result is an EnsembleResult, compute mean optimal parameters
         optimal = data.get("optimal_parameters", {})
+        if not optimal:
+            post = data.get("posterior_parameters", {})
+            if post:
+                optimal = {
+                    k: float(sum(v) / len(v)) if isinstance(v, (list, tuple)) else float(v)
+                    for k, v in post.items()
+                }
         if not optimal:
             return
 
-        # Mapping from PEST parameter names (flexible) to Config fields
-        # Users should name parameters in calibration.yaml matching these keys,
-        # or we use standard mappings.
-
-        # Direct matches
+        # Direct matches (exact attribute names)
         for key, value in optimal.items():
             if hasattr(self, key):
-                # Type conversion based on existing attribute
                 current = getattr(self, key)
                 try:
                     if isinstance(current, int):
@@ -619,13 +627,12 @@ class Config:
                     elif isinstance(current, bool):
                         setattr(self, key, bool(value))
                 except (ValueError, TypeError):
-                    pass  # Skip incompatible types
+                    pass
 
-        # Specific Mappings for common aliases
+        # Expanded aliases for adapter parameter naming patterns
         aliases = {
             "dispersivity": "dispersivity_m",
-            "velocity": "aquifer_hydraulic_k_m_day",  # Assuming velocity correlates to K? Or just velocity?
-            # Note: velocity depends on K, porosity, gradient. Usually we calibrate K.
+            "velocity": "aquifer_hydraulic_k_m_day",
             "hydraulic_k": "aquifer_hydraulic_k_m_day",
             "K": "aquifer_hydraulic_k_m_day",
             "decay": "denitrification_k_1_day",
@@ -633,16 +640,48 @@ class Config:
             "rate_constant": "rt_default_rate_constant",
             "surface_area": "rt_default_surface_area",
             "residence_time": "rt_default_residence_time",
-            "ks_multiplier": None,  # Handle custom vadose scaling?
-            "kc": None,
+            "ttd_cv": "tau_agreement_tolerance",
         }
 
-        for p_name, conf_key in aliases.items():
-            if p_name in optimal and conf_key is not None:
-                val = float(optimal[p_name])
-                setattr(self, conf_key, val)
+        for p_name in list(optimal.keys()):
+            match = re.match(r"log_k_(\w+)", p_name)
+            if match:
+                mineral = match.group(1)
+                if self.mineral_rate_constants is not None and mineral in self.mineral_rate_constants:
+                    self.mineral_rate_constants[mineral] = float(optimal[p_name])
+
+            if p_name in aliases and aliases[p_name] is not None:
+                conf_key = aliases[p_name]
+                try:
+                    setattr(self, conf_key, float(optimal[p_name]))
+                except (ValueError, TypeError, AttributeError):
+                    pass
+
+        # Composite sub-model loading
+        sub_results = data.get("sub_model_results", {})
+        if isinstance(sub_results, dict):
+            for sub_type, sub_res in sub_results.items():
+                sub_optimal = sub_res.get("optimal_parameters", {})
+                if not sub_optimal and "posterior_parameters" in sub_res:
+                    post = sub_res["posterior_parameters"]
+                    sub_optimal = {
+                        k: float(sum(v) / len(v)) if isinstance(v, (list, tuple)) else float(v)
+                        for k, v in post.items()
+                    }
+                for p_name, val in sub_optimal.items():
+                    if hasattr(self, p_name):
+                        try:
+                            setattr(self, p_name, float(val))
+                        except (ValueError, TypeError):
+                            pass
+        loaded_direct = len([k for k in optimal if hasattr(self, k)])
+        aliased = len([k for k in optimal if k in aliases])
 
         print(f"Loaded {len(optimal)} parameters from calibration.")
+        if loaded_direct:
+            print(f"  {loaded_direct} direct attribute matches applied.")
+        if aliased:
+            print(f"  {aliased} aliased parameter mappings applied.")
 
 
 def default_config() -> Config:

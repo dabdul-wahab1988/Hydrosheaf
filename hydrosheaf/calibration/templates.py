@@ -34,6 +34,21 @@ calibration:
     max_iterations: 50
     output_dir: calibration_results
     engine: internal
+  parameters:
+    # Fixed parameter example:
+    # - name: decay
+    #   initial: 0.0
+    #   bounds: [0.0, 1.0]
+    #   fixed: true
+    # Tied parameter example:
+    # - name: velocity
+    #   initial: 0.1
+    #   bounds: [0.01, 1.0]
+    #   tied_to: dispersivity
+    - name: dispersivity
+      initial: 1.0
+      bounds: [0.1, 10.0]
+      log: true
   model:
     observations_file: transport_obs.csv
     distance_m: 10.0
@@ -140,6 +155,19 @@ calibration:
     max_iterations: 50
     output_dir: calibration_results
     engine: internal
+  parameters:
+    - name: dispersivity
+      initial: 1.0
+      bounds: [0.1, 10.0]
+      log: true
+    - name: decay
+      initial: 0.0
+      bounds: [0.0, 1.0]
+      fixed: true               # do not adjust during calibration
+    - name: ks_multiplier
+      initial: 1.0
+      bounds: [0.5, 2.0]
+      tied_to: dispersivity     # tied to another parameter
   sub_models:
     - type: transport
       id: sub_transport
@@ -154,6 +182,8 @@ calibration:
       observations_file: vadose_obs.csv
       layers_to_fit:
         - 0
+      fit_parameters:
+        - ks_multiplier
 """
 
 TEMPLATES = {

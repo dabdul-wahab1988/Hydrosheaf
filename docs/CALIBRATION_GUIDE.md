@@ -39,11 +39,50 @@ The calibration settings are defined in a standard YAML configuration file.
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `engine` | String | `"internal"` | Optimization engine: `"internal"` (Python GLM solver) or `"pestpp"` / `"pestpp-ies"`. |
-| `max_iterations` | Integer | `50` | Maximum number of model evaluations (`max_nfev`). |
-| `n_workers` | Integer | `1` | Number of parallel worker processes / threads. |
+| `engine` | String | `"internal"` | Optimization engine: `"internal"` (PESTGLM), `"pestpp-glm"`, `"pestpp-ies"`, `"pestpp-sen"`, `"pestpp-swp"`, `"pestpp-mou"`, `"pestpp-opt"`, `"pestpp-da"`. |
+| `max_iterations` | Integer | `50` | Maximum number of model evaluations (`max_nfev`, `noptmax` in PEST++). |
+| `n_workers` | Integer | `1` | Number of parallel workers. For PEST++, activates manager/agent PANTHER architecture when > 1. |
 | `output_dir` | String | `"calibration_results"` | Directory where results and `results.json` will be saved. |
 | `loss` | String | `"linear"` | Robust loss function for `internal` engine: `linear`, `huber`, `soft_l1`, `cauchy`. |
+| `work_dir` | String | `"pest_workspace"` | Workspace for PEST++ input/output files. |
+| `pestpp_options` | Dict | `{}` | Generic `++` options passed to all PEST++ engines. |
+| `ies` | Dict | `{}` | PESTPP-IES specific options (see Section 5). |
+| `sen` | Dict | `{}` | PESTPP-SEN specific options. |
+| `swp` | Dict | `{}` | PESTPP-SWP specific options. |
+| `opt` | Dict | `{}` | PESTPP-OPT / PESTPP-MOU specific options. |
+| `da` | Dict | `{}` | PESTPP-DA specific options. |
+
+### Parameter Definitions (`calibration.parameters`)
+
+| Key | Type | Required | Description |
+|---|---|---|---|
+| `name` | String | Yes | Parameter name. Must match adapter expectations or be unique. |
+| `initial` | Float | Yes | Starting value. |
+| `bounds` | `[lower, upper]` | Yes | Lower and upper bounds. |
+| `log` | Boolean | No | Log10-transform the parameter. Default `false`. |
+| `prior_mean` | Float | No | Prior mean for regularization. |
+| `prior_sigma` | Float | No | Prior standard deviation for regularization. |
+| `fixed` | Boolean | No | If `true`, the parameter is held constant during calibration. |
+| `tied_to` | String | No | If set, this parameter is tied to another parameter's value. |
+
+Example with `fixed` and `tied_to`:
+
+```yaml
+calibration:
+  parameters:
+    - name: dispersivity
+      initial: 1.0
+      bounds: [0.1, 10.0]
+      log: true
+    - name: decay
+      initial: 0.0
+      bounds: [0.0, 1.0]
+      fixed: true               # do not adjust during calibration
+    - name: velocity
+      initial: 0.1
+      bounds: [0.01, 1.0]
+      tied_to: dispersivity     # tied to another parameter's value
+```
 
 ---
 
@@ -72,7 +111,7 @@ calibration:
     n_workers: 4
   model:
     minerals: ["calcite", "dolomite"]
-    fit_parameters: ["calcite:k:global", "dolomite:A:per_edge"]
+    fit_parameters: ["calcite:k:global", "dolomite:k:global"]
     observations_file: "data/kinetic_observations.csv"
 ```
 
@@ -108,7 +147,178 @@ calibration:
 
 ---
 
-## 5. Output Interpretation
+## 5. PEST++ Engine Specifics
+
+When `engine` is set to a PEST++ tool, Hydrosheaf automatically generates `.pst`, `.tpl`, `.ins`, ensemble files, and invokes the native binary.
+
+### PESTPP-GLM (Parameter Estimation + FOSM)
+
+Suitable for: single-point optimization with sensitivity/uncertainty analysis.
+
+```yaml
+calibration:
+  settings:
+    engine: pestpp-glm
+    max_iterations: 20
+    pestpp_options:
+      lambdas: "1.0,10.0"
+      uncertainty: true
+```
+
+### PESTPP-IES (Iterative Ensemble Smoother)
+
+Suitable for: ensemble-based history matching, uncertainty reduction.
+
+```yaml
+calibration:
+  settings:
+    engine: pestpp-ies
+    max_iterations: 10
+    pestpp_options:
+      max_run_fail: 3
+      panther_agent_restart_on_error: true
+    ies:
+      ies_num_reals: 200
+      ies_num_threads: 8
+      ies_lambda_mults: "0.1,1.0,10.0"
+      ies_subset_size: 20
+      ies_accept_phi_fac: 1.01
+      par_sigma_range: 4.0
+      # Optional: auto-generate covariance from bounds
+      parcov: true
+      # Optional: localization matrix (auto-generates identity)
+      ies_localizer: true
+      # Optional: restart from previous run
+      # ies_restart_parameter_ensemble: "restart.0.par.csv"
+      # ies_restart_observation_ensemble: "restart.0.obs.csv"
+      # Optional: forecast observations to summarize
+      forecasts: "gw_age,mean_conc"
+```
+
+**Key IES Options:**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `ies_num_reals` | int | 100 | Number of realizations in the ensemble. |
+| `ies_num_threads` | int | -1 | Number of threads for matrix ops. `-1` = all cores. |
+| `ies_lambda_mults` | str | `"0.1,1.0,10.0"` | Marquardt lambda multipliers to test. |
+| `ies_subset_size` | int | 4 | Size of realization subset. |
+| `ies_accept_phi_fac` | float | 1.05 | Phi acceptance factor. Lower = stricter. |
+| `par_sigma_range` | float | 4.0 | Number of standard deviations spanned by bounds. |
+| `parcov` | bool/str | — | `true` to auto-generate from bounds, or path to `.csv`. |
+| `obscov` | bool/str | — | `true` to auto-generate from weights, or path to `.csv`. |
+| `ies_localizer` | bool/str | — | `true` for identity localizer, or path to `.csv`. |
+
+### PESTPP-SEN (Sensitivity Analysis)
+
+```yaml
+calibration:
+  settings:
+    engine: pestpp-sen
+    sen:
+      sen_method: morris           # or sobol
+      sen_num_samples: 100
+      sen_morris_delta: 0.1
+      sen_sobol_samples: 1000
+      sen_sobol_par_dist: uniform
+```
+
+### PESTPP-SWP (Parameter Sweep)
+
+```yaml
+calibration:
+  settings:
+    engine: pestpp-swp
+    swp:
+      sweep_n_runs: 100
+      sweep_sampler: latin_hypercube  # or grid, random
+      sweep_forgive: true
+```
+
+### PESTPP-MOU (Multi-Objective Optimization)
+
+```yaml
+calibration:
+  settings:
+    engine: pestpp-mou
+    max_iterations: 50
+    opt:
+      mou_population_size: 100
+      mou_max_generations: 50
+      mou_generator: de               # or pso
+      mou_objectives: "cost,rmse"
+      mou_constraints: "limit1,limit2"
+```
+
+### PESTPP-OPT (Optimization Under Uncertainty)
+
+```yaml
+calibration:
+  settings:
+    engine: pestpp-opt
+    opt:
+      risk: 0.95
+      dec_var_groups: "dec_var p1 p2 p3"
+```
+
+### PESTPP-DA (Data Assimilation)
+
+```yaml
+calibration:
+  settings:
+    engine: pestpp-da
+    max_iterations: 5
+    da:
+      da_num_cycles: 5
+      da_restart_cycle: 0
+      # da_parameter_ensemble: "initial.par.csv"
+```
+
+---
+
+## 6. Parallel Execution with `n_workers`
+
+For **PEST++** engines, setting `n_workers > 1` activates the PANTHER manager/agent architecture:
+
+- A **manager** process is launched: `pestpp-<engine> case.pst /h :<port>`
+- `n_workers` **agent** processes connect: `pestpp-<engine> case.pst /h localhost:<port>`
+- Agents execute model runs in parallel and report back to the manager.
+
+The runner automatically finds a free ephemeral port, handles agent lifecycle, and cleans up processes on completion or failure (Windows-safe `terminate` → `wait(5s)` → `kill` cascade).
+
+### Example
+
+```yaml
+calibration:
+  settings:
+    engine: pestpp-ies
+    n_workers: 4
+    max_iterations: 20
+```
+
+On a 4-core machine, this launches 1 manager + 4 agents, giving 4 concurrent model evaluations.
+
+---
+
+## 7. Pipeline Coupling (`--load-calibration`)
+
+After calibration, you can load optimized parameters back into the core `Config`:
+
+```python
+from hydrosheaf.config import Config
+config = Config()
+config.load_from_calibration_json("calibration_results/results.json")
+```
+
+**Supported mappings:**
+- **Direct matches:** If the JSON parameter name matches a `Config` attribute, it is cast and set directly.
+- **Aliases:** Common names like `dispersivity` → `dispersivity_m`, `decay` → `denitrification_k_1_day`, `porosity` → `aquifer_porosity`, etc.
+- **Ensemble support:** If the JSON contains `posterior_parameters` (IES) but no `optimal_parameters`, the method automatically computes posterior means and maps those.
+- **Kinetic parameters:** `log_k_mineral` names are recognized and mapped into `mineral_rate_constants`.
+
+---
+
+## 8. Output Interpretation
 
 The optimization run outputs a summary directly to the console and saves a detailed `results.json` file inside the configured `output_dir`.
 
@@ -117,11 +327,18 @@ The optimization run outputs a summary directly to the console and saves a detai
 2. **Covariance Diagnostics**:
    - `inverse`: Matrix inverted successfully (well-conditioned parameter space).
    - `svd_pseudoinverse`: Jacobian was rank-deficient; SVD pseudoinverse was used to compute parameter uncertainties.
-3. **AIC / BIC**: Akaike and Bayesian Information Criteria. Useful for comparing models with different numbers of parameters (especially for topology search).
+3. **AIC / BIC**: Akaike and Bayesian Information Criteria. Useful for comparing models with different numbers of parameters.
+
+### IES-Specific Outputs
+- `prior_parameters`: Ensemble of prior parameter realizations.
+- `posterior_parameters`: Ensemble of posterior parameter realizations.
+- `phi_history`: Mean Phi per iteration.
+- `posterior_forecast_summaries`: Mean, std, min, max, median for each forecast observation.
+- `parcov_path`, `obscov_path`, `localizer_path`: Paths to covariance/localizer files used.
 
 ---
 
-## 6. Troubleshooting & Common Failures
+## 9. Troubleshooting & Common Failures
 
 ### 1. "NameError / ModuleNotFoundError" during run
 - **Cause**: Missing dependencies or incorrect environment active.
@@ -134,3 +351,15 @@ The optimization run outputs a summary directly to the console and saves a detai
 ### 3. Outer-loop topology search selecting 0 edges
 - **Cause**: Constraints (like acyclicity or head direction) are too strict for the input candidate edge set.
 - **Solution**: Review the hydraulic heads in your samples file and ensure flow direction from higher head to lower head is physically possible for candidate edges.
+
+### 4. PEST++ agents not connecting (Windows)
+- **Cause**: Windows firewall or port conflict.
+- **Solution**: Ensure the ephemeral port is not blocked. The runner automatically scans for a free port, but if you see `ConnectionRefused`, try setting `n_workers: 1` to run serially, or manually specify a known-open port via `pestpp_options.panther_master_port`.
+
+### 5. IES ensemble convergence issues
+- **Cause**: `ies_num_reals` too low, or `ies_accept_phi_fac` too high.
+- **Solution**: Increase `ies_num_reals` to 200–500. Lower `ies_accept_phi_fac` to 1.01. Add `parcov: true` to provide a structured prior covariance.
+
+### 6. Missing `parcov` / `obscov` files
+- **Cause**: User-provided path does not exist in `work_dir`.
+- **Solution**: Use absolute paths, or set `parcov: true` / `obscov: true` to auto-generate diagonal matrices from current parameter bounds and observation weights.

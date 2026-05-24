@@ -91,6 +91,8 @@ def _resolve_internal_parameters(
                 prior_mean=override.prior_mean,
                 prior_sigma=override.prior_sigma,
                 description=override.description,
+                fixed=override.fixed,
+                tied_to=override.tied_to,
             )
         )
     return resolved_parameters
