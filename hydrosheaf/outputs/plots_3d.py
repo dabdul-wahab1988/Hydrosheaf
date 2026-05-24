@@ -3,12 +3,12 @@
 """
 
 from typing import Dict, List, Optional, Union
-import logging
 from ..graph3d.types_3d import Network3D, Node3D, Edge3D
 from ..graph.types import Edge
+from ..log import get_logger
 from .utils import PlotConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 def get_layer_color(layer_index: Optional[int]) -> str:
     """Get color for aquifer layer."""
@@ -59,8 +59,7 @@ def plot_network_3d(
         import pyvista as pv
         import numpy as np
     except ImportError:
-        logger.warning("PyVista not installed. Skipping 3D plot.")
-        print("Error: PyVista is required for 3D plotting. Install with 'pip install pyvista'.")
+        logger.warning("PyVista is required for 3D plotting. Install with 'pip install pyvista'.")
         return
         
     if config is None:
@@ -190,7 +189,6 @@ def plot_network_3d(
     if output_path:
         plotter.screenshot(output_path)
         logger.info(f"Saved 3D plot to {output_path}")
-        print(f"Saved 3D plot to {output_path}")
         
     if show:
         plotter.show()

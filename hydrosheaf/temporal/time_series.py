@@ -7,6 +7,9 @@ from datetime import datetime
 from typing import Dict, List
 
 from . import TemporalNode, TimeSeriesSample
+from ..log import get_logger
+
+logger = get_logger(__name__)
 
 
 def load_time_series_csv(
@@ -75,7 +78,7 @@ def load_time_series_csv(
                 except ValueError:
                     continue
             else:
-                print(f"Warning: Could not parse timestamp '{timestamp_str}', skipping")
+                logger.warning("Could not parse timestamp '%s', skipping", timestamp_str)
                 continue
 
         # Extract concentrations

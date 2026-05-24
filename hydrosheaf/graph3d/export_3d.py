@@ -3,6 +3,10 @@
 import json
 from typing import Any, Dict, List
 
+from ..log import get_logger
+
+logger = get_logger(__name__)
+
 def export_network_3d_json(
     nodes_info: List[Dict[str, Any]],
     edges_info: List[Dict[str, Any]],
@@ -31,7 +35,7 @@ def generate_3d_vtp(
     try:
         import vtk
     except ImportError:
-        print("VTK not installed. Skipping VTP export.")
+        logger.warning("VTK not installed. Skipping VTP export.")
         return
 
     # Create points and cells

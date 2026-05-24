@@ -1,15 +1,15 @@
 """Utility module for plotting configuration and metadata handling."""
 
 import json
-import logging
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 import matplotlib.pyplot as plt
+from ..log import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 @dataclass
 class PlotConfig:

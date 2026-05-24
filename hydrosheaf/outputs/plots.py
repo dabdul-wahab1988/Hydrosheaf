@@ -4,13 +4,13 @@ from typing import List, Optional, Dict, Any, Union
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import logging
 
 from ..inference.edge_fit import EdgeResult
 from ..data.units import MOLAR_MASS_G_MOL, CHARGE_EQUIV
+from ..log import get_logger
 from .utils import PlotConfig, save_with_metadata
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 def _ensure_dataframe(data: Union[List[Dict[str, Any]], Any]) -> Any:
     """Ensure input is a pandas DataFrame."""

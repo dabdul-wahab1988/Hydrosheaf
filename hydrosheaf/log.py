@@ -86,9 +86,16 @@ def setup_logging(
         logger.info(f"Audit log writing to: {log_file}")
 
 
+def _normalize_logger_name(name: str) -> str:
+    clean = name.strip(".")
+    if clean == "hydrosheaf" or clean.startswith("hydrosheaf."):
+        return clean
+    return f"hydrosheaf.{clean}"
+
+
 def get_logger(name: str) -> ScienceLogger:
-    """Get a logger instance properly namespaced."""
-    return logging.getLogger(f"hydrosheaf.{name}")  # type: ignore
+    """Get a logger instance under the hydrosheaf namespace."""
+    return logging.getLogger(_normalize_logger_name(name))  # type: ignore
 
 
 # --- Decorators for Transparency ---

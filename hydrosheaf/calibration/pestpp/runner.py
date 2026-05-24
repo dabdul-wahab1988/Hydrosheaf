@@ -11,7 +11,6 @@ import subprocess
 import platform
 import zipfile
 import urllib.request
-import logging
 import socket
 import time
 from pathlib import Path
@@ -21,8 +20,9 @@ import pandas as pd
 import numpy as np
 
 from ..definitions import AdjustableParameter, Observation
+from ...log import get_logger
 
-logger = logging.getLogger("calibration.pestpp")
+logger = get_logger("calibration.pestpp")
 
 PESTPP_VERSION = "5.2.25"
 PESTPP_BASE_URL = "https://github.com/usgs/pestpp/releases/download"

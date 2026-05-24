@@ -17,7 +17,10 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 from ..config import Config
+from ..log import get_logger
 from . import UncertaintyResult
+
+logger = get_logger(__name__)
 
 
 def _load_bayesian_dependencies() -> Tuple[Any, Any, Any]:
@@ -215,7 +218,7 @@ def bayesian_edge_fit(
 
     except Exception as e:
         # Convergence diagnostics may fail in some edge cases
-        print(f"Warning: Could not compute convergence diagnostics: {e}")
+        logger.warning("Could not compute convergence diagnostics: %s", e)
 
     return result
 

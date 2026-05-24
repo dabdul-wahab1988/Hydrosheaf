@@ -12,6 +12,10 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 
 import numpy as np
+from ..log import get_logger
+
+logger = get_logger(__name__)
+
 try:
     import flopy
     from flopy.modflow import (
@@ -194,9 +198,9 @@ def build_1d_transport_model(
         validation_msgs.append(f"Warning: Peclet number {peclet:.2f} > 2.0. Numerical dispersion may occur.")
     if courant > 1.0:
         validation_msgs.append(f"Warning: Courant number {courant:.2f} > 1.0. Solution may be unstable.")
-    
+
     for msg in validation_msgs:
-        print(msg)  # Or use logger if available in this scope
+        logger.warning(msg.removeprefix("Warning: "))
 
     # Layer properties
     nlay = 1

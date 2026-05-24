@@ -4,7 +4,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from .log import get_logger
+
 DEFAULT_ION_ORDER = ["Ca", "Mg", "Na", "K", "HCO3", "Cl", "SO4", "NO3", "F", "Fe", "PO4"]
+
+logger = get_logger(__name__)
 
 
 
@@ -677,11 +681,11 @@ class Config:
         loaded_direct = len([k for k in optimal if hasattr(self, k)])
         aliased = len([k for k in optimal if k in aliases])
 
-        print(f"Loaded {len(optimal)} parameters from calibration.")
+        logger.info("Loaded %s parameters from calibration.", len(optimal))
         if loaded_direct:
-            print(f"  {loaded_direct} direct attribute matches applied.")
+            logger.info("%s direct attribute matches applied.", loaded_direct)
         if aliased:
-            print(f"  {aliased} aliased parameter mappings applied.")
+            logger.info("%s aliased parameter mappings applied.", aliased)
 
 
 def default_config() -> Config:

@@ -13,7 +13,10 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 
 from ..inference.edge_fit import EdgeResult
+from ..log import get_logger
 from .utils import PlotConfig, save_with_metadata
+
+logger = get_logger(__name__)
 
 
 def _check_mpl():
@@ -43,7 +46,7 @@ def plot_ttd_kernel(
     ]
 
     if not valid_edges:
-        print("Warning: No edges with TTD data found for plotting.")
+        logger.warning("No edges with TTD data found for plotting.")
         return
 
     fig, ax = plt.subplots(figsize=config.figsize)
@@ -108,7 +111,7 @@ def plot_breakthrough(
     ]
 
     if not valid_edges:
-        print("Warning: No edges with temporal convolution data found.")
+        logger.warning("No edges with temporal convolution data found.")
         return
 
     # Limit to first few edges to avoid clutter, or create subplots
@@ -177,7 +180,7 @@ def plot_posterior_ridges(
     config.apply()
 
     if not edge_result.uncertainty or not getattr(edge_result.uncertainty, "extents_samples", None):
-        print(f"Warning: No Bayesian samples found for edge {edge_result.edge_id}")
+        logger.warning("No Bayesian samples found for edge %s", edge_result.edge_id)
         return
 
     samples = np.array(
@@ -199,7 +202,7 @@ def plot_posterior_ridges(
             active_indices.append(i)
 
     if not active_indices:
-        print("No active parameters to plot.")
+        logger.info("No active parameters to plot.")
         return
 
     n_active = len(active_indices)
@@ -288,7 +291,7 @@ def plot_reactive_transport_validation(
     ]
 
     if not valid_edges:
-        print("Warning: No reactive transport validation data found.")
+        logger.warning("No reactive transport validation data found.")
         return
 
     rmses = [r.rt_validation["rmse"] for r in valid_edges]

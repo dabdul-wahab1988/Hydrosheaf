@@ -8,11 +8,12 @@ import shutil
 import platform
 import zipfile
 import urllib.request
-import logging
 import stat
 from pathlib import Path
 
-logger = logging.getLogger("transport.binaries")
+from ..log import get_logger
+
+logger = get_logger("transport.binaries")
 
 # Release from https://github.com/MODFLOW-ORG/executables
 MF_release_TAG = "23.0"

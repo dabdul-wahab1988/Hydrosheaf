@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 
 from ..config import Config
 from ..inference.edge_fit import EdgeResult
+from ..log import get_logger
 from . import KineticParameters, ReactiveTransportResult, ValidationSummary
 from .kinetic_phreeqc import build_kinetic_block, run_phreeqc_kinetic
 from .metrics import (
@@ -13,6 +14,8 @@ from .metrics import (
     compute_consistency_metrics,
     compute_per_ion_metrics,
 )
+
+logger = get_logger(__name__)
 
 
 def validate_edge_forward(
@@ -289,7 +292,7 @@ def validate_network_forward(
 
         except Exception as e:
             # Skip failed validations
-            print(f"Warning: Validation failed for edge {edge_result.edge_id}: {e}")
+            logger.warning("Validation failed for edge %s: %s", edge_result.edge_id, e)
             continue
 
     # Compute summary statistics
