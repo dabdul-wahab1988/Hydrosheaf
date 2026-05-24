@@ -722,6 +722,49 @@ def generate_sweep_csv(
             f.write(f"{idx},{values_str}\n")
 
 
+def _write_da_state_ensemble(
+    filepath: Path,
+    params: List[AdjustableParameter],
+    state_names: List[str],
+    state_initial_values: List[float],
+    n_reals: int,
+) -> None:
+    """
+    Generate a combined parameter + state variable ensemble CSV for DA.
+    Parameters are sampled from bounds; states are initialized from state_initial_values
+    with small perturbation.
+    """
+    rng = np.random.default_rng(456)
+    all_names = [p.name for p in params] + list(state_names)
+    header = "real_name," + ",".join(all_names)
+
+    # Default state values if not enough provided
+    defaults = list(state_initial_values) if state_initial_values else [0.0] * len(state_names)
+    while len(defaults) < len(state_names):
+        defaults.append(0.0)
+
+    with open(filepath, "w") as f:
+        f.write(f"{header}\n")
+        for idx in range(n_reals):
+            values = []
+            # Sample parameters
+            for p in params:
+                if p.log_transform:
+                    low = max(p.lower_bound, 1e-12)
+                    log_low = np.log10(low)
+                    log_high = np.log10(max(p.upper_bound, low * 10.0))
+                    val = 10 ** rng.uniform(log_low, log_high)
+                else:
+                    val = rng.uniform(p.lower_bound, p.upper_bound)
+                values.append(val)
+            # Sample state variables (Gaussian noise around initial)
+            for s_val in defaults:
+                val = max(s_val + rng.normal(0.0, abs(s_val) * 0.1 + 0.01), 0.0)
+                values.append(val)
+            values_str = ",".join(f"{v:.6f}" for v in values)
+            f.write(f"{idx},{values_str}\n")
+
+
 def parse_pest_residuals(res_path: Path) -> tuple[Dict[str, float], Dict[str, float], Dict[str, float]]:
     residuals = {}
     simulated = {}
@@ -1011,10 +1054,36 @@ class PestRunner:
                 pst.pestpp_options.setdefault("mou_population_size", 50)
                 pst.pestpp_options.setdefault("mou_max_generations", self.max_nfev)
                 pst.pestpp_options.setdefault("mou_generator", "de")
-            # common OPT options
-            pst.pestpp_options.setdefault("risk", 0.95)
+
+                # Auto-detect objectives from observation names/groups
+                obj_names = pst.pestpp_options.get("mou_objectives")
+                if not obj_names:
+                    # Default: all observations prefixed "obj_" or "mou_obj_"
+                    obj_obs = [o.name for o in obs if o.name.startswith(("obj_", "mou_obj_"))]
+                    if obj_obs:
+                        pst.pestpp_options.setdefault(
+                            "mou_objectives",
+                            ",".join(obj_obs)
+                        )
+                    elif len(obs) > 0:
+                        # Fall back: first observation as objective if none marked
+                        pst.pestpp_options.setdefault(
+                            "mou_objectives",
+                            obs[0].name
+                        )
+
+                # Auto-detect constraints from observation names/groups
+                con_names = pst.pestpp_options.get("mou_constraints")
+                if not con_names:
+                    con_obs = [o.name for o in obs if o.name.startswith(("con_", "mou_con_"))]
+                    if con_obs:
+                        pst.pestpp_options.setdefault(
+                            "mou_constraints",
+                            ",".join(con_obs)
+                        )
+
+            # Decision variable groups
             if "dec_var_groups" not in pst.pestpp_options and len(params) > 0:
-                # Auto-create a decision variable group from non-fixed parameters
                 dec_names = [p.name for p in params if not getattr(p, 'fixed', False)]
                 if dec_names:
                     pst.pestpp_options.setdefault(
@@ -1022,13 +1091,73 @@ class PestRunner:
                         "dec_var " + " ".join(dec_names)
                     )
 
+            # Constraint groups for OPT
+            if self.engine == "pestpp-opt":
+                # OPT uses observation group names for constraints
+                con_groups = set(
+                    o.group for o in obs
+                    if o.group.startswith(("con_", "cnstr_"))
+                )
+                if con_groups:
+                    pst.pestpp_options.setdefault(
+                        "opt_constraint_groups",
+                        ",".join(sorted(con_groups))
+                    )
+
+            # Warm-start Jacobian
+            base_jac = pst.pestpp_options.get("base_jacobian")
+            if not base_jac:
+                hot_jac = self.work_dir / f"{self.case_name}.jcb"
+                if hot_jac.exists():
+                    pst.pestpp_options.setdefault("base_jacobian", hot_jac.name)
+
+            # Risk level for chance constraints
+            pst.pestpp_options.setdefault("risk", 0.95)
+
         # Config DA files
         if self.engine == "pestpp-da":
             pst.pestpp_options.setdefault("da_num_cycles", self.max_nfev)
+
+            # Restart from cycle
             da_restart = pst.pestpp_options.get("da_restart_cycle", 0)
             if isinstance(da_restart, int) and da_restart > 0:
-                # passthrough
-                pass
+                pass  # passthrough
+
+            # Cycle tables for time-variant observations/weights
+            da_cycle_table = pst.pestpp_options.get("da_cycle_table")
+            if da_cycle_table and isinstance(da_cycle_table, (str, Path)):
+                src = Path(da_cycle_table)
+                if src.exists():
+                    dst = self.work_dir / src.name
+                    if not dst.exists():
+                        shutil.copy2(str(src), str(dst))
+                    pst.pestpp_options["da_cycle_table"] = src.name
+
+            da_obs_table = pst.pestpp_options.get("da_observation_cycle_table")
+            if da_obs_table and isinstance(da_obs_table, (str, Path)):
+                src = Path(da_obs_table)
+                if src.exists():
+                    dst = self.work_dir / src.name
+                    if not dst.exists():
+                        shutil.copy2(str(src), str(dst))
+                    pst.pestpp_options["da_observation_cycle_table"] = src.name
+
+            # State-parameter ensemble handling
+            state_names = pst.pestpp_options.get("da_state_names", [])
+            if state_names and isinstance(state_names, (list, tuple)):
+                # If states are provided, generate initial state-parameter ensemble
+                da_state_ens = self.work_dir / f"{self.case_name}.state.0.par.csv"
+                if not da_state_ens.exists():
+                    # Combine parameter values with state variable initial values
+                    n_reals = int(pst.pestpp_options.get("ies_num_reals", 50))
+                    state_vals = pst.pestpp_options.get("da_state_initial_values", [])
+                    _write_da_state_ensemble(da_state_ens, params, state_names, state_vals, n_reals)
+                if da_state_ens.exists():
+                    pst.pestpp_options.setdefault(
+                        "da_state_parameter_ensemble", da_state_ens.name
+                    )
+
+            # Observation ensemble per cycle
             da_ens = pst.pestpp_options.get("da_parameter_ensemble")
             if da_ens and isinstance(da_ens, (str, Path)):
                 src = Path(da_ens)
@@ -1367,21 +1496,53 @@ class PestRunner:
         # DA parser
         elif self.engine == "pestpp-da":
             cycles = []
+            prior_par = None
+            posterior_par = None
+            state_summary = {}
             for p_file in sorted(self.work_dir.glob(f"{self.case_name}.da.cycle_*.par.csv")):
                 try:
                     cycle_idx = int(p_file.name.split("cycle_")[1].split(".")[0])
                     p_data = parse_ies_csv(p_file)
                     o_file = self.work_dir / f"{self.case_name}.da.cycle_{cycle_idx}.obs.csv"
                     o_data = parse_ies_csv(o_file) if o_file.exists() else None
+
+                    # Track state-parameter separation
+                    state_names = self.pestpp_options.get("da_state_names", [])
+                    state_ens = {}
+                    param_ens = {}
+                    if p_data:
+                        for key, vals in p_data.items():
+                            if any(key.startswith(s) for s in state_names):
+                                state_ens[key] = vals
+                            else:
+                                param_ens[key] = vals
+
+                    if cycle_idx == 0:
+                        prior_par = param_ens if param_ens else p_data
+                    # Last cycle posterior
+                    posterior_par = param_ens if param_ens else p_data
+
+                    # Summarize state uncertainties per cycle
+                    if state_ens:
+                        state_summary[cycle_idx] = {
+                            k: {"mean": float(np.mean(v)), "std": float(np.std(v))}
+                            for k, v in state_ens.items()
+                        }
+
                     cycles.append({
                         "cycle": cycle_idx,
-                        "parameters": p_data,
-                        "observations": o_data
+                        "parameters": param_ens,
+                        "observations": o_data,
+                        "state_ensemble": state_ens,
                     })
                 except Exception:
                     continue
+
             result.update({
-                "cycles": cycles
+                "cycles": cycles,
+                "prior_parameters": prior_par,
+                "posterior_parameters": posterior_par,
+                "state_summaries": state_summary if state_summary else None,
             })
 
         return result

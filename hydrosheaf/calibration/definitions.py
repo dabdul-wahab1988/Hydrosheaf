@@ -2,7 +2,7 @@
 Parameter and Observation definitions for PEST-style calibration.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Any
 import numpy as np
 
@@ -104,8 +104,19 @@ class OptimizationResult:
 
 
 @dataclass
+class MouState:
+    """Represents a single evaluated state within a MOU population."""
+    decision_variables: Dict[str, float]
+    objectives: Dict[str, float]
+    constraints: Optional[Dict[str, float]] = None
+    rank: Optional[int] = None
+    crowding_distance: Optional[float] = None
+
+
+@dataclass
 class DataAssimilationResult:
     """Standard schema for data assimilation (e.g. DA)."""
     success: bool
-    cycles: List[Dict[str, Any]]
+    cycles: List[Dict[str, Any]] = field(default_factory=list)
+    state_names: Optional[List[str]] = None
 
