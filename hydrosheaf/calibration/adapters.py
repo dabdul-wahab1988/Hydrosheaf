@@ -1344,7 +1344,34 @@ class TopologyCalibrationObservation:
 class TopologyCalibrationAdapter(CalibrationProblem):
     """
     Calibrates soft edge-presence probabilities for candidate flow-network topology.
+
+    When ``assumption_params`` is provided, also exposes calibratable parameters
+    for null-model weights and chemistry/isotope penalties. These are calibrated
+    against held-out MODPATH or field labels and must not use the same labels
+    that will be used for independent validation.
+
+    Note: ``evidence_threshold_probable`` and ``evidence_threshold_validated``
+    are config-only settings for edge evidence classification; they are not
+    calibratable because the topology objective sees binary selected/not-selected
+    edges, not evidence classes.
     """
+
+    # Defaults for assumption calibration parameters: (initial, lower, upper)
+    ASSUMPTION_CALIBRATABLE: Dict[str, Tuple[float, float, float]] = {
+        "null_model_weight": (0.5, 0.0, 2.0),
+        "sheaf_weight_isotope": (1.0, 0.0, 10.0),
+        "sheaf_weight_cl": (0.5, 0.0, 5.0),
+        "sheaf_weight_age": (2.0, 0.0, 10.0),
+        "null_chemistry_similarity_threshold": (0.3, 0.05, 0.9),
+        "null_lithology_weight": (0.3, 0.0, 1.0),
+        "null_endmember_weight": (0.4, 0.0, 1.0),
+        "null_spatial_weight": (0.2, 0.0, 1.0),
+        # Phase 2-4 assumption calibration parameters
+        "ot_weight": (0.25, 0.0, 2.0),
+        "causal_weight": (0.25, 0.0, 2.0),
+        "topology_posterior_beta": (1.0, 0.1, 10.0),
+        "topology_posterior_edge_penalty": (0.0, 0.0, 5.0),
+    }
 
     def __init__(
         self,
@@ -1352,12 +1379,38 @@ class TopologyCalibrationAdapter(CalibrationProblem):
         observations: Sequence[TopologyCalibrationObservation],
         prior_sigma: float = 2.0,
         normalize_by_upstream: bool = False,
+        assumption_params: Optional[List[str]] = None,
+        config: Any = None,
+        samples: object = None,
     ):
         self.candidate_edges = list(candidate_edges)
         self.observations = list(observations)
         self.prior_sigma = float(prior_sigma)
         self.normalize_by_upstream = bool(normalize_by_upstream)
+        self.assumption_params = assumption_params or []
+        self.config = config
+        self.samples = samples
         self._edge_by_id = {str(edge.edge_id): edge for edge in self.candidate_edges}
+
+        # Validate assumption_params against known calibratable set
+        if self.assumption_params:
+            known = set(self.ASSUMPTION_CALIBRATABLE)
+            requested = set(self.assumption_params)
+            unknown = requested - known
+            if unknown:
+                extra = ""
+                unknown_lower = {p.lower() for p in unknown}
+                if {"evidence_threshold_probable", "evidence_threshold_validated"} & unknown_lower:
+                    extra = (
+                        " Note: evidence_threshold_probable and evidence_threshold_validated "
+                        "are config-only settings for evidence classification; they are not "
+                        "calibratable because the topology objective sees binary edge presence, "
+                        "not evidence classes."
+                    )
+                raise ValueError(
+                    f"Unknown assumption_params: {sorted(unknown)}. "
+                    f"Allowed: {sorted(known)}.{extra}"
+                )
 
     @staticmethod
     def _safe_edge_id(edge_id: Any) -> str:
@@ -1379,6 +1432,8 @@ class TopologyCalibrationAdapter(CalibrationProblem):
 
     def get_parameters(self) -> List[AdjustableParameter]:
         params: List[AdjustableParameter] = []
+
+        # Edge logit parameters (core topology calibration)
         for edge in self.candidate_edges:
             attrs = getattr(edge, "attrs", {}) or {}
             prior = float(attrs.get("edge_confidence", attrs.get("p_uv", 0.5)) or 0.5)
@@ -1393,6 +1448,23 @@ class TopologyCalibrationAdapter(CalibrationProblem):
                     prior_sigma=self.prior_sigma,
                 )
             )
+
+        # Assumption calibration parameters (Phase 0-1)
+        for a_name in self.assumption_params:
+            if a_name in self.ASSUMPTION_CALIBRATABLE:
+                initial, lower, upper = self.ASSUMPTION_CALIBRATABLE[a_name]
+                params.append(
+                    AdjustableParameter(
+                        name=a_name,
+                        value=initial,
+                        lower_bound=lower,
+                        upper_bound=upper,
+                        log_transform=False,
+                        prior_mean=initial,
+                        prior_sigma=0.25,
+                        description=f"Calibratable assumption parameter: {a_name}",
+                    )
+                )
         return params
 
     def get_observations(self) -> List[Observation]:
@@ -1406,6 +1478,21 @@ class TopologyCalibrationAdapter(CalibrationProblem):
         ]
 
     def run_model(self, param_values: Dict[str, float]) -> Dict[str, float]:
+        # If we have samples and assumption parameters, rebuild probabilities
+        # through the actual sheaf refinement pipeline so that calibrated
+        # assumption parameters (null_model_weight, evidence thresholds, etc.)
+        # affect the objective function.
+        if self.samples is not None and self.assumption_params:
+            return self._run_model_with_sheaf(param_values)
+
+        if self.assumption_params and self.samples is None:
+            raise RuntimeError(
+                "TopologyCalibrationAdapter has assumption_params but no samples. "
+                "The sheaf-aware path cannot run without sample data. "
+                "Provide model.samples_file in YAML config."
+            )
+
+        # Fallback: simple logit-to-probability model (backward compatible)
         probabilities = self.edge_probabilities(param_values)
         return {
             f"topology_{self._safe_edge_id(obs.edge_id)}": float(
@@ -1414,7 +1501,75 @@ class TopologyCalibrationAdapter(CalibrationProblem):
             for obs in self.observations
         }
 
+    def _run_model_with_sheaf(self, param_values: Dict[str, float]) -> Dict[str, float]:
+        """Run sheaf refinement with assumption parameters applied to config."""
+        from ..sheaf.topology_refine import refine_edges_with_sheaf
+        from ..config import Config as HConfig
+
+        # Build a config from the adapter's config (always a real Config)
+        if self.config is not None and isinstance(self.config, HConfig):
+            from dataclasses import replace
+            cfg = replace(self.config)
+        else:
+            cfg = HConfig()
+
+        # Apply assumption parameter values from the optimization vector
+        for a_name in self.assumption_params:
+            if a_name in param_values and hasattr(cfg, a_name):
+                setattr(cfg, a_name, float(param_values[a_name]))
+
+        # Enable the features that assumption params control
+        if self.assumption_params:
+            cfg.null_model_enabled = True
+            cfg.evidence_ladder_enabled = True
+
+        # Edge logits → edge_confidence priors on candidate edges
+        for edge in self.candidate_edges:
+            p_name = self._param_name(edge.edge_id)
+            if p_name in param_values:
+                prob = self._sigmoid(float(param_values[p_name]))
+                if edge.attrs is None:
+                    edge.attrs = {}
+                edge.attrs["edge_confidence"] = prob
+
+        # Run sheaf refinement
+        selected = refine_edges_with_sheaf(
+            self.samples,
+            self.candidate_edges,
+            cfg,
+        )
+
+        # Convert selected edges to per-edge probabilities
+        selected_ids = {e.edge_id for e in selected}
+        result: Dict[str, float] = {}
+        for obs in self.observations:
+            obs_name = f"topology_{self._safe_edge_id(obs.edge_id)}"
+            result[obs_name] = 1.0 if str(obs.edge_id) in selected_ids else 0.0
+        return result
+
     def edge_probabilities(self, param_values: Dict[str, float]) -> Dict[str, float]:
+        """Return edge probabilities, using the assumption-aware sheaf path
+        when samples and assumption_params are available."""
+        # When samples + assumption params are available, re-run sheaf
+        # refinement with calibrated parameters.
+        if self.samples is not None and self.assumption_params:
+            sheaf_result = self._run_model_with_sheaf(param_values)
+            return {
+                str(obs.edge_id): float(
+                    sheaf_result.get(
+                        f"topology_{self._safe_edge_id(obs.edge_id)}", 0.0
+                    )
+                )
+                for obs in self.observations
+            }
+
+        if self.assumption_params and self.samples is None:
+            raise RuntimeError(
+                "TopologyCalibrationAdapter has assumption_params but no samples. "
+                "The sheaf-aware path cannot run without sample data."
+            )
+
+        # Fallback: simple logit-to-probability model (backward compatible)
         logits = {
             str(edge.edge_id): float(param_values.get(self._param_name(edge.edge_id), 0.0))
             for edge in self.candidate_edges
@@ -1439,6 +1594,36 @@ class TopologyCalibrationAdapter(CalibrationProblem):
     def selected_edges(
         self, param_values: Dict[str, float], threshold: float = 0.5
     ) -> List[Any]:
+        """Return selected edges, using the assumption-aware sheaf path when
+        samples and assumption_params are available."""
+        # When samples + assumption params are available, re-run sheaf
+        # refinement with the calibrated parameters so that null-model
+        # weights, evidence thresholds, etc. affect selection.
+        if self.samples is not None and self.assumption_params:
+            sheaf_result = self._run_model_with_sheaf(param_values)
+            selected_ids = {
+                obs.edge_id
+                for obs in self.observations
+                if sheaf_result.get(
+                    f"topology_{self._safe_edge_id(obs.edge_id)}"
+                )
+                and sheaf_result.get(
+                    f"topology_{self._safe_edge_id(obs.edge_id)}"
+                ) >= threshold
+            }
+            return [
+                edge
+                for edge in self.candidate_edges
+                if str(edge.edge_id) in selected_ids
+            ]
+
+        if self.assumption_params and self.samples is None:
+            raise RuntimeError(
+                "TopologyCalibrationAdapter has assumption_params but no samples. "
+                "The sheaf-aware path cannot run without sample data."
+            )
+
+        # Fallback: simple logit-to-probability thresholding
         probabilities = self.edge_probabilities(param_values)
         return [
             edge

@@ -21,7 +21,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Run M4 topology validation outputs for tables, figures, and evidence registers."
     )
-    parser.add_argument("--skip-controlled", action="store_true", help="Do not rebuild controlled topology outputs.")
+    parser.add_argument(
+        "--skip-independent",
+        action="store_true",
+        help="Do not rebuild the independent graph-vs-MODPATH topology outputs.",
+    )
+    parser.add_argument(
+        "--skip-controlled",
+        action="store_true",
+        help="Deprecated alias for --skip-independent.",
+    )
     parser.add_argument(
         "--run-modpath-validation",
         action="store_true",
@@ -36,7 +45,7 @@ def main() -> None:
     parser.add_argument("--skip-figures", action="store_true", help="Do not rebuild manuscript-ready figures.")
     args = parser.parse_args()
 
-    if not args.skip_controlled:
+    if not (args.skip_independent or args.skip_controlled):
         _run([sys.executable, str(BENCHMARK_ROOT / "scripts" / "run_m4_topology_benchmark.py")])
 
     if args.run_modpath_validation:

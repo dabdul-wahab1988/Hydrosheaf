@@ -108,6 +108,13 @@ def _read_csv(path: Path) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def _first_existing_column(df: pd.DataFrame, *columns: str) -> pd.Series:
+    for column in columns:
+        if column in df.columns:
+            return df[column]
+    return pd.Series(np.nan, index=df.index)
+
+
 def _save(fig: plt.Figure, name: str) -> None:
     for suffix in (".png", ".svg"):
         out = FIGURE_DIR / f"{name}{suffix}"
@@ -460,6 +467,8 @@ def _draw_cell_centers(
 
 def _attach_reference_support(edge_class_df: pd.DataFrame, ref_edges: pd.DataFrame) -> pd.DataFrame:
     df = edge_class_df.copy()
+    if "edge" in df.columns:
+        df = df.rename(columns={"edge": "edge_id"})
     if "particle_count" in ref_edges.columns:
         support = ref_edges[["edge_id", "particle_count"]].copy()
         support["particle_count"] = pd.to_numeric(support["particle_count"], errors="coerce")
@@ -1437,7 +1446,12 @@ def make_supp_figure_s3_prior_audit() -> None:
     modes = priors["prior_mode"].astype(str)
     x = np.arange(len(priors))
     w = 0.24
-    ax.bar(x - w, pd.to_numeric(priors["n_hydrosheaf_input_edges"], errors="coerce"),
+    input_edges = _first_existing_column(
+        priors,
+        "n_hydrosheaf_input_edges",
+        "n_input_hydrosheaf_edges",
+    )
+    ax.bar(x - w, pd.to_numeric(input_edges, errors="coerce"),
            w, color=GRAY, label="Input Hydrosheaf")
     ax.bar(x, pd.to_numeric(priors["n_modpath_prior_edges"], errors="coerce"),
            w, color=ORANGE, label="MODPATH priors")

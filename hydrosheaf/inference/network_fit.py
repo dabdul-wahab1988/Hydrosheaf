@@ -298,6 +298,27 @@ def fit_network(
                 return None
             return str(v)
 
+        def _get_int(key: str) -> Optional[int]:
+            v = edge_attrs.get(key)
+            if v is None:
+                return None
+            try:
+                return int(v)
+            except (ValueError, TypeError):
+                return None
+
+        def _get_bool(key: str) -> Optional[bool]:
+            v = edge_attrs.get(key)
+            if v is None:
+                return None
+            if isinstance(v, bool):
+                return v
+            if isinstance(v, (int, float)):
+                return bool(v)
+            if isinstance(v, str):
+                return v.lower() in ("true", "1", "yes")
+            return None
+
         result.edge_sheaf_score_local = _get_float("sheaf_score_local")
         result.edge_sheaf_score_global = _get_float("sheaf_score_global")
         result.edge_sheaf_residual = _get_float("sheaf_residual_global")
@@ -305,6 +326,36 @@ def fit_network(
         result.edge_sheaf_cost_iso = _get_float("sheaf_cost_iso")
         result.edge_sheaf_cost_cl = _get_float("sheaf_cost_cl")
         result.edge_sheaf_flags = _get_str("sheaf_flags")
+        # Sheaf cohomology
+        result.sheaf_h0_dim = _get_int("sheaf_h0_dim")
+        result.sheaf_h1_dim = _get_int("sheaf_h1_dim")
+        result.sheaf_obstruction_energy = _get_float("sheaf_obstruction_energy")
+        result.sheaf_obstruction_leverage = _get_float("sheaf_obstruction_leverage")
+        result.sheaf_cycle_obstruction_max = _get_float("sheaf_cycle_obstruction_max")
+        result.sheaf_cycle_count = _get_int("sheaf_cycle_count")
+        # Topology posterior
+        result.posterior_edge_probability = _get_float("posterior_edge_probability")
+        result.posterior_edge_log_odds = _get_float("posterior_edge_log_odds")
+        result.posterior_map_selected = _get_bool("posterior_map_selected")
+        result.posterior_topology_entropy = _get_float("posterior_topology_entropy")
+        result.posterior_n_edges_mean = _get_float("posterior_n_edges_mean")
+        result.posterior_n_edges_ci95 = _get_str("posterior_n_edges_ci95")
+        result.posterior_acceptance_rate = _get_float("posterior_acceptance_rate")
+        # Optimal transport
+        result.ot_total_cost = _get_float("ot_total_cost")
+        result.ot_score_contribution = _get_float("ot_score_contribution")
+        result.ot_balanced_cost = _get_float("ot_balanced_cost")
+        result.ot_creation_mass = _get_float("ot_creation_mass")
+        result.ot_destruction_mass = _get_float("ot_destruction_mass")
+        result.ot_conservative_mismatch = _get_float("ot_conservative_mismatch")
+        result.ot_reaction_plausibility = _get_float("ot_reaction_plausibility")
+        # Causal discovery
+        result.causal_support_score = _get_float("causal_support_score")
+        result.causal_confounded_score = _get_float("causal_confounded_score")
+        result.causal_p_value = _get_float("causal_p_value")
+        result.causal_method = _get_str("causal_method")
+        result.causal_n_observations = _get_int("causal_n_observations")
+        result.causal_status = _get_str("causal_status")
         result.edge_distance_km = _get_float("distance_km")
         result.edge_delta_h = _get_float("delta_h")
         result.edge_sigma_delta_h = _get_float("sigma_delta_h")

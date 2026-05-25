@@ -18,7 +18,9 @@ Run from the repository root:
 python M4/m4_topology_benchmark/scripts/run_m4_topology_benchmark.py
 ```
 
-Outputs are written to `results/`, `tables/`, and `docs/`.
+This runs the Phase 2B Savage public-archive validation and writes the real
+MODPATH-reference graph benchmark outputs to `results/`. The former controlled
+toy benchmark is no longer the main M4 benchmark path.
 
 For the manuscript-ready analysis package, run:
 

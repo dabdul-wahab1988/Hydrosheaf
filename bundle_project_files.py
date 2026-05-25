@@ -34,6 +34,15 @@ M4_BUNDLE_PATHS = (
     "M4/m4_topology_benchmark",
 )
 
+M4_MINIMAL_BUNDLE_PATHS = (
+    "M4/m4_topology_benchmark/scripts",
+    "hydrosheaf/graph/build.py",
+    "hydrosheaf/physics/modpath.py",
+    "hydrosheaf/validation/__init__.py",
+    "hydrosheaf/validation/modpath_archive.py",
+    "hydrosheaf/validation/topology.py",
+)
+
 DEFAULT_BUNDLE_EXTENSIONS = (".py",)
 M4_BUNDLE_EXTENSIONS = (".py", ".md", ".yaml", ".yml", ".toml", ".json", ".csv", ".dat")
 
@@ -184,9 +193,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Bundle Hydrosheaf source files into one text file.")
     parser.add_argument(
         "--profile",
-        choices=["all", "m2", "m4"],
+        choices=["all", "m2", "m4", "m4-minimal"],
         default="all",
-        help="Use 'm2' for M2 analysis/figure code or 'm4' for Hydrosheaf plus the M4 topology benchmark.",
+        help=(
+            "Use 'm2' for M2 analysis/figure code, 'm4' for Hydrosheaf plus the "
+            "M4 topology benchmark, or 'm4-minimal' for reviewer-facing M4 code only."
+        ),
     )
     parser.add_argument("--root-dir", default=".", help="Repository root to scan.")
     parser.add_argument("--output", default=None, help="Output bundle file.")
@@ -202,6 +214,9 @@ def main() -> None:
         include_paths = M4_BUNDLE_PATHS
         extensions = M4_BUNDLE_EXTENSIONS
         default_output = "hydrosheaf_m4_benchmark_code_bundle.txt"
+    elif args.profile == "m4-minimal":
+        include_paths = M4_MINIMAL_BUNDLE_PATHS
+        default_output = "hydrosheaf_m4_minimal_code_bundle.txt"
 
     output_file = args.output or default_output
     bundle_files(args.root_dir, output_file, include_paths, extensions)

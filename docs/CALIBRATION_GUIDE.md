@@ -389,3 +389,113 @@ The optimization run outputs a summary directly to the console and saves a detai
 ### 6. Missing `parcov` / `obscov` files
 - **Cause**: User-provided path does not exist in `work_dir`.
 - **Solution**: Use absolute paths, or set `parcov: true` / `obscov: true` to auto-generate diagonal matrices from current parameter bounds and observation weights.
+
+
+---
+
+## 10. Assumption Calibration (Phase 0-1)
+
+### Overview
+
+Assumption calibration treats topology evidence as falsifiable hypotheses.
+Instead of assuming that chemical or isotope similarity proves connectivity,
+Hydrosheaf can now test no-flow null explanations before counting similarity
+as edge support.
+
+### Enabling Assumption Calibration
+
+Assumption calibration is opt-in. Add these to your topology calibration config:
+
+```yaml
+calibration:
+  type: topology
+  settings:
+    engine: pestpp-glm
+    max_iterations: 20
+  model:
+    candidates_file: "data/candidate_edges.csv"
+    observations_file: "data/held_out_labels.csv"
+    assumption_params:
+      - null_model_weight
+      - sheaf_weight_isotope
+      - sheaf_weight_cl
+      - null_endmember_weight
+```
+
+### Calibratable Assumption Parameters
+
+| Parameter | Default | Bounds | Description |
+|---|---|---|---|
+| `null_model_weight` | 0.5 | [0.0, 2.0] | Strength of null-model downgrading |
+| `sheaf_weight_isotope` | 1.0 | [0.0, 10.0] | Weight for isotope cost |
+| `sheaf_weight_cl` | 0.5 | [0.0, 5.0] | Weight for Cl cost |
+| `sheaf_weight_age` | 2.0 | [0.0, 10.0] | Weight for age cost |
+| `null_chemistry_similarity_threshold` | 0.3 | [0.05, 0.9] | Max ion-distance for "similar" |
+| `null_lithology_weight` | 0.3 | [0.0, 1.0] | Lithology null weight |
+| `null_endmember_weight` | 0.4 | [0.0, 1.0] | Endmember null weight |
+| `null_spatial_weight` | 0.2 | [0.0, 1.0] | Spatial null weight |
+
+> **Config-only note:** `evidence_threshold_probable` and `evidence_threshold_validated`
+> are config settings for edge evidence classification only. They are **not**
+> calibratable by PEST++ because the topology calibration objective currently sees
+> binary selected/not-selected edges, not evidence classes. Set them as regular
+> config fields under `model:` in your YAML if you need non-default thresholds.
+
+### Held-Out Labels for Independent Validation
+
+**Critical rule:** MODPATH labels used for calibration must NOT also be used
+for validation. The `observations_file` in your calibration config should
+contain a distinct set of edge-presence labels from those used in any
+independent benchmark report.
+
+Split your MODPATH archive by site, scenario, or random partition:
+
+```
+calibration labels  →  observations_file: "labels_calibration.csv"
+validation labels   →  used by M4 benchmark scripts only
+```
+
+PEST++ optimizes the assumption parameters against the calibration labels.
+The fitted parameters can then be tested against the held-out validation set
+to produce the metrics reported in publications.
+
+### Example: GLM Parameter Estimation
+
+```yaml
+calibration:
+  type: topology
+  settings:
+    engine: pestpp-glm
+    max_iterations: 30
+    output_dir: "assumption_calibration_results"
+    pestpp_options:
+      lambdas: "1.0,10.0"
+      uncertainty: true
+  model:
+    candidates_file: "data/candidate_edges.csv"
+    observations_file: "data/labels_calibration.csv"
+    assumption_params:
+      - null_model_weight
+      - sheaf_weight_isotope
+    prior_sigma: 2.0
+```
+
+### Interpreting Results
+
+After calibration, the fitted assumption parameters are written to
+`assumption_calibration_results/results.json`. Load them with:
+
+```python
+from hydrosheaf.config import Config
+config = Config()
+config.load_from_calibration_json("assumption_calibration_results/results.json")
+```
+
+The calibrated `null_model_weight`, `sheaf_weight_isotope`, etc.
+will be applied. Edges produced with these calibrated parameters should
+have improved precision-recall characteristics compared to the defaults.
+
+**Important:** PEST++ is used to calibrate assumption-model parameters — it is
+not a substitute for independent validation. Calibrated parameters must be
+evaluated on held-out labels; the calibration labels themselves cannot be
+reported as validation evidence.

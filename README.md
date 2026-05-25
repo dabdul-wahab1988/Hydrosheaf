@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18157915.svg)](https://doi.org/10.5281/zenodo.20339942)
 
-**Hydrosheaf: A Graph-Sheaf Framework for Hydrogeochemical, Groundwater-Age, and Flow-Topology Inference**
+**Hydrosheaf: A Graph-Sheaf Framework for Assumption-Audited Groundwater Inference across Hydrogeochemistry, Tracer Ages, and Flow-Topology Uncertainty**
 
 ## Overview
 
@@ -15,6 +15,11 @@ The framework integrates:
 - **Thermodynamic Constraints** utilizing PHREEQC for saturation index calculations.
 - **Isotope and Nuclear-Tracer Hydrogeology** for process validation and groundwater-age inference.
 - **Graph and Sheaf-Based Network Inference** for probabilistic flow connectivity and topology refinement.
+- **Null-Model Screening** for ruling out non-connectivity explanations (shared lithology, endmember similarity, spatial proximity).
+- **Bayesian Topology Posterior** for quantified edge-inclusion probabilities and uncertainty via Metropolis-Hastings sampling.
+- **Sheaf Cohomology Diagnostics** for detecting global flow-consistency obstructions (cycles where chemistry constraints cannot be simultaneously satisfied).
+- **Optimal Transport and Causal Discovery** for reaction-aware chemistry-plausibility screens and guarded causal direction support.
+- **Active Learning** for recommending which wells to measure next based on topology uncertainty and validation gaps.
 - **MODFLOW/MODPATH Benchmarking** for testing reduced-order graph topology against reference particle-tracking outputs.
 
 ## Features
@@ -29,6 +34,10 @@ The framework integrates:
 - **3D Flow Networks**: Analyzes layered aquifer systems with vertical anisotropy and topographic Bayesian priors.
 - **Temporal Dynamics**: Resolves time-variant signals with cross-correlation residence times and seasonal decomposition.
 - **Uncertainty Quantification**: Provides rigorous confidence intervals via Bayesian MCMC (NUTS) and Bias-Corrected Bootstrap (BCa).
+- **Assumption Auditing**: Null-model screening rules out alternative explanations before accepting flow connectivity, with an evidence ladder from FALSIFIED to VALIDATED per edge.
+- **Topology Uncertainty**: Bayesian MCMC over candidate topologies produces edge inclusion probabilities, log-odds, and posterior entropy — moving beyond hard-threshold edge selection.
+- **Global Consistency Checks**: Sheaf cohomology detects cycles where chemistry constraints cannot be simultaneously satisfied, computing obstruction energy and per-edge leverage scores.
+- **Active Learning**: Recommends which wells to measure next based on variant disagreement, posterior uncertainty, evidence ambiguity, and validation gaps.
 - **Verified Documentation**: All mathematical examples in the technical reference are computationally verified by the test suite.
 
 ## Installation
@@ -69,9 +78,14 @@ When you do `pip install .`, you get **full functionality** for:
 - Isotope analysis and forensics
 - Nitrate source discrimination (Bayesian MCMC)
 - Network inference and topology refinement
+- Assumption auditing (null models + evidence ladder)
+- Topology uncertainty quantification (Bayesian posterior)
+- Sheaf cohomology global-consistency diagnostics
+- Optimal transport and causal direction screening
 - 3D flow-network inference
 - Temporal dynamics and residence time estimation
 - Uncertainty quantification (Bootstrap, MCMC)
+- Active learning measurement recommendations
 - **Advanced Calibration (PEST++)**: Binaries are auto-downloaded when needed.
 
 **This is sufficient for 95% of use cases.** Install `.[viz3d]` only when you need PyVista/VTK-based 3D plotting or VTK file export.
@@ -143,7 +157,16 @@ config = Config(
     # Isotopes & Nitrate
     isotope_enabled=True,
     nitrate_source_enabled=True,
-    nitrate_source_isotope_mcmc_enabled=True,
+    
+    # Sheaf topology & evidence auditing
+    sheaf_cohomology_enabled=False,
+    topology_posterior_enabled=False,
+    assumption_calibration_enabled=False,
+    evidence_ladder_enabled=False,
+    
+    # Optimal transport & causal screening
+    ot_enabled=False,
+    causal_discovery_enabled=False,
     
     # Temporal
     residence_time_method="bayesian_lag",
@@ -204,6 +227,7 @@ edges = [
 For comprehensive reference, see:
 
 - **[User Guide](docs/USER_GUIDE.md)**: Extended usage instructions, CLI options, and workflows
+- **[Calibration Guide](docs/CALIBRATION_GUIDE.md)**: Configuring and running PEST++ calibration, topology, and assumption parameter tuning
 - **[DEVELOPMENT.md](DEVELOPMENT.md)**: For developers and contributors (building from source, running tests, contributing)
 - **[Technical Document (PDF)](docs/papers/hydrosheaf_technical_document.pdf)**: Mathematical theory and proofs
 - **[Mathematical Reference](docs/math.md)**: Compact math notes aligned with the codebase

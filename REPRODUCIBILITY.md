@@ -55,6 +55,7 @@ python run_all_benchmarks.py
 - **Goal:** Compare reduced-order graph topology with MODPATH reference advection.
 - **Command:** `python M4/m4_topology_benchmark/scripts/run_m4_topology_benchmark.py`
 - **Key Output:** `M4/m4_topology_benchmark/results/independent_graph_vs_modpath.csv`
+- **Note:** This command runs the Phase 2B Savage public-archive validation; the old controlled toy benchmark is no longer the authoritative M4 result path.
 
 #### M5: Inverse Hydrogeochemical Reaction
 - **Goal:** Screen sparse linear inverse models with PHREEQC thermodynamics.

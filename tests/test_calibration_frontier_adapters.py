@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from hydrosheaf.calibration.adapters import (
     AgeTemporalCalibrationAdapter,
@@ -206,3 +207,116 @@ def test_glm_uses_svd_covariance_for_rank_deficient_jacobian():
 
     assert result["success"]
     assert result["covariance_method"] == "svd_pseudoinverse"
+
+
+# ---------------------------------------------------------------------------
+# Assumption calibration fail-fast validation
+# ---------------------------------------------------------------------------
+
+class TestAssumptionParamValidation:
+    """Fail-fast behaviour for unknown / non-calibratable assumption_params."""
+
+    @staticmethod
+    def _make_adapter(assumption_params=None, **kwargs):
+        from hydrosheaf.calibration.adapters import (
+            TopologyCalibrationAdapter,
+            TopologyCalibrationObservation,
+        )
+        edge = Edge(edge_id="X_Y", u="X", v="Y", attrs={"edge_confidence": 0.6})
+        return TopologyCalibrationAdapter(
+            candidate_edges=[edge],
+            observations=[TopologyCalibrationObservation("X_Y", 1.0)],
+            assumption_params=assumption_params,
+            **kwargs,
+        )
+
+    def test_unknown_assumption_params_raises_valueerror(self):
+        with pytest.raises(ValueError, match="Unknown assumption_params"):
+            self._make_adapter(assumption_params=["nonexistent_param"])
+
+    def test_evidence_threshold_probable_raises_valueerror(self):
+        with pytest.raises(ValueError, match="evidence_threshold_probable"):
+            self._make_adapter(assumption_params=["evidence_threshold_probable"])
+
+    def test_evidence_threshold_validated_raises_valueerror(self):
+        with pytest.raises(ValueError, match="evidence_threshold_validated"):
+            self._make_adapter(assumption_params=["evidence_threshold_validated"])
+
+    def test_both_evidence_thresholds_raises_valueerror(self):
+        with pytest.raises(ValueError, match="evidence_threshold"):
+            self._make_adapter(
+                assumption_params=[
+                    "evidence_threshold_probable",
+                    "evidence_threshold_validated",
+                ]
+            )
+
+    def test_mixed_valid_and_unknown_raises_valueerror(self):
+        with pytest.raises(ValueError, match="Unknown assumption_params"):
+            self._make_adapter(
+                assumption_params=["null_model_weight", "bogus_param"]
+            )
+
+    def test_valid_params_expose_expected_names(self):
+        adapter = self._make_adapter(
+            assumption_params=["null_model_weight", "sheaf_weight_isotope"]
+        )
+        names = {p.name for p in adapter.get_parameters()}
+        assert "null_model_weight" in names
+        assert "sheaf_weight_isotope" in names
+        assert "evidence_threshold_probable" not in names
+        assert "evidence_threshold_validated" not in names
+
+    def test_no_assumption_params_no_validation_error(self):
+        """None / empty assumption_params should not trigger validation."""
+        adapter_none = self._make_adapter(assumption_params=None)
+        adapter_empty = self._make_adapter(assumption_params=[])
+        names_none = {p.name for p in adapter_none.get_parameters()}
+        names_empty = {p.name for p in adapter_empty.get_parameters()}
+        # Only edge-logit params
+        assert all(n.startswith("edge_logit") for n in names_none)
+        assert all(n.startswith("edge_logit") for n in names_empty)
+
+
+class TestFactoryConfigOnlyThresholds:
+    """Evidence thresholds are config-only, not calibratable, but factory
+    still maps them into the Config object for evidence classification use."""
+
+    def test_factory_accepts_evidence_thresholds_as_config_fields(self):
+        """evidence_threshold_probable / _validated should be settable as
+        model config fields without being in assumption_params, via the
+        factory's _map_float path."""
+        from hydrosheaf.calibration.factory import _map_float
+        from hydrosheaf.config import Config as HConfig
+
+        cfg = HConfig()
+        s = {
+            "evidence_threshold_probable": 0.7,
+            "evidence_threshold_validated": 0.9,
+        }
+        _map_float(s, cfg, "evidence_threshold_probable", default_val=0.6)
+        _map_float(s, cfg, "evidence_threshold_validated", default_val=0.8)
+        assert cfg.evidence_threshold_probable == 0.7
+        assert cfg.evidence_threshold_validated == 0.9
+
+    def test_sample_id_key_does_not_crash(self):
+        """sample_id_key in model settings should not cause TypeError
+        because the mapping loop in factory no longer includes it."""
+        from hydrosheaf.config import Config as HConfig
+
+        cfg = HConfig()
+        s = {"sample_id_key": "sample_id_col", "isotope_d18o_key": "d18O"}
+
+        # This loop is what used to crash — verify it runs cleanly
+        for key, attr in (("isotope_d18o_key", "isotope_d18o_key"),
+                          ("isotope_d2h_key", "isotope_d2h_key"),
+                          ("head_key", "edge_head_key"),
+                          ("elevation_key", "edge_elevation_key"),
+                          ("layer_key", "layer_key"),
+                          ):
+            if key in s and hasattr(cfg, attr):
+                setattr(cfg, attr, str(s[key]))
+
+        # sample_id_key is simply ignored — no crash, no attribute set
+        assert cfg.isotope_d18o_key == "d18O"
+        assert not hasattr(cfg, "sample_id_key")

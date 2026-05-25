@@ -175,7 +175,8 @@ def make_main_table1_evidence_ladder() -> None:
         }
         # Add F1 from results if available
         if "modpath_prior" in scenario_key and not priors.empty:
-            prior_row = priors[priors["scenario"] == scenario_key]
+            mode_key = scenario_key.replace("modpath_prior_", "")
+            prior_row = priors[priors["prior_mode"] == mode_key]
             if not prior_row.empty:
                 row["f1"] = "prior-assisted (see Supp S4)"
             else:
@@ -249,7 +250,7 @@ def make_main_table2_performance_summary() -> None:
     # Add prior-assisted rows
     if not priors.empty:
         for _, row in priors.iterrows():
-            scenario = str(row["scenario"])
+            scenario = f"modpath_prior_{row['prior_mode']}"
             rows.append({
                 "scenario": _display_scenario(scenario),
                 "evidence_level": 6,

@@ -11,6 +11,11 @@ from .claims import (
     assess_claim_records,
     evidence_level_allows,
 )
+from .evidence import (
+    EdgeEvidenceAnnotation,
+    EdgeEvidenceClass,
+    classify_edge_evidence,
+)
 from .metrics import (
     classification_metrics,
     interval_coverage,
@@ -46,8 +51,14 @@ from .modpath_archive import (
 __all__ = [
     "ClaimRecord",
     "EvidenceLevel",
+    "EdgeEvidenceAnnotation",
+    "EdgeEvidenceClass",
     "assess_claim_records",
+    "classify_edge_evidence",
     "classification_metrics",
+    "EdgeEvidenceAnnotation",
+    "EdgeEvidenceClass",
+    "classify_edge_evidence",
     "evidence_level_allows",
     "interval_coverage",
     "regression_metrics",

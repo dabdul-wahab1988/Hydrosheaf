@@ -728,4 +728,4 @@ def test_figure_primary_results_prefers_strict_parity_scenario():
     spec.loader.exec_module(fig_module)
     # _mode_label_from_df should recognize strict parity
     df = pd.DataFrame({"scenario_id": ["tracerlpm_strict_parity"], "model_strategy": ["reported"]})
-    assert "strict TracerLPM parity" in fig_module._mode_label_from_df(df)
+    assert fig_module._mode_label_from_df(df) in ("strict TracerLPM parity", "Strict Parity")

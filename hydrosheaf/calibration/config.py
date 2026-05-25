@@ -34,8 +34,9 @@ class CalibrationConfig:
 
     # File paths for specific adapters
     observations_file: Optional[str] = None
+    validation_observations_file: Optional[str] = None
     model_config_file: Optional[str] = None  # e.g. vadose_profile.json
-    
+
     # Model specific settings (single model)
     adapter_settings: Dict[str, Any] = field(default_factory=dict)
     
@@ -66,6 +67,7 @@ def load_calibration_config(path: str) -> CalibrationConfig:
         da_settings=settings.get("da", {}),
         loss=settings.get("loss", "linear"),
         observations_file=cal_section.get("observations", {}).get("file") if isinstance(cal_section.get("observations"), dict) else None,
+        validation_observations_file=cal_section.get("model", {}).get("validation_observations_file") if isinstance(cal_section.get("model"), dict) else None,
         model_config_file=cal_section.get("model", {}).get("config_file") if isinstance(cal_section.get("model"), dict) else None,
         adapter_settings=cal_section.get("model", {}) if isinstance(cal_section.get("model"), dict) else {},
         sub_models=cal_section.get("sub_models", [])

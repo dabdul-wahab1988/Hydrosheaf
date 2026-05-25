@@ -93,6 +93,21 @@ class Config:
     sheaf_evap_gate_strength: float = 1.0
     sheaf_max_iter: int = 3
     sheaf_soft_beta: float = 1.0  # Soft selection sharpness (inverse temperature)
+    # Sheaf cohomology diagnostics
+    sheaf_cohomology_enabled: bool = False
+    # Bayesian topology posterior
+    topology_posterior_enabled: bool = False
+    topology_posterior_samples: int = 2000
+    topology_posterior_burnin: int = 500
+    topology_posterior_beta: float = 1.0
+    topology_posterior_edge_penalty: float = 0.0
+    # Optimal transport plausibility screen
+    ot_enabled: bool = False
+    ot_weight: float = 0.25
+    # Causal discovery layer
+    causal_discovery_enabled: bool = False
+    causal_weight: float = 0.25
+    causal_min_observations: int = 5
     edge_gradient_min: float = 1e-4
     edge_head_key: str = "head_meas"
     edge_dtw_key: str = "dtw"
@@ -314,6 +329,20 @@ class Config:
     screen_top_key: str = "screen_top"
     screen_bottom_key: str = "screen_bottom"
     screen_overlap_threshold: float = 5.0  # meters
+
+    # --- Assumption Calibration (Phase 0-1) ---
+    assumption_calibration_enabled: bool = False
+    null_model_enabled: bool = False
+    null_model_weight: float = 0.5           # How strongly null scores downgrade chemistry evidence
+    evidence_ladder_enabled: bool = False
+    evidence_threshold_probable: float = 0.6  # Minimum evidence_score for PROBABLE
+    evidence_threshold_validated: float = 0.8 # Minimum evidence_score for VALIDATED
+    # Null model sub-weights and thresholds
+    null_chemistry_similarity_threshold: float = 0.3  # Max ion-distance fraction to consider "similar"
+    null_lithology_weight: float = 0.3
+    null_endmember_weight: float = 0.4
+    null_spatial_weight: float = 0.2
+    null_anthropogenic_weight: float = 0.2
 
     # Ultra upgrades
     compositional_objective: bool = False  # Use Aitchison geometry for residuals
@@ -576,6 +605,24 @@ class Config:
             raise ValueError("aquitard_leakage_p must be between 0 and 1.")
         if self.screen_overlap_threshold < 0:
             raise ValueError("screen_overlap_threshold must be non-negative.")
+        if self.sheaf_cohomology_enabled not in {True, False}:
+            raise ValueError("sheaf_cohomology_enabled must be boolean.")
+        if self.topology_posterior_samples < 100:
+            raise ValueError("topology_posterior_samples must be at least 100.")
+        if self.topology_posterior_burnin < 0:
+            raise ValueError("topology_posterior_burnin must be non-negative.")
+        if self.topology_posterior_burnin >= self.topology_posterior_samples:
+            raise ValueError("topology_posterior_burnin must be less than topology_posterior_samples.")
+        if self.topology_posterior_beta <= 0:
+            raise ValueError("topology_posterior_beta must be positive.")
+        if self.topology_posterior_edge_penalty < 0:
+            raise ValueError("topology_posterior_edge_penalty must be non-negative.")
+        if self.ot_weight < 0:
+            raise ValueError("ot_weight must be non-negative.")
+        if self.causal_weight < 0:
+            raise ValueError("causal_weight must be non-negative.")
+        if self.causal_min_observations < 2:
+            raise ValueError("causal_min_observations must be at least 2.")
         if self.layer_enabled:
             if len(self.layer_names) != len(self.layer_tops) or len(
                 self.layer_names

@@ -723,9 +723,11 @@ def main():
                 "archive_id": "savage_milford_nh",
             },
         ]
+        new_ids = {row["claim_id"] for row in new_guardrails}
+        cg_df = cg_df[~cg_df["claim_id"].isin(new_ids)].copy()
         cg_df = pd.concat([cg_df, pd.DataFrame(new_guardrails)], ignore_index=True)
         cg_df.to_csv(existing_cg, index=False)
-        print(f"  Added {len(new_guardrails)} new guardrail entries -> {existing_cg}")
+        print(f"  Upserted {len(new_guardrails)} guardrail entries -> {existing_cg}")
 
     # Update processing_log.json
     log_path = SAVAGE_RESULTS / "processing_log.json"

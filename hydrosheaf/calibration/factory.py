@@ -23,6 +23,28 @@ from .adapters import (
 from .adapters_iso import WaterIsotopeMixingAdapter, WaterEndmember
 
 
+def _map_float(settings, cfg, key, default_val=0.0):
+    """Copy a float value from settings dict to config if present."""
+    if key in settings and hasattr(cfg, key):
+        try:
+            setattr(cfg, key, float(settings[key]))
+        except (ValueError, TypeError):
+            pass  # keep default
+    elif default_val != 0.0 and hasattr(cfg, key):
+        setattr(cfg, key, float(default_val))
+
+
+def _map_int(settings, cfg, key, default_val=0):
+    """Copy an int value from settings dict to config if present."""
+    if key in settings and hasattr(cfg, key):
+        try:
+            setattr(cfg, key, int(settings[key]))
+        except (ValueError, TypeError):
+            pass  # keep default
+    elif default_val != 0 and hasattr(cfg, key):
+        setattr(cfg, key, int(default_val))
+
+
 def setup_transport_adapter(config, settings=None):
     """Helper to setup transport adapter from config settings."""
     s = settings if settings else config.adapter_settings
@@ -554,11 +576,87 @@ def setup_topology_adapter(config, settings=None):
     if not candidate_edges or not observations:
         raise ValueError("Topology calibration requires candidate edges and observations.")
 
+    assumption_params = s.get("assumption_params")
+
+    # Load samples if assumption_params requested (needed for sheaf-aware
+    # calibration path). Raise early if requested but no samples available.
+    samples = None
+    if assumption_params:
+        samples_file = s.get("samples_file") or s.get("nodes_file")
+        if samples_file:
+            samples_df = pd.read_csv(samples_file)
+            samples = samples_df.to_dict("records")
+        else:
+            raise ValueError(
+                "Topology calibration with assumption_params requires "
+                "model.samples_file (or model.nodes_file) so the sheaf "
+                "pipeline can apply null-model weights."
+            )
+
+    # Build a real hydrosheaf.config.Config from model settings so the
+    # sheaf refinement path has proper isotope keys, sheaf weights,
+    # null-model settings, evidence thresholds, and other config fields.
+    from ..config import Config as HConfig
+    cfg = HConfig()
+
+    # Sheaf weight mappings
+    _map_float(s, cfg, "sheaf_weight_head_prior")
+    _map_float(s, cfg, "sheaf_weight_isotope")
+    _map_float(s, cfg, "sheaf_weight_cl")
+    _map_float(s, cfg, "sheaf_weight_age")
+    _map_float(s, cfg, "sheaf_weight_global")
+    _map_float(s, cfg, "sheaf_soft_beta")
+
+    # Edge / topology settings
+    _map_int(s, cfg, "edge_max_neighbors", default_val=3)
+    _map_float(s, cfg, "edge_radius_km", default_val=5.0)
+    _map_float(s, cfg, "edge_map_p_min", default_val=0.1)
+    _map_int(s, cfg, "edge_map_candidate_multiplier", default_val=5)
+    _map_int(s, cfg, "sheaf_max_iter", default_val=3)
+
+    # Isotope keys
+    for key, attr in (("isotope_d18o_key", "isotope_d18o_key"),
+                      ("isotope_d2h_key", "isotope_d2h_key"),
+                      ("head_key", "edge_head_key"),
+                      ("elevation_key", "edge_elevation_key"),
+                      ("layer_key", "layer_key"),
+                      ):
+        if key in s and hasattr(cfg, attr):
+            setattr(cfg, attr, str(s[key]))
+
+    # LMWL
+    _map_float(s, cfg, "lmwl_a", default_val=8.66)
+    _map_float(s, cfg, "lmwl_b", default_val=7.22)
+
+    # Evaporation gates
+    _map_float(s, cfg, "sheaf_shallow_depth_m", default_val=30.0)
+    _map_float(s, cfg, "sheaf_evap_gate_strength", default_val=1.0)
+
+    # Isotope sigmas
+    _map_float(s, cfg, "sheaf_iso_sigma_d18o", default_val=0.2)
+    _map_float(s, cfg, "sheaf_iso_sigma_d2h", default_val=1.0)
+    _map_float(s, cfg, "isotope_d_excess_weight", default_val=0.0)
+
+    # Null-model settings
+    _map_float(s, cfg, "null_model_weight", default_val=0.5)
+    _map_float(s, cfg, "null_chemistry_similarity_threshold", default_val=0.3)
+    _map_float(s, cfg, "null_lithology_weight", default_val=0.3)
+    _map_float(s, cfg, "null_endmember_weight", default_val=0.4)
+    _map_float(s, cfg, "null_spatial_weight", default_val=0.2)
+    _map_float(s, cfg, "null_anthropogenic_weight", default_val=0.2)
+
+    # Evidence thresholds
+    _map_float(s, cfg, "evidence_threshold_probable", default_val=0.6)
+    _map_float(s, cfg, "evidence_threshold_validated", default_val=0.8)
+
     return TopologyCalibrationAdapter(
         candidate_edges=candidate_edges,
         observations=observations,
         prior_sigma=float(s.get("prior_sigma", 2.0)),
         normalize_by_upstream=bool(s.get("normalize_by_upstream", False)),
+        assumption_params=assumption_params,
+        config=cfg,
+        samples=samples,
     )
 
 def build_calibration_problem(config, logger):

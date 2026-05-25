@@ -6,6 +6,7 @@ __pycache__/
 *.out
 .claude/
 .venv/
+.antigravitycli/
 env/
 venv/
 .env

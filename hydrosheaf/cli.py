@@ -426,6 +426,68 @@ def main() -> None:
         help="Max iterations for sheaf global refinement.",
     )
     parser.add_argument(
+        "--sheaf-cohomology",
+        action="store_true",
+        help="Enable sheaf cohomology diagnostics on selected edges.",
+    )
+    parser.add_argument(
+        "--topology-posterior",
+        action="store_true",
+        help="Enable Bayesian topology posterior over candidate edges.",
+    )
+    parser.add_argument(
+        "--topology-posterior-samples",
+        type=int,
+        default=2000,
+        help="Number of MCMC samples for topology posterior.",
+    )
+    parser.add_argument(
+        "--topology-posterior-burnin",
+        type=int,
+        default=500,
+        help="Burn-in samples for topology posterior.",
+    )
+    parser.add_argument(
+        "--topology-posterior-beta",
+        type=float,
+        default=1.0,
+        help="Inverse temperature for topology posterior.",
+    )
+    parser.add_argument(
+        "--topology-posterior-edge-penalty",
+        type=float,
+        default=0.0,
+        help="Edge count penalty in topology posterior.",
+    )
+    parser.add_argument(
+        "--ot-enable",
+        action="store_true",
+        help="Enable reaction-aware optimal transport plausibility screen.",
+    )
+    parser.add_argument(
+        "--ot-weight",
+        type=float,
+        default=0.25,
+        help="Weight for optimal transport cost in sheaf scoring.",
+    )
+    parser.add_argument(
+        "--causal-discovery",
+        action="store_true",
+        help="Enable causal discovery layer for flow direction support.",
+    )
+    parser.add_argument(
+        "--causal-weight",
+        type=float,
+        default=0.25,
+        help="Weight for causal support/confound scores.",
+    )
+    parser.add_argument(
+        "--causal-min-observations",
+        type=int,
+        default=5,
+        help="Minimum temporal observations for causal discovery.",
+    )
+    parser.add_argument(
         "--tune-reactions",
         action="store_true",
         help="Tune L1 sparsity for stable reaction selection.",
@@ -1346,6 +1408,17 @@ def main() -> None:
         sheaf_shallow_depth_m=args.sheaf_shallow_depth,
         sheaf_evap_gate_strength=args.sheaf_evap_strength,
         sheaf_max_iter=args.sheaf_max_iter,
+        sheaf_cohomology_enabled=args.sheaf_cohomology,
+        topology_posterior_enabled=args.topology_posterior,
+        topology_posterior_samples=args.topology_posterior_samples,
+        topology_posterior_burnin=args.topology_posterior_burnin,
+        topology_posterior_beta=args.topology_posterior_beta,
+        topology_posterior_edge_penalty=args.topology_posterior_edge_penalty,
+        ot_enabled=args.ot_enable,
+        ot_weight=args.ot_weight,
+        causal_discovery_enabled=args.causal_discovery,
+        causal_weight=args.causal_weight,
+        causal_min_observations=args.causal_min_observations,
         edge_gradient_min=args.edge_gradient_min,
         edge_head_key=args.edge_head_key,
         edge_dtw_key=args.edge_dtw_key,

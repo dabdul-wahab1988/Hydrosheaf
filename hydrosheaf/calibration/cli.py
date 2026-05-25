@@ -264,6 +264,147 @@ def run_calibration_cli(args):
     logger.info(f"Success: {result.get('success', False)}")
     logger.info(f"Phi: {result.get('phi', 0.0):.4f}")
 
+    # ── 8. Post-calibration validation workflow (topology only) ───────
+    val_file = config.adapter_settings.get(
+        "validation_observations_file",
+        config.validation_observations_file,
+    )
+    if config.problem_type == "topology" and val_file:
+        logger.info(
+            "Validation observations file detected — running independent "
+            "validation workflow."
+        )
+        from .validation_workflow import run_assumption_calibration_validation
+
+        # Pass the calibration result so validation reuses the same
+        # optimal parameters instead of re-running calibration.
+        val_report = run_assumption_calibration_validation(
+            config, calibration_result=result,
+        )
+        result["validation_metrics"] = val_report["validation_metrics"]
+        result["independent_validation"] = val_report["independent_validation"]
+        logger.info(
+            "Validation metrics appended to results.json — "
+            "precision=%.4f recall=%.4f f1=%.4f",
+            val_report["validation_metrics"]["precision"],
+            val_report["validation_metrics"]["recall"],
+            val_report["validation_metrics"]["f1"],
+        )
+        # Re-write results.json with validation fields included
+        with open(out_path, "w") as f:
+            json.dump(result, f, indent=2, default=convert)
+
+    # ── 9. Post-calibration benchmark workflow (topology only) ──────────
+    run_benchmark = config.adapter_settings.get(
+        "run_assumption_benchmark", False
+    )
+    if config.problem_type == "topology" and run_benchmark:
+        logger.info(
+            "run_assumption_benchmark=true — running benchmark workflow."
+        )
+        from .benchmark import run_assumption_benchmark
+
+        benchmark_report = run_assumption_benchmark(
+            config, calibration_result=result,
+        )
+        result["benchmark"] = {
+            "improvement_summary": benchmark_report["improvement_summary"],
+            "variants": benchmark_report["variants"],
+            "independent_validation": benchmark_report["independent_validation"],
+            "manuscript_claim_allowed": benchmark_report["manuscript_claim_allowed"],
+            "uncertainty": benchmark_report.get("uncertainty"),
+        }
+        logger.info(
+            "Benchmark complete — delta_f1=%.4f",
+            benchmark_report["improvement_summary"]["delta_f1"],
+        )
+        # Re-write results.json with benchmark fields included
+        with open(out_path, "w") as f:
+            json.dump(result, f, indent=2, default=convert)
+
+        # ── 10. Active-learning measurement recommendations (topology only) ──
+        run_active_learning = config.adapter_settings.get(
+            "active_learning", False
+        )
+        if run_active_learning:
+            logger.info(
+                "active_learning=true — ranking next measurement priorities."
+            )
+            from .active_learning import rank_next_measurements
+
+            # Read full benchmark + validation reports from disk
+            bench_json_path = Path(config.output_dir) / "assumption_benchmark_results.json"
+            val_json_path = Path(config.output_dir) / "assumption_validation_results.json"
+
+            full_benchmark_report = {}
+            if bench_json_path.exists():
+                with open(bench_json_path) as fh:
+                    full_benchmark_report = json.load(fh)
+
+            full_validation_report = None
+            if val_json_path.exists():
+                with open(val_json_path) as fh:
+                    full_validation_report = json.load(fh)
+
+            # Extract samples / candidate_edges / config from the adapter
+            topo_samples = None
+            topo_edges = None
+            topo_config = None
+            for sub_prob in getattr(problem, "sub_problems", [problem]):
+                if hasattr(sub_prob, "samples"):
+                    topo_samples = sub_prob.samples
+                if hasattr(sub_prob, "candidate_edges"):
+                    topo_edges = sub_prob.candidate_edges
+                if hasattr(sub_prob, "config"):
+                    topo_config = sub_prob.config
+
+            # Normalize samples to list-of-dicts if DataFrame
+            if topo_samples is not None:
+                try:
+                    import pandas as pd
+                    if isinstance(topo_samples, pd.DataFrame):
+                        topo_samples = topo_samples.to_dict("records")
+                except Exception:
+                    pass
+
+            top_k = int(config.adapter_settings.get("active_learning_top_k", 20))
+
+            al_result = rank_next_measurements(
+                benchmark_report=full_benchmark_report,
+                validation_report=full_validation_report,
+                samples=topo_samples,
+                candidate_edges=topo_edges,
+                config=topo_config,
+                top_k=top_k,
+                output_dir=config.output_dir,
+            )
+
+            result["active_learning"] = {
+                "summary": al_result["summary"],
+                "n_recommendations": al_result["summary"]["n_recommendations"],
+                "top_priority_score": al_result["summary"]["top_priority_score"],
+            }
+            logger.info(
+                "Active learning complete — %d recommendations, top score=%.4f",
+                al_result["summary"]["n_recommendations"],
+                al_result["summary"]["top_priority_score"],
+            )
+            # Re-write results.json with active_learning fields included
+            with open(out_path, "w") as f:
+                json.dump(result, f, indent=2, default=convert)
+
+    # ── Guard: active_learning requires benchmark ──────────────────────
+    run_active_learning = config.adapter_settings.get("active_learning", False)
+    if run_active_learning and "benchmark" not in result:
+        logger.error(
+            "active_learning=true requires run_assumption_benchmark=true. "
+            "Set both in adapter_settings to enable measurement recommendations."
+        )
+        raise ValueError(
+            "active_learning requires run_assumption_benchmark. "
+            "No benchmark report available for ranking."
+        )
+
     # Print human-readable summary
     print("\n" + "=" * 60)
     print("HYDROSHEAF CALIBRATION SUMMARY")
@@ -294,6 +435,15 @@ def run_calibration_cli(args):
         for edge in result["selected_edges"]:
             p = result["edge_probabilities"].get(edge["edge_id"], 1.0)
             print(f"  - {edge['edge_id']} ({edge['u']} -> {edge['v']}) [p={p:.4f}]")
+        print("=" * 60)
+
+    if "active_learning" in result:
+        al = result["active_learning"]
+        print("\n" + "=" * 60)
+        print("ACTIVE LEARNING RECOMMENDATIONS")
+        print("=" * 60)
+        print(f"Recommendations: {al['n_recommendations']}")
+        print(f"Top Priority:    {al['top_priority_score']:.4f}")
         print("=" * 60)
 
 

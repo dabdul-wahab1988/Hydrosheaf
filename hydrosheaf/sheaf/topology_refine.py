@@ -1,6 +1,6 @@
 """Sheaf-inspired topology refinement using isotopes and Cl."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import math
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
@@ -10,8 +10,24 @@ from ..data.schema import parse_numeric, vector_from_sample
 
 logger = get_logger("sheaf.topology_refine")
 
+# Null-model imports (lazy-loaded to avoid circular dependency)
+_null_models_imported = False
+_compute_null_penalty = None
+
+def _ensure_null_models():
+    global _null_models_imported, _compute_null_penalty
+    if not _null_models_imported:
+        try:
+            from hydrosheaf.null_models import compute_null_penalty as _cnp
+            _compute_null_penalty = _cnp
+        except ImportError:
+            _compute_null_penalty = None
+        _null_models_imported = True
+
 from ..graph.types import Edge
 from ..isotopes import extract_isotopes, isotope_penalty
+from ..null_models import compute_null_penalty
+from ..validation.evidence import EdgeEvidenceClass, classify_edge_evidence
 from .directed_section import (
     build_edge_maps,
     compute_edge_section_residuals,
@@ -60,11 +76,57 @@ class EdgeSheafScore:
     cons_cost: float
     pi_evap: float
     flags: List[str]
+    null_score: float = 0.0
+    evidence_class: str = ""
+    evidence_reason: str = ""
+    ot_cost: float = 0.0
+    ot_attrs: Dict[str, float] = field(default_factory=dict)
+    causal_attrs: Dict[str, object] = field(default_factory=dict)
 
     @property
     def local_score(self) -> float:
-        return self.prior_penalty + self.iso_cost + self.cl_cost + self.age_cost
+        return self.prior_penalty + self.iso_cost + self.cl_cost + self.age_cost + self.ot_cost
 
+
+
+def _extract_temporal_history(
+    node_id: str,
+    sample_map: Mapping[str, Mapping[str, object]],
+) -> Optional[List[Mapping[str, object]]]:
+    """Extract temporal history for a node from the sample map.
+
+    Returns a list of samples for the given node if the sample_map contains
+    temporal data (date/timestamp keys or multiple samples per site_id).
+    Returns None when only a single static sample is available.
+    """
+    temporal_keys = {"date", "timestamp", "sample_date", "datetime"}
+    sample = sample_map.get(node_id)
+    if sample is None:
+        return None
+
+    # Check for nested temporal data under a "history" or "replicates" key
+    for hist_key in ("history", "replicates", "time_series", "temporal"):
+        hist = sample.get(hist_key)
+        if isinstance(hist, list) and len(hist) >= 2:
+            return hist
+
+    # Check if the sample itself has temporal keys
+    has_temporal = any(k in sample for k in temporal_keys)
+    if has_temporal:
+        return [sample]
+
+    # Check if there are multiple samples with the same site_id prefix
+    # (e.g., "well_A_2020-01", "well_A_2020-02")
+    prefix = node_id.split("_")[0] if "_" in node_id else node_id
+    matching = []
+    for sid, s in sample_map.items():
+        if sid == node_id or sid.startswith(prefix + "_"):
+            if any(k in s for k in temporal_keys):
+                matching.append(s)
+    if len(matching) >= 2:
+        return matching
+
+    return None
 
 
 def _sample_map(samples: object) -> Dict[str, Mapping[str, object]]:
@@ -343,6 +405,7 @@ def _build_node_vectors(
 def _score_candidates(
     candidates: Iterable[Edge],
     node_info: Mapping[str, NodeIsotopeInfo],
+    sample_map: Dict[str, Mapping[str, object]],
     stats: IsotopeStats,
     config: Config,
 ) -> Dict[str, EdgeSheafScore]:
@@ -351,6 +414,14 @@ def _score_candidates(
     weight_iso = float(getattr(config, "sheaf_weight_isotope", 1.0))
     weight_cl = float(getattr(config, "sheaf_weight_cl", 0.5))
     weight_age = float(getattr(config, "sheaf_weight_age", 2.0))
+
+    null_enabled = getattr(config, "null_model_enabled", False)
+    evidence_enabled = getattr(config, "evidence_ladder_enabled", False)
+    # Master gate: assumption_calibration_enabled enables both sub-features
+    if getattr(config, "assumption_calibration_enabled", False):
+        null_enabled = True
+        evidence_enabled = True
+    null_weight = float(getattr(config, "null_model_weight", 0.5))
 
     for edge in candidates:
         node_u = node_info.get(edge.u)
@@ -364,11 +435,17 @@ def _score_candidates(
         pi_evap = 0.0
         flags: List[str] = []
 
+        # Track whether isotope/Cl data is missing for evidence classification
+        iso_missing = False
+        cl_missing = False
+
         if getattr(config, "sheaf_isotope_enabled", True):
             iso_cost, cons_cost, pi_evap, flags = _edge_iso_cost(
                 node_u, node_v, stats, config
             )
             iso_cost *= weight_iso
+            if "iso_missing_u" in flags or "iso_missing_v" in flags:
+                iso_missing = True
 
         cl_cost = 0.0
         cl_ratio = None
@@ -377,6 +454,7 @@ def _score_candidates(
             cl_cost *= weight_cl
             if cl_ratio is None:
                 flags.append("cl_missing")
+                cl_missing = True
         
         age_cost = 0.0
         if getattr(config, "sheaf_age_enabled", True):
@@ -384,6 +462,117 @@ def _score_candidates(
             age_cost = age_c * weight_age
             if age_flags:
                 flags.extend(age_flags)
+
+        # === Null-model integration (Phase 0-1) ===
+        null_score = 0.0
+        edge_evidence_class = ""
+        evidence_reason = ""
+
+        if null_enabled:
+            sample_a = sample_map.get(edge.u, {})
+            sample_b = sample_map.get(edge.v, {})
+            try:
+                null_score, null_flags = compute_null_penalty(sample_a, sample_b, config)
+                # Downgrade chemistry/isotope support proportionally to null plausibility
+                # Higher null_score -> larger added cost
+                iso_cost += null_score * null_weight * weight_iso
+                flags.extend(null_flags)
+            except Exception:
+                logger.warning(
+                    "Null model failed for edge %s; flagging and continuing.",
+                    edge.edge_id,
+                )
+                flags.append("null_error")
+
+        # Optimal transport plausibility
+        ot_cost = 0.0
+        ot_attrs: Dict[str, float] = {}
+        if getattr(config, "ot_enabled", False):
+            try:
+                from ..models.optimal_transport import compute_unbalanced_ot
+                from ..data.schema import vector_from_sample
+
+                sample_u = sample_map.get(edge.u, {})
+                sample_v = sample_map.get(edge.v, {})
+                x_u, _ = vector_from_sample(
+                    sample_u, config.ion_order,
+                    config.missing_policy, config.detection_limit_policy,
+                )
+                x_v, _ = vector_from_sample(
+                    sample_v, config.ion_order,
+                    config.missing_policy, config.detection_limit_policy,
+                )
+                if x_u is not None and x_v is not None:
+                    ot_result = compute_unbalanced_ot(
+                        x_u, x_v, config.ion_order, config
+                    )
+                    ot_weight_val = float(getattr(config, "ot_weight", 0.25))
+                    raw_ot_total = float(ot_result.get("ot_total_cost", 0.0))
+                    ot_cost = ot_weight_val * raw_ot_total
+                    ot_attrs = {
+                        "ot_total_cost": raw_ot_total,
+                        "ot_score_contribution": ot_cost,
+                        "ot_balanced_cost": float(ot_result.get("ot_balanced_cost", 0.0)),
+                        "ot_creation_mass": float(ot_result.get("ot_creation_mass", 0.0)),
+                        "ot_destruction_mass": float(ot_result.get("ot_destruction_mass", 0.0)),
+                        "ot_conservative_mismatch": float(ot_result.get("ot_conservative_mismatch", 0.0)),
+                        "ot_reaction_plausibility": float(ot_result.get("ot_reaction_plausibility", 0.0)),
+                    }
+            except Exception:
+                logger.debug("OT computation failed for edge %s", edge.edge_id)
+
+        # Causal discovery support
+        causal_support = 0.0
+        causal_confound = 0.0
+        causal_attrs: Dict[str, object] = {}
+        if getattr(config, "causal_discovery_enabled", False):
+            try:
+                from ..causal.discovery import compute_causal_support
+
+                sample_u = sample_map.get(edge.u, {})
+                sample_v = sample_map.get(edge.v, {})
+
+                # Build temporal histories from sample_map if available.
+                # Samples with the same site_id prefix or containing a date/timestamp
+                # key are grouped as time series.
+                upstream_history = _extract_temporal_history(
+                    edge.u, sample_map
+                )
+                downstream_history = _extract_temporal_history(
+                    edge.v, sample_map
+                )
+
+                causal_result = compute_causal_support(
+                    sample_u, sample_v,
+                    upstream_history=upstream_history,
+                    downstream_history=downstream_history,
+                    config=config,
+                )
+                causal_support = float(causal_result.get("causal_support_score", 0.0))
+                causal_confound = float(causal_result.get("causal_confounded_score", 0.0))
+                causal_status = str(causal_result.get("causal_status", ""))
+                causal_weight_val = float(getattr(config, "causal_weight", 0.25))
+                causal_attrs = causal_result
+                # Support reduces cost; only apply confound penalty when
+                # we have enough data to meaningfully assess it.
+                iso_cost -= causal_weight_val * causal_support
+                if causal_status != "insufficient_data":
+                    iso_cost += causal_weight_val * causal_confound
+            except Exception:
+                logger.debug("Causal discovery failed for edge %s", edge.edge_id)
+
+        if evidence_enabled:
+            if iso_missing or cl_missing:
+                edge_evidence_class = EdgeEvidenceClass.AMBIGUOUS.name
+                evidence_reason = "missing key isotope or chloride data"
+                flags.append("missing_evidence")
+            else:
+                edge_evidence_class, evidence_reason = classify_edge_evidence(
+                    local_score=prior_penalty + iso_cost + cl_cost + age_cost,
+                    null_score=null_score,
+                    flags=flags,
+                    config=config,
+                )
 
         scores[edge.edge_id] = EdgeSheafScore(
             edge=edge,
@@ -394,6 +583,12 @@ def _score_candidates(
             cons_cost=cons_cost,
             pi_evap=pi_evap,
             flags=flags,
+            null_score=null_score,
+            evidence_class=edge_evidence_class,
+            evidence_reason=evidence_reason,
+            ot_cost=ot_cost,
+            ot_attrs=ot_attrs,
+            causal_attrs=causal_attrs,
         )
     return scores
 
@@ -469,7 +664,7 @@ def refine_edges_with_sheaf(
 
     stats = compute_isotope_stats(sample_map.values(), config)
     node_info = _build_node_info(sample_map, stats, config)
-    scores = _score_candidates(candidate_list, node_info, stats, config)
+    scores = _score_candidates(candidate_list, node_info, sample_map, stats, config)
 
     grouped: Dict[str, List[str]] = {}
     for edge in candidate_list:
@@ -585,6 +780,70 @@ def refine_edges_with_sheaf(
         attrs["sheaf_score_global"] = score_obj.local_score + global_weight * float(
             final_residuals.get(edge.edge_id, 0.0)
         )
+        # Evidence ladder (Phase 0-1)
+        if score_obj.evidence_class:
+            attrs["evidence_class"] = score_obj.evidence_class
+        attrs["evidence_score"] = 1.0 / (1.0 + score_obj.local_score)
+        attrs["null_score"] = score_obj.null_score
+        if score_obj.flags:
+            attrs["evidence_flags"] = ",".join(score_obj.flags)
+        if score_obj.evidence_reason:
+            attrs["evidence_reason"] = score_obj.evidence_reason
+        # Optimal transport attrs
+        if score_obj.ot_attrs:
+            for k, v in score_obj.ot_attrs.items():
+                attrs[k] = v
+        # Causal discovery attrs
+        if score_obj.causal_attrs:
+            for k, v in score_obj.causal_attrs.items():
+                attrs[k] = v
         edge.attrs = attrs
+
+    # Sheaf cohomology diagnostics
+    if getattr(config, "sheaf_cohomology_enabled", False):
+        try:
+            from .cohomology import attach_cohomology_attrs
+
+            all_maps = build_edge_maps(
+                selected,
+                node_estimates if has_chemistry and node_estimates else {},
+                config,
+                prior_weight=float(getattr(config, "sheaf_weight_head_prior", 1.0)),
+            )
+            attach_cohomology_attrs(
+                selected,
+                all_maps,
+                dim=len(config.ion_order) if has_chemistry else None,
+                compute_leverage=True,
+            )
+        except Exception:
+            logger.warning("Sheaf cohomology diagnostics failed; continuing.", exc_info=True)
+
+    # Bayesian topology posterior
+    if getattr(config, "topology_posterior_enabled", False):
+        try:
+            from ..inference.topology_posterior import (
+                _make_sheaf_cost_fn,
+                attach_posterior_attrs,
+                run_topology_posterior,
+            )
+
+            cost_fn = _make_sheaf_cost_fn(sample_map, config, node_info, stats)
+            posterior_result = run_topology_posterior(
+                universe=candidate_list,
+                cost_fn=cost_fn,
+                config=config,
+                initial_edges=selected,
+            )
+            attach_posterior_attrs(
+                selected_edges=selected,
+                candidate_edges=candidate_list,
+                posterior_result=posterior_result,
+                mode="diagnostic",
+            )
+        except Exception:
+            logger.warning(
+                "Topology posterior sampling failed; continuing.", exc_info=True
+            )
 
     return selected

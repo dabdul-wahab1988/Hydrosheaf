@@ -52,6 +52,36 @@ class EdgeResult:
     edge_sheaf_cost_iso: Optional[float] = None
     edge_sheaf_cost_cl: Optional[float] = None
     edge_sheaf_flags: Optional[str] = None
+    # Sheaf cohomology diagnostics
+    sheaf_h0_dim: Optional[int] = None
+    sheaf_h1_dim: Optional[int] = None
+    sheaf_obstruction_energy: Optional[float] = None
+    sheaf_obstruction_leverage: Optional[float] = None
+    sheaf_cycle_obstruction_max: Optional[float] = None
+    sheaf_cycle_count: Optional[int] = None
+    # Bayesian topology posterior
+    posterior_edge_probability: Optional[float] = None
+    posterior_edge_log_odds: Optional[float] = None
+    posterior_map_selected: Optional[bool] = None
+    posterior_topology_entropy: Optional[float] = None
+    posterior_n_edges_mean: Optional[float] = None
+    posterior_n_edges_ci95: Optional[str] = None
+    posterior_acceptance_rate: Optional[float] = None
+    # Optimal transport plausibility
+    ot_total_cost: Optional[float] = None
+    ot_score_contribution: Optional[float] = None
+    ot_balanced_cost: Optional[float] = None
+    ot_creation_mass: Optional[float] = None
+    ot_destruction_mass: Optional[float] = None
+    ot_conservative_mismatch: Optional[float] = None
+    ot_reaction_plausibility: Optional[float] = None
+    # Causal discovery layer
+    causal_support_score: Optional[float] = None
+    causal_confounded_score: Optional[float] = None
+    causal_p_value: Optional[float] = None
+    causal_method: Optional[str] = None
+    causal_n_observations: Optional[int] = None
+    causal_status: Optional[str] = None
     edge_distance_km: Optional[float] = None
     edge_delta_h: Optional[float] = None
     edge_sigma_delta_h: Optional[float] = None

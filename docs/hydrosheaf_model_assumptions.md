@@ -370,3 +370,87 @@ Five methods in priority order:
 - Picard tolerance: 1e−6
 - Reaction convergence tolerance: 1e−6
 - Least-squares tolerance: 1e−8
+
+---
+
+## 14. Assumption Calibration (Phase 0-1)
+
+### Principle
+
+Hydrosheaf does not treat hydrochemical or isotope compatibility as direct proof
+of groundwater connectivity. Candidate edges are hypotheses, not facts. The
+assumption calibration framework tests whether observed similarities could arise
+from non-connectivity explanations before allowing them to support flow edges.
+
+### Edge Evidence Classes
+
+Every selected edge is classified by the independence and agreement of its
+supporting observations:
+
+| Class | Meaning |
+|---|---|
+| `FALSIFIED` | Rejected by null model, benchmark, tracer contradiction, or impossible head/age relation |
+| `AMBIGUOUS` | Insufficient independent evidence to confirm or reject flow |
+| `PRIOR_ASSISTED` | Supported mainly by imported model or MODPATH prior without corroborating chemistry/isotope agreement |
+| `PROBABLE` | Multiple independent evidence streams support the edge and no strong null explanation dominates |
+| `VALIDATED` | Supported by an independent benchmark, tracer test, or field-confirmed topology |
+
+Evidence classes (`evidence_class`) are written to every final edge's attributes
+and must be reported in sparse-data outputs.
+
+### Null Models for Non-Connectivity
+
+Before chemistry or isotope similarity is counted as edge support, three
+competing no-flow explanations are evaluated:
+
+| Null Model | Explanation | Flag |
+|---|---|---|
+| **Chemistry** | Major-ion similarity from shared mineralogy, not flow | `null_chemistry_similar` |
+| **Lithology** | Common aquifer layer → similar water-rock interaction | `null_common_lithology` |
+| **Endmember** | Shared recharge source, spatial autocorrelation, or common anthropogenic input | `null_shared_recharge`, `null_common_anthropogenic` |
+
+Each null model produces a score in [0, 1] that is summed into the edge's total
+cost. A higher null score means the observed similarity is more plausibly
+explained without direct flow, which downgrades the chemistry/isotope evidence.
+
+### Configuration Flags
+
+All assumption calibration features are opt-in. The default configuration
+produces identical output to the previous version.
+
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `assumption_calibration_enabled` | bool | `false` | Master flag for Phase 0-1 features |
+| `null_model_enabled` | bool | `false` | Enable null-model filtering |
+| `null_model_weight` | float | `0.5` | How strongly null scores downgrade chemistry evidence |
+| `evidence_ladder_enabled` | bool | `false` | Enable edge evidence classification |
+| `evidence_threshold_probable` | float | `0.6` | Minimum evidence score for PROBABLE |
+| `evidence_threshold_validated` | float | `0.8` | Minimum evidence score for VALIDATED |
+| `null_chemistry_similarity_threshold` | float | `0.3` | Max ion-distance to consider "similar" |
+| `null_lithology_weight` | float | `0.3` | Weight for lithology null |
+| `null_endmember_weight` | float | `0.4` | Weight for endmember null |
+| `null_spatial_weight` | float | `0.2` | Weight for spatial autocorrelation |
+
+### Calibration
+
+Null-model weights, evidence thresholds, and chemistry/isotope penalties can be
+calibrated against held-out MODPATH or field labels via the existing
+`TopologyCalibrationAdapter`. Assumption parameters are exposed alongside edge
+logit parameters in PEST++ configurations.
+
+**Critical:** Calibration labels must not be reused for independent validation.
+MODPATH labels used during calibration cannot also be reported as validation.
+
+### Conservative Claim Language
+
+Use:
+
+> Hydrosheaf infers candidate groundwater-flow topology under sparse data by
+> scoring hydraulic, hydrochemical, isotopic, age, spatial, and geological
+> evidence. Competing no-flow explanations are tested through null models, and
+> final edges are reported by evidence class rather than as deterministic
+> connectivity.
+
+Avoid:
+
+> Hydrosheaf proves groundwater connectivity from chemistry or sheaf consistency.
