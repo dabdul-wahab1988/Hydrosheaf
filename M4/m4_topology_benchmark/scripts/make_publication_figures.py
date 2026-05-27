@@ -47,6 +47,8 @@ SCENARIO_LABELS = {
     "negative_random": "Random",
     "negative_wrong_direction": "Wrong dir.",
     "negative_shortcut": "Shortcut",
+    "head_gradient_bayesian_hodge": "Hodge pruned",
+    "real_head_projected_gradient": "Proj. gradient",
 }
 
 EVIDENCE_LEVELS = {
@@ -58,6 +60,8 @@ EVIDENCE_LEVELS = {
     "negative_random": 0,
     "negative_wrong_direction": 0,
     "negative_shortcut": 0,
+    "head_gradient_bayesian_hodge": 3,
+    "real_head_projected_gradient": 3,
 }
 
 EVIDENCE_LABELS = {
@@ -185,13 +189,13 @@ def make_figure1_workflow() -> None:
     edge_class = _read_csv(RESULT_DIR / "edge_classification.csv")
     perf = _read_csv(RESULT_DIR / "independent_graph_vs_modpath.csv")
 
-    fig = plt.figure(figsize=(7.6, 6.2))
+    fig = plt.figure(figsize=(4.5, 7.5))
     # fig.suptitle removed per Q1 guidelines
-    fig.subplots_adjust(left=0.09, right=0.97, top=0.95, bottom=0.14, hspace=0.82, wspace=0.50)
-    gs = fig.add_gridspec(2, 2)
+    fig.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.10, hspace=0.35)
+    gs = fig.add_gridspec(2, 1)
 
     # --- Panel a: MODPATH particles ---
-    ax = fig.add_subplot(gs[0, 0])
+    ax = fig.add_subplot(gs[0])
     if not pathline_points.empty:
         for _, group in pathline_points.groupby("particle_id", sort=False):
             group = group.sort_values("sequence")
@@ -230,7 +234,7 @@ def make_figure1_workflow() -> None:
     _panel_label(ax, "a")
 
     # --- Panel b: MODPATH reference transition grid ---
-    ax = fig.add_subplot(gs[0, 1])
+    ax = fig.add_subplot(gs[1])
     if not nodes_df.empty and not ref_edges.empty:
         pos = _build_node_positions(nodes_df)
         cell_support = _transition_cell_support(ref_edges, weight_col="particle_count")
@@ -248,95 +252,6 @@ def make_figure1_workflow() -> None:
     ax.set_aspect("auto")
     ax.axis("off")
     _panel_label(ax, "b")
-
-    # --- Panel c: TP/FP/FN diagnostic error map ---
-    ax = fig.add_subplot(gs[1, 0])
-    if not edge_class.empty and not nodes_df.empty and not ref_edges.empty:
-        pos = _build_node_positions(nodes_df)
-        hg = _attach_reference_support(
-            edge_class[edge_class["scenario"] == "head_gradient"],
-            ref_edges,
-        )
-        cell_support = _transition_cell_support(ref_edges, weight_col="particle_count")
-        _draw_grid_cells(
-            ax, pos, cell_support, cmap_name="Greys",
-            alpha_multiplier=0.22, edge_alpha=0.16, zorder=0,
-        )
-        _draw_reference_context(ax, ref_edges, pos, alpha=0.07)
-        _draw_cell_centers(ax, pos, s=3.2, color=LIGHT_GRAY, alpha=0.45, zorder=2)
-
-        diagnostic_styles = [
-            ("FN", FN_DARK, 0.82, 0.62, (0, (3, 2)), 5.8, "_diagnostic_weight", 3),
-            ("FP", VERMILLION, 0.48, 0.36, "solid", 4.3, None, 4),
-            ("TP", GREEN, 0.72, 0.50, "solid", 5.0, "_diagnostic_weight", 5),
-        ]
-
-        # Plot missing reference edges first, unsupported inferred edges next, and recovered edges last.
-        for klass, color, alpha, lw, ls, mut, weight_col, zorder in diagnostic_styles:
-            subset = hg[hg["classification"] == klass]
-            _draw_edge_subset(
-                ax, subset, pos, color=color, alpha=alpha,
-                lw=lw, linestyle=ls, mutation_scale=mut,
-                weight_col=weight_col, zorder=zorder,
-            )
-        
-        ax.set_title("Head-gradient inference (TP/FP/FN)")
-        _set_graph_extent(ax, pos)
-        ax.set_aspect("auto")
-        ax.axis("off")
-    else:
-        ax.axis("off")
-    _panel_label(ax, "c")
-
-    # --- Panel d: Performance summary ---
-    ax = fig.add_subplot(gs[1, 1])
-    if not perf.empty:
-        scenarios_plot = [
-            "spatial_only", "head_gradient", "head_depth", "hydrostratigraphic",
-            "negative_random", "negative_wrong_direction", "negative_shortcut",
-        ]
-        df_plot = perf[perf["scenario"].isin(scenarios_plot)].copy()
-        df_plot = df_plot.sort_values("scenario", key=lambda s: s.map(
-            {k: i for i, k in enumerate(SCENARIO_LABELS)}
-        ))
-        x = np.arange(len(df_plot))
-        w = 0.22
-        precision_vals = pd.to_numeric(df_plot["precision"], errors="coerce").fillna(0).values
-        recall_vals = pd.to_numeric(df_plot["recall"], errors="coerce").fillna(0).values
-        f1_vals = pd.to_numeric(df_plot["f1"], errors="coerce").fillna(0).values
-        ax.bar(x - w, precision_vals, w, color=SKY, label="Precision", edgecolor="white", linewidth=0.4)
-        ax.bar(x, recall_vals, w, color=BLUE, label="Recall", edgecolor="white", linewidth=0.4)
-        ax.bar(x + w, f1_vals, w, color=GREEN, label="F1", edgecolor="white", linewidth=0.4)
-        labels = {
-            "spatial_only": "Spatial\nonly",
-            "head_gradient": "Head\ngradient",
-            "head_depth": "Head\ndepth",
-            "hydrostratigraphic": "Hydro-\nstrati-\ngraphic",
-            "negative_random": "Random",
-            "negative_wrong_direction": "Wrong\ndirection",
-            "negative_shortcut": "Shortcut",
-        }
-        ax.set_xticks(x)
-        ax.set_xticklabels([labels.get(s, _display_scenario(s)) for s in df_plot["scenario"]],
-                           rotation=0, ha="center")
-        ax.tick_params(axis="x", labelsize=6.4, pad=2)
-        ax.set_ylim(0, 1.05)
-        ax.set_ylabel("Score")
-        ax.set_title("Benchmark precision, recall and F1")
-        ax.legend(frameon=False, ncol=3, loc="upper right", fontsize=6.3)
-        _add_gridlines(ax, x=False, y=True)
-    else:
-        ax.axis("off")
-    _panel_label(ax, "d")
-
-    # Shared legend below Figure 1 (TP/FP/FN only, no Reference context)
-    legend_elements = [
-        Line2D([0], [0], color=GREEN, lw=1.5, label="TP"),
-        Line2D([0], [0], color=VERMILLION, lw=1.5, label="FP"),
-        Line2D([0], [0], color=FN_DARK, lw=1.5, linestyle=(0, (3, 2)), label="FN"),
-    ]
-    fig.legend(handles=legend_elements, frameon=False, ncol=3, loc="lower center",
-               bbox_to_anchor=(0.5, 0.02), fontsize=7.5)
 
     _save(fig, "Fig1_From_MODPATH_particles_to_falsifiable_groundwater_graphs")
 
@@ -653,9 +568,14 @@ def _draw_evidence_ladder(ax, perf, priors):
         ("spatial_only", "Spatial proximity only"),
         ("sparse_node", "Sparse-node sensitivity"),
         ("head_gradient", "Head-gradient constrained"),
+        ("head_gradient_bayesian_hodge", "Head-gradient (Hodge pruned)"),
+        ("real_head_projected_gradient", "Proj. gradient constrained"),
         ("head_depth", "Head-depth constrained"),
         ("hydrostratigraphic", "Hydrostratigraphic constrained"),
     ]
+    if not perf.empty:
+        independent_scenarios = [(s, label) for s, label in independent_scenarios
+                                 if s in perf["scenario"].values]
 
     level_colors = {
         0: LIGHT_GRAY,
@@ -720,25 +640,28 @@ def _draw_evidence_ladder(ax, perf, priors):
 # ---------------------------------------------------------------------------
 
 def make_figure2_performance() -> None:
-    """4-panel: (a) evidence ladder summary, (b) P/R/F1 bars,
-    (c) FP/FN rates, (d) scale-mismatch diagnostic."""
+    """5-panel: (a) evidence level & F1, (b) P/R/F1 bars, (c) node-sparsity sensitivity,
+    (d) sparse-node sensitivity performance curve, (e) scale-mismatch check."""
     perf = _read_csv(RESULT_DIR / "independent_graph_vs_modpath.csv")
+    sparsity = _read_csv(PUBLIC_DIR / "node_sparsity_sensitivity.csv")
     if perf.empty:
         return
 
     ind = perf.copy()
-    ordered = ["spatial_only", "head_gradient", "head_depth", "hydrostratigraphic",
+    ordered = ["spatial_only", "head_gradient", "head_gradient_bayesian_hodge",
+               "real_head_projected_gradient", "head_depth", "hydrostratigraphic",
                "sparse_node", "negative_random", "negative_wrong_direction", "negative_shortcut"]
+    ordered = [s for s in ordered if s in ind["scenario"].values]
     ind["_order"] = ind["scenario"].map({k: i for i, k in enumerate(ordered)})
     ind = ind.sort_values("_order")
 
+    fig = plt.figure(figsize=(10.5, 6.2))
     # fig.suptitle removed per Q1 guidelines
-    fig, axes = plt.subplots(2, 2, figsize=(7.2, 5.8),
-                             gridspec_kw={"wspace": 0.38, "hspace": 0.55})
-    fig.subplots_adjust(left=0.10, right=0.96, top=0.94, bottom=0.22, hspace=0.55, wspace=0.38)
+    fig.subplots_adjust(left=0.08, right=0.96, top=0.92, bottom=0.20, hspace=0.48, wspace=0.32)
+    gs = fig.add_gridspec(2, 3)
 
-    # --- Panel a: Evidence ladder with F1 overlay ---
-    ax = axes[0, 0]
+    # --- Panel a: Evidence level and F1 ---
+    ax = fig.add_subplot(gs[0, 0])
     scenarios = ind["scenario"].tolist()
     levels = [EVIDENCE_LEVELS.get(s, 0) for s in scenarios]
     f1_vals = pd.to_numeric(ind["f1"], errors="coerce").fillna(0).values
@@ -763,16 +686,13 @@ def make_figure2_performance() -> None:
     _add_gridlines(ax, x=True, y=False)
     _panel_label(ax, "a")
 
-    # --- Panel b: Precision, Recall, F1 grouped bars with TP/FP/FN counts ---
-    ax = axes[0, 1]
+    # --- Panel b: Precision, Recall, F1 grouped bars (no counts) ---
+    ax = fig.add_subplot(gs[0, 1])
     x = np.arange(len(ind))
     w = 0.22
     prec = pd.to_numeric(ind["precision"], errors="coerce").fillna(0).values
     rec = pd.to_numeric(ind["recall"], errors="coerce").fillna(0).values
     f1 = f1_vals
-    tp = pd.to_numeric(ind.get("tp", 0), errors="coerce").fillna(0).values
-    fp = pd.to_numeric(ind.get("fp", 0), errors="coerce").fillna(0).values
-    fn = pd.to_numeric(ind.get("fn", 0), errors="coerce").fillna(0).values
 
     ax.bar(x - w, prec, w, color=SKY, label="Precision", edgecolor="white", linewidth=0.4)
     ax.bar(x, rec, w, color=BLUE, label="Recall", edgecolor="white", linewidth=0.4)
@@ -781,23 +701,12 @@ def make_figure2_performance() -> None:
     ax.set_xticklabels([_display_scenario(s) for s in scenarios], rotation=35, ha="right")
     ax.set_ylim(0, 1.0)  # Bound strictly to 1.0
     ax.set_ylabel("Score")
-    ax.set_title("Precision / Recall / F1 (with TP/FP/FN)")
-    
-    for i in range(len(x)):
-        scenario_name = scenarios[i]
-        if scenario_name == "sparse_node":
-            # Omit counts for sparse node sensitivity analysis
-            continue
-        max_val = max(prec[i], rec[i], f1[i])
-        ax.text(x[i], min(1.02, max_val + 0.02),
-                f"{int(tp[i])}/{int(fp[i])}/{int(fn[i])}",
-                ha="center", va="bottom", fontsize=5, rotation=90, clip_on=False)
-    
+    ax.set_title("Precision / Recall / F1 (grouped bars)")
     _add_gridlines(ax, x=False, y=True)
     _panel_label(ax, "b")
 
-    # --- Panel c: Node-sparsity sensitivity (moved from S3) ---
-    ax = axes[1, 0]
+    # --- Panel c: Node-sparsity sensitivity ---
+    ax = fig.add_subplot(gs[0, 2])
     sparsity_path = RESULT_DIR / "m4_sparsity_sensitivity.csv"
     if sparsity_path.exists():
         sensitivity = _read_csv(sparsity_path)
@@ -828,8 +737,37 @@ def make_figure2_performance() -> None:
     _add_gridlines(ax, x=True, y=True)
     _panel_label(ax, "c")
 
-    # --- Panel d: Scale-mismatch diagnostic ---
-    ax = axes[1, 1]
+    # --- Panel d: Sparse-node sensitivity performance curve ---
+    ax = fig.add_subplot(gs[1, 0])
+    if not sparsity.empty:
+        sparse = sparsity.sort_values("node_fraction").copy()
+        x_val = pd.to_numeric(sparse["node_fraction"], errors="coerce")
+        metrics = [
+            ("mean_precision", "std_precision", SKY, "Precision"),
+            ("mean_recall", "std_recall", BLUE, "Recall"),
+            ("mean_f1", "std_f1", GREEN, "F1"),
+        ]
+        for mean_col, std_col, color, label in metrics:
+            y_val = pd.to_numeric(sparse[mean_col], errors="coerce")
+            yerr = pd.to_numeric(sparse[std_col], errors="coerce").fillna(0)
+            ci95 = 1.96 * yerr
+            ax.errorbar(x_val, y_val, yerr=ci95, marker="o", markersize=3.8,
+                        linewidth=1.1, capsize=2.0, color=color, label=label)
+        ax.set_xlim(0.05, 1.05)
+        ax.set_ylim(0, 1.05)
+        ax.set_xlabel("Retained node fraction", fontsize=7)
+        ax.set_ylabel("Score", fontsize=7)
+        ax.legend(frameon=False, loc="upper left", fontsize=5.5)
+        ax.set_title("Sparse-node sensitivity")
+        ax.text(0.95, 0.05, "mean ± 95% CI", transform=ax.transAxes, fontsize=5.5,
+                color=GRAY, ha="right", va="bottom")
+        _add_gridlines(ax, x=True, y=True)
+    else:
+        ax.axis("off")
+    _panel_label(ax, "d")
+
+    # --- Panel e: Scale-mismatch diagnostic ---
+    ax = fig.add_subplot(gs[1, 1])
     ref_len = pd.to_numeric(ind["median_reference_length"], errors="coerce").fillna(0)
     inf_len = pd.to_numeric(ind["median_inferred_length"], errors="coerce").fillna(0)
     ax.bar(x - w / 2, ref_len, w, color=GRAY, label="Reference", edgecolor="white", linewidth=0.4)
@@ -845,7 +783,11 @@ def make_figure2_performance() -> None:
     ax.set_title("Scale-mismatch check (▼ = mismatch)")
     ax.yaxis.set_major_locator(mticker.MaxNLocator(nbins=4))
     _add_gridlines(ax, x=False, y=True)
-    _panel_label(ax, "d")
+    _panel_label(ax, "e")
+
+    # Empty panel
+    ax_f = fig.add_subplot(gs[1, 2])
+    ax_f.axis("off")
 
     # Two separate shared legends at the bottom, visually separated
     perf_handles = [
@@ -860,11 +802,11 @@ def make_figure2_performance() -> None:
 
     fig.text(0.10, 0.06, "Performance metrics:", fontsize=7.5, fontweight="bold", va="center")
     fig.legend(handles=perf_handles, frameon=False, ncol=3, loc="center left",
-               bbox_to_anchor=(0.33, 0.06), fontsize=7)
+               bbox_to_anchor=(0.25, 0.06), fontsize=7)
 
     fig.text(0.60, 0.06, "Scale diagnostic:", fontsize=7.5, fontweight="bold", va="center")
     fig.legend(handles=scale_handles, frameon=False, ncol=2, loc="center left",
-               bbox_to_anchor=(0.78, 0.06), fontsize=7)
+               bbox_to_anchor=(0.75, 0.06), fontsize=7)
 
     _save(fig, "Fig2_Independent_topology_performance_across_evidence_levels")
 
@@ -898,6 +840,12 @@ def _get_classified_edges(scenario: str, nodes_df: pd.DataFrame, ref_edges: pd.D
         obj = infer_edges_from_coordinates(samples, max_neighbors=2, allow_uphill=True)
         inf_edges = [(e.u, e.v) for e in obj]
     elif scenario == "head_gradient":
+        obj = infer_edges_from_coordinates(samples, max_neighbors=2, allow_uphill=False)
+        inf_edges = [(e.u, e.v) for e in obj]
+    elif scenario == "head_gradient_bayesian_hodge":
+        obj = infer_edges_from_coordinates(samples, max_neighbors=2, allow_uphill=False)
+        inf_edges = [(e.u, e.v) for e in obj]
+    elif scenario == "real_head_projected_gradient":
         obj = infer_edges_from_coordinates(samples, max_neighbors=2, allow_uphill=False)
         inf_edges = [(e.u, e.v) for e in obj]
     elif scenario == "head_depth":
@@ -1024,7 +972,6 @@ def make_figure3_edge_networks() -> None:
     """Diagnostic controls for edge-level graph-inference failure modes."""
     nodes_df = _read_csv(PUBLIC_DIR / "modpath_node_mapping.csv")
     ref_edges = _read_csv(PUBLIC_DIR / "modpath_reference_edges.csv")
-    sparsity = _read_csv(PUBLIC_DIR / "node_sparsity_sensitivity.csv")
 
     if nodes_df.empty:
         return
@@ -1034,88 +981,92 @@ def make_figure3_edge_networks() -> None:
     fig = plt.figure(figsize=(7.2, 6.4))
     # fig.suptitle removed per Q1 guidelines
     fig.subplots_adjust(left=0.08, right=0.96, top=0.95, bottom=0.16, hspace=0.48, wspace=0.32)
-    gs = fig.add_gridspec(2, 3)
-    # Panel a: head-gradient decomposition into separate TP/FP/FN maps
-    ax = fig.add_subplot(gs[0, :])
-    head = _attach_reference_support(_get_classified_edges("head_gradient", nodes_df, ref_edges), ref_edges)
+    gs = fig.add_gridspec(2, 2)
     
-    _draw_graph_nodes(ax, pos, s=1, color=LIGHT_GRAY)
     styles = [
         ("TP", GREEN, 0.58, 0.42, "solid", 4.5),
         ("FP", VERMILLION, 0.58, 0.42, "solid", 4.5),
         ("FN", FN_DARK, 0.86, 0.80, (0, (3, 2)), 6.0),
     ]
+
+    # Panel a: Head gradient
+    ax = fig.add_subplot(gs[0, 0])
+    head = _attach_reference_support(_get_classified_edges("head_gradient", nodes_df, ref_edges), ref_edges)
+    _draw_graph_nodes(ax, pos, s=1, color=LIGHT_GRAY)
     for klass, color, alpha, lw, ls, mut in styles:
         subset = head[head["classification"] == klass]
         _draw_edge_subset(
             ax, subset, pos, color=color, alpha=alpha,
             lw=lw, linestyle=ls, mutation_scale=mut
         )
-    ax.set_title("Head-gradient inference")
-    
-    # Crop tightness: only use pos values for nodes actually present in head
+    ax.set_title("Head gradient", fontsize=8.5)
     active_nodes = set(head["u"].astype(str)) | set(head["v"].astype(str))
     active_pos = {n: pos[n] for n in active_nodes if n in pos}
     _set_graph_extent(ax, active_pos, pad_fraction=0.02)
-    
-    # Metric box inset inside Panel a
-    ax.text(0.03, 0.93, "P = 0.49, R = 0.84, F1 = 0.62", transform=ax.transAxes,
-            fontsize=7.5, fontweight="bold", va="top", ha="left",
+    metrics = _classified_metrics(head)
+    ax.text(0.03, 0.93, f"P = {metrics['precision']:.2f}, R = {metrics['recall']:.2f}, F1 = {metrics['f1']:.2f}",
+            transform=ax.transAxes, fontsize=7.5, fontweight="bold", va="top", ha="left",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor=LIGHT_GRAY, linewidth=0.5))
-    
     ax.set_aspect("auto")
     ax.axis("off")
     _panel_label(ax, "a")
 
-    # Panel b: spatial-only diagnostic control
-    ax = fig.add_subplot(gs[1, 0])
-    spatial = _attach_reference_support(_get_classified_edges("spatial_only", nodes_df, ref_edges), ref_edges)
-    _draw_reference_context(ax, ref_edges, pos, alpha=0.12)
-    fp_subset = _sample_edges(spatial[spatial["classification"] == "FP"], max_edges=20, random_state=3)
-    fn_subset = _sample_edges(spatial[spatial["classification"] == "FN"], max_edges=20, random_state=4)
-    
-    _draw_grid_cells(ax, pos, _transition_cell_support(spatial, weight_col="_diagnostic_weight"),
-                     cmap_name="Oranges", vmax=8)
-    _draw_edge_subset(ax, fp_subset, pos, color=VERMILLION, alpha=0.18, lw=0.35, mutation_scale=4.3)
-    _draw_edge_subset(ax, fn_subset, pos, color=FN_DARK, alpha=0.30, lw=0.55,
-                      linestyle=(0, (3, 2)), mutation_scale=5.2)
-    ax.set_title("Spatial-only control", fontsize=8)
-    _set_graph_extent(ax, pos)
+    # Panel b: Real head-projected gradient
+    ax = fig.add_subplot(gs[0, 1])
+    proj = _attach_reference_support(_get_classified_edges("real_head_projected_gradient", nodes_df, ref_edges), ref_edges)
+    _draw_graph_nodes(ax, pos, s=1, color=LIGHT_GRAY)
+    for klass, color, alpha, lw, ls, mut in styles:
+        subset = proj[proj["classification"] == klass]
+        _draw_edge_subset(
+            ax, subset, pos, color=color, alpha=alpha,
+            lw=lw, linestyle=ls, mutation_scale=mut
+        )
+    ax.set_title("Real head-projected gradient", fontsize=8.5)
+    active_nodes = set(proj["u"].astype(str)) | set(proj["v"].astype(str))
+    active_pos = {n: pos[n] for n in active_nodes if n in pos}
+    _set_graph_extent(ax, active_pos, pad_fraction=0.02)
+    metrics = _classified_metrics(proj)
+    ax.text(0.03, 0.93, f"P = {metrics['precision']:.2f}, R = {metrics['recall']:.2f}, F1 = {metrics['f1']:.2f}",
+            transform=ax.transAxes, fontsize=7.5, fontweight="bold", va="top", ha="left",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor=LIGHT_GRAY, linewidth=0.5))
     ax.set_aspect("auto")
     ax.axis("off")
     _panel_label(ax, "b")
 
-    # Panel c: sparse-node sensitivity as a performance curve
-    ax = fig.add_subplot(gs[1, 1])
-    if not sparsity.empty:
-        sparse = sparsity.sort_values("node_fraction").copy()
-        x = pd.to_numeric(sparse["node_fraction"], errors="coerce")
-        metrics = [
-            ("mean_precision", "std_precision", SKY, "Precision"),
-            ("mean_recall", "std_recall", BLUE, "Recall"),
-            ("mean_f1", "std_f1", GREEN, "F1"),
-        ]
-        for mean_col, std_col, color, label in metrics:
-            y = pd.to_numeric(sparse[mean_col], errors="coerce")
-            yerr = pd.to_numeric(sparse[std_col], errors="coerce").fillna(0)
-            ci95 = 1.96 * yerr
-            ax.errorbar(x, y, yerr=ci95, marker="o", markersize=3.8,
-                        linewidth=1.1, capsize=2.0, color=color, label=label)
-        ax.set_xlim(0.05, 1.05)
-        ax.set_ylim(0, 1.05)
-        ax.set_xlabel("Retained node fraction", fontsize=7)
-        ax.set_ylabel("Score", fontsize=7)
-        ax.legend(frameon=False, loc="upper left", fontsize=5.5)
-        ax.set_title("Sparse-node sensitivity", fontsize=8)
-        ax.text(0.95, 0.05, "mean ± 95% CI", transform=ax.transAxes, fontsize=5.5,
-                color=GRAY, ha="right", va="bottom")
-        _add_gridlines(ax, x=True, y=True)
-    else:
-        ax.axis("off")
+    # Panel c: Sparse node
+    ax = fig.add_subplot(gs[1, 0])
+    sparse = _attach_reference_support(_get_classified_edges("sparse_node", nodes_df, ref_edges), ref_edges)
+    rng = np.random.default_rng(20260521)
+    n_half = len(pos) // 2
+    node_list = list(pos.keys())
+    idxs = rng.choice(len(pos), size=n_half, replace=False)
+    sub_ids = {node_list[i] for i in idxs}
+    active_pos = {k: v for k, v in pos.items() if k in sub_ids}
+    inactive_pos = {k: v for k, v in pos.items() if k not in sub_ids}
+    if inactive_pos:
+        ixs, iys = zip(*inactive_pos.values())
+        ax.scatter(ixs, iys, s=0.8, facecolor="none", edgecolor=LIGHT_GRAY, linewidth=0.15, zorder=2)
+    if active_pos:
+        axs_val, ays = zip(*active_pos.values())
+        ax.scatter(axs_val, ays, s=1.0, facecolor="white", edgecolor=GRAY, linewidth=0.2, zorder=3)
+    for klass, color, alpha, lw, ls, mut in styles:
+        subset = sparse[sparse["classification"] == klass]
+        _draw_edge_subset(
+            ax, subset, pos, color=color, alpha=alpha,
+            lw=lw, linestyle=ls, mutation_scale=mut
+        )
+    ax.set_title("Sparse node", fontsize=8.5)
+    _set_graph_extent(ax, active_pos, pad_fraction=0.02)
+    metrics = _classified_metrics(sparse)
+    ax.text(0.03, 0.93, f"P = {metrics['precision']:.2f}, R = {metrics['recall']:.2f}, F1 = {metrics['f1']:.2f}",
+            transform=ax.transAxes, fontsize=7.5, fontweight="bold", va="top", ha="left",
+            bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor=LIGHT_GRAY, linewidth=0.5))
+    ax.set_aspect("auto")
+    ax.axis("off")
     _panel_label(ax, "c")
 
-    # Panel d: random-edge diagnostic control
-    ax = fig.add_subplot(gs[1, 2])
+    # Panel d: Random edges
+    ax = fig.add_subplot(gs[1, 1])
     random_control = _attach_reference_support(_get_classified_edges("negative_random", nodes_df, ref_edges), ref_edges)
     _draw_reference_context(ax, ref_edges, pos, alpha=0.10)
     random_fp = _sample_edges(random_control[random_control["classification"] == "FP"], max_edges=20, random_state=5)
@@ -1126,7 +1077,7 @@ def make_figure3_edge_networks() -> None:
     _draw_edge_subset(ax, random_fp, pos, color=VERMILLION, alpha=0.18, lw=0.35, mutation_scale=4.2)
     _draw_edge_subset(ax, random_fn, pos, color=FN_DARK, alpha=0.30, lw=0.50,
                       linestyle=(0, (3, 2)), mutation_scale=5.0)
-    ax.set_title("Random-edge control", fontsize=8)
+    ax.set_title("Random edges", fontsize=8.5)
     _set_graph_extent(ax, pos)
     ax.set_aspect("auto")
     ax.axis("off")
@@ -1237,8 +1188,8 @@ def make_figure4_external_archive() -> None:
             if not time_summary.empty:
                 rho = time_summary.iloc[0].get("spearman_rho", np.nan)
                 tau = time_summary.iloc[0].get("kendall_tau", np.nan)
-                ax_c.text(0.05, 0.95, f"rho = {float(rho):.3f}\ntau = {float(tau):.3f}",
-                         transform=ax_c.transAxes, va="top", fontsize=5.5,
+                ax_c.text(0.95, 0.05, f"rho = {float(rho):.3f}\ntau = {float(tau):.3f}",
+                         transform=ax_c.transAxes, va="bottom", ha="right", fontsize=9.0,
                          bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.8, "pad": 1.5})
         ax_c.set_xlabel("Endpoint particle time median (days)")
         ax_c.set_ylabel("MODPATH-derived Hydrosheaf edge weight")
@@ -1333,19 +1284,21 @@ def make_supp_figure_s2_full_scenario_networks() -> None:
         return
 
     pos = _build_node_positions(nodes_df)
-    scenarios_ordered = ["spatial_only", "head_gradient", "head_depth",
+    scenarios_ordered = ["spatial_only", "head_gradient", "head_gradient_bayesian_hodge",
+                         "real_head_projected_gradient", "head_depth",
                          "hydrostratigraphic", "sparse_node",
                          "negative_random", "negative_wrong_direction", "negative_shortcut"]
+    scenarios_ordered = [s for s in scenarios_ordered if s in EVIDENCE_LEVELS]
 
     n = len(scenarios_ordered)
     cols = 4
-    rows = 2
-    
-    # Use figsize=(7.2, 4.2) for the 2x4 grid to balance equal aspect ratio and title padding
-    fig, axes = plt.subplots(rows, cols, figsize=(7.2, 4.2))
-    # fig.suptitle removed per Q1 guidelines
-    fig.subplots_adjust(left=0.04, right=0.96, top=0.88, bottom=0.12, hspace=0.45, wspace=0.18)
+    rows = (n + cols - 1) // cols  # 10 scenarios → 3 rows × 4 cols
+    fig, axes = plt.subplots(rows, cols, figsize=(10.0, 2.5 * rows))
+    fig.subplots_adjust(left=0.04, right=0.96, top=0.92, bottom=0.12, hspace=0.50, wspace=0.18)
     axes = np.atleast_1d(axes).flatten()
+    # Hide unused axes
+    for extra in range(n, len(axes)):
+        axes[extra].set_visible(False)
 
     # Calculate uniform limits across all panels to make it a clean diagnostic comparison
     xs, ys = zip(*pos.values())
@@ -1492,7 +1445,7 @@ def make_supp_figure_s4_pathline_complexity() -> None:
     ax.axvline(cells.median(), color=VERMILLION, linewidth=1.0, label=f"Median={cells.median():.0f}")
     ax.set_xlabel("Compressed cells per pathline")
     ax.set_ylabel("Particles")
-    ax.legend(frameon=False, fontsize=5.5) # Smaller legend fontsize (median-line label)
+    ax.legend(frameon=False, fontsize=7.5) # Increased legend fontsize
     ax.set_title("Compressed pathline cell count")
     _add_gridlines(ax, x=False, y=True)
     _panel_label(ax, "a")
@@ -1503,7 +1456,7 @@ def make_supp_figure_s4_pathline_complexity() -> None:
     ax.axvline(n_points.median(), color=VERMILLION, linewidth=1.0, label=f"Median={n_points.median():.0f}")
     ax.set_xlabel("Pathline points")
     ax.set_ylabel("Particles")
-    ax.legend(frameon=False, fontsize=5.5) # Smaller legend fontsize
+    ax.legend(frameon=False, fontsize=7.5) # Increased legend fontsize
     ax.set_title("Pathline point count per particle")
     _add_gridlines(ax, x=False, y=True)
     _panel_label(ax, "b")
@@ -1515,7 +1468,7 @@ def make_supp_figure_s4_pathline_complexity() -> None:
                label=f"Median={edge_counts.median():.0f}")
     ax.set_xlabel("Particles per edge")
     ax.set_ylabel("Edges")
-    ax.legend(frameon=False, fontsize=5.5) # Smaller legend fontsize
+    ax.legend(frameon=False, fontsize=7.5) # Increased legend fontsize
     ax.set_title("Particles per source-receptor edge")
     _add_gridlines(ax, x=False, y=True)
     _panel_label(ax, "c")
@@ -1527,7 +1480,7 @@ def make_supp_figure_s4_pathline_complexity() -> None:
                label=f"Median={transitions.median():.0f}")
     ax.set_xlabel("Cell transitions")
     ax.set_ylabel("Particles")
-    ax.legend(frameon=False, fontsize=5.5) # Smaller legend fontsize
+    ax.legend(frameon=False, fontsize=7.5) # Increased legend fontsize
     ax.set_title("Cell transitions per pathline")
     _add_gridlines(ax, x=False, y=True)
     _panel_label(ax, "d")
@@ -1565,8 +1518,8 @@ def make_supp_figure_s5_travel_time_audit() -> None:
             top = rank_summary.iloc[0]
             rho = top.get("spearman_rho", np.nan)
             tau = top.get("kendall_tau", np.nan)
-            ax.text(0.05, 0.95, f"Raw\nρ = {float(rho):.3f}\nτ = {float(tau):.3f}",
-                    transform=ax.transAxes, va="top", fontsize=5.5,
+            ax.text(0.95, 0.95, f"Raw\nρ = {float(rho):.3f}\nτ = {float(tau):.3f}",
+                    transform=ax.transAxes, va="top", ha="right", fontsize=9.0,
                     bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.8})
     ax.set_title("Raw travel-time rank (discordant)")
     _add_gridlines(ax, x=True, y=True, which="both")
@@ -1590,8 +1543,8 @@ def make_supp_figure_s5_travel_time_audit() -> None:
             top = time_summary.iloc[0]
             rho = top.get("spearman_rho", np.nan)
             tau = top.get("kendall_tau", np.nan)
-            ax.text(0.05, 0.95, f"Harmonised\nρ = {float(rho):.3f}\nτ = {float(tau):.3f}",
-                    transform=ax.transAxes, va="top", fontsize=5.5,
+            ax.text(0.95, 0.05, f"Harmonised\nρ = {float(rho):.3f}\nτ = {float(tau):.3f}",
+                    transform=ax.transAxes, va="bottom", ha="right", fontsize=9.0,
                     bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.8})
     ax.set_title("Harmonised travel-time agreement")
     _add_gridlines(ax, x=True, y=True, which="both")
@@ -1626,7 +1579,7 @@ def make_supp_figure_s5_travel_time_audit() -> None:
         ax.set_ylabel("Edges")
         mad = float(time_summary.iloc[0].get("median_abs_log10_difference", np.nan)) if not time_summary.empty else np.nan
         ax.text(0.95, 0.95, f"Median |Δ| = {mad:.4f}", transform=ax.transAxes,
-                va="top", ha="right", fontsize=5.5,
+                va="top", ha="right", fontsize=9.0,
                 bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.8})
     ax.set_title("Harmonised scale residual")
     _add_gridlines(ax, x=False, y=True)

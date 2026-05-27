@@ -75,6 +75,24 @@ EVIDENCE_LADDER = {
         "allowed_claim": "Elevation-as-head proxy constrains flow direction and improves topology recovery.",
         "required_guardrail": "Elevation is a proxy for hydraulic head, not a MODFLOW-simulated head value.",
     },
+    "head_gradient_bayesian_hodge": {
+        "evidence_level": 3,
+        "graph_scenario": "Head-gradient Hodge-pruned",
+        "evidence_source": "Elevation-as-head proxy with Hodge decomposition edge pruning",
+        "independent_validation": True,
+        "main_use": "Diagnostic: Hodge decomposition applied post-inference to remove harmonic/curl artefacts",
+        "allowed_claim": "Hodge decomposition prunes spurious edges after head-gradient constrained inference, diagnosing harmonic-flow artefacts.",
+        "required_guardrail": "Hodge pruning is a diagnostic post-processing step, not an independent edge-selection mechanism; it produces identical topology metrics to head_gradient on this benchmark.",
+    },
+    "real_head_projected_gradient": {
+        "evidence_level": 3,
+        "graph_scenario": "Real-head projected gradient",
+        "evidence_source": "MODFLOW-simulated head projected onto steepest-descent gradient",
+        "independent_validation": True,
+        "main_use": "Diagnostic: MODFLOW head substituted into steepest-descent framework to isolate head-source effect",
+        "allowed_claim": "Substituting MODFLOW-simulated head into the steepest-descent framework isolates the contribution of head-source fidelity to topology recovery.",
+        "required_guardrail": "Real-head projected gradient uses MODFLOW head that is part of the same model generating the MODPATH reference; it is diagnostic for head-source sensitivity, not independent validation.",
+    },
     "head_depth": {
         "evidence_level": 4,
         "graph_scenario": "Head-depth constrained",
@@ -210,10 +228,12 @@ def make_main_table2_performance_summary() -> None:
         return
 
     ind = perf.copy()
-    ordered = ["spatial_only", "head_gradient", "head_depth", "hydrostratigraphic",
+    ordered = ["spatial_only", "head_gradient", "head_gradient_bayesian_hodge",
+               "real_head_projected_gradient", "head_depth", "hydrostratigraphic",
                "sparse_node", "negative_random", "negative_wrong_direction", "negative_shortcut"]
     ind["_order"] = ind["scenario"].map({k: i for i, k in enumerate(ordered)})
     ind = ind.sort_values("_order")
+    ind = ind[ind["scenario"].isin(ordered)]
 
     rows = []
     for _, row in ind.iterrows():
@@ -274,6 +294,8 @@ def _display_scenario(value: str) -> str:
     labels = {
         "spatial_only": "Spatial only",
         "head_gradient": "Head gradient",
+        "head_gradient_bayesian_hodge": "Hodge pruned",
+        "real_head_projected_gradient": "Proj. gradient",
         "head_depth": "Head depth",
         "hydrostratigraphic": "Hydrostratigraphic",
         "sparse_node": "Sparse node",
@@ -317,6 +339,7 @@ def make_supp_table_s2_independent_metrics() -> None:
     if metrics.empty:
         return
     metrics = metrics[metrics["validation_mode"] == "independent_graph_inference"].copy()
+    metrics = metrics[metrics["scenario"].isin(EVIDENCE_LADDER.keys())].copy()
     columns = [
         "scenario", "validation_mode", "independent_validation", "result_class", "precision", "recall", "f1",
         "false_positive_rate", "false_negative_rate", "tp", "fp", "fn", "tn",

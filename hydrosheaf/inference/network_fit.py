@@ -333,6 +333,15 @@ def fit_network(
         result.sheaf_obstruction_leverage = _get_float("sheaf_obstruction_leverage")
         result.sheaf_cycle_obstruction_max = _get_float("sheaf_cycle_obstruction_max")
         result.sheaf_cycle_count = _get_int("sheaf_cycle_count")
+        # Hydraulic Hodge diagnostics
+        result.head_hodge_obstruction_energy = _get_float("head_hodge_obstruction_energy")
+        result.head_hodge_obstruction_leverage = _get_float("head_hodge_obstruction_leverage")
+        result.head_hodge_cycle_obstruction_max = _get_float("head_hodge_cycle_obstruction_max")
+        result.head_hodge_cycle_count = _get_int("head_hodge_cycle_count")
+        result.head_hodge_direction_violation_count = _get_int("head_hodge_direction_violation_count")
+        result.head_hodge_normalized_cost = _get_float("head_hodge_normalized_cost")
+        result.head_hodge_reference_distance_km = _get_float("head_hodge_reference_distance_km")
+        result.head_hodge_standardized_drop = _get_float("head_hodge_standardized_drop")
         # Topology posterior
         result.posterior_edge_probability = _get_float("posterior_edge_probability")
         result.posterior_edge_log_odds = _get_float("posterior_edge_log_odds")

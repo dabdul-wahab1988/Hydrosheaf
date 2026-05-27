@@ -59,6 +59,15 @@ class EdgeResult:
     sheaf_obstruction_leverage: Optional[float] = None
     sheaf_cycle_obstruction_max: Optional[float] = None
     sheaf_cycle_count: Optional[int] = None
+    # Hydraulic Hodge diagnostics
+    head_hodge_obstruction_energy: Optional[float] = None
+    head_hodge_obstruction_leverage: Optional[float] = None
+    head_hodge_cycle_obstruction_max: Optional[float] = None
+    head_hodge_cycle_count: Optional[int] = None
+    head_hodge_direction_violation_count: Optional[int] = None
+    head_hodge_normalized_cost: Optional[float] = None
+    head_hodge_reference_distance_km: Optional[float] = None
+    head_hodge_standardized_drop: Optional[float] = None
     # Bayesian topology posterior
     posterior_edge_probability: Optional[float] = None
     posterior_edge_log_odds: Optional[float] = None

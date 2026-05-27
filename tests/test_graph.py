@@ -40,6 +40,10 @@ class GraphInferTests(unittest.TestCase):
         )
         edge_ids = {edge.edge_id for edge in edges}
         self.assertIn("A->B", edge_ids)
+        edge = edges[0]
+        self.assertGreater(edge.attrs.get("distance_km", 0.0), 0.0)
+        self.assertEqual(edge.attrs.get("delta_h"), 5.0)
+        self.assertGreater(edge.attrs.get("edge_confidence", 0.0), 0.0)
 
 
 if __name__ == "__main__":

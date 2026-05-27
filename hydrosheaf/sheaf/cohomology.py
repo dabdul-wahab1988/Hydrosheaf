@@ -22,11 +22,22 @@ from .directed_section import DirectedEdgeMap
 logger = get_logger("sheaf.cohomology")
 
 
+def _resolve_edge_map(em: object) -> object:
+    """Resolve DirectedEdgeMap object if em is a tuple or dictionary item."""
+    if isinstance(em, tuple):
+        if len(em) == 2 and hasattr(em[1], "edge"):
+            return em[1]
+        elif len(em) == 1 and hasattr(em[0], "edge"):
+            return em[0]
+    return em
+
+
 def _build_graph(edge_maps: Iterable[DirectedEdgeMap]) -> nx.DiGraph:
     """Build a NetworkX DiGraph from directed edge maps."""
     g = nx.DiGraph()
     for em in edge_maps:
-        g.add_edge(em.edge.u, em.edge.v, edge_map=em)
+        em_res = _resolve_edge_map(em)
+        g.add_edge(em_res.edge.u, em_res.edge.v, edge_map=em_res)
     return g
 
 
@@ -34,8 +45,9 @@ def _node_index_map(edge_maps: Iterable[DirectedEdgeMap]) -> Tuple[Dict[str, int
     """Assign dense indices to nodes."""
     nodes: Set[str] = set()
     for em in edge_maps:
-        nodes.add(em.edge.u)
-        nodes.add(em.edge.v)
+        em_res = _resolve_edge_map(em)
+        nodes.add(em_res.edge.u)
+        nodes.add(em_res.edge.v)
     node_list = sorted(nodes)
     idx = {n: i for i, n in enumerate(node_list)}
     return idx, node_list
@@ -65,13 +77,14 @@ def build_coboundary_matrix(
     """
     idx, node_list = _node_index_map(edge_maps)
     n_nodes = len(node_list)
-    n_edges = len(list(edge_maps))
+    edge_maps_list = [_resolve_edge_map(em) for em in edge_maps]
+    n_edges = len(edge_maps_list)
     n_rows = n_edges * dim
     n_cols = n_nodes * dim
 
     D = lil_matrix((n_rows, n_cols), dtype=float)
 
-    for row_base, em in enumerate(edge_maps):
+    for row_base, em in enumerate(edge_maps_list):
         u_i = idx.get(em.edge.u)
         v_i = idx.get(em.edge.v)
         if u_i is None or v_i is None:
@@ -98,11 +111,12 @@ def build_rhs_vector(
 
     b_e = -sqrt(w_e) * offset_e[d]
     """
-    n_edges = len(edge_maps)
+    edge_maps_list = [_resolve_edge_map(em) for em in edge_maps]
+    n_edges = len(edge_maps_list)
     n_rows = n_edges * dim
     b = np.zeros(n_rows)
 
-    for row_base, em in enumerate(edge_maps):
+    for row_base, em in enumerate(edge_maps_list):
         w_sqrt = float(em.weight) ** 0.5
         for d in range(min(dim, len(em.offset))):
             row = row_base * dim + d
@@ -136,7 +150,7 @@ def compute_cohomology(
         rank_D : int
             Numerical rank of the coboundary matrix.
     """
-    edge_maps_list = list(edge_maps)
+    edge_maps_list = [_resolve_edge_map(em) for em in edge_maps]
     if not edge_maps_list:
         return {
             "h0_dim": 0,
@@ -202,7 +216,7 @@ def compute_edge_leverage(
     A large positive value means removing this edge significantly reduces
     global obstruction, i.e. this edge is a primary source of inconsistency.
     """
-    edge_maps_list = list(edge_maps)
+    edge_maps_list = [_resolve_edge_map(em) for em in edge_maps]
     if dim is None and edge_maps_list:
         dim = len(edge_maps_list[0].offset)
 
@@ -239,7 +253,7 @@ def compute_cycle_obstruction(
         cycle_energies : List[Tuple[List[str], float]]
             (cycle_node_ids, obstruction_energy) per cycle.
     """
-    edge_maps_list = list(edge_maps)
+    edge_maps_list = [_resolve_edge_map(em) for em in edge_maps]
     if dim is None and edge_maps_list:
         dim = len(edge_maps_list[0].offset)
 
@@ -304,7 +318,21 @@ def attach_cohomology_attrs(
     if not selected_edges:
         return
 
-    selected_maps = [edge_maps[e.edge_id] for e in selected_edges if e.edge_id in edge_maps]
+    # selected_edges elements might be tuples or Edge objects
+    resolved_selected = []
+    for e in selected_edges:
+        if isinstance(e, tuple):
+            if len(e) == 3:
+                eid = str(e[0])
+            elif len(e) == 2:
+                eid = f"{e[0]}->{e[1]}"
+            else:
+                eid = str(e)
+        else:
+            eid = getattr(e, "edge_id", str(e))
+        resolved_selected.append((e, eid))
+
+    selected_maps = [edge_maps[eid] for e, eid in resolved_selected if eid in edge_maps]
     if not selected_maps:
         return
 
@@ -317,12 +345,14 @@ def attach_cohomology_attrs(
     elif compute_leverage:
         logger.info("Skipping per-edge leverage (too many edges: %d).", len(selected_maps))
 
-    for edge in selected_edges:
-        attrs = dict(edge.attrs or {})
+    for e, eid in resolved_selected:
+        if isinstance(e, tuple) or not hasattr(e, "attrs"):
+            continue
+        attrs = dict(e.attrs or {})
         attrs["sheaf_h0_dim"] = coh["h0_dim"]
         attrs["sheaf_h1_dim"] = coh["h1_dim"]
         attrs["sheaf_obstruction_energy"] = coh["obstruction_energy"]
-        attrs["sheaf_obstruction_leverage"] = leverage.get(edge.edge_id)
+        attrs["sheaf_obstruction_leverage"] = leverage.get(eid)
         attrs["sheaf_cycle_obstruction_max"] = cycle_info["cycle_obstruction_max"]
         attrs["sheaf_cycle_count"] = cycle_info["cycle_count"]
-        edge.attrs = attrs
+        e.attrs = attrs

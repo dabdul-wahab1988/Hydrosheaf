@@ -185,3 +185,12 @@ main_Figure*.txt
 
 # Allow tracking synthetic dataset files for test reproducibility
 !data/synthetic/**
+
+# Local scratch and generated archives
+scratch/
+scratch_search_both.py
+scratch_search_keys.py
+extract_pdf.py
+pdf_extract.txt
+gmd-18-7147-2025.txt
+M4/m4_topology_benchmark/public_archives/savage/output/

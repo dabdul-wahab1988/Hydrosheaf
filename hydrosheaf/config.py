@@ -95,6 +95,31 @@ class Config:
     sheaf_soft_beta: float = 1.0  # Soft selection sharpness (inverse temperature)
     # Sheaf cohomology diagnostics
     sheaf_cohomology_enabled: bool = False
+    # Hydraulic Hodge diagnostics and posterior coupling
+    hydraulic_hodge_enabled: bool = False
+    hydraulic_hodge_weight: float = 1.0
+    hydraulic_hodge_leverage_weight: float = 0.5
+    hydraulic_hodge_reference_distance_km: float = 0.0
+    hydraulic_hodge_head_key: str = "hydraulic_head"
+    hydraulic_hodge_fallback_to_elevation: bool = True
+    hydraulic_hodge_min_head_drop: float = 0.0
+    hydraulic_hodge_direction_penalty: float = 1.0
+    # Steepest-descent flow-direction priors
+    steepest_descent_enabled: bool = False
+    steepest_descent_angular_weight: float = 1.0
+    steepest_descent_head_weight: float = 1.0
+    steepest_descent_threshold: float = 0.0
+    # Projected head-gradient prior (continuous field, replaces discretized steepest descent)
+    projected_gradient_enabled: bool = False
+    projected_gradient_weight: float = 1.0
+    projected_gradient_sharpness: float = 10.0
+    projected_gradient_smoothing_sigma: float = 1.0
+    # Local head-plane residuals (external-reference head plausibility)
+    head_plane_residual_enabled: bool = False
+    head_plane_residual_weight: float = 1.0
+    head_plane_residual_neighbors: int = 8
+    # MODFLOW head source selection
+    modflow_head_format: str = "ascii"  # "ascii" (.fhd) or "binary" (.hds)
     # Bayesian topology posterior
     topology_posterior_enabled: bool = False
     topology_posterior_samples: int = 2000
@@ -607,6 +632,20 @@ class Config:
             raise ValueError("screen_overlap_threshold must be non-negative.")
         if self.sheaf_cohomology_enabled not in {True, False}:
             raise ValueError("sheaf_cohomology_enabled must be boolean.")
+        if self.hydraulic_hodge_enabled not in {True, False}:
+            raise ValueError("hydraulic_hodge_enabled must be boolean.")
+        if self.hydraulic_hodge_weight < 0:
+            raise ValueError("hydraulic_hodge_weight must be non-negative.")
+        if self.hydraulic_hodge_leverage_weight < 0:
+            raise ValueError("hydraulic_hodge_leverage_weight must be non-negative.")
+        if self.hydraulic_hodge_reference_distance_km < 0:
+            raise ValueError("hydraulic_hodge_reference_distance_km must be non-negative.")
+        if self.hydraulic_hodge_fallback_to_elevation not in {True, False}:
+            raise ValueError("hydraulic_hodge_fallback_to_elevation must be boolean.")
+        if self.hydraulic_hodge_min_head_drop < 0:
+            raise ValueError("hydraulic_hodge_min_head_drop must be non-negative.")
+        if self.hydraulic_hodge_direction_penalty < 0:
+            raise ValueError("hydraulic_hodge_direction_penalty must be non-negative.")
         if self.topology_posterior_samples < 100:
             raise ValueError("topology_posterior_samples must be at least 100.")
         if self.topology_posterior_burnin < 0:
@@ -617,6 +656,18 @@ class Config:
             raise ValueError("topology_posterior_beta must be positive.")
         if self.topology_posterior_edge_penalty < 0:
             raise ValueError("topology_posterior_edge_penalty must be non-negative.")
+        if self.projected_gradient_weight < 0:
+            raise ValueError("projected_gradient_weight must be non-negative.")
+        if self.projected_gradient_sharpness <= 0:
+            raise ValueError("projected_gradient_sharpness must be positive.")
+        if self.projected_gradient_smoothing_sigma < 0:
+            raise ValueError("projected_gradient_smoothing_sigma must be non-negative.")
+        if self.head_plane_residual_weight < 0:
+            raise ValueError("head_plane_residual_weight must be non-negative.")
+        if self.head_plane_residual_neighbors < 3:
+            raise ValueError("head_plane_residual_neighbors must be at least 3.")
+        if self.modflow_head_format not in {"ascii", "binary"}:
+            raise ValueError("modflow_head_format must be 'ascii' or 'binary'.")
         if self.ot_weight < 0:
             raise ValueError("ot_weight must be non-negative.")
         if self.causal_weight < 0:

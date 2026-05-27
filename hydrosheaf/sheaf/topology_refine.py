@@ -2,13 +2,40 @@
 
 from dataclasses import dataclass, field
 import math
-from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from ..config import Config
 from ..log import get_logger
 from ..data.schema import parse_numeric, vector_from_sample
 
 logger = get_logger("sheaf.topology_refine")
+
+
+def _get_config_float(config: Any, name: str, default: float) -> float:
+    val = getattr(config, name, default)
+    if val is None:
+        return default
+    if isinstance(val, dict):
+        for key in ("value", "weight", "val", "default"):
+            if key in val:
+                try:
+                    return float(val[key])
+                except (ValueError, TypeError):
+                    pass
+        for v in val.values():
+            try:
+                return float(v)
+            except (ValueError, TypeError):
+                pass
+        return default
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
+
+
+def _get_config_int(config: Any, name: str, default: int) -> int:
+    return int(_get_config_float(config, name, float(default)))
 
 # Null-model imports (lazy-loaded to avoid circular dependency)
 _null_models_imported = False
@@ -238,8 +265,8 @@ def _edge_iso_cost(
     assert node_v.d18o is not None
     assert node_v.d2h is not None
 
-    sigma_d18o = float(getattr(config, "sheaf_iso_sigma_d18o", 0.2))
-    sigma_d2h = float(getattr(config, "sheaf_iso_sigma_d2h", 1.0))
+    sigma_d18o = _get_config_float(config, "sheaf_iso_sigma_d18o", 0.2)
+    sigma_d2h = _get_config_float(config, "sheaf_iso_sigma_d2h", 1.0)
 
     cons_cost = ((node_v.d18o - node_u.d18o) / sigma_d18o) ** 2
     cons_cost += ((node_v.d2h - node_u.d2h) / sigma_d2h) ** 2
@@ -252,7 +279,7 @@ def _edge_iso_cost(
     # Evaporation occurs at or near the surface. Groundwater at depth (>30m) 
     # is unlikely to experience direct evaporative enrichment unless it was 
     # recharged recently through an open surface water body.
-    shallow_depth = float(getattr(config, "sheaf_shallow_depth_m", 30.0))
+    shallow_depth = _get_config_float(config, "sheaf_shallow_depth_m", 30.0)
     if node_v.depth_m is not None and shallow_depth > 0 and node_v.depth_m > shallow_depth:
         pi_evap *= shallow_depth / node_v.depth_m
         
@@ -410,10 +437,10 @@ def _score_candidates(
     config: Config,
 ) -> Dict[str, EdgeSheafScore]:
     scores: Dict[str, EdgeSheafScore] = {}
-    weight_head = float(getattr(config, "sheaf_weight_head_prior", 1.0))
-    weight_iso = float(getattr(config, "sheaf_weight_isotope", 1.0))
-    weight_cl = float(getattr(config, "sheaf_weight_cl", 0.5))
-    weight_age = float(getattr(config, "sheaf_weight_age", 2.0))
+    weight_head = _get_config_float(config, "sheaf_weight_head_prior", 1.0)
+    weight_iso = _get_config_float(config, "sheaf_weight_isotope", 1.0)
+    weight_cl = _get_config_float(config, "sheaf_weight_cl", 0.5)
+    weight_age = _get_config_float(config, "sheaf_weight_age", 2.0)
 
     null_enabled = getattr(config, "null_model_enabled", False)
     evidence_enabled = getattr(config, "evidence_ladder_enabled", False)
@@ -421,7 +448,7 @@ def _score_candidates(
     if getattr(config, "assumption_calibration_enabled", False):
         null_enabled = True
         evidence_enabled = True
-    null_weight = float(getattr(config, "null_model_weight", 0.5))
+    null_weight = _get_config_float(config, "null_model_weight", 0.5)
 
     for edge in candidates:
         node_u = node_info.get(edge.u)
@@ -506,7 +533,7 @@ def _score_candidates(
                     ot_result = compute_unbalanced_ot(
                         x_u, x_v, config.ion_order, config
                     )
-                    ot_weight_val = float(getattr(config, "ot_weight", 0.25))
+                    ot_weight_val = _get_config_float(config, "ot_weight", 0.25)
                     raw_ot_total = float(ot_result.get("ot_total_cost", 0.0))
                     ot_cost = ot_weight_val * raw_ot_total
                     ot_attrs = {
@@ -551,7 +578,7 @@ def _score_candidates(
                 causal_support = float(causal_result.get("causal_support_score", 0.0))
                 causal_confound = float(causal_result.get("causal_confounded_score", 0.0))
                 causal_status = str(causal_result.get("causal_status", ""))
-                causal_weight_val = float(getattr(config, "causal_weight", 0.25))
+                causal_weight_val = _get_config_float(config, "causal_weight", 0.25)
                 causal_attrs = causal_result
                 # Support reduces cost; only apply confound penalty when
                 # we have enough data to meaningfully assess it.
@@ -601,6 +628,7 @@ def _select_by_score(
     global_residuals: Optional[Mapping[str, float]] = None,
     global_weight: float = 0.0,
     soft_beta: float = 2.0,
+    selection_penalties: Optional[Mapping[str, float]] = None,
 ) -> List[Edge]:
     selected: List[Edge] = []
     for _, edge_ids in candidate_groups.items():
@@ -612,7 +640,10 @@ def _select_by_score(
             residual = 0.0
             if global_residuals is not None:
                 residual = float(global_residuals.get(edge_id, 0.0))
-            total = score_obj.local_score + global_weight * residual
+            penalty = 0.0
+            if selection_penalties is not None:
+                penalty = float(selection_penalties.get(edge_id, 0.0))
+            total = score_obj.local_score + global_weight * residual + penalty
             scored.append((total, score_obj.edge))
         
         if not scored:
@@ -670,9 +701,37 @@ def refine_edges_with_sheaf(
     for edge in candidate_list:
         grouped.setdefault(edge.u, []).append(edge.edge_id)
 
-    max_neighbors = int(getattr(config, "edge_max_neighbors", 1))
+    max_neighbors = _get_config_int(config, "edge_max_neighbors", 1)
     # Higher beta means sharper selection (closer to argmax)
-    soft_beta = float(getattr(config, "sheaf_soft_beta", 2.0))
+    soft_beta = _get_config_float(config, "sheaf_soft_beta", 2.0)
+    use_hydraulic_hodge = getattr(config, "hydraulic_hodge_enabled", False)
+
+    reference_distance_km = None
+    hodge_local_residuals: Optional[Dict[str, float]] = None
+    if use_hydraulic_hodge:
+        try:
+            from .hydraulic_hodge import (
+                compute_local_head_plane_residuals,
+                extract_node_heads,
+                infer_reference_distance_km,
+            )
+
+            reference_distance_km = infer_reference_distance_km(
+                candidate_list,
+                sample_map,
+                config,
+            )
+            if getattr(config, "head_plane_residual_enabled", False):
+                _head_map = extract_node_heads(sample_map, config)
+                _n_neighbors = _get_config_int(config, "head_plane_residual_neighbors", 8)
+                hodge_local_residuals = compute_local_head_plane_residuals(
+                    _head_map, sample_map, n_neighbors=_n_neighbors
+                )
+        except Exception:
+            logger.warning(
+                "Hydraulic Hodge reference distance failed; continuing without it.",
+                exc_info=True,
+            )
 
     selected = _select_by_score(
         scores, 
@@ -681,8 +740,8 @@ def refine_edges_with_sheaf(
         soft_beta=soft_beta
     )
 
-    global_weight = float(getattr(config, "sheaf_weight_global", 1.0))
-    max_iter = int(getattr(config, "sheaf_max_iter", 3))
+    global_weight = _get_config_float(config, "sheaf_weight_global", 1.0)
+    max_iter = _get_config_int(config, "sheaf_max_iter", 3)
 
     node_vectors = _build_node_vectors(sample_map, config)
     node_ids = list(
@@ -698,50 +757,70 @@ def refine_edges_with_sheaf(
         if values is not None
     }
 
-    for iter_idx in range(max_iter if has_chemistry else 0):
+    iter_count = max_iter if (has_chemistry or use_hydraulic_hodge) else 0
+    for iter_idx in range(iter_count):
         logger.info(f"Sheaf Refinement Iteration {iter_idx + 1}/{max_iter}")
-        edge_maps = build_edge_maps(
-            candidate_list, # Always use all candidates for building map potential
-            node_estimates,
-            config,
-            prior_weight=float(getattr(config, "sheaf_weight_head_prior", 1.0)),
-        )
-        if not edge_maps:
-            break
-            
-        # Filter edge_maps by 'selected' logic (which now contains all weighted edges > 0.001)
-        selected_ids = {e.edge_id for e in selected}
-        selected_maps = [m for eid, m in edge_maps.items() if eid in selected_ids]
-        
-        if not selected_maps:
-            break
+        residuals: Dict[str, float] = {}
+        if has_chemistry:
+            edge_maps = build_edge_maps(
+                candidate_list, # Always use all candidates for building map potential
+                node_estimates,
+                config,
+                prior_weight=_get_config_float(config, "sheaf_weight_head_prior", 1.0),
+            )
+            if not edge_maps:
+                break
 
-        node_estimates = solve_directed_section(
-            node_ids,
-            selected_maps,
-            node_vectors,
-            obs_weight=1.0,
-            diag_eps=1e-6,
-        )
-        
-        # Log global residual energy for tracking convergence
-        current_energy = sum(
-            (node_estimates[nid][d] - (val[d] if val else 0.0))**2 
-            for nid, val in node_vectors.items() 
-            if val is not None
-            for d in range(len(val))
-        )
-        logger.science(f"Iter {iter_idx+1}: Global Section Energy = {current_energy:.4f}")
+            # Filter edge_maps by 'selected' logic (which now contains all weighted edges > 0.001)
+            selected_ids = {e.edge_id for e in selected}
+            selected_maps = [m for eid, m in edge_maps.items() if eid in selected_ids]
 
-        edge_maps = build_edge_maps(
-            candidate_list,
-            node_estimates,
-            config,
-            prior_weight=float(getattr(config, "sheaf_weight_head_prior", 1.0)),
-        )
-        residuals = compute_edge_section_residuals(
-            edge_maps, node_estimates, config.weights
-        )
+            if not selected_maps:
+                break
+
+            node_estimates = solve_directed_section(
+                node_ids,
+                selected_maps,
+                node_vectors,
+                obs_weight=1.0,
+                diag_eps=1e-6,
+            )
+
+            current_energy = sum(
+                (node_estimates[nid][d] - (val[d] if val else 0.0))**2
+                for nid, val in node_vectors.items()
+                if val is not None
+                for d in range(len(val))
+            )
+            logger.science(f"Iter {iter_idx+1}: Global Section Energy = {current_energy:.4f}")
+
+            edge_maps = build_edge_maps(
+                candidate_list,
+                node_estimates,
+                config,
+                prior_weight=_get_config_float(config, "sheaf_weight_head_prior", 1.0),
+            )
+            residuals = compute_edge_section_residuals(
+                edge_maps, node_estimates, config.weights
+            )
+
+        head_penalties: Dict[str, float] = {}
+        if use_hydraulic_hodge and selected:
+            try:
+                from .hydraulic_hodge import compute_head_hodge_edge_penalties
+
+                head_penalties = compute_head_hodge_edge_penalties(
+                    selected,
+                    sample_map,
+                    config,
+                    reference_distance_km=reference_distance_km,
+                    local_residuals=hodge_local_residuals,
+                )
+            except Exception:
+                logger.warning(
+                    "Hydraulic Hodge leverage feedback failed; continuing.",
+                    exc_info=True,
+                )
 
         updated = _select_by_score(
             scores, 
@@ -749,7 +828,8 @@ def refine_edges_with_sheaf(
             max_neighbors, 
             residuals, 
             global_weight,
-            soft_beta=soft_beta
+            soft_beta=soft_beta,
+            selection_penalties=head_penalties,
         )
         
         selected = updated
@@ -760,7 +840,7 @@ def refine_edges_with_sheaf(
             selected,
             node_estimates,
             config,
-            prior_weight=float(getattr(config, "sheaf_weight_head_prior", 1.0)),
+            prior_weight=_get_config_float(config, "sheaf_weight_head_prior", 1.0),
         )
         final_residuals = compute_edge_section_residuals(
             edge_maps, node_estimates, config.weights
@@ -808,7 +888,7 @@ def refine_edges_with_sheaf(
                 selected,
                 node_estimates if has_chemistry and node_estimates else {},
                 config,
-                prior_weight=float(getattr(config, "sheaf_weight_head_prior", 1.0)),
+                prior_weight=_get_config_float(config, "sheaf_weight_head_prior", 1.0),
             )
             attach_cohomology_attrs(
                 selected,
@@ -819,16 +899,39 @@ def refine_edges_with_sheaf(
         except Exception:
             logger.warning("Sheaf cohomology diagnostics failed; continuing.", exc_info=True)
 
+    if use_hydraulic_hodge and selected:
+        try:
+            from .hydraulic_hodge import attach_head_hodge_attrs
+
+            attach_head_hodge_attrs(
+                selected,
+                sample_map,
+                config,
+                reference_distance_km=reference_distance_km,
+                compute_leverage=True,
+            )
+        except Exception:
+            logger.warning(
+                "Hydraulic Hodge diagnostics failed; continuing.",
+                exc_info=True,
+            )
+
     # Bayesian topology posterior
     if getattr(config, "topology_posterior_enabled", False):
         try:
             from ..inference.topology_posterior import (
-                _make_sheaf_cost_fn,
                 attach_posterior_attrs,
+                make_topology_cost_fn,
                 run_topology_posterior,
             )
 
-            cost_fn = _make_sheaf_cost_fn(sample_map, config, node_info, stats)
+            cost_fn = make_topology_cost_fn(
+                sample_map=sample_map,
+                config=config,
+                node_info=node_info,
+                stats=stats,
+                reference_distance_km=reference_distance_km,
+            )
             posterior_result = run_topology_posterior(
                 universe=candidate_list,
                 cost_fn=cost_fn,

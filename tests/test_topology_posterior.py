@@ -136,6 +136,82 @@ class TestTopologyPosterior(unittest.TestCase):
         self.assertEqual(result["edge_probabilities"], {})
         self.assertEqual(result["map_edges"], [])
 
+    def test_make_cost_fn_accepts_gradient_map(self):
+        """make_topology_cost_fn works with gradient_map kwarg."""
+        from hydrosheaf.inference.topology_posterior import make_topology_cost_fn
+
+        samples = {
+            "A": {"site_id": "A", "lat": 0.0, "lon": 0.0, "elevation": 10.0},
+            "B": {"site_id": "B", "lat": 0.0, "lon": 1.0, "elevation": 8.0},
+        }
+        gradient_map = {"A": (-0.005, 0.0, 0.0)}
+        config = Config(
+            phreeqc_enabled=False,
+            hydraulic_hodge_enabled=True,
+            hydraulic_hodge_weight=1.0,
+            hydraulic_hodge_fallback_to_elevation=True,
+        )
+
+        cost_fn = make_topology_cost_fn(
+            sample_map=samples,
+            config=config,
+            gradient_map=gradient_map,
+        )
+        edges = [_make_edge("A->B", "A", "B", confidence=0.9)]
+        cost = cost_fn(edges)
+        self.assertGreaterEqual(cost, 0.0)
+
+    def test_make_cost_fn_accepts_local_residuals(self):
+        """make_topology_cost_fn works with local_residuals kwarg."""
+        from hydrosheaf.inference.topology_posterior import make_topology_cost_fn
+
+        samples = {
+            "A": {"site_id": "A", "lat": 0.0, "lon": 0.0, "elevation": 10.0},
+            "B": {"site_id": "B", "lat": 0.0, "lon": 1.0, "elevation": 8.0},
+        }
+        local_residuals = {"A": 0.1, "B": 0.2}
+        config = Config(
+            phreeqc_enabled=False,
+            hydraulic_hodge_enabled=True,
+            hydraulic_hodge_weight=1.0,
+            head_plane_residual_weight=1.0,
+            hydraulic_hodge_fallback_to_elevation=True,
+        )
+
+        cost_fn = make_topology_cost_fn(
+            sample_map=samples,
+            config=config,
+            local_residuals=local_residuals,
+        )
+        edges = [_make_edge("A->B", "A", "B", confidence=0.9)]
+        cost = cost_fn(edges)
+        self.assertGreaterEqual(cost, 0.0)
+
+    def test_local_residuals_do_not_require_projected_gradient(self):
+        """head_plane_residual_enabled works standalone, without gradient prerequisites."""
+        from hydrosheaf.inference.topology_posterior import make_topology_cost_fn
+
+        samples = {
+            "A": {"site_id": "A", "lat": 0.0, "lon": 0.0, "elevation": 10.0},
+            "B": {"site_id": "B", "lat": 0.0, "lon": 1.0, "elevation": 8.0},
+        }
+        config = Config(
+            phreeqc_enabled=False,
+            hydraulic_hodge_enabled=True,
+            head_plane_residual_enabled=True,
+            head_plane_residual_weight=1.0,
+            hydraulic_hodge_fallback_to_elevation=True,
+        )
+
+        cost_fn = make_topology_cost_fn(
+            sample_map=samples,
+            config=config,
+            local_residuals={"A": 0.3, "B": 0.1},
+        )
+
+        cost = cost_fn([_make_edge("A->B", "A", "B", confidence=0.9)])
+        self.assertGreater(cost, 0.0)
+
     def test_edge_penalty_encourages_sparsity(self):
         """Higher edge penalty should reduce the mean number of edges."""
         universe = [

@@ -67,6 +67,15 @@ def edge_results_table(results: List[EdgeResult]) -> List[dict]:
                 "sheaf_obstruction_leverage": result.sheaf_obstruction_leverage,
                 "sheaf_cycle_obstruction_max": result.sheaf_cycle_obstruction_max,
                 "sheaf_cycle_count": result.sheaf_cycle_count,
+                # Hydraulic Hodge diagnostics
+                "head_hodge_obstruction_energy": result.head_hodge_obstruction_energy,
+                "head_hodge_obstruction_leverage": result.head_hodge_obstruction_leverage,
+                "head_hodge_cycle_obstruction_max": result.head_hodge_cycle_obstruction_max,
+                "head_hodge_cycle_count": result.head_hodge_cycle_count,
+                "head_hodge_direction_violation_count": result.head_hodge_direction_violation_count,
+                "head_hodge_normalized_cost": result.head_hodge_normalized_cost,
+                "head_hodge_reference_distance_km": result.head_hodge_reference_distance_km,
+                "head_hodge_standardized_drop": result.head_hodge_standardized_drop,
                 # Topology posterior
                 "posterior_edge_probability": result.posterior_edge_probability,
                 "posterior_edge_log_odds": result.posterior_edge_log_odds,

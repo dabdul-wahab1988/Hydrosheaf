@@ -379,6 +379,34 @@ def infer_edges_from_coordinates(
     head_key: str = "hydraulic_head",
     elevation_key: str = "elevation",
 ) -> List[Edge]:
+    def _edge_attrs(
+        distance_km: float,
+        source_head: Optional[float],
+        target_head: Optional[float],
+        rank_index: int,
+        rank_total: int,
+        explicit_flow: bool = False,
+    ) -> Dict[str, object]:
+        attrs: Dict[str, object] = {
+            "distance_km": distance_km,
+            "head_source": head_key if source_head is not None else elevation_key,
+            "allow_uphill": allow_uphill,
+        }
+        if source_head is not None and target_head is not None:
+            delta_h = source_head - target_head
+            attrs["delta_h"] = delta_h
+            if distance_km > 0:
+                attrs["head_gradient"] = delta_h / distance_km
+
+        if explicit_flow:
+            attrs["p_uv"] = 1.0
+            attrs["edge_confidence"] = 1.0
+        elif rank_total > 0:
+            prob = max(1e-6, (rank_total - rank_index) / float(rank_total + 1))
+            attrs["p_uv"] = prob
+            attrs["edge_confidence"] = prob
+        return attrs
+
     samples_list = list(samples)
     sample_map = {
         str(sample.get("site_id")): sample
@@ -432,11 +460,27 @@ def infer_edges_from_coordinates(
             if target in node_lookup:
                 edge_id = f"{node_id}->{target}"
                 if edge_id not in edge_keys:
-                    edges.append(Edge(edge_id=edge_id, u=node_id, v=target))
+                    o_lat, o_lon, o_elev = node_lookup[target]
+                    distance = _haversine_km(lat, lon, o_lat, o_lon)
+                    edges.append(
+                        Edge(
+                            edge_id=edge_id,
+                            u=node_id,
+                            v=target,
+                            attrs=_edge_attrs(
+                                distance,
+                                elevation,
+                                o_elev,
+                                rank_index=0,
+                                rank_total=1,
+                                explicit_flow=True,
+                            ),
+                        )
+                    )
                     edge_keys.add(edge_id)
                 continue
 
-        candidates: List[Tuple[float, str]] = []
+        candidates: List[Tuple[float, str, Optional[float]]] = []
         for other_id, o_lat, o_lon, o_elev in nodes:
             if other_id == node_id:
                 continue
@@ -444,13 +488,28 @@ def infer_edges_from_coordinates(
                 if o_elev >= elevation:
                     continue
             distance = _haversine_km(lat, lon, o_lat, o_lon)
-            candidates.append((distance, other_id))
+            candidates.append((distance, other_id, o_elev))
         candidates.sort(key=lambda item: item[0])
-        for _, target in candidates[:max_neighbors]:
+        selected_candidates = candidates[:max_neighbors]
+        rank_total = len(selected_candidates)
+        for rank_index, (distance, target, target_head) in enumerate(selected_candidates):
             edge_id = f"{node_id}->{target}"
             if edge_id in edge_keys:
                 continue
-            edges.append(Edge(edge_id=edge_id, u=node_id, v=target))
+            edges.append(
+                Edge(
+                    edge_id=edge_id,
+                    u=node_id,
+                    v=target,
+                    attrs=_edge_attrs(
+                        distance,
+                        elevation,
+                        target_head,
+                        rank_index=rank_index,
+                        rank_total=rank_total,
+                    ),
+                )
+            )
             edge_keys.add(edge_id)
 
     return edges
