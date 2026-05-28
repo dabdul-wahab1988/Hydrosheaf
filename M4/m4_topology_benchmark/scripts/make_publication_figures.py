@@ -52,11 +52,12 @@ SCENARIO_LABELS = {
 }
 
 EVIDENCE_LEVELS = {
-    "spatial_only": 1,
+    # spatial_only uses no hydraulic data and achieves F1 = 0.0 → geometry-only control (level 0)
+    "spatial_only": 0,
     "head_gradient": 3,
     "head_depth": 4,
     "hydrostratigraphic": 5,
-    "sparse_node": 2,
+    # sparse_node is a sensitivity analysis (node-subsampling sweep), NOT a scenario — excluded from here
     "negative_random": 0,
     "negative_wrong_direction": 0,
     "negative_shortcut": 0,
@@ -65,14 +66,11 @@ EVIDENCE_LEVELS = {
 }
 
 EVIDENCE_LABELS = {
-    0: "Negative\ncontrol",
-    1: "Spatial\nproximity",
-    2: "Sparse\nnode",
+    0: "Control\n(no skill)",
     3: "Head\ngradient",
     4: "Head\ndepth",
     5: "Hydrostrat.",
     6: "Prior-assisted\n(not independent)",
-    7: "Future\nmulti-evidence",
 }
 
 plt.rcParams.update(
@@ -561,12 +559,13 @@ def _draw_evidence_ladder(ax, perf, priors):
     ax.set_ylim(-0.5, 11.5)
     ax.axis("off")
 
+    # sparse_node excluded — it is a sensitivity analysis, not an inference scenario.
+    # spatial_only is now a level-0 geometry-only control.
     independent_scenarios = [
         ("negative_random", "Negative control (random edges)"),
         ("negative_wrong_direction", "Negative control (wrong direction)"),
         ("negative_shortcut", "Negative control (shortcut edges)"),
-        ("spatial_only", "Spatial proximity only"),
-        ("sparse_node", "Sparse-node sensitivity"),
+        ("spatial_only", "Spatial proximity only (geometry control)"),
         ("head_gradient", "Head-gradient constrained"),
         ("head_gradient_bayesian_hodge", "Head-gradient (Hodge pruned)"),
         ("real_head_projected_gradient", "Proj. gradient constrained"),
@@ -640,25 +639,27 @@ def _draw_evidence_ladder(ax, perf, priors):
 # ---------------------------------------------------------------------------
 
 def make_figure2_performance() -> None:
-    """5-panel: (a) evidence level & F1, (b) P/R/F1 bars, (c) node-sparsity sensitivity,
-    (d) sparse-node sensitivity performance curve, (e) scale-mismatch check."""
+    """4-panel 2×2: (a) evidence level & F1, (b) P/R/F1 bars,
+    (c) node-sparsity sensitivity P/R/F1 merged, (d) scale-mismatch check."""
     perf = _read_csv(RESULT_DIR / "independent_graph_vs_modpath.csv")
     sparsity = _read_csv(PUBLIC_DIR / "node_sparsity_sensitivity.csv")
     if perf.empty:
         return
 
     ind = perf.copy()
+    # sparse_node is a sensitivity analysis (node-subsampling sweep), not a scenario —
+    # it lives exclusively in panels c and d. spatial_only is a geometry-only control (level 0).
     ordered = ["spatial_only", "head_gradient", "head_gradient_bayesian_hodge",
                "real_head_projected_gradient", "head_depth", "hydrostratigraphic",
-               "sparse_node", "negative_random", "negative_wrong_direction", "negative_shortcut"]
+               "negative_random", "negative_wrong_direction", "negative_shortcut"]
     ordered = [s for s in ordered if s in ind["scenario"].values]
     ind["_order"] = ind["scenario"].map({k: i for i, k in enumerate(ordered)})
-    ind = ind.sort_values("_order")
+    ind = ind[ind["scenario"].isin(ordered)].sort_values("_order")
 
-    fig = plt.figure(figsize=(10.5, 6.2))
+    fig = plt.figure(figsize=(7.5, 6.2))
     # fig.suptitle removed per Q1 guidelines
-    fig.subplots_adjust(left=0.08, right=0.96, top=0.92, bottom=0.20, hspace=0.48, wspace=0.32)
-    gs = fig.add_gridspec(2, 3)
+    fig.subplots_adjust(left=0.10, right=0.96, top=0.92, bottom=0.20, hspace=0.52, wspace=0.38)
+    gs = fig.add_gridspec(2, 2)
 
     # --- Panel a: Evidence level and F1 ---
     ax = fig.add_subplot(gs[0, 0])
@@ -674,11 +675,10 @@ def make_figure2_performance() -> None:
     ax.set_xlabel("F1 score")
     ax.invert_yaxis()
     
-    # Custom legend for evidence levels
+    # Legend: spatial_only is now L0 (geometry-only control); no L1-2 tier remains
     legend_elements = [
-        Line2D([0], [0], color=LIGHT_GRAY, lw=3, label="L0: Controls"),
-        Line2D([0], [0], color=SKY, lw=3, label="L1-2: Low Evidence"),
-        Line2D([0], [0], color=BLUE, lw=3, label="L3-5: High Evidence"),
+        Line2D([0], [0], color=LIGHT_GRAY, lw=3, label="L0: Controls (incl. spatial-only)"),
+        Line2D([0], [0], color=BLUE, lw=3, label="L3-5: Hydraulic evidence"),
     ]
     ax.legend(handles=legend_elements, frameon=False, loc="lower right", fontsize=5.5)
     ax.set_title("Evidence level and F1")
@@ -705,68 +705,45 @@ def make_figure2_performance() -> None:
     _add_gridlines(ax, x=False, y=True)
     _panel_label(ax, "b")
 
-    # --- Panel c: Node-sparsity sensitivity ---
-    ax = fig.add_subplot(gs[0, 2])
-    sparsity_path = RESULT_DIR / "m4_sparsity_sensitivity.csv"
-    if sparsity_path.exists():
-        sensitivity = _read_csv(sparsity_path)
-        if not sensitivity.empty:
-            xs = pd.to_numeric(sensitivity["node_fraction"], errors="coerce")
-            sf1 = pd.to_numeric(sensitivity["mean_f1"], errors="coerce")
-            sf1_std = pd.to_numeric(sensitivity.get("std_f1", 0), errors="coerce").fillna(0)
-            srec = pd.to_numeric(sensitivity["mean_recall"], errors="coerce")
-            srec_std = pd.to_numeric(sensitivity.get("std_recall", 0), errors="coerce").fillna(0)
-            
-            # Using 95% CI approximation (1.96 * std) assuming normal dist of bootstrap/trials
-            ci95_f1 = 1.96 * sf1_std
-            ci95_rec = 1.96 * srec_std
-            
-            # Match colors: F1 = GREEN, Recall = BLUE (dark blue)
-            ax.errorbar(xs, sf1, yerr=ci95_f1, marker="o", color=GREEN, linewidth=1.2, markersize=4,
-                        capsize=2, label="F1")
-            ax.errorbar(xs, srec, yerr=ci95_rec, marker="s", color=BLUE, linewidth=1.2, markersize=4, 
-                        capsize=2, label="Recall")
-            ax.set_ylim(0, 1.0)  # Bound strictly to 1.0
-            ax.set_xlabel("Available node fraction")
-            ax.set_ylabel("Score")
-            ax.set_title("Node-sparsity sensitivity")
-            ax.text(0.95, 0.05, "Error bars: ±95% CI", transform=ax.transAxes, fontsize=6.5,
-                    color=GRAY, ha="right")
-    if sparsity_path.exists() == False or sensitivity.empty:
-        ax.text(0.5, 0.5, "No sparsity data", ha="center", va="center", transform=ax.transAxes)
-    _add_gridlines(ax, x=True, y=True)
-    _panel_label(ax, "c")
-
-    # --- Panel d: Sparse-node sensitivity performance curve ---
+    # --- Panel c: Node-sparsity sensitivity — Precision, Recall, F1 merged ---
     ax = fig.add_subplot(gs[1, 0])
     if not sparsity.empty:
-        sparse = sparsity.sort_values("node_fraction").copy()
-        x_val = pd.to_numeric(sparse["node_fraction"], errors="coerce")
-        metrics = [
-            ("mean_precision", "std_precision", SKY, "Precision"),
-            ("mean_recall", "std_recall", BLUE, "Recall"),
-            ("mean_f1", "std_f1", GREEN, "F1"),
-        ]
-        for mean_col, std_col, color, label in metrics:
-            y_val = pd.to_numeric(sparse[mean_col], errors="coerce")
-            yerr = pd.to_numeric(sparse[std_col], errors="coerce").fillna(0)
-            ci95 = 1.96 * yerr
-            ax.errorbar(x_val, y_val, yerr=ci95, marker="o", markersize=3.8,
-                        linewidth=1.1, capsize=2.0, color=color, label=label)
+        sparse_c = sparsity.sort_values("node_fraction").copy()
+        xc = pd.to_numeric(sparse_c["node_fraction"], errors="coerce")
+        for mc, sc, col, lbl in [
+            ("mean_precision", "std_precision", SKY,   "Precision"),
+            ("mean_recall",    "std_recall",    BLUE,  "Recall"),
+            ("mean_f1",        "std_f1",        GREEN, "F1"),
+        ]:
+            yc   = pd.to_numeric(sparse_c[mc], errors="coerce")
+            yerrc = 1.96 * pd.to_numeric(sparse_c[sc], errors="coerce").fillna(0)
+            ax.errorbar(xc, yc, yerr=yerrc, marker="o", markersize=3.8,
+                        linewidth=1.1, capsize=2.0, color=col, label=lbl)
         ax.set_xlim(0.05, 1.05)
-        ax.set_ylim(0, 1.05)
-        ax.set_xlabel("Retained node fraction", fontsize=7)
-        ax.set_ylabel("Score", fontsize=7)
-        ax.legend(frameon=False, loc="upper left", fontsize=5.5)
-        ax.set_title("Sparse-node sensitivity")
+        ax.set_ylim(0, 1.0)
+        ax.set_xlabel("Node fraction retained")
+        ax.set_ylabel("Score")
+        ax.set_title("Node-sparsity sensitivity")
         ax.text(0.95, 0.05, "mean ± 95% CI", transform=ax.transAxes, fontsize=5.5,
                 color=GRAY, ha="right", va="bottom")
+        if "successful_trials" in sparse_c.columns and "planned_trials" in sparse_c.columns:
+            n_ok_c  = pd.to_numeric(sparse_c["successful_trials"], errors="coerce")
+            n_tot_c = pd.to_numeric(sparse_c["planned_trials"],    errors="coerce")
+            ylo, yhi = ax.get_ylim()
+            for xi, ok, tot in zip(xc, n_ok_c, n_tot_c):
+                if pd.notna(ok) and pd.notna(tot):
+                    ax.annotate(f"{int(ok)}/{int(tot)}", xy=(xi, ylo),
+                                xytext=(xi, ylo - 0.07*(yhi-ylo)),
+                                fontsize=5.5, color=GRAY, ha="center", va="top",
+                                rotation=45, annotation_clip=False)
+            ax.text(0.02, -0.13, "n = successful/planned trials",
+                    transform=ax.transAxes, fontsize=5.5, color=GRAY, ha="left", va="top")
         _add_gridlines(ax, x=True, y=True)
     else:
-        ax.axis("off")
-    _panel_label(ax, "d")
+        ax.text(0.5, 0.5, "No sparsity data", ha="center", va="center", transform=ax.transAxes)
+    _panel_label(ax, "c")
 
-    # --- Panel e: Scale-mismatch diagnostic ---
+    # --- Panel d: Scale-mismatch diagnostic ---
     ax = fig.add_subplot(gs[1, 1])
     ref_len = pd.to_numeric(ind["median_reference_length"], errors="coerce").fillna(0)
     inf_len = pd.to_numeric(ind["median_inferred_length"], errors="coerce").fillna(0)
@@ -783,11 +760,7 @@ def make_figure2_performance() -> None:
     ax.set_title("Scale-mismatch check (▼ = mismatch)")
     ax.yaxis.set_major_locator(mticker.MaxNLocator(nbins=4))
     _add_gridlines(ax, x=False, y=True)
-    _panel_label(ax, "e")
-
-    # Empty panel
-    ax_f = fig.add_subplot(gs[1, 2])
-    ax_f.axis("off")
+    _panel_label(ax, "d")
 
     # Two separate shared legends at the bottom, visually separated
     perf_handles = [
@@ -1033,31 +1006,21 @@ def make_figure3_edge_networks() -> None:
     ax.axis("off")
     _panel_label(ax, "b")
 
-    # Panel c: Sparse node
+    # Panel c: Spatial only (geometry-only control — no hydraulic data, F1 = 0.0)
     ax = fig.add_subplot(gs[1, 0])
-    sparse = _attach_reference_support(_get_classified_edges("sparse_node", nodes_df, ref_edges), ref_edges)
-    rng = np.random.default_rng(20260521)
-    n_half = len(pos) // 2
-    node_list = list(pos.keys())
-    idxs = rng.choice(len(pos), size=n_half, replace=False)
-    sub_ids = {node_list[i] for i in idxs}
-    active_pos = {k: v for k, v in pos.items() if k in sub_ids}
-    inactive_pos = {k: v for k, v in pos.items() if k not in sub_ids}
-    if inactive_pos:
-        ixs, iys = zip(*inactive_pos.values())
-        ax.scatter(ixs, iys, s=0.8, facecolor="none", edgecolor=LIGHT_GRAY, linewidth=0.15, zorder=2)
-    if active_pos:
-        axs_val, ays = zip(*active_pos.values())
-        ax.scatter(axs_val, ays, s=1.0, facecolor="white", edgecolor=GRAY, linewidth=0.2, zorder=3)
+    spatial = _attach_reference_support(_get_classified_edges("spatial_only", nodes_df, ref_edges), ref_edges)
+    _draw_graph_nodes(ax, pos, s=1, color=LIGHT_GRAY)
     for klass, color, alpha, lw, ls, mut in styles:
-        subset = sparse[sparse["classification"] == klass]
+        subset = spatial[spatial["classification"] == klass]
         _draw_edge_subset(
             ax, subset, pos, color=color, alpha=alpha,
             lw=lw, linestyle=ls, mutation_scale=mut
         )
-    ax.set_title("Sparse node", fontsize=8.5)
-    _set_graph_extent(ax, active_pos, pad_fraction=0.02)
-    metrics = _classified_metrics(sparse)
+    ax.set_title("Spatial only (geometry control)", fontsize=8.5)
+    active_nodes_sp = set(spatial["u"].astype(str)) | set(spatial["v"].astype(str))
+    active_pos_sp = {n: pos[n] for n in active_nodes_sp if n in pos}
+    _set_graph_extent(ax, active_pos_sp if active_pos_sp else pos, pad_fraction=0.02)
+    metrics = _classified_metrics(spatial)
     ax.text(0.03, 0.93, f"P = {metrics['precision']:.2f}, R = {metrics['recall']:.2f}, F1 = {metrics['f1']:.2f}",
             transform=ax.transAxes, fontsize=7.5, fontweight="bold", va="top", ha="left",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor=LIGHT_GRAY, linewidth=0.5))
@@ -1284,16 +1247,18 @@ def make_supp_figure_s2_full_scenario_networks() -> None:
         return
 
     pos = _build_node_positions(nodes_df)
+    # sparse_node is a sensitivity analysis, not a scenario — excluded from scenario panels.
+    # 9 inference/control scenarios → 3×3 grid.
     scenarios_ordered = ["spatial_only", "head_gradient", "head_gradient_bayesian_hodge",
                          "real_head_projected_gradient", "head_depth",
-                         "hydrostratigraphic", "sparse_node",
+                         "hydrostratigraphic",
                          "negative_random", "negative_wrong_direction", "negative_shortcut"]
     scenarios_ordered = [s for s in scenarios_ordered if s in EVIDENCE_LEVELS]
 
     n = len(scenarios_ordered)
-    cols = 4
-    rows = (n + cols - 1) // cols  # 10 scenarios → 3 rows × 4 cols
-    fig, axes = plt.subplots(rows, cols, figsize=(10.0, 2.5 * rows))
+    cols = 3
+    rows = (n + cols - 1) // cols  # 9 scenarios → 3 rows × 3 cols
+    fig, axes = plt.subplots(rows, cols, figsize=(7.5, 2.5 * rows))
     fig.subplots_adjust(left=0.04, right=0.96, top=0.92, bottom=0.12, hspace=0.50, wspace=0.18)
     axes = np.atleast_1d(axes).flatten()
     # Hide unused axes

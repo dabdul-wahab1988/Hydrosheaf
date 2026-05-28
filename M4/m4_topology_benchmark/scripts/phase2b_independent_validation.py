@@ -581,6 +581,7 @@ def run_independent_scenarios(
         sub_ids = {str(s["site_id"]) for s in sub}
         sub_ref = [e for e in ref_edges_raw if e[0] in sub_ids and e[1] in sub_ids]
         if len(sub_ref) < 5:
+            f1_vals.append(0.0)
             continue
         sub_obj = infer_edges_from_coordinates(sub, max_neighbors=2, allow_uphill=False)
         sub_edges = [(e.u, e.v) for e in sub_obj]
@@ -592,7 +593,7 @@ def run_independent_scenarios(
     results.append({
         "scenario": "sparse_node",
         "validation_mode": "sensitivity_analysis",
-        "independent_validation": True,
+        "independent_validation": False,
         "result_class": "sparsity_sensitivity",
         "n_reference_edges": m["n_reference_edges"],
         "n_inferred_edges": float("nan"),
@@ -845,6 +846,7 @@ def build_node_sparsity_sensitivity(
     for frac in (0.1, 0.25, 0.5, 0.75, 1.0):
         n_count = max(int(total * frac), 5)
         f1_vals, rec_vals, prec_vals = [], [], []
+        successful_trials = 0
         for _ in range(SPARSITY_TRIALS):
             seed = int(rng.integers(0, 2**31 - 1))
             idxs = pd.Series(range(total)).sample(n=n_count, random_state=seed).values
@@ -852,6 +854,9 @@ def build_node_sparsity_sensitivity(
             sub_ids = {str(s["site_id"]) for s in sub}
             sub_ref = [e for e in ref_edges_raw if e[0] in sub_ids and e[1] in sub_ids]
             if len(sub_ref) < 5:
+                f1_vals.append(0.0)
+                rec_vals.append(0.0)
+                prec_vals.append(0.0)
                 continue
             sub_obj = infer_edges_from_coordinates(sub, max_neighbors=2, allow_uphill=False)
             sub_edges = [(e.u, e.v) for e in sub_obj]
@@ -859,6 +864,7 @@ def build_node_sparsity_sensitivity(
             f1_vals.append(conf["f1"])
             rec_vals.append(conf["recall"])
             prec_vals.append(conf["precision"])
+            successful_trials += 1
         if f1_vals:
             results.append({
                 "node_fraction": frac,
@@ -869,14 +875,14 @@ def build_node_sparsity_sensitivity(
                 "std_recall": float(np.std(rec_vals)),
                 "mean_precision": float(np.mean(prec_vals)),
                 "std_precision": float(np.std(prec_vals)),
-                "successful_trials": len(f1_vals),
+                "successful_trials": successful_trials,
                 "planned_trials": SPARSITY_TRIALS,
                 "random_seed": RANDOM_SEED,
             })
     df = pd.DataFrame(results)
     df["archive_id"] = "savage_milford_nh"
     df["scenario"] = "head_gradient"
-    df["allowed_claim"] = "Graph inference degrades gracefully as node density decreases"
+    df["allowed_claim"] = "Graph inference performance collapses below 50% node density; zero-imputation applied for trials with fewer than 5 surviving reference edges."
     df["required_guardrail"] = "Sparsity results are random uniform subsampling; real monitoring gaps may differ"
     return df
 
@@ -1091,6 +1097,10 @@ def main():
     independent_df.to_csv(BENCHMARK_RESULTS / "independent_graph_vs_modpath.csv", index=False)
     edge_class.to_csv(BENCHMARK_RESULTS / "edge_classification.csv", index=False)
     prior_df.to_csv(BENCHMARK_RESULTS / "modpath_informed_priors.csv", index=False)
+    sparsity_src = SAVAGE_RESULTS / "node_sparsity_sensitivity.csv"
+    if sparsity_src.exists():
+        import shutil
+        shutil.copy2(sparsity_src, BENCHMARK_RESULTS / "m4_sparsity_sensitivity.csv")
     print("  Done.")
 
     elapsed = (datetime.now(timezone.utc) - start_time).total_seconds()

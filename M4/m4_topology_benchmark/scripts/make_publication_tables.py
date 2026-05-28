@@ -49,22 +49,22 @@ EVIDENCE_LADDER = {
         "required_guardrail": "Shortcut graph is a diagnostic negative control, not a Hydrosheaf inference.",
     },
     "spatial_only": {
-        "evidence_level": 1,
-        "graph_scenario": "Spatial proximity only",
-        "evidence_source": "Haversine distance, nearest-neighbour graph",
-        "independent_validation": True,
-        "main_use": "Baseline topology from spatial proximity alone",
-        "allowed_claim": "Spatial proximity alone recovers directed topology at above-chance rate.",
-        "required_guardrail": "Spatial-only graph uses no head, hydrostratigraphic, or MODPATH connectivity information.",
+        "evidence_level": 0,
+        "graph_scenario": "Spatial proximity only (geometry-only control)",
+        "evidence_source": "Haversine distance, nearest-neighbour graph; no hydraulic, stratigraphic, or MODPATH data",
+        "independent_validation": False,
+        "main_use": "Geometry-only control demonstrating that spatial proximity alone cannot recover directed groundwater topology",
+        "allowed_claim": "Spatial proximity alone completely fails to recover directed groundwater topology (F1 = 0.0), establishing the geometry-only floor and demonstrating that hydraulic evidence is necessary.",
+        "required_guardrail": "Spatial-only graph uses no hydraulic head, hydrostratigraphic, or MODPATH connectivity information. Its F1 = 0.0 result is a control outcome, not evidence of any inference skill.",
     },
     "sparse_node": {
-        "evidence_level": 2,
-        "graph_scenario": "Sparse-node sensitivity",
-        "evidence_source": "Random node subsampling (10-100% of nodes)",
-        "independent_validation": True,
-        "main_use": "Quantify topology-metric sensitivity under reduced node density",
-        "allowed_claim": "Sparse-node subsampling quantifies sensitivity of topology metrics to reduced node density.",
-        "required_guardrail": "Sparse-node results are diagnostic sensitivity evidence with variable successful trials; do not claim monotonic degradation or field sampling performance.",
+        "evidence_level": "S",
+        "graph_scenario": "Sparse-node robustness (sensitivity analysis — not a scenario)",
+        "evidence_source": "Random node subsampling (10–100% of nodes) using head-gradient inference rule; mean F1 over 20 trials",
+        "independent_validation": False,
+        "main_use": "Quantify robustness of head-gradient topology recovery to reduced node density; this is a sensitivity diagnostic, not an independent inference scenario",
+        "allowed_claim": "Node-sparsity sensitivity analysis quantifies how head-gradient topology recovery degrades as available nodes decrease from 100% to 10%; reported as mean F1 across 20 random subsampling trials.",
+        "required_guardrail": "Sparse-node is a sensitivity diagnostic, NOT an independent inference scenario. It applies the same hydraulic inference rule as head_gradient but with fewer nodes. Its aggregate F1 cannot be directly compared with single-run scenario metrics. See Supp Table S9 for full sensitivity curve.",
     },
     "head_gradient": {
         "evidence_level": 3,
@@ -228,12 +228,14 @@ def make_main_table2_performance_summary() -> None:
         return
 
     ind = perf.copy()
-    ordered = ["spatial_only", "head_gradient", "head_gradient_bayesian_hodge",
-               "real_head_projected_gradient", "head_depth", "hydrostratigraphic",
-               "sparse_node", "negative_random", "negative_wrong_direction", "negative_shortcut"]
-    ind["_order"] = ind["scenario"].map({k: i for i, k in enumerate(ordered)})
+    # sparse_node is a sensitivity analysis — excluded from the scenario comparison rows.
+    # spatial_only is a geometry-only control (level 0, F1 = 0.0).
+    scenario_ordered = ["spatial_only", "head_gradient", "head_gradient_bayesian_hodge",
+                        "real_head_projected_gradient", "head_depth", "hydrostratigraphic",
+                        "negative_random", "negative_wrong_direction", "negative_shortcut"]
+    ind["_order"] = ind["scenario"].map({k: i for i, k in enumerate(scenario_ordered)})
     ind = ind.sort_values("_order")
-    ind = ind[ind["scenario"].isin(ordered)]
+    ind = ind[ind["scenario"].isin(scenario_ordered)]
 
     rows = []
     for _, row in ind.iterrows():
@@ -250,8 +252,9 @@ def make_main_table2_performance_summary() -> None:
         else:
             interpretation = "No topology recovery (control)"
 
-        if scenario in ("negative_random", "negative_wrong_direction", "negative_shortcut"):
-            interpretation = "Negative control baseline"
+        if scenario in ("negative_random", "negative_wrong_direction", "negative_shortcut",
+                        "spatial_only"):
+            interpretation = "No topology recovery (control)"
 
         rows.append({
             "scenario": _display_scenario(scenario),
@@ -260,11 +263,29 @@ def make_main_table2_performance_summary() -> None:
             "independent_validation": row.get("independent_validation", ""),
             "precision": round(float(row["precision"]), 3) if pd.notna(row.get("precision")) else np.nan,
             "recall": round(float(row["recall"]), 3) if pd.notna(row.get("recall")) else np.nan,
-            "f1": round(f1, 3) if np.isfinite(f1) else "sparse-only",
+            "f1": round(f1, 3) if np.isfinite(f1) else np.nan,
             "false_positives": int(row["fp"]) if pd.notna(row.get("fp")) else np.nan,
             "false_negatives": int(row["fn"]) if pd.notna(row.get("fn")) else np.nan,
             "scale_mismatch": str(row.get("scale_mismatch", "")).lower() == "true",
             "interpretation": interpretation,
+        })
+
+    # Append sparse_node as a clearly labelled sensitivity-analysis row (not a scenario peer)
+    sparse_rows = perf[perf["scenario"] == "sparse_node"]
+    if not sparse_rows.empty:
+        sr = sparse_rows.iloc[0]
+        rows.append({
+            "scenario": "Sparse node (sensitivity analysis — see Supp Table S9)",
+            "evidence_level": "S",
+            "validation_mode": "sensitivity_analysis",
+            "independent_validation": False,
+            "precision": "—",
+            "recall": "—",
+            "f1": round(float(sr["f1"]), 3) if pd.notna(sr.get("f1")) else np.nan,
+            "false_positives": "—",
+            "false_negatives": "—",
+            "scale_mismatch": False,
+            "interpretation": "Sensitivity diagnostic: mean F1 across 20 node-subsampling trials (10–100% nodes); not comparable with single-run scenario metrics",
         })
 
     # Add prior-assisted rows
@@ -609,6 +630,20 @@ def make_supp_table_s9_sparsity_sensitivity() -> None:
     table["required_guardrail"] = (
         "Subsampling sensitivity is a controlled robustness diagnostic, not a field uncertainty model."
     )
+
+    def _survivorship_note(row: pd.Series) -> str:
+        successful = int(row["successful_trials"])
+        planned = int(row["planned_trials"])
+        if successful < planned:
+            return (
+                f"Only {successful}/{planned} trials met the minimum reference-edge threshold "
+                f"(≥5 edges); mean F1 may be upward-biased."
+            )
+        return "All trials succeeded."
+
+    table["survivorship_note"] = table.apply(_survivorship_note, axis=1)
+    table["bias_warning"] = table["successful_trials"] < table["planned_trials"]
+
     _round_numeric(table).to_csv(
         TABLE_DIR / "Supp_TableS9_Sparsity_Sensitivity.csv", index=False
     )
