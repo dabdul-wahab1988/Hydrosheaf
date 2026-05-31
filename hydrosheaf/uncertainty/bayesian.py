@@ -436,23 +436,39 @@ def compute_ess(samples: np.ndarray, max_lag: int = 100) -> float:
 
     Where ρ_k is the lag-k autocorrelation.
     """
+    samples = np.asarray(samples, dtype=float)
+    samples = samples[np.isfinite(samples)]
     n = len(samples)
+    if n <= 2:
+        return float(n)
 
     # Demean
     samples_demeaned = samples - np.mean(samples)
+    variance = float(np.dot(samples_demeaned, samples_demeaned))
+    if variance <= 0.0:
+        return float(n)
 
     # Autocorrelation
     autocorr = np.correlate(samples_demeaned, samples_demeaned, mode="full")
     autocorr = autocorr[n - 1 :]  # positive lags only
     autocorr = autocorr / autocorr[0]  # normalize
 
-    # Sum autocorrelations until they become negligible
+    # Geyer initial-positive-sequence truncation.  Stopping at an arbitrary
+    # "small" rho biases ESS high for slowly decaying chains.
     rho_sum = 0.0
-    for k in range(1, min(max_lag, len(autocorr))):
-        if autocorr[k] < 0.05:  # stop when autocorrelation is small
+    limit = min(int(max_lag), len(autocorr) - 1)
+    k = 1
+    while k <= limit:
+        if k == limit:
+            pair_sum = float(autocorr[k])
+        else:
+            pair_sum = float(autocorr[k] + autocorr[k + 1])
+        if pair_sum <= 0.0:
             break
-        rho_sum += autocorr[k]
+        rho_sum += pair_sum
+        k += 2
 
-    ess = n / (1 + 2 * rho_sum)
+    tau_int = max(1.0 + 2.0 * rho_sum, 1e-12)
+    ess = n / tau_int
 
-    return float(ess)
+    return float(min(max(ess, 1.0), float(n)))

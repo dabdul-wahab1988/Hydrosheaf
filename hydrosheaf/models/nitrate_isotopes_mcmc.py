@@ -227,9 +227,10 @@ def run_mcmc_mixing_hierarchical(
         sigma_N = pm.HalfNormal("sigma_N", sigma=max(float(np.mean(d15N_stds)), 1e-6))
         sigma_O = pm.HalfNormal("sigma_O", sigma=max(float(np.mean(d18O_stds)), 1e-6))
 
-        mix_var_n = pm.math.dot(fractions, d15N_vars) + sigma_N**2
-        mix_var_o = pm.math.dot(fractions, d18O_vars) + sigma_O**2
-        mix_cov_no = pm.math.dot(fractions, source_cov_no)
+        fractions_sq = fractions**2
+        mix_var_n = pm.math.dot(fractions_sq, d15N_vars) + sigma_N**2
+        mix_var_o = pm.math.dot(fractions_sq, d18O_vars) + sigma_O**2
+        mix_cov_no = pm.math.dot(fractions_sq, source_cov_no)
 
         det = pm.math.maximum(mix_var_n * mix_var_o - mix_cov_no**2, 1e-12)
         dx_n = obs[:, 0] - pred_isotopes[:, 0]
@@ -427,9 +428,10 @@ def run_mcmc_mixing(
         sigma_N = pm.HalfNormal("sigma_N", sigma=max(float(np.mean(d15N_stds)), 1e-6))
         sigma_O = pm.HalfNormal("sigma_O", sigma=max(float(np.mean(d18O_stds)), 1e-6))
 
-        mix_var_n = pm.math.dot(fractions, d15N_vars) + sigma_N**2
-        mix_var_o = pm.math.dot(fractions, d18O_vars) + sigma_O**2
-        mix_cov_no = pm.math.dot(fractions, source_cov_no)
+        fractions_sq = fractions**2
+        mix_var_n = pm.math.dot(fractions_sq, d15N_vars) + sigma_N**2
+        mix_var_o = pm.math.dot(fractions_sq, d18O_vars) + sigma_O**2
+        mix_cov_no = pm.math.dot(fractions_sq, source_cov_no)
 
         cov_row_1 = pm.math.stack([mix_var_n, mix_cov_no])
         cov_row_2 = pm.math.stack([mix_cov_no, mix_var_o])

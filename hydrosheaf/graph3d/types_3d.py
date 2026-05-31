@@ -116,6 +116,8 @@ class Edge3D:
         Horizontal hydraulic gradient (dimensionless)
     vertical_gradient : Optional[float]
         Vertical hydraulic gradient (dimensionless)
+    delta_h : Optional[float]
+        Upstream minus downstream hydraulic head (m)
     layer_from : Optional[int]
         Source layer index
     layer_to : Optional[int]
@@ -144,6 +146,7 @@ class Edge3D:
     # Hydraulic gradients
     horizontal_gradient: Optional[float] = None
     vertical_gradient: Optional[float] = None
+    delta_h: Optional[float] = None
 
     # Layer transition
     layer_from: Optional[int] = None

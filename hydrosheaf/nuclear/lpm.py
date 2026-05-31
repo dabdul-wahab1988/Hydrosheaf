@@ -65,21 +65,21 @@ def convolve_input(
             warnings.warn(f"Negative residence time ({tau_mean_years:.2f} years) encountered in PFM. This is physically impossible.")
         if t_recharge < input_years[0]:
              import warnings
-             warnings.warn(f"Recharge date ({t_recharge:.1f}) for PFM exceeds input history start ({input_years[0]:.1f}). Using pre-bomb baseline (0.5 TU).")
+             warnings.warn(f"Recharge date ({t_recharge:.1f}) for PFM exceeds input history start ({input_years[0]:.1f}). Using input-history baseline ({float(input_values[0]):.3g}).")
              
-        # Use a low baseline for pre-bomb water instead of the first entry in input_history
-        c_in = np.interp(t_recharge, input_years, input_values, left=0.5)
+        c_in = np.interp(t_recharge, input_years, input_values, left=float(input_values[0]))
         return float(c_in * np.exp(-decay_lambda_inv_year * tau_mean_years))
     
     # For distributed models (EM, DM, etc.), we need to integrate.
     # We'll discretize the transit time tau.
     
     # 1. Define integration grid for tau
-    # Go out to 5 * tau_mean or until weight is negligible
-    max_tau = max(100.0, tau_mean_years * 5.0) 
+    # Go far enough into the tail that EM/DM truncation does not create
+    # appreciable age bias before normalization.
+    max_tau = max(100.0, tau_mean_years * 15.0)
     # Resolution
     d_tau = 0.25 # quarter-year steps
-    taus = np.arange(0.0, max_tau, d_tau)
+    taus = np.arange(0.0, max_tau + d_tau, d_tau)
     
     # 2. Compute g(tau)
     if model_type == "EM":

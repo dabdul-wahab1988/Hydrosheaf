@@ -183,9 +183,18 @@ def craig_gordon_enrichment(
     
     Let's stick to a generalized enrichment function that can be used in the adapter.
     """
-    # Placeholder for full implementation if needed. 
-    # For now, Rayleigh is the primary request for "fractionation".
-    return delta_L 
+    humidity = float(h)
+    if not (0.0 <= humidity < 1.0):
+        raise ValueError("Relative humidity h must be in [0, 1).")
+
+    eps_eq = float(epsilon_eq)
+    eps_k = float(epsilon_k)
+    denominator = (1.0 - humidity) + eps_k / 1000.0
+    if denominator <= 0.0:
+        raise ValueError("Craig-Gordon denominator must be positive.")
+
+    epsilon_total = eps_eq + eps_k
+    return float((float(delta_L) - humidity * float(delta_A) - epsilon_total) / denominator)
 
 
 

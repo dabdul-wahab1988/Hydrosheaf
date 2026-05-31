@@ -279,7 +279,11 @@ def infer_edges_3d_probabilistic(
             p_dist = compute_distance_probability(d_3d, radius_km)
 
             # Layer probability
-            if layer_system and node_i.aquifer_layer and node_j.aquifer_layer:
+            if (
+                layer_system
+                and node_i.aquifer_layer is not None
+                and node_j.aquifer_layer is not None
+            ):
                 p_layer = get_aquitard_probability(
                     layer_system,
                     node_i.aquifer_layer,
@@ -310,21 +314,18 @@ def infer_edges_3d_probabilistic(
             edge_type = classify_edge_type(d_xy, d_z, same_layer)
 
             # Compute gradients
+            delta_h = (
+                float(node_i.hydraulic_head) - float(node_j.hydraulic_head)
+                if node_i.hydraulic_head is not None and node_j.hydraulic_head is not None
+                else None
+            )
             if d_xy > 1e-6:
-                h_grad = (
-                    (node_i.hydraulic_head - node_j.hydraulic_head) / d_xy
-                    if node_i.hydraulic_head and node_j.hydraulic_head
-                    else None
-                )
+                h_grad = delta_h / d_xy if delta_h is not None else None
             else:
                 h_grad = None
 
             if d_z > 1e-6:
-                v_grad = (
-                    (node_i.hydraulic_head - node_j.hydraulic_head) / d_z
-                    if node_i.hydraulic_head and node_j.hydraulic_head
-                    else None
-                )
+                v_grad = delta_h / d_z if delta_h is not None else None
             else:
                 v_grad = None
 
@@ -344,6 +345,7 @@ def infer_edges_3d_probabilistic(
                 prob_combined=p_combined,
                 horizontal_gradient=h_grad,
                 vertical_gradient=v_grad,
+                delta_h=delta_h,
                 layer_from=node_i.aquifer_layer,
                 layer_to=node_j.aquifer_layer,
             )

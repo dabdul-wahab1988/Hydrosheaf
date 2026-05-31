@@ -117,9 +117,9 @@ def _summary_moments(
 ) -> Dict[str, float]:
     mean_n = 0.0
     mean_o = 0.0
-    second_n = 0.0
-    second_o = 0.0
-    second_no = 0.0
+    var_n_mix = 0.0
+    var_o_mix = 0.0
+    cov_no_mix = 0.0
     for src in sources:
         p = float(source_probs.get(src.name, 0.0))
         mu_n = float(src.d15N_mean)
@@ -129,13 +129,13 @@ def _summary_moments(
         cov_no = float(src.covariance_d15N_d18O())
         mean_n += p * mu_n
         mean_o += p * mu_o
-        second_n += p * (var_n + mu_n * mu_n)
-        second_o += p * (var_o + mu_o * mu_o)
-        second_no += p * (cov_no + mu_n * mu_o)
+        var_n_mix += p * p * var_n
+        var_o_mix += p * p * var_o
+        cov_no_mix += p * p * cov_no
 
-    var_n = max(second_n - mean_n * mean_n, 1e-24)
-    var_o = max(second_o - mean_o * mean_o, 1e-24)
-    cov_no = second_no - mean_n * mean_o
+    var_n = max(var_n_mix, 1e-24)
+    var_o = max(var_o_mix, 1e-24)
+    cov_no = cov_no_mix
     max_abs_cov = math.sqrt(var_n * var_o) * 0.999999
     cov_no = max(-max_abs_cov, min(max_abs_cov, cov_no))
     return {

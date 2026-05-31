@@ -81,14 +81,22 @@ def estimate_edge_residence_time_days(
 
     delta_h = _safe_float(edge_attrs.get("delta_h"))
     gradient = None
-    if delta_h is not None:
+    for key in ("hydraulic_gradient", "head_gradient", "gradient"):
+        direct_gradient = _safe_float(edge_attrs.get(key))
+        if direct_gradient is not None:
+            gradient = abs(direct_gradient)
+            break
+    if gradient is None and delta_h is not None:
         gradient = abs(delta_h) / length_m
-    else:
+    elif gradient is None:
         h_grad = _safe_float(edge_attrs.get("horizontal_gradient"))
         v_grad = _safe_float(edge_attrs.get("vertical_gradient"))
         if h_grad is not None:
             gradient = abs(h_grad)
-        elif v_grad is not None:
+        elif v_grad is not None and (
+            "vertical" in str(edge_attrs.get("edge_type_3d", "")).lower()
+            or (_safe_float(edge_attrs.get("horizontal_distance_m")) or 0.0) <= 1e-6
+        ):
             gradient = abs(v_grad)
 
     if gradient is None or gradient <= 0:
@@ -468,6 +476,7 @@ def infer_edges(
                     "edge_type_3d": edge3d.edge_type,
                     "horizontal_gradient": edge3d.horizontal_gradient,
                     "vertical_gradient": edge3d.vertical_gradient,
+                    "delta_h": edge3d.delta_h,
                     "prob_head": edge3d.prob_head,
                     "prob_distance": edge3d.prob_distance,
                     "prob_layer": edge3d.prob_layer,

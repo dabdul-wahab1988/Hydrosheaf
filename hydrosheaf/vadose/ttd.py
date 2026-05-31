@@ -151,24 +151,6 @@ def mixture_ttd_from_series(
     w = w[mask]
     w = w / np.sum(w)
 
-    # Base statistics (matrix/advective only)
-    mean = float(np.sum(w * taus))
-    var = float(np.sum(w * (taus - mean) ** 2))
-    std = float(np.sqrt(max(0.0, var)))
-    p10 = _weighted_quantile(taus, w, 0.1)
-    p50 = _weighted_quantile(taus, w, 0.5)
-    p90 = _weighted_quantile(taus, w, 0.9)
-    
-    # If preferential flow is active, we should probably update the summary stats
-    # to reflect the effective dual-domain behavior.
-    # For now, we report the MATRIX (advective) statistics as "baseline",
-    # but the kernel below will include the fast path.
-    # (Future TODO: Calculate effective moments of the mixture)
-    
-    summary = TravelTimeSummary(
-        mean_days=mean, std_days=std, p10_days=p10, p50_days=p50, p90_days=p90
-    )
-
     # Build mixture kernel as weighted sum of per-time gamma kernels.
     # Now supports Dual-Domain (Matrix + Preferential)
     n = int(np.floor(float(max_lag_days) / float(grid_dt_days))) + 1
@@ -206,6 +188,24 @@ def mixture_ttd_from_series(
     area = float(np.sum(pdf_mix) * float(grid_dt_days))
     if area > 0:
         pdf_mix /= area
+        grid_weights = pdf_mix * float(grid_dt_days)
+        mean = float(np.sum(grid * grid_weights))
+        var = float(np.sum(((grid - mean) ** 2) * grid_weights))
+        summary = TravelTimeSummary(
+            mean_days=mean,
+            std_days=float(np.sqrt(max(0.0, var))),
+            p10_days=_weighted_quantile(grid, grid_weights, 0.1),
+            p50_days=_weighted_quantile(grid, grid_weights, 0.5),
+            p90_days=_weighted_quantile(grid, grid_weights, 0.9),
+        )
+    else:
+        summary = TravelTimeSummary(
+            mean_days=float("nan"),
+            std_days=float("nan"),
+            p10_days=float("nan"),
+            p50_days=float("nan"),
+            p90_days=float("nan"),
+        )
     return (
         [float(x) for x in grid.tolist()],
         [float(x) for x in pdf_mix.tolist()],

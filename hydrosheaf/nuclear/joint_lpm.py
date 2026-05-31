@@ -404,9 +404,11 @@ def _predict_from_history(
     decay_lambda_per_year: float = 0.0,
     *,
     daughter: bool = False,
+    left_value: Optional[float] = None,
 ) -> float:
     recharge_years = float(sample_year) - taus
-    input_values = np.interp(recharge_years, history.years, history.values, left=0.0)
+    left = float(history.values[0]) if left_value is None else float(left_value)
+    input_values = np.interp(recharge_years, history.years, history.values, left=left)
     decay = np.exp(-decay_lambda_per_year * taus)
     if daughter:
         values = input_values * (1.0 - decay)
@@ -467,6 +469,7 @@ def predict_lpm_tracers(
                 taus,
                 d_tau,
                 decay_lambda_per_year=lambda_tritium,
+                left_value=float(tritium_hist.values[0]),
             )
         if "3H/3HE" in requested:
             out["3H/3He"] = _predict_from_history(
@@ -477,6 +480,7 @@ def predict_lpm_tracers(
                 d_tau,
                 decay_lambda_per_year=lambda_tritium,
                 daughter=True,
+                left_value=float(tritium_hist.values[0]),
             )
 
     if "14C" in requested:
@@ -500,7 +504,8 @@ def predict_lpm_tracers(
                 pdf, 
                 taus, 
                 d_tau,
-                decay_lambda_per_year=decay_lambda
+                decay_lambda_per_year=decay_lambda,
+                left_value=float(history.values[0]),
             )
             if tracer == "85KR":
                 # Rename back to 85Kr for consistency with observations
