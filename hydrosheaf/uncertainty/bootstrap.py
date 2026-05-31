@@ -62,6 +62,8 @@ def bootstrap_edge_fit(
     # Import here to avoid circular imports
     from ..inference.edge_fit import fit_edge
 
+    from copy import copy
+
     # Set random seed
     if random_state is not None:
         np.random.seed(random_state)
@@ -71,8 +73,10 @@ def bootstrap_edge_fit(
     x_v_vec = np.array(x_v, dtype=float)
 
     # Fit original model
+    base_config = copy(config)
+    base_config.uncertainty_method = "none"
     original_result = fit_edge(
-        x_u, x_v, config, obs_u=obs_u, obs_v=obs_v, bounds=bounds
+        x_u, x_v, base_config, obs_u=obs_u, obs_v=obs_v, bounds=bounds
     )
     
     # Fix the transport model for all bootstrap replicates to ensure consistency
@@ -81,8 +85,8 @@ def bootstrap_edge_fit(
     fixed_endmember = original_result.endmember_id
     
     # Create a temporary config with only the selected model enabled
-    from copy import copy
     boot_config = copy(config)
+    boot_config.uncertainty_method = "none"
     boot_config.transport_models_enabled = [fixed_model]
     if fixed_model == "mix" and fixed_endmember:
         # Filter to only the selected endmember
@@ -101,6 +105,40 @@ def bootstrap_edge_fit(
         len(original_result.reaction_fit.extents) if original_result.reaction_fit else 0
     )
     extents_samples = [[] for _ in range(m_extents)]
+    gamma_jackknife: List[float] = []
+    f_jackknife: List[float] = []
+    extents_jackknife: List[List[float]] = [[] for _ in range(m_extents)]
+
+    if getattr(config, "bootstrap_ci_method", "percentile") == "bca":
+        for leave_out in range(n_ions):
+            jack_config = copy(boot_config)
+            jack_config.weights = list(getattr(boot_config, "weights", []))
+            jack_config.conservative_weights = list(
+                getattr(boot_config, "conservative_weights", [])
+            )
+            if leave_out < len(jack_config.weights):
+                jack_config.weights[leave_out] = 0.0
+            if leave_out < len(jack_config.conservative_weights):
+                jack_config.conservative_weights[leave_out] = 0.0
+            try:
+                jack_result = fit_edge(
+                    x_u,
+                    x_v,
+                    jack_config,
+                    obs_u=obs_u,
+                    obs_v=obs_v,
+                    bounds=bounds,
+                )
+                if jack_result.transport_model == "evap" and jack_result.gamma is not None:
+                    gamma_jackknife.append(float(jack_result.gamma))
+                elif jack_result.transport_model == "mix" and jack_result.f is not None:
+                    f_jackknife.append(float(jack_result.f))
+                if jack_result.reaction_fit:
+                    for j, extent in enumerate(jack_result.reaction_fit.extents):
+                        if j < len(extents_jackknife):
+                            extents_jackknife[j].append(float(extent))
+            except Exception:
+                continue
 
     # Bootstrap iterations
     for _ in range(n_resamples):
@@ -147,16 +185,30 @@ def bootstrap_edge_fit(
         gamma_arr = np.array(gamma_samples)
         result.gamma_mean = float(np.mean(gamma_arr))
         result.gamma_std = float(np.std(gamma_arr, ddof=1))
-        result.gamma_ci_low = float(np.percentile(gamma_arr, 2.5))
-        result.gamma_ci_high = float(np.percentile(gamma_arr, 97.5))
+        if getattr(config, "bootstrap_ci_method", "percentile") == "bca":
+            result.gamma_ci_low, result.gamma_ci_high = compute_bca_ci(
+                gamma_arr,
+                float(original_result.gamma if original_result.gamma is not None else result.gamma_mean),
+                jackknife_samples=np.array(gamma_jackknife) if gamma_jackknife else None,
+            )
+        else:
+            result.gamma_ci_low = float(np.percentile(gamma_arr, 2.5))
+            result.gamma_ci_high = float(np.percentile(gamma_arr, 97.5))
         result.gamma_samples = gamma_arr
 
     if f_samples:
         f_arr = np.array(f_samples)
         result.f_mean = float(np.mean(f_arr))
         result.f_std = float(np.std(f_arr, ddof=1))
-        result.f_ci_low = float(np.percentile(f_arr, 2.5))
-        result.f_ci_high = float(np.percentile(f_arr, 97.5))
+        if getattr(config, "bootstrap_ci_method", "percentile") == "bca":
+            result.f_ci_low, result.f_ci_high = compute_bca_ci(
+                f_arr,
+                float(original_result.f if original_result.f is not None else result.f_mean),
+                jackknife_samples=np.array(f_jackknife) if f_jackknife else None,
+            )
+        else:
+            result.f_ci_low = float(np.percentile(f_arr, 2.5))
+            result.f_ci_high = float(np.percentile(f_arr, 97.5))
 
     if m_extents > 0:
         for j in range(m_extents):
@@ -164,8 +216,18 @@ def bootstrap_edge_fit(
                 extent_arr = np.array(extents_samples[j])
                 result.extents_mean.append(float(np.mean(extent_arr)))
                 result.extents_std.append(float(np.std(extent_arr, ddof=1)))
-                result.extents_ci_low.append(float(np.percentile(extent_arr, 2.5)))
-                result.extents_ci_high.append(float(np.percentile(extent_arr, 97.5)))
+                if getattr(config, "bootstrap_ci_method", "percentile") == "bca":
+                    point = float(original_result.reaction_fit.extents[j]) if original_result.reaction_fit else float(np.mean(extent_arr))
+                    ci_low, ci_high = compute_bca_ci(
+                        extent_arr,
+                        point,
+                        jackknife_samples=np.array(extents_jackknife[j]) if extents_jackknife[j] else None,
+                    )
+                    result.extents_ci_low.append(ci_low)
+                    result.extents_ci_high.append(ci_high)
+                else:
+                    result.extents_ci_low.append(float(np.percentile(extent_arr, 2.5)))
+                    result.extents_ci_high.append(float(np.percentile(extent_arr, 97.5)))
             else:
                 result.extents_mean.append(0.0)
                 result.extents_std.append(0.0)
@@ -275,7 +337,10 @@ def bootstrap_reaction_fit(
 
 
 def compute_bca_ci(
-    samples: np.ndarray, point_estimate: float, alpha: float = 0.05
+    samples: np.ndarray,
+    point_estimate: float,
+    alpha: float = 0.05,
+    jackknife_samples: Optional[np.ndarray] = None,
 ) -> Tuple[float, float]:
     """
     Compute bias-corrected accelerated (BCa) bootstrap confidence interval.
@@ -299,8 +364,8 @@ def compute_bca_ci(
     1. Compute bias correction:
        z0 = Φ^{-1}(#{θ* < θ̂} / B)
 
-    2. Compute acceleration (requires jackknife, not implemented here)
-       a = 0 (simplified)
+    2. Compute acceleration from delete-one jackknife estimates:
+       a = Σ(θ̄_jack - θ_jack_i)^3 / [6 * {Σ(θ̄_jack - θ_jack_i)^2}^{3/2}]
 
     3. Adjust percentiles:
        α_low = Φ(z0 + (z0 + z_{α/2}) / (1 - a(z0 + z_{α/2})))
@@ -308,27 +373,50 @@ def compute_bca_ci(
     """
     from scipy.stats import norm
 
-    n_boot = len(samples)
+    clean_samples = np.asarray(samples, dtype=float)
+    clean_samples = clean_samples[np.isfinite(clean_samples)]
+    n_boot = len(clean_samples)
+    if n_boot == 0:
+        return float("nan"), float("nan")
 
     # Bias correction
-    n_less = np.sum(samples < point_estimate)
-    z0 = norm.ppf(n_less / n_boot) if n_less > 0 and n_less < n_boot else 0.0
+    n_less = np.sum(clean_samples < point_estimate)
+    p_less = (n_less + 0.5) / (n_boot + 1.0)
+    p_less = float(np.clip(p_less, 1e-12, 1.0 - 1e-12))
+    z0 = norm.ppf(p_less)
 
-    # Simplified: assume a = 0 (no acceleration)
     a = 0.0
+    if jackknife_samples is not None:
+        jack = np.asarray(jackknife_samples, dtype=float)
+        jack = jack[np.isfinite(jack)]
+        if len(jack) >= 2:
+            jack_mean = float(np.mean(jack))
+            diffs = jack_mean - jack
+            numerator = float(np.sum(diffs**3))
+            denominator = float(6.0 * (np.sum(diffs**2) ** 1.5))
+            if denominator > 0.0:
+                a = numerator / denominator
 
     # Adjusted percentiles
     z_alpha = norm.ppf(alpha / 2)
     z_1alpha = norm.ppf(1 - alpha / 2)
 
-    alpha_low = norm.cdf(z0 + (z0 + z_alpha) / (1 - a * (z0 + z_alpha)))
-    alpha_high = norm.cdf(z0 + (z0 + z_1alpha) / (1 - a * (z0 + z_1alpha)))
+    denom_low = 1 - a * (z0 + z_alpha)
+    denom_high = 1 - a * (z0 + z_1alpha)
+    if abs(denom_low) < 1e-12:
+        alpha_low = 0.0 if denom_low < 0 else 1.0
+    else:
+        alpha_low = norm.cdf(z0 + (z0 + z_alpha) / denom_low)
+    if abs(denom_high) < 1e-12:
+        alpha_high = 0.0 if denom_high < 0 else 1.0
+    else:
+        alpha_high = norm.cdf(z0 + (z0 + z_1alpha) / denom_high)
 
     # Clip to valid range
     alpha_low = np.clip(alpha_low, 0, 1)
     alpha_high = np.clip(alpha_high, 0, 1)
 
-    ci_low = float(np.percentile(samples, 100 * alpha_low))
-    ci_high = float(np.percentile(samples, 100 * alpha_high))
+    ci_low = float(np.percentile(clean_samples, 100 * alpha_low))
+    ci_high = float(np.percentile(clean_samples, 100 * alpha_high))
 
     return ci_low, ci_high

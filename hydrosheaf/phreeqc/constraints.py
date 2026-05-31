@@ -77,7 +77,11 @@ def build_edge_bounds(
                         entry["lb"][idx] = 0.0
                         entry["ub"][idx] = inf
                         entry["constraints_active"][label] = "dissolution_only"
-                elif si_u < -tau and si_v < -tau:
+                elif si_u < -tau and si_v > tau:
+                    entry["lb"][idx] = -inf
+                    entry["ub"][idx] = inf
+                    entry["constraints_active"][label] = "free"
+                elif si_u < -tau:
                     entry["lb"][idx] = 0.0
                     entry["ub"][idx] = inf
                     entry["constraints_active"][label] = "dissolution_only"

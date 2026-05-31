@@ -33,7 +33,7 @@ class RegressionSmallNetworkTests(unittest.TestCase):
 
         self.assertAlmostEqual(result.anomaly_norm, expected["anomaly_norm"], places=6)
         self.assertAlmostEqual(
-            result.objective_score, 0.4995764829434267, places=6
+            result.objective_score, expected["objective_score"], places=6
         )
 
         z_map = dict(zip(result.z_labels, result.z_extents))

@@ -37,8 +37,9 @@ class ConstraintTests(unittest.TestCase):
 
         self.assertEqual(entry["lb"][calcite_idx], 0.0)
         self.assertEqual(entry["constraints_active"]["calcite"], "dissolution_only")
-        self.assertEqual(entry["ub"][dolomite_idx], 0.0)
-        self.assertEqual(entry["constraints_active"]["dolomite"], "precipitation_only")
+        self.assertEqual(entry["lb"][dolomite_idx], -float("inf"))
+        self.assertEqual(entry["ub"][dolomite_idx], float("inf"))
+        self.assertEqual(entry["constraints_active"]["dolomite"], "free")
         self.assertEqual(entry["lb"][nitrate_idx], 0.0)
 
 

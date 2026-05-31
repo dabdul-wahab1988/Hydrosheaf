@@ -173,30 +173,23 @@ def _propose_flip(
     universe: Sequence[Any],
     rng: random.Random,
 ) -> Tuple[List[Any], str]:
-    """Propose adding or removing a random edge from universe.
+    """Propose a symmetric single-edge toggle from the universe.
 
     Returns (proposed_edge_list, proposal_label).
     """
     current_set = {_get_edge_id(e) for e in current}
     universe_list = list(universe)
-
-    # Randomly choose add or remove
-    can_remove = len(current_set) > 0
-    can_add = len(current_set) < len(universe_list)
-
-    if can_remove and (not can_add or rng.random() < 0.5):
-        # Remove a random edge from current
-        removal = rng.choice(list(current))
-        proposed = [e for e in current if _get_edge_id(e) != _get_edge_id(removal)]
-        return proposed, f"remove_{_get_edge_id(removal)}"
-    elif can_add:
-        # Add a random edge not in current
-        absent = [e for e in universe_list if _get_edge_id(e) not in current_set]
-        addition = rng.choice(absent)
-        proposed = list(current) + [addition]
-        return proposed, f"add_{_get_edge_id(addition)}"
-    else:
+    if not universe_list:
         return list(current), "noop"
+
+    edge = rng.choice(universe_list)
+    edge_id = _get_edge_id(edge)
+    if edge_id in current_set:
+        proposed = [e for e in current if _get_edge_id(e) != edge_id]
+        return proposed, f"remove_{edge_id}"
+
+    proposed = list(current) + [edge]
+    return proposed, f"add_{edge_id}"
 
 
 def run_topology_posterior(

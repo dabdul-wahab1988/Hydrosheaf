@@ -6,13 +6,17 @@ EXCLUDE_DIRS = {
     ".git",
     "__pycache__",
     "venv",
+    ".venv",
     "env",
     ".pytest_cache",
+    "pymc_cache",
     "build",
     "dist",
     "hydrosheaf.egg-info",
     ".idea",
     ".vscode",
+    "tests",
+    "scratch",
 }
 
 M2_BUNDLE_PATHS = (

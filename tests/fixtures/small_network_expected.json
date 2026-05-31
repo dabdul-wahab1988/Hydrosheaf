@@ -4,7 +4,7 @@
   "gamma": 1.2,
   "transport_residual_norm": 0.2525,
   "anomaly_norm": 0.0,
-  "objective_score": 0.15,
+  "objective_score": 0.7520764829434268,
   "z": {
     "halite": 0.5
   }

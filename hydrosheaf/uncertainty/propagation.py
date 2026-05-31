@@ -5,6 +5,7 @@ This module implements Monte Carlo sampling to propagate input measurement
 uncertainty through the transport and reaction inference pipeline.
 """
 
+from dataclasses import replace
 from typing import List, Mapping, Optional
 
 import numpy as np
@@ -62,6 +63,8 @@ def monte_carlo_propagate(
     """
     # Import here to avoid circular imports
     from ..inference.edge_fit import fit_edge
+
+    config = replace(config, uncertainty_method="none")
 
     if random_state is not None:
         np.random.seed(random_state)

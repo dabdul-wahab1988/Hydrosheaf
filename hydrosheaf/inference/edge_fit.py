@@ -1,7 +1,7 @@
 """Per-edge fitting pipeline."""
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Dict, List, Mapping, Optional
 
 from ..config import Config
@@ -11,6 +11,7 @@ from ..data.qc import qc_flags
 logger = get_logger("inference.edge_fit")
 from ..models.ec_tds import ec_tds_penalty
 from ..models.gibbs import gibbs_evaporation_penalty, compute_gibbs_metrics
+from ..models.mixing import fit_evaporation
 from ..models.reactions import ReactionFit, build_reaction_dictionary, fit_reactions
 from ..isotopes import extract_isotopes, isotope_penalty
 from ..physics.kinetic_limit import apply_kinetic_penalties
@@ -162,6 +163,58 @@ class EdgeResult:
     uncertainty: Optional[object] = None
 
 
+def _weighted_mean(values: List[float], weights: List[float]) -> float:
+    total_weight = sum(weights)
+    if total_weight <= 0.0:
+        return sum(values) / len(values) if values else 0.0
+    return sum(w * v for w, v in zip(weights, values)) / total_weight
+
+
+def _information_score(residual_norm: float, n_observations: int, n_parameters: int) -> float:
+    n = max(1, int(n_observations))
+    rss = max(float(residual_norm), 1e-300)
+    return n * math.log(rss / n) + 2.0 * max(1, int(n_parameters))
+
+
+def _bounds_for_bayesian(
+    bounds: Optional[Dict[str, object]], n_reactions: int
+) -> Optional[List[tuple]]:
+    if not bounds:
+        return None
+    lb_raw = bounds.get("lb")
+    ub_raw = bounds.get("ub")
+    if not isinstance(lb_raw, list) or not isinstance(ub_raw, list):
+        return None
+    out = []
+    for idx in range(n_reactions):
+        lb = lb_raw[idx] if idx < len(lb_raw) else None
+        ub = ub_raw[idx] if idx < len(ub_raw) else None
+        out.append((lb, ub))
+    return out
+
+
+def _attach_uncertainty(result: EdgeResult, uncertainty: object) -> None:
+    result.uncertainty = uncertainty
+    method = getattr(uncertainty, "method", None)
+    result.uncertainty_method = str(method) if method is not None else None
+    result.gamma_std = getattr(uncertainty, "gamma_std", None)
+    result.gamma_ci_low = getattr(uncertainty, "gamma_ci_low", None)
+    result.gamma_ci_high = getattr(uncertainty, "gamma_ci_high", None)
+    result.f_std = getattr(uncertainty, "f_std", None)
+    result.f_ci_low = getattr(uncertainty, "f_ci_low", None)
+    result.f_ci_high = getattr(uncertainty, "f_ci_high", None)
+    result.extents_std = list(getattr(uncertainty, "extents_std", []) or [])
+    result.extents_ci_low = list(getattr(uncertainty, "extents_ci_low", []) or [])
+    result.extents_ci_high = list(getattr(uncertainty, "extents_ci_high", []) or [])
+    result.uncertainty_r_hat = dict(getattr(uncertainty, "r_hat", {}) or {})
+    result.uncertainty_ess = dict(getattr(uncertainty, "ess", {}) or {})
+    if result.reaction_fit is not None:
+        result.reaction_fit.extents_std = result.extents_std
+        result.reaction_fit.extents_ci_low = result.extents_ci_low
+        result.reaction_fit.extents_ci_high = result.extents_ci_high
+        result.reaction_fit.uncertainty_result = uncertainty
+
+
 def fit_edge(
     x_u: List[float],
     x_v: List[float],
@@ -226,9 +279,8 @@ def fit_edge(
 
     if "evap" in config.transport_models_enabled:
         transport_vec = list(x_u)
-        phys_fit = fit_reactions(target_y, [transport_vec], weights_phys, lambda_l1=0.0, signed_mask=[True], lb=[-0.99], ub=[999.0])
-        delta_gamma = phys_fit.extents[0]
-        gamma_val = 1.0 + delta_gamma
+        gamma_val, _, transport_residual = fit_evaporation(x_u, x_v, weights_phys)
+        delta_gamma = gamma_val - 1.0
         transport_contrib = [delta_gamma * val for val in transport_vec]
         chem_target = [y - t for y, t in zip(target_y, transport_contrib)]
         
@@ -242,7 +294,8 @@ def fit_edge(
         
         candidates.append({
             "type": "evap", "end_id": None, "gamma": gamma_val, "f": None,
-            "fit": chem_fit, "z": chem_fit.extents, "transport_residual": phys_fit.residual_norm, "labels": labels
+            "fit": chem_fit, "z": chem_fit.extents, "transport_residual": transport_residual, "labels": labels,
+            "transport_k": 1, "chem_target": chem_target
         })
 
     if "mix" in config.transport_models_enabled:
@@ -265,7 +318,8 @@ def fit_edge(
             
             candidates.append({
                 "type": "mix", "end_id": end_id, "gamma": None, "f": f_val,
-                "fit": chem_fit, "z": chem_fit.extents, "transport_residual": phys_fit.residual_norm, "labels": labels
+                "fit": chem_fit, "z": chem_fit.extents, "transport_residual": phys_fit.residual_norm, "labels": labels,
+                "transport_k": 1, "chem_target": chem_target
             })
 
     best_result: Optional[EdgeResult] = None
@@ -316,13 +370,36 @@ def fit_edge(
         # Penalize reactions that are implausibly fast for the available residence time.
         kin_penalty = apply_kinetic_penalties(chem_fit.extents, labels, residence_time_days or residence_time_days, config)
 
-        mean_v = sum(x_v) / len(x_v) if x_v else 0.0
-        sst = sum(w * (v_val - mean_v) ** 2 for w, v_val in zip(config.weights, x_v))
+        chem_target_for_score = list(cand.get("chem_target", []))  # type: ignore[arg-type]
+        mean_v = _weighted_mean(chem_target_for_score, active_weights)
+        sst = sum(
+            w * (v_val - mean_v) ** 2
+            for w, v_val in zip(active_weights, chem_target_for_score)
+        )
         chem_r2 = 1.0 - (chem_fit.residual_norm / sst) if sst > 1e-12 else 0.0
 
-        objective = chem_fit.residual_norm + config.lambda_l1_value() * chem_fit.l1_norm + penalty + iso_penalty + gibbs_penalty_val + iso_consistency_penalty + kin_penalty
+        transport_residual_norm = float(cand.get("transport_residual", 0.0))
+        combined_residual_norm = chem_fit.residual_norm + transport_residual_norm
+        l1_penalty = config.lambda_l1_value() * chem_fit.l1_norm
+        objective = combined_residual_norm + l1_penalty + penalty + iso_penalty + gibbs_penalty_val + iso_consistency_penalty + kin_penalty
 
-        candidate_entries.append({"transport_model": transport_model, "endmember_id": end_id, "objective_score": objective, "transport_residual_norm": chem_fit.residual_norm})
+        n_params = int(cand.get("transport_k", 1)) + len(
+            [extent for extent in chem_fit.extents if abs(float(extent)) > 1e-6]
+        ) + 1
+        information_score = _information_score(
+            combined_residual_norm, len(chem_fit.residual), n_params
+        )
+
+        candidate_entries.append({
+            "transport_model": transport_model,
+            "endmember_id": end_id,
+            "objective_score": objective,
+            "information_score": information_score,
+            "transport_residual_norm": transport_residual_norm,
+            "chemistry_residual_norm": chem_fit.residual_norm,
+            "combined_residual_norm": combined_residual_norm,
+            "n_parameters": n_params,
+        })
         
         final_reaction_fit = chem_fit
         constraints_active: Dict[str, str] = {}
@@ -344,7 +421,7 @@ def fit_edge(
 
         res_obj = EdgeResult(
             edge_id=edge_id, u=u, v=v, transport_model=transport_model, gamma=gamma_value, f=f_value, endmember_id=end_id,
-            z_extents=final_reaction_fit.extents, z_labels=labels, transport_residual_norm=float(cand.get("transport_residual", 0.0)),
+            z_extents=final_reaction_fit.extents, z_labels=labels, transport_residual_norm=transport_residual_norm,
             anomaly_norm=chem_fit.residual_norm, objective_score=objective, l1_norm=final_reaction_fit.l1_norm,
             reaction_iterations=final_reaction_fit.iterations, reaction_converged=final_reaction_fit.converged,
             ec_tds_penalty=penalty, qc_flags=[], constraints_active=constraints_active, si_u=si_u_dict, si_v=si_v_dict,
@@ -363,9 +440,9 @@ def fit_edge(
 
     if best_result is None: raise RuntimeError("No transport candidates evaluated.")
 
-    scores = [float(e["objective_score"]) for e in candidate_entries if e.get("objective_score") is not None]
+    scores = [float(e["information_score"]) for e in candidate_entries if e.get("information_score") is not None]
     min_score = min(scores) if scores else 0.0
-    weights = [math.exp(-(score - min_score)) for score in scores]
+    weights = [math.exp(-0.5 * (score - min_score)) for score in scores]
     total = sum(weights) or 1.0
     transport_probs: Dict[str, float] = {}
     for entry, weight in zip(candidate_entries, weights):
@@ -378,4 +455,63 @@ def fit_edge(
     best_result.qc_flags = qc
     best_result.transport_probabilities = transport_probs
     best_result.candidate_scores = candidate_entries
+    uncertainty_method = str(getattr(config, "uncertainty_method", "none") or "none")
+    if uncertainty_method != "none":
+        uq_config = replace(config, uncertainty_method="none")
+        try:
+            if uncertainty_method == "bootstrap":
+                from ..uncertainty.bootstrap import bootstrap_edge_fit
+
+                uncertainty = bootstrap_edge_fit(
+                    x_u,
+                    x_v,
+                    uq_config,
+                    obs_u=obs_u,
+                    obs_v=obs_v,
+                    bounds=bounds,
+                    n_resamples=int(getattr(config, "bootstrap_n_resamples", 1000)),
+                )
+                _attach_uncertainty(best_result, uncertainty)
+            elif uncertainty_method == "monte_carlo":
+                from ..uncertainty.propagation import monte_carlo_propagate
+
+                uncertainty = monte_carlo_propagate(
+                    x_u,
+                    x_v,
+                    uq_config,
+                    obs_u=obs_u,
+                    obs_v=obs_v,
+                    bounds=bounds,
+                    input_uncertainty_pct=float(getattr(config, "input_uncertainty_pct", 5.0)),
+                    n_samples=int(getattr(config, "monte_carlo_n_samples", 1000)),
+                )
+                _attach_uncertainty(best_result, uncertainty)
+            elif uncertainty_method == "bayesian":
+                if best_result.transport_model != "evap":
+                    logger.warning(
+                        "Bayesian edge uncertainty currently supports the evaporation model; skipping edge %s.",
+                        edge_id or "<unknown>",
+                    )
+                else:
+                    from ..uncertainty.bayesian import bayesian_edge_fit
+
+                    uncertainty = bayesian_edge_fit(
+                        x_u,
+                        x_v,
+                        reaction_matrix,
+                        labels,
+                        uq_config,
+                        n_samples=int(getattr(config, "bayesian_n_samples", 5000)),
+                        n_chains=int(getattr(config, "bayesian_n_chains", 4)),
+                        target_accept=float(getattr(config, "bayesian_target_accept", 0.95)),
+                        bounds=_bounds_for_bayesian(bounds, len(labels)),
+                    )
+                    _attach_uncertainty(best_result, uncertainty)
+        except Exception as exc:
+            logger.warning(
+                "Uncertainty quantification failed for edge %s with method %s: %s",
+                edge_id or "<unknown>",
+                uncertainty_method,
+                exc,
+            )
     return best_result
