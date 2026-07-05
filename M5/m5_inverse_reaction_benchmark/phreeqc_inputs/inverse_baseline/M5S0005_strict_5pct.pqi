@@ -1,0 +1,73 @@
+PHASES
+M5_calcite
+    Ca(HCO3)2 = Ca+2 + 2 HCO3-
+    log_k 0.0
+M5_dolomite
+    CaMg(HCO3)4 = Ca+2 + Mg+2 + 4 HCO3-
+    log_k 0.0
+M5_gypsum
+    CaSO4:2H2O = Ca+2 + SO4-2 + 2 H2O
+    log_k 0.0
+M5_NO3src
+    HNO3 = H+ + NO3-
+    log_k 0.0
+M5_denit
+    CH2O + 0.8 NO3- = 0.4 N2 + 0.8 HCO3- + 0.2 CO2 + 0.6 H2O
+    log_k 0.0
+M5_halite
+    NaCl = Na+ + Cl-
+    log_k 0.0
+END
+
+SOLUTION 1 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.15
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.98799530029 as HCO3
+    -water 1.0
+END
+
+SOLUTION 2 downstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.189957
+    pe 4
+    Ca 1.87734314308
+    Mg 0.937594298582
+    Na 0.717052539199
+    K 0.0799998697891
+    Cl 0.5499991048
+    S(6) 0.21999964192 as SO4
+    N(5) 0.124602856719 as NO3
+    F 0.0149999755855
+    Fe 0.00199999674473
+    P 0.0119999804684 as PO4
+    Alkalinity 5.17625476808 as HCO3
+    -water 1.0
+END
+
+INVERSE_MODELING 1
+    -solutions 1 2
+    -uncertainty 0.05
+    -range
+    -phases
+        M5_calcite
+        M5_dolomite
+        M5_gypsum
+        M5_NO3src
+        M5_denit
+        M5_halite
+        CaX2
+        NaX
+END

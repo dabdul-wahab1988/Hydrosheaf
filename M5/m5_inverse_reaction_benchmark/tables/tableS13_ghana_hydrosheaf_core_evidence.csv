@@ -1,0 +1,65 @@
+aquifer,reaction,family,support_frequency,mean_evidence_score,median_penalty_scale,n
+Birimian fractured basement aquifer,halite,evaporite,1.0,0.936578947368421,0.4065696597405991,38
+Birimian fractured basement aquifer,dolomite,carbonate,0.8947368421052632,0.8973684210526315,0.4676664270099093,38
+Birimian fractured basement aquifer,gypsum,evaporite,0.7368421052631579,0.8115789473684211,0.4676664270099092,38
+Birimian fractured basement aquifer,NO3src,anthropogenic,0.6052631578947368,0.6526315789473683,0.6976763260710311,38
+Birimian fractured basement aquifer,k_feldspar,silicate,0.6052631578947368,0.7747368421052631,0.571209063848815,38
+Birimian fractured basement aquifer,MgNa_exch,ion_exchange,0.47368421052631576,0.4694736842105263,1.0,38
+Birimian fractured basement aquifer,albite,silicate,0.34210526315789475,0.8510526315789473,0.4676664270099093,38
+Birimian fractured basement aquifer,anorthite,silicate,0.3157894736842105,0.8299999999999998,0.4676664270099093,38
+Birimian fractured basement aquifer,calcite,carbonate,0.2894736842105263,0.8842105263157893,0.4676664270099093,38
+Birimian fractured basement aquifer,CaNa_exch,ion_exchange,0.23684210526315788,0.4931578947368422,1.0,38
+Birimian fractured basement aquifer,NaCa_exch,ion_exchange,0.18421052631578946,0.4678947368421053,1.0,38
+Birimian fractured basement aquifer,pyrite_oxidation,redox,0.18421052631578946,0.5052631578947369,1.0,38
+Birimian fractured basement aquifer,denit,redox,0.15789473684210525,0.4868421052631578,1.1274968515793755,38
+Birimian fractured basement aquifer,apatite,trace_mineral,0.07894736842105263,0.6273684210526315,0.8521437889662115,38
+Birimian fractured basement aquifer,NaMg_exch,ion_exchange,0.0,0.4863157894736842,1.0,38
+Birimian fractured basement aquifer,fluorite,trace_mineral,0.0,0.6589473684210526,0.6976763260710311,38
+Granitoid fractured basement aquifer,halite,evaporite,1.0,0.945,0.4065696597405991,20
+Granitoid fractured basement aquifer,dolomite,carbonate,0.95,0.9099999999999999,0.4065696597405991,20
+Granitoid fractured basement aquifer,k_feldspar,silicate,0.65,0.7699999999999999,0.571209063848815,20
+Granitoid fractured basement aquifer,NO3src,anthropogenic,0.6,0.617,0.6976763260710311,20
+Granitoid fractured basement aquifer,gypsum,evaporite,0.55,0.779,0.5712090638488149,20
+Granitoid fractured basement aquifer,MgNa_exch,ion_exchange,0.5,0.47300000000000003,1.0,20
+Granitoid fractured basement aquifer,anorthite,silicate,0.45,0.845,0.4676664270099093,20
+Granitoid fractured basement aquifer,calcite,carbonate,0.35,0.8704999999999998,0.4676664270099093,20
+Granitoid fractured basement aquifer,CaNa_exch,ion_exchange,0.25,0.47300000000000003,1.0,20
+Granitoid fractured basement aquifer,albite,silicate,0.25,0.8649999999999999,0.4676664270099093,20
+Granitoid fractured basement aquifer,denit,redox,0.25,0.5409999999999999,1.1274968515793755,20
+Granitoid fractured basement aquifer,NaCa_exch,ion_exchange,0.2,0.471,1.0,20
+Granitoid fractured basement aquifer,fluorite,trace_mineral,0.2,0.6749999999999999,0.6976763260710311,20
+Granitoid fractured basement aquifer,pyrite_oxidation,redox,0.15,0.5,1.0,20
+Granitoid fractured basement aquifer,apatite,trace_mineral,0.1,0.6199999999999999,0.8521437889662115,20
+Granitoid fractured basement aquifer,NaMg_exch,ion_exchange,0.05,0.476,1.0,20
+Middle Voltaian sedimentary aquifer,halite,evaporite,0.9574468085106383,0.9317021276595745,0.4065696597405991,47
+Middle Voltaian sedimentary aquifer,dolomite,carbonate,0.851063829787234,0.9108510638297871,0.4065696597405991,47
+Middle Voltaian sedimentary aquifer,gypsum,evaporite,0.8297872340425532,0.83,0.4676664270099092,47
+Middle Voltaian sedimentary aquifer,NO3src,anthropogenic,0.574468085106383,0.6404255319148936,0.6976763260710311,47
+Middle Voltaian sedimentary aquifer,k_feldspar,silicate,0.5531914893617021,0.7736170212765957,0.571209063848815,47
+Middle Voltaian sedimentary aquifer,MgNa_exch,ion_exchange,0.5106382978723404,0.5668085106382978,0.9231163463866358,47
+Middle Voltaian sedimentary aquifer,anorthite,silicate,0.40425531914893614,0.8502127659574467,0.4676664270099093,47
+Middle Voltaian sedimentary aquifer,calcite,carbonate,0.40425531914893614,0.9072340425531914,0.4065696597405991,47
+Middle Voltaian sedimentary aquifer,albite,silicate,0.2765957446808511,0.858723404255319,0.4676664270099093,47
+Middle Voltaian sedimentary aquifer,denit,redox,0.2127659574468085,0.5148936170212765,1.1274968515793755,47
+Middle Voltaian sedimentary aquifer,pyrite_oxidation,redox,0.19148936170212766,0.5021276595744681,1.0,47
+Middle Voltaian sedimentary aquifer,CaNa_exch,ion_exchange,0.1702127659574468,0.5880851063829787,0.9231163463866358,47
+Middle Voltaian sedimentary aquifer,NaCa_exch,ion_exchange,0.1702127659574468,0.3748936170212766,1.2712491503214047,47
+Middle Voltaian sedimentary aquifer,apatite,trace_mineral,0.06382978723404255,0.6395744680851063,0.6976763260710311,47
+Middle Voltaian sedimentary aquifer,NaMg_exch,ion_exchange,0.02127659574468085,0.38553191489361704,1.2712491503214047,47
+Middle Voltaian sedimentary aquifer,fluorite,trace_mineral,0.0,0.656595744680851,0.6976763260710311,47
+Regolith/alluvial shallow aquifer,halite,evaporite,0.9696969696969697,0.9375757575757575,0.4065696597405991,33
+Regolith/alluvial shallow aquifer,dolomite,carbonate,0.9393939393939394,0.8933333333333332,0.4676664270099093,33
+Regolith/alluvial shallow aquifer,gypsum,evaporite,0.7878787878787878,0.8115151515151515,0.5712090638488149,33
+Regolith/alluvial shallow aquifer,NO3src,anthropogenic,0.7272727272727273,0.6418181818181818,0.6976763260710311,33
+Regolith/alluvial shallow aquifer,k_feldspar,silicate,0.7272727272727273,0.7678787878787877,0.571209063848815,33
+Regolith/alluvial shallow aquifer,MgNa_exch,ion_exchange,0.5151515151515151,0.4460606060606061,1.0,33
+Regolith/alluvial shallow aquifer,anorthite,silicate,0.3939393939393939,0.8193939393939392,0.571209063848815,33
+Regolith/alluvial shallow aquifer,albite,silicate,0.36363636363636365,0.8618181818181817,0.4676664270099093,33
+Regolith/alluvial shallow aquifer,calcite,carbonate,0.3333333333333333,0.873030303030303,0.4676664270099093,33
+Regolith/alluvial shallow aquifer,CaNa_exch,ion_exchange,0.18181818181818182,0.45696969696969697,1.0,33
+Regolith/alluvial shallow aquifer,pyrite_oxidation,redox,0.15151515151515152,0.5,1.0,33
+Regolith/alluvial shallow aquifer,NaCa_exch,ion_exchange,0.12121212121212122,0.4884848484848485,1.0,33
+Regolith/alluvial shallow aquifer,denit,redox,0.12121212121212122,0.483030303030303,1.1274968515793755,33
+Regolith/alluvial shallow aquifer,apatite,trace_mineral,0.06060606060606061,0.6254545454545454,0.8521437889662115,33
+Regolith/alluvial shallow aquifer,NaMg_exch,ion_exchange,0.0,0.49454545454545457,1.0,33
+Regolith/alluvial shallow aquifer,fluorite,trace_mineral,0.0,0.6618181818181817,0.6976763260710311,33

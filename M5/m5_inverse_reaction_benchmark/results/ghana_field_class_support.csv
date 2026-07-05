@@ -1,0 +1,1795 @@
+well_id,aquifer,lithology,equivalence_class,selected
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,True
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,False
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,True
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,True
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,False
+NGW-001,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,False
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,False
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,True
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,False
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,False
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,False
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,True
+NGW-002,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,True
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,True
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,True
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,True
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-003,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,True
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,True
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,True
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-004,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,False
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,True
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,False
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,False
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,True
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,True
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,True
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,True
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,True
+NGW-005,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,True
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,False
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,False
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,False
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,True
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,False
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-006,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,False
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,False
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,True
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,True
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,False
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,True
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,False
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,False
+NGW-008,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,False
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,False
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,True
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,False
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,True
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,False
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,True
+NGW-009,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,False
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,False
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,False
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,True
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,True
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,False
+NGW-010,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,False
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,False
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,True
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,True
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,True
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,False
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,True
+NGW-011,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,True
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,False
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,False
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,False
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,True
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,False
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,True
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,False
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,True
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,True
+NGW-012,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,True
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,False
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,False
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,True
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,True
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,False
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,False
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,False
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,False
+NGW-013,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,True
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,False
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,False
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,False
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,True
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,False
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,True
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,True
+NGW-016,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,False
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,True
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,True
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-018,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,False
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,False
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,True
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,True
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,False
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,True
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,False
+NGW-019,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,False
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,False
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,True
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,True
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,False
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,False
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,True
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,True
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,False
+NGW-020,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,False
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,False
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,True
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,True
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-021,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,True
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,True
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,True
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,False
+NGW-022,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC01,False
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC02,False
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC03,True
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC04,False
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC05,False
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC06,False
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC07,False
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC08,True
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC09,False
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC10,True
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC11,True
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC12,True
+NGW-023,Regolith/alluvial shallow aquifer,valley alluvium,EC13,False
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,True
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,True
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,False
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,False
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,True
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,True
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,False
+NGW-025,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC01,True
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC02,False
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC03,False
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC04,True
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC05,False
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC06,False
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC07,False
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC08,True
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC09,False
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC10,True
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC11,True
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC12,False
+NGW-026,Regolith/alluvial shallow aquifer,weathered regolith,EC13,False
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,False
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,True
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,False
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,True
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,False
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,False
+NGW-027,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,False
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,True
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,False
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,False
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,False
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,True
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,False
+NGW-028,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC01,False
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC02,False
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC03,True
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC04,False
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC05,False
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC06,False
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC07,False
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC08,True
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC09,False
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC10,True
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC11,True
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC12,False
+NGW-029,Regolith/alluvial shallow aquifer,weathered regolith,EC13,False
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,False
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,False
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,True
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,True
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,False
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,False
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,True
+NGW-030,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC01,False
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC02,False
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC03,False
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC04,False
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC05,True
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC06,False
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC07,False
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC08,True
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC09,False
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC10,True
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC11,True
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC12,True
+NGW-032,Regolith/alluvial shallow aquifer,weathered regolith,EC13,True
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,False
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,False
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,False
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,False
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,False
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,False
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,True
+NGW-033,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,True
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,False
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,False
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,False
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,False
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,False
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,True
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,False
+NGW-034,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,False
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,True
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,False
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,False
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,True
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,True
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,True
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,False
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,False
+NGW-035,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,True
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,False
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,True
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,True
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,False
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-036,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC01,False
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC02,True
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC03,False
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC04,False
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC05,False
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC06,False
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC07,False
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC08,False
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC09,False
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC10,True
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC11,True
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC12,False
+NGW-037,Birimian fractured basement aquifer,greenstone belt fracture network,EC13,False
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC01,False
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC02,False
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC03,True
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC04,True
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC05,False
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC06,False
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC07,False
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC08,True
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC09,False
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC10,True
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC11,True
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC12,False
+NGW-038,Birimian fractured basement aquifer,greenstone belt fracture network,EC13,True
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC01,False
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC02,False
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC03,True
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC04,True
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC05,True
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC06,True
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC07,False
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC08,True
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC09,False
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC10,True
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC11,True
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC12,True
+NGW-039,Regolith/alluvial shallow aquifer,valley alluvium,EC13,False
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,True
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,True
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,True
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,False
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,False
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,False
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,True
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,True
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,False
+NGW-040,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,False
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,False
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,True
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,True
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,False
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,True
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,False
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,False
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,True
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,True
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,True
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-041,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,True
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,False
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,True
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,True
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,False
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,False
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,False
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,True
+NGW-042,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC01,True
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC02,True
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC03,False
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC04,False
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC05,False
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC06,False
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC07,False
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC08,True
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC09,False
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC10,True
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC11,True
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC12,False
+NGW-043,Regolith/alluvial shallow aquifer,valley alluvium,EC13,False
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,False
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,True
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,True
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,False
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,False
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,True
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,False
+NGW-046,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,False
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,True
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,True
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,True
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,True
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,False
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,False
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,True
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,False
+NGW-047,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,False
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,True
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,True
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,True
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,False
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,False
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,False
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,True
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,False
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,True
+NGW-048,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,False
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC01,True
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC02,True
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC03,False
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC04,True
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC05,False
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC06,False
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC07,False
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC08,False
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC09,False
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC10,False
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC11,True
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC12,True
+NGW-049,Regolith/alluvial shallow aquifer,valley alluvium,EC13,False
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,False
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,False
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,False
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,True
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,False
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,False
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,True
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,False
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,False
+NGW-051,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,False
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,True
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,True
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,True
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,False
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,False
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,True
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,True
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,True
+NGW-052,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,False
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,False
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,False
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,False
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,False
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,False
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,False
+NGW-053,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,False
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,False
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,False
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-054,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,False
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,True
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,True
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,False
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,False
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,False
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,True
+NGW-055,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,True
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,False
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,False
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,False
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,True
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,False
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,False
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,False
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,True
+NGW-056,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,True
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,False
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,False
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,True
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,False
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,False
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,False
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,True
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,False
+NGW-057,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,False
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,False
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,False
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,True
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,True
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,True
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,False
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,True
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,True
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,True
+NGW-058,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,False
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,True
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,True
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,True
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,False
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,True
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,False
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,False
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,True
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,False
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,True
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-062,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,False
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,True
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,True
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,True
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,False
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,True
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,False
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,True
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,True
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,True
+NGW-063,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,False
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,False
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,False
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,True
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,True
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,False
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,False
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,False
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,True
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,True
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,True
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-064,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,False
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,True
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,True
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,True
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,False
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,True
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,False
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,True
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,True
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,False
+NGW-065,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,False
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,False
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,False
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,True
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,True
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,False
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,False
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,True
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,True
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,False
+NGW-066,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,False
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,True
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,True
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,True
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,True
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-067,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,False
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,False
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,False
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,True
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,True
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,True
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,False
+NGW-068,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,False
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,False
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,True
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,True
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-069,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC01,True
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC02,True
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC03,False
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC04,False
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC05,False
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC06,False
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC07,False
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC08,True
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC09,False
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC10,False
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC11,True
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC12,False
+NGW-070,Birimian fractured basement aquifer,greenstone belt fracture network,EC13,False
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC01,False
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC02,True
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC03,True
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC04,False
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC05,True
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC06,False
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC07,False
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC08,True
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC09,False
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC10,True
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC11,True
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC12,False
+NGW-071,Regolith/alluvial shallow aquifer,valley alluvium,EC13,False
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,False
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,True
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,False
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,False
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,True
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,False
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,True
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,True
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,True
+NGW-072,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,True
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,False
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,False
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,True
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,True
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,True
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,False
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,True
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,True
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,False
+NGW-073,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,False
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,False
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,True
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,False
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-074,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,True
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,True
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,False
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,True
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,False
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,False
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,False
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,False
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,True
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,True
+NGW-075,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,False
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,False
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,True
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,True
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-076,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,False
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,False
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,True
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,True
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,False
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,False
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,True
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,False
+NGW-077,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,True
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,True
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,False
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,False
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,False
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,True
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,False
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,True
+NGW-078,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,True
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,False
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,True
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,False
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,False
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,False
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,True
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,False
+NGW-079,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,True
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,False
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,True
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,True
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,False
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,False
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,True
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,True
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,True
+NGW-080,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,False
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC01,False
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC02,True
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC03,False
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC04,False
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC05,False
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC06,True
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC07,True
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC08,True
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC09,False
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC10,True
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC11,True
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC12,False
+NGW-081,Birimian fractured basement aquifer,greenstone belt fracture network,EC13,False
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC01,False
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC02,True
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC03,True
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC04,True
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC05,False
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC06,False
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC07,False
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC08,True
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC09,False
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC10,True
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC11,True
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC12,True
+NGW-082,Granitoid fractured basement aquifer,gneissic fractured basement,EC13,True
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC01,True
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC02,True
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC03,False
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC04,False
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC05,True
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC06,False
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC07,False
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC08,True
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC09,True
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC10,False
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC11,True
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC12,True
+NGW-083,Granitoid fractured basement aquifer,granitoid saprolite,EC13,False
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,False
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,True
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,True
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,False
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,False
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,False
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,False
+NGW-084,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC01,False
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC02,True
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC03,True
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC04,False
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC05,False
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC06,False
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC07,False
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC08,True
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC09,False
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC10,True
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC11,True
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC12,True
+NGW-085,Regolith/alluvial shallow aquifer,weathered regolith,EC13,True
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC01,False
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC02,True
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC03,False
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC04,False
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC05,False
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC06,False
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC07,True
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC08,True
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC09,True
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC10,True
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC11,True
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC12,True
+NGW-086,Granitoid fractured basement aquifer,granitoid saprolite,EC13,True
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC01,False
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC02,False
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC03,False
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC04,True
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC05,False
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC06,False
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC07,True
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC08,True
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC09,False
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC10,False
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC11,True
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC12,True
+NGW-088,Granitoid fractured basement aquifer,gneissic fractured basement,EC13,False
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,True
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,False
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,True
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,True
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,False
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,True
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,True
+NGW-089,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,False
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,True
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,False
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,False
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,True
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,False
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,True
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,True
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,True
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,True
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-090,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,False
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,False
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,False
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,True
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,True
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,True
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,True
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,False
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,False
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,True
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,False
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-092,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,False
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC01,False
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC02,False
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC03,False
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC04,False
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC05,True
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC06,False
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC07,False
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC08,True
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC09,True
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC10,False
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC11,True
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC12,False
+NGW-093,Granitoid fractured basement aquifer,granitoid saprolite,EC13,False
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC01,True
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC02,True
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC03,False
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC04,False
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC05,True
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC06,False
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC07,False
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC08,True
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC09,False
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC10,False
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC11,True
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC12,False
+NGW-094,Regolith/alluvial shallow aquifer,valley alluvium,EC13,False
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,True
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,False
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,False
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,False
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,True
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,False
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,True
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,True
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,False
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,True
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-095,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,False
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,True
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,True
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,False
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,True
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,False
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,True
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,False
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,True
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,True
+NGW-096,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,False
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,True
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,False
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,True
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,False
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,True
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,False
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,True
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,True
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,True
+NGW-097,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,False
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC01,True
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC02,True
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC03,True
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC04,False
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC05,False
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC06,False
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC07,False
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC08,True
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC09,False
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC10,True
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC11,True
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC12,False
+NGW-098,Granitoid fractured basement aquifer,granitoid saprolite,EC13,False
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC01,False
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC02,True
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC03,True
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC04,False
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC05,False
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC06,False
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC07,False
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC08,True
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC09,False
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC10,True
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC11,True
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC12,True
+NGW-099,Regolith/alluvial shallow aquifer,weathered regolith,EC13,False
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC01,False
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC02,False
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC03,True
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC04,False
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC05,False
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC06,False
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC07,False
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC08,True
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC09,False
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC10,False
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC11,True
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC12,False
+NGW-100,Regolith/alluvial shallow aquifer,weathered regolith,EC13,False
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC01,True
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC02,True
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC03,True
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC04,False
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC05,True
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC06,False
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC07,False
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC08,True
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC09,False
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC10,True
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC11,True
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC12,True
+NGW-101,Birimian fractured basement aquifer,greenstone belt fracture network,EC13,True
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,True
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,True
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,False
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,False
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,False
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,False
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,True
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,True
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,True
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,True
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-102,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,False
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,False
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,True
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,True
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,False
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,True
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,False
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,False
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,True
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,False
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,True
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-103,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,False
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC01,False
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC02,False
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC03,True
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC04,True
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC05,False
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC06,False
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC07,False
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC08,True
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC09,False
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC10,True
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC11,True
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC12,True
+NGW-104,Regolith/alluvial shallow aquifer,weathered regolith,EC13,False
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC01,False
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC02,True
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC03,True
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC04,False
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC05,True
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC06,False
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC07,False
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC08,True
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC09,False
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC10,False
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC11,True
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC12,True
+NGW-105,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC13,True
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC01,False
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC02,False
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC03,True
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC04,True
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC05,False
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC06,False
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC07,False
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC08,True
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC09,False
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC10,True
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC11,True
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC12,True
+NGW-106,Granitoid fractured basement aquifer,granitoid saprolite,EC13,False
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC01,False
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC02,False
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC03,True
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC04,True
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC05,False
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC06,False
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC07,False
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC08,True
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC09,False
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC10,True
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC11,True
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC12,True
+NGW-107,Regolith/alluvial shallow aquifer,valley alluvium,EC13,False
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC01,False
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC02,False
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC03,True
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC04,False
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC05,True
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC06,False
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC07,False
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC08,True
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC09,False
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC10,True
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC11,True
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC12,False
+NGW-108,Birimian fractured basement aquifer,greenstone belt fracture network,EC13,False
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC01,False
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC02,False
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC03,True
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC04,True
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC05,False
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC06,False
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC07,False
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC08,True
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC09,False
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC10,True
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC11,True
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC12,False
+NGW-109,Regolith/alluvial shallow aquifer,valley alluvium,EC13,False
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC01,False
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC02,False
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC03,True
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC04,False
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC05,True
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC06,False
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC07,False
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC08,True
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC09,False
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC10,False
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC11,True
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC12,True
+NGW-110,Granitoid fractured basement aquifer,granitoid saprolite,EC13,False
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC01,True
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC02,True
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC03,True
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC04,False
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC05,True
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC06,False
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC07,False
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC08,True
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC09,False
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC10,False
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC11,True
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC12,True
+NGW-111,Granitoid fractured basement aquifer,gneissic fractured basement,EC13,False
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC01,True
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC02,True
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC03,True
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC04,False
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC05,False
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC06,False
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC07,False
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC08,True
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC09,False
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC10,True
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC11,True
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC12,True
+NGW-113,Regolith/alluvial shallow aquifer,weathered regolith,EC13,False
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC01,True
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC02,False
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC03,True
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC04,False
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC05,False
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC06,False
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC07,False
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC08,True
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC09,True
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC10,True
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC11,True
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC12,True
+NGW-114,Granitoid fractured basement aquifer,granitoid saprolite,EC13,False
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC01,False
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC02,True
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC03,True
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC04,False
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC05,False
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC06,False
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC07,False
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC08,True
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC09,False
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC10,False
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC11,True
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC12,True
+NGW-117,Regolith/alluvial shallow aquifer,valley alluvium,EC13,False
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC01,True
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC02,False
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC03,True
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC04,True
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC05,False
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC06,False
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC07,False
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC08,True
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC09,False
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC10,False
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC11,True
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC12,False
+NGW-118,Birimian fractured basement aquifer,greenstone belt fracture network,EC13,True
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,False
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,False
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,True
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,True
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,True
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,False
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,False
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,True
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,True
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,True
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-119,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,False
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,False
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,False
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,True
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,True
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,True
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,False
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,False
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,True
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,True
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,True
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-120,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,False
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC01,False
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC02,True
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC03,True
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC04,False
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC05,False
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC06,False
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC07,False
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC08,True
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC09,False
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC10,True
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC11,True
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC12,False
+NGW-121,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC13,False
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,False
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,True
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,True
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,False
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,False
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,True
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,False
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,False
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,True
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,False
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,False
+NGW-122,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,False
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,False
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,False
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,True
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,False
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,True
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,True
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,True
+NGW-125,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,False
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,False
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,False
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,False
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,True
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,True
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,True
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,False
+NGW-126,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC01,False
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC02,False
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC03,False
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC04,True
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC05,False
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC06,False
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC07,True
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC08,True
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC09,False
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC10,False
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC11,True
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC12,True
+NGW-127,Birimian fractured basement aquifer,greenstone belt fracture network,EC13,True
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC01,True
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC02,True
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC03,True
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC04,False
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC05,True
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC06,False
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC07,False
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC08,True
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC09,False
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC10,False
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC11,True
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC12,True
+NGW-129,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC13,False
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC01,True
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC02,True
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC03,False
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC04,False
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC05,False
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC06,True
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC07,True
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC08,False
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC09,False
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC10,False
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC11,True
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC12,False
+NGW-130,Granitoid fractured basement aquifer,granite–gneiss weathered/fractured zone,EC13,False
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,True
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,True
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,True
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,False
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,True
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,False
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,True
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,True
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,True
+NGW-131,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,False
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC01,False
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC02,True
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC03,True
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC04,False
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC05,False
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC06,False
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC07,False
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC08,True
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC09,False
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC10,True
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC11,True
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC12,False
+NGW-133,Regolith/alluvial shallow aquifer,weathered regolith,EC13,False
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,False
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,True
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,False
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,False
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,True
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,True
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,True
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,False
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,True
+NGW-134,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,True
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC01,False
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC02,False
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC03,False
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC04,False
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC05,False
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC06,False
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC07,True
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC08,True
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC09,False
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC10,True
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC11,True
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC12,False
+NGW-135,Granitoid fractured basement aquifer,granitoid saprolite,EC13,False
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,False
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,True
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,False
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,False
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,False
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,False
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,True
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,True
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,True
+NGW-136,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,True
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC01,False
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC02,True
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC03,True
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC04,False
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC05,False
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC06,False
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC07,False
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC08,True
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC09,False
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC10,True
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC11,True
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC12,False
+NGW-137,Middle Voltaian sedimentary aquifer,siltstone–shale unit,EC13,False
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,True
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,True
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,True
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,False
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,True
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,False
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,False
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,True
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,True
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,True
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-138,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,False
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,False
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,False
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,True
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,True
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,False
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,True
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,True
+NGW-140,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,True
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,True
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,True
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,False
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,False
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,True
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,True
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,False
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,True
+NGW-141,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,True
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,False
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,False
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,False
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,True
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,False
+NGW-142,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,True
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,True
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,False
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,False
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,False
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,True
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,False
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,True
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,True
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,True
+NGW-143,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,False
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC01,True
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC02,False
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC03,True
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC04,False
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC05,True
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC06,False
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC07,False
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC08,True
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC09,False
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC10,True
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC11,True
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC12,False
+NGW-144,Granitoid fractured basement aquifer,gneissic fractured basement,EC13,False
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,False
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,False
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,False
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,True
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,True
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,False
+NGW-145,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC01,False
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC02,True
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC03,False
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC04,False
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC05,False
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC06,False
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC07,True
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC08,True
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC09,False
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC10,True
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC11,True
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC12,True
+NGW-146,Birimian fractured basement aquifer,greenstone belt fracture network,EC13,False
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC01,True
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC02,True
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC03,True
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC04,False
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC05,True
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC06,False
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC07,False
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC08,True
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC09,False
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC10,False
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC11,True
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC12,True
+NGW-147,Middle Voltaian sedimentary aquifer,sandstone–shale interbeds,EC13,False
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC01,True
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC02,True
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC03,False
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC04,False
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC05,False
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC06,False
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC07,True
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC08,True
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC09,False
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC10,False
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC11,True
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC12,False
+NGW-148,Granitoid fractured basement aquifer,granitoid saprolite,EC13,False
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC01,False
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC02,True
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC03,True
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC04,False
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC05,False
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC06,False
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC07,False
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC08,True
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC09,False
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC10,True
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC11,True
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC12,True
+NGW-149,Birimian fractured basement aquifer,metavolcanic–metasedimentary rocks,EC13,False
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC01,False
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC02,False
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC03,True
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC04,True
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC05,False
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC06,False
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC07,False
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC08,True
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC09,False
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC10,True
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC11,True
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC12,True
+NGW-150,Regolith/alluvial shallow aquifer,weathered regolith,EC13,True
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC01,True
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC02,False
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC03,True
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC04,True
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC05,False
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC06,False
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC07,False
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC08,True
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC09,False
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC10,True
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC11,True
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC12,True
+NGW-151,Regolith/alluvial shallow aquifer,weathered regolith,EC13,False
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC01,True
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC02,False
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC03,True
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC04,False
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC05,True
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC06,False
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC07,False
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC08,False
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC09,False
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC10,True
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC11,True
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC12,True
+NGW-152,Middle Voltaian sedimentary aquifer,mudstone–sandstone sequence,EC13,False
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC01,False
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC02,True
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC03,True
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC04,False
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC05,False
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC06,False
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC07,False
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC08,True
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC09,False
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC10,True
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC11,True
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC12,False
+NGW-153,Regolith/alluvial shallow aquifer,valley alluvium,EC13,False
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC01,False
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC02,True
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC03,True
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC04,False
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC05,True
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC06,True
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC07,False
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC08,True
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC09,False
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC10,True
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC11,True
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC12,True
+NGW-154,Granitoid fractured basement aquifer,granitoid saprolite,EC13,False
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC01,True
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC02,False
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC03,True
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC04,True
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC05,False
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC06,False
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC07,False
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC08,True
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC09,False
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC10,True
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC11,True
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC12,True
+NGW-155,Granitoid fractured basement aquifer,granitoid saprolite,EC13,False
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC01,False
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC02,False
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC03,False
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC04,True
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC05,True
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC06,False
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC07,False
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC08,True
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC09,False
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC10,True
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC11,True
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC12,True
+NGW-156,Granitoid fractured basement aquifer,gneissic fractured basement,EC13,False
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC01,False
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC02,True
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC03,False
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC04,False
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC05,False
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC06,False
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC07,True
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC08,True
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC09,False
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC10,True
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC11,True
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC12,True
+NGW-157,Regolith/alluvial shallow aquifer,lateritic saprolite,EC13,True
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC01,True
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC02,False
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC03,True
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC04,False
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC05,False
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC06,False
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC07,False
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC08,True
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC09,False
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC10,True
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC11,True
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC12,True
+NGW-158,Birimian fractured basement aquifer,phyllite–schist fractured zone,EC13,False
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC01,True
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC02,True
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC03,True
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC04,False
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC05,True
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC06,False
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC07,False
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC08,True
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC09,False
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC10,True
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC11,True
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC12,True
+NGW-159,Birimian fractured basement aquifer,greenstone belt fracture network,EC13,False
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC01,True
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC02,True
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC03,True
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC04,False
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC05,True
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC06,False
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC07,False
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC08,True
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC09,False
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC10,False
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC11,True
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC12,True
+NGW-160,Birimian fractured basement aquifer,greenstone belt fracture network,EC13,False

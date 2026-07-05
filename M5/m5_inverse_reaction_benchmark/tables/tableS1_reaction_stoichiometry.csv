@@ -1,0 +1,17 @@
+Reaction,Family,Signed extent,PHREEQC SI phase,Ca,Mg,Na,K,HCO3,Cl,SO4,NO3,F,Fe,PO4
+calcite,carbonate,True,Calcite,1.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0
+dolomite,carbonate,True,Dolomite,1.0,1.0,0.0,0.0,4.0,0.0,0.0,0.0,0.0,0.0,0.0
+albite,silicate,True,Albite,0.0,0.0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0
+anorthite,silicate,True,Anorthite,1.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0
+k_feldspar,silicate,True,K-feldspar,0.0,0.0,0.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0
+gypsum,evaporite,True,Gypsum,1.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0
+halite,evaporite,True,Halite,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0
+fluorite,trace_mineral,True,Fluorite,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0
+apatite,trace_mineral,True,Fluorapatite,5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,3.0
+pyrite_oxidation,redox,False,,0.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0,1.0,0.0
+NO3src,anthropogenic,False,,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0
+denit,redox,False,,0.0,0.0,0.0,0.0,1.0,0.0,0.0,-1.0,0.0,0.0,0.0
+CaNa_exch,ion_exchange,False,,1.0,0.0,-2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+NaCa_exch,ion_exchange,False,,-1.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+MgNa_exch,ion_exchange,False,,0.0,1.0,-2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+NaMg_exch,ion_exchange,False,,0.0,-1.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0

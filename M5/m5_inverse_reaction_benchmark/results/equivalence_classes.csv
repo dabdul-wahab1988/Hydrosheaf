@@ -1,0 +1,14 @@
+class_id,members,n_members,ambiguous
+EC01,CaNa_exch;NaCa_exch,2,True
+EC02,MgNa_exch;NaMg_exch,2,True
+EC03,NO3src,1,False
+EC04,albite,1,False
+EC05,anorthite;calcite,2,True
+EC06,apatite,1,False
+EC07,denit,1,False
+EC08,dolomite,1,False
+EC09,fluorite,1,False
+EC10,gypsum,1,False
+EC11,halite,1,False
+EC12,k_feldspar,1,False
+EC13,pyrite_oxidation,1,False

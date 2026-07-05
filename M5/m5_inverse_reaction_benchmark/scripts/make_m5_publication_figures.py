@@ -1,105 +1,1001 @@
-"""
-M5 Methodological Publication Figures.
-Focuses on deep mechanics: residual decomposition, thermodynamic overrides, and kinetic screening.
-"""
+"""Generate all M5 main-text and supplementary figures from locked outputs."""
 from __future__ import annotations
 
+import json
 import sys
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
+from matplotlib.lines import Line2D
+import numpy as np
+import pandas as pd
+import seaborn as sns
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from hydrosheaf.config import default_config
-from hydrosheaf.models.reactions import build_reaction_dictionary
+from m5_common import ION_ORDER, REACTION_LABELS, reaction_matrix  # noqa: E402
+
 
 BENCHMARK_DIR = Path(__file__).resolve().parents[1]
-RESULT_DIR = BENCHMARK_DIR / "results"
+RESULTS_DIR = BENCHMARK_DIR / "results"
 FIGURE_DIR = BENCHMARK_DIR / "figures"
+SUPP_DIR = FIGURE_DIR / "supplementary"
+PALETTE = {
+    "bounded_ls": "#6b7280",
+    "lasso": "#2563eb",
+    "elastic_net": "#7c3aed",
+    "thermo_elastic_net": "#0f766e",
+    "hydrosheaf_guarded": "#dc2626",
+    "hydrosheaf_core": "#111827",
+}
+PRIMARY_METHOD = "hydrosheaf_guarded"
+LEGACY_PRIMARY_METHOD = "thermo_elastic_net"
+ARCHETYPE_COLORS = {
+    "carbonate": "#0f766e",
+    "crystalline": "#7c3aed",
+    "evaporitic": "#d97706",
+    "mixed": "#2563eb",
+}
+CLASS_ORDER = [
+    "non_identifiable",
+    "partially_identifiable",
+    "equivalence_class",
+    "identifiable",
+]
 
-def _save(fig, name):
-    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(FIGURE_DIR / name, dpi=300, bbox_inches="tight")
+
+def setup_style() -> None:
+    sns.set_theme(style="whitegrid", context="paper")
+    plt.rcParams.update(
+        {
+            "font.family": "DejaVu Sans",
+            "font.size": 9,
+            "axes.titlesize": 10,
+            "axes.labelsize": 9,
+            "legend.fontsize": 8,
+            "figure.dpi": 120,
+        }
+    )
+
+
+def save(fig: plt.Figure, name: str, supplementary: bool = False) -> None:
+    directory = SUPP_DIR if supplementary else FIGURE_DIR
+    directory.mkdir(parents=True, exist_ok=True)
+    fig.savefig(directory / f"{name}.png", dpi=300, bbox_inches="tight")
+    fig.savefig(directory / f"{name}.pdf", bbox_inches="tight")
     plt.close(fig)
 
-def plot_figure1_honest_matrix():
-    """Figure 1: The 'Honest' Stoichiometric Matrix."""
-    config = default_config()
-    config.ion_order = ["Ca", "Mg", "Na", "K", "HCO3", "Cl", "SO4", "NO3", "F", "Fe"]
-    config.active_minerals = ["calcite", "dolomite", "albite", "halite", "pyrite_oxidation_aerobic", "fluorite", "kaolinite"]
-    
-    matrix, labels, _, _ = build_reaction_dictionary(config)
-    df = pd.DataFrame(matrix, index=labels, columns=config.ion_order)
-    
-    fig, ax = plt.subplots(figsize=(10, 5))
-    sns.heatmap(df, annot=True, cmap="RdBu_r", center=0, cbar_kws={'label': 'Stoichiometric Coeff'}, ax=ax)
-    ax.set_title("Figure 1. The 'Honest' Stoichiometric Matrix: Mineral Fingerprints", fontweight="bold")
-    _save(fig, "figure1_honest_matrix.png")
 
-def plot_figure2_residual_decomposition():
-    """Figure 2: Residual Decomposition & Solver Performance."""
-    # Simulated data for methodological demonstration
-    ions = ["Ca", "Mg", "Na", "K", "HCO3", "Cl", "SO4"]
-    transport_residual = [0.8, 0.2, 1.2, 0.1, 1.5, 1.0, 0.3]
-    reaction_residual = [0.05, 0.02, 0.08, 0.01, 0.1, 0.05, 0.02] # Much smaller after L1 fit
-    
-    x = np.arange(len(ions))
-    width = 0.35
-    
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(x - width/2, transport_residual, width, label='Pre-Reaction (Transport Residual)', color="#94a3b8")
-    ax.bar(x + width/2, reaction_residual, width, label='Post-Reaction (Final Residual)', color="#0f766e")
-    
-    ax.set_ylabel('Concentration Residual (mmol/L)')
-    ax.set_title('Figure 2. Mass-Balance Residual Decomposition', fontweight="bold")
-    ax.set_xticks(x)
-    ax.set_xticklabels(ions)
-    ax.legend()
-    _save(fig, "figure2_residual_decomposition.png")
+def panel_label(ax: plt.Axes, label: str) -> None:
+    ax.text(
+        -0.10,
+        1.05,
+        label,
+        transform=ax.transAxes,
+        fontsize=11,
+        fontweight="bold",
+        va="top",
+    )
 
-def plot_figure4_thermodynamic_overrides():
-    """Figure 4: Thermodynamic Override & Bound Violations."""
-    # Data derived from M5 benchmark logic
-    data = {
-        'mineral': ['Calcite', 'Dolomite', 'Gypsum', 'Halite', 'Quartz'],
-        'l1_extent': [0.5, -0.2, 0.8, 0.1, 0.05],
-        'si': [0.5, -1.2, -0.1, -5.0, 0.2],
-        'violation': [False, True, False, False, False] # Dolomite L1 says precipitation (-), but SI says undersaturated (-) -> Violation
+
+def figure1_workflow() -> None:
+    truth = pd.read_csv(RESULTS_DIR / "phreeqc_ground_truth.csv")
+    fits = pd.read_csv(RESULTS_DIR / "benchmark_fits.csv")
+    field = pd.read_csv(RESULTS_DIR / "ghana_field_pairs.csv")
+    fig = plt.figure(figsize=(12, 7))
+    grid = fig.add_gridspec(
+        2, 2, width_ratios=[1.35, 1.0], hspace=0.48, wspace=0.28
+    )
+    ax = fig.add_subplot(grid[:, 0])
+    ax.axis("off")
+    boxes = [
+        (0.08, 0.82, "1. Live PHREEQC truth", "240 scenarios; known phases,\ndirections and extents"),
+        (0.08, 0.60, "2. Controlled stress tests", "3 noise levels; transport error;\n5 analytical panels"),
+        (0.08, 0.38, "3. Inverse comparators", "Bounded LS, LASSO, elastic net,\nand PHREEQC-bounded elastic net"),
+        (0.08, 0.16, "4. Claim audit", "Exact phase, equivalence class,\nheld-out ions, MRS and next measurement"),
+    ]
+    for x, y, heading, detail in boxes:
+        ax.add_patch(
+            plt.Rectangle(
+                (x, y),
+                0.78,
+                0.14,
+                facecolor="#ecfdf5",
+                edgecolor="#0f766e",
+                linewidth=1.4,
+                transform=ax.transAxes,
+            )
+        )
+        ax.text(x + 0.03, y + 0.095, heading, transform=ax.transAxes, fontweight="bold")
+        ax.text(x + 0.03, y + 0.035, detail, transform=ax.transAxes, va="center")
+    for y in [0.77, 0.55, 0.33]:
+        ax.annotate(
+            "",
+            xy=(0.47, y - 0.09),
+            xytext=(0.47, y - 0.02),
+            xycoords=ax.transAxes,
+            arrowprops={"arrowstyle": "-|>", "color": "#374151", "lw": 1.4},
+        )
+    ax.text(
+        0.47,
+        0.04,
+        "Northern Ghana: chemistry-only transfer, not reaction truth",
+        transform=ax.transAxes,
+        ha="center",
+        color="#7c2d12",
+        fontweight="bold",
+    )
+    panel_label(ax, "a")
+
+    ax2 = fig.add_subplot(grid[0, 1])
+    counts = truth["archetype"].value_counts().reindex(ARCHETYPE_COLORS)
+    ax2.bar(
+        counts.index,
+        counts.values,
+        color=[ARCHETYPE_COLORS[item] for item in counts.index],
+    )
+    ax2.set_ylabel("PHREEQC scenarios")
+    ax2.set_xlabel("")
+    ax2.tick_params(axis="x", rotation=12)
+    ax2.set_title("Balanced hydrochemical archetypes")
+    panel_label(ax2, "b")
+
+    ax3 = fig.add_subplot(grid[1, 1])
+    labels = ["Truth\nscenarios", "Inverse\nfits", "Held-out\npredictions", "Ghana\npairs"]
+    values = [
+        len(truth),
+        len(fits),
+        len(pd.read_csv(RESULTS_DIR / "heldout_ion_results.csv")),
+        len(field),
+    ]
+    bars = ax3.bar(labels, values, color=["#0f766e", "#2563eb", "#7c3aed", "#d97706"])
+    ax3.set_yscale("log")
+    ax3.set_ylabel("Count (log scale)")
+    ax3.set_title("Evidence generated by the workflow", pad=8)
+    for bar, value in zip(bars, values):
+        ax3.text(
+            bar.get_x() + bar.get_width() / 2,
+            value * 1.12,
+            f"{value:,}",
+            ha="center",
+            fontsize=8,
+        )
+    panel_label(ax3, "c")
+    fig.suptitle(
+        "Figure 1 | Identifiability-aware inverse hydrogeochemical benchmark",
+        y=1.01,
+        fontweight="bold",
+    )
+    save(fig, "figure1_identifiability_workflow")
+
+
+def figure2_fit_vs_mechanism() -> None:
+    fits = pd.read_csv(RESULTS_DIR / "benchmark_fits.csv")
+    recovery = pd.read_csv(RESULTS_DIR / "reaction_recovery.csv")
+    primary = fits[
+        (fits["method"] == PRIMARY_METHOD)
+        & (fits["panel"] == "full_11")
+        & (fits["noise_level"] == 0.03)
+    ].copy()
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    scatter = axes[0, 0].scatter(
+        primary["reconstruction_rmse_mmolL"],
+        primary["phase_f1"],
+        c=primary["class_f1"],
+        cmap="viridis",
+        norm=Normalize(0, 1),
+        s=28,
+        alpha=0.8,
+        edgecolor="none",
+    )
+    axes[0, 0].set_xscale("log")
+    axes[0, 0].set_xlabel("Concentration reconstruction RMSE (mmol/L)")
+    axes[0, 0].set_ylabel("Exact-phase F1")
+    axes[0, 0].set_ylim(-0.03, 1.03)
+    fig.colorbar(scatter, ax=axes[0, 0], label="Equivalence-class F1")
+    panel_label(axes[0, 0], "a")
+
+    paired = primary.melt(
+        id_vars=["archetype"],
+        value_vars=["phase_f1", "class_f1"],
+        var_name="Recovery target",
+        value_name="F1",
+    )
+    paired["Recovery target"] = paired["Recovery target"].map(
+        {"phase_f1": "Exact phase", "class_f1": "Equivalence class"}
+    )
+    sns.boxplot(
+        data=paired,
+        x="archetype",
+        y="F1",
+        hue="Recovery target",
+        ax=axes[0, 1],
+        palette=["#6b7280", "#0f766e"],
+        fliersize=1,
+    )
+    axes[0, 1].set_xlabel("")
+    axes[0, 1].tick_params(axis="x", rotation=20)
+    axes[0, 1].set_ylim(-0.03, 1.03)
+    panel_label(axes[0, 1], "b")
+
+    threshold = primary["reconstruction_rmse_mmolL"].quantile(0.25)
+    primary["Residual group"] = np.where(
+        primary["reconstruction_rmse_mmolL"] <= threshold,
+        "Lowest residual quartile",
+        "Other fits",
+    )
+    rates = (
+        primary.assign(wrong=primary["phase_f1"] < 0.80)
+        .groupby("Residual group")["wrong"]
+        .mean()
+        .reindex(["Lowest residual quartile", "Other fits"])
+    )
+    axes[1, 0].bar(rates.index, rates.values, color=["#dc2626", "#94a3b8"])
+    axes[1, 0].set_ylabel("Fraction with phase F1 < 0.80")
+    axes[1, 0].set_ylim(0, 1)
+    axes[1, 0].tick_params(axis="x", rotation=12)
+    for index, value in enumerate(rates):
+        axes[1, 0].text(index, value + 0.03, f"{value:.2f}", ha="center")
+    panel_label(axes[1, 0], "c")
+
+    example = primary[
+        (primary["phase_f1"] < 0.5)
+        & (primary["reconstruction_rmse_mmolL"] <= threshold)
+    ].sort_values("reconstruction_rmse_mmolL").iloc[0]
+    example_recovery = recovery[
+        (recovery["scenario_id"] == example["scenario_id"])
+        & (recovery["method"] == PRIMARY_METHOD)
+        & (recovery["panel"] == "full_11")
+        & (recovery["noise_level"] == 0.03)
+    ].copy()
+    example_recovery = example_recovery[
+        (example_recovery["true_extent_mmolL"].abs() >= 0.015)
+        | (example_recovery["recovered_extent_mmolL"].abs() >= 0.015)
+    ]
+    positions = np.arange(len(example_recovery))
+    axes[1, 1].barh(
+        positions - 0.18,
+        example_recovery["true_extent_mmolL"],
+        height=0.34,
+        color="#111827",
+        label="PHREEQC truth",
+    )
+    axes[1, 1].barh(
+        positions + 0.18,
+        example_recovery["recovered_extent_mmolL"],
+        height=0.34,
+        color="#0f766e",
+        label="Recovered",
+    )
+    axes[1, 1].set_yticks(positions)
+    axes[1, 1].set_yticklabels(example_recovery["reaction"])
+    axes[1, 1].axvline(0, color="black", lw=0.7)
+    axes[1, 1].set_xlabel("Reaction extent (mmol/L)")
+    axes[1, 1].set_title(f"Low-residual wrong pathway: {example['scenario_id']}")
+    axes[1, 1].legend(frameon=False)
+    panel_label(axes[1, 1], "d")
+    fig.suptitle(
+        "Figure 2 | Accurate concentration fits can conceal incorrect pathways",
+        y=1.01,
+        fontweight="bold",
+    )
+    fig.tight_layout()
+    save(fig, "figure2_fit_vs_mechanism")
+
+
+def figure3_regularization_and_mrs() -> None:
+    paths = pd.read_csv(RESULTS_DIR / "regularization_paths.csv")
+    diagnostics = pd.read_csv(RESULTS_DIR / "identifiability_diagnostics.csv")
+    mrs = pd.read_csv(RESULTS_DIR / "mechanism_resolution_scores.csv")
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    scenario = paths[paths["archetype"] == "mixed"]
+    active = [
+        label
+        for label in REACTION_LABELS
+        if scenario[label].abs().max() >= 0.015
+    ]
+    for label in active:
+        axes[0, 0].plot(
+            scenario["lambda_l1"],
+            scenario[label],
+            lw=1.4,
+            label=label,
+        )
+    axes[0, 0].set_xscale("log")
+    axes[0, 0].axhline(0, color="black", lw=0.6)
+    axes[0, 0].set_xlabel(r"$\lambda_1$")
+    axes[0, 0].set_ylabel("Extent (mmol/L)")
+    axes[0, 0].legend(ncol=2, frameon=False, fontsize=7)
+    panel_label(axes[0, 0], "a")
+
+    axes[0, 1].bar(
+        diagnostics["panel"],
+        diagnostics["rank"],
+        color="#2563eb",
+        label="Rank",
+    )
+    axes[0, 1].plot(
+        diagnostics["panel"],
+        diagnostics["nullity"],
+        color="#dc2626",
+        marker="o",
+        label="Nullity",
+    )
+    axes[0, 1].tick_params(axis="x", rotation=25)
+    axes[0, 1].set_ylabel("Dimension")
+    axes[0, 1].legend(frameon=False)
+    panel_label(axes[0, 1], "b")
+
+    sample = mrs.sample(min(len(mrs), 1500), random_state=20250615)
+    axes[1, 0].scatter(
+        sample["mechanism_resolution_score"],
+        sample["class_f1"],
+        c=sample["phase_f1"],
+        cmap="magma",
+        s=16,
+        alpha=0.55,
+        edgecolor="none",
+    )
+    axes[1, 0].plot([0, 100], [0, 1], ls="--", color="#6b7280", lw=1)
+    axes[1, 0].set_xlabel("Calibrated Mechanism Resolution Score")
+    axes[1, 0].set_ylabel("Observed equivalence-class F1")
+    panel_label(axes[1, 0], "c")
+
+    holdout = mrs[mrs["archetype"] == "mixed"]
+    confusion = pd.crosstab(
+        holdout["true_resolution_class"],
+        holdout["predicted_resolution_class"],
+        normalize="index",
+    ).reindex(index=CLASS_ORDER, columns=CLASS_ORDER, fill_value=0)
+    sns.heatmap(
+        confusion,
+        annot=True,
+        fmt=".2f",
+        cmap="Blues",
+        vmin=0,
+        vmax=1,
+        ax=axes[1, 1],
+        cbar_kws={"label": "Row fraction"},
+    )
+    axes[1, 1].set_xlabel("Predicted class")
+    axes[1, 1].set_ylabel("True class")
+    axes[1, 1].tick_params(axis="x", rotation=35)
+    axes[1, 1].tick_params(axis="y", rotation=0)
+    panel_label(axes[1, 1], "d")
+    fig.suptitle(
+        "Figure 3 | Regularization, structural ambiguity and MRS calibration",
+        y=1.01,
+        fontweight="bold",
+    )
+    fig.tight_layout()
+    save(fig, "figure3_regularization_and_mrs")
+
+
+def figure4_measurement_value() -> None:
+    next_best = pd.read_csv(RESULTS_DIR / "next_best_measurement.csv")
+    fits = pd.read_csv(RESULTS_DIR / "benchmark_fits.csv")
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    heat = next_best.pivot_table(
+        index="candidate_measurement",
+        columns="archetype",
+        values="measurement_value_score",
+        aggfunc="mean",
+    ).reindex(ION_ORDER)
+    sns.heatmap(
+        heat,
+        cmap="viridis",
+        ax=axes[0, 0],
+        cbar_kws={"label": "Measurement-value score"},
+    )
+    axes[0, 0].set_xlabel("")
+    axes[0, 0].set_ylabel("Candidate ion")
+    panel_label(axes[0, 0], "a")
+
+    ranking = (
+        next_best.groupby("candidate_measurement")["measurement_value_score"]
+        .mean()
+        .sort_values()
+    )
+    axes[0, 1].barh(ranking.index, ranking.values, color="#0f766e")
+    axes[0, 1].set_xlabel("Mean realised measurement value")
+    panel_label(axes[0, 1], "b")
+
+    sns.scatterplot(
+        data=next_best,
+        x="heldout_absolute_error_mmolL",
+        y="realised_class_f1_gain",
+        hue="archetype",
+        palette=ARCHETYPE_COLORS,
+        alpha=0.65,
+        s=24,
+        ax=axes[1, 0],
+    )
+    axes[1, 0].axhline(0, color="black", lw=0.7)
+    axes[1, 0].set_xscale("log")
+    axes[1, 0].set_xlabel("Held-out prediction error (mmol/L)")
+    axes[1, 0].set_ylabel("Class-F1 gain after measurement")
+    axes[1, 0].legend(frameon=False, fontsize=7)
+    panel_label(axes[1, 0], "c")
+
+    panel_perf = (
+        fits[
+            (fits["method"] == PRIMARY_METHOD)
+            & (fits["noise_level"] == 0.03)
+        ]
+        .groupby("panel")[["phase_f1", "class_f1", "heldout_rmse_mmolL"]]
+        .mean()
+        .sort_values("class_f1")
+    )
+    positions = np.arange(len(panel_perf))
+    axes[1, 1].barh(
+        positions - 0.17,
+        panel_perf["phase_f1"],
+        height=0.32,
+        color="#6b7280",
+        label="Exact phase F1",
+    )
+    axes[1, 1].barh(
+        positions + 0.17,
+        panel_perf["class_f1"],
+        height=0.32,
+        color="#0f766e",
+        label="Class F1",
+    )
+    axes[1, 1].set_yticks(positions)
+    axes[1, 1].set_yticklabels(panel_perf.index)
+    axes[1, 1].set_xlim(0, 1)
+    axes[1, 1].legend(frameon=False)
+    panel_label(axes[1, 1], "d")
+    fig.suptitle(
+        "Figure 4 | Held-out-ion falsification and next-best measurement",
+        y=1.01,
+        fontweight="bold",
+    )
+    fig.tight_layout()
+    save(fig, "figure4_measurement_value")
+
+
+def figure5_thermodynamic_screening() -> None:
+    fits = pd.read_csv(RESULTS_DIR / "benchmark_fits.csv")
+    sensitivity = pd.read_csv(
+        RESULTS_DIR / "thermodynamic_threshold_sensitivity.csv"
+    )
+    subset = fits[(fits["panel"] == "full_11") & (fits["noise_level"] == 0.03)]
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    metric_frame = subset.melt(
+        id_vars=["method"],
+        value_vars=["phase_f1", "class_f1"],
+        var_name="Metric",
+        value_name="F1",
+    )
+    metric_frame["Metric"] = metric_frame["Metric"].map(
+        {"phase_f1": "Exact phase", "class_f1": "Equivalence class"}
+    )
+    sns.barplot(
+        data=metric_frame,
+        x="method",
+        y="F1",
+        hue="Metric",
+        palette=["#6b7280", "#0f766e"],
+        errorbar=("ci", 95),
+        ax=axes[0, 0],
+    )
+    axes[0, 0].tick_params(axis="x", rotation=25)
+    axes[0, 0].set_xlabel("")
+    axes[0, 0].set_ylim(0, 1)
+    panel_label(axes[0, 0], "a")
+
+    violations = subset.groupby("method")["thermodynamic_violations"].mean()
+    axes[0, 1].bar(
+        violations.index,
+        violations.values,
+        color=[PALETTE.get(item, "#6b7280") for item in violations.index],
+    )
+    axes[0, 1].tick_params(axis="x", rotation=25)
+    axes[0, 1].set_ylabel("Mean incompatible directions per fit")
+    panel_label(axes[0, 1], "b")
+
+    threshold_summary = sensitivity.groupby("si_threshold")[
+        ["phase_f1", "class_f1"]
+    ].mean()
+    axes[1, 0].plot(
+        threshold_summary.index,
+        threshold_summary["phase_f1"],
+        marker="o",
+        label="Exact phase F1",
+        color="#6b7280",
+    )
+    axes[1, 0].plot(
+        threshold_summary.index,
+        threshold_summary["class_f1"],
+        marker="o",
+        label="Class F1",
+        color="#0f766e",
+    )
+    axes[1, 0].set_xlabel("Saturation-index gate threshold")
+    axes[1, 0].set_ylabel("Mean F1")
+    axes[1, 0].set_ylim(0, 1)
+    axes[1, 0].legend(frameon=False)
+    panel_label(axes[1, 0], "c")
+
+    thermo = subset[subset["method"] == PRIMARY_METHOD]
+    feasible_nonunique = (
+        (thermo["thermodynamic_violations"] == 0)
+        & (thermo["class_f1"] < 0.80)
+    ).mean()
+    categories = ["Feasible and\nclass F1 ≥ 0.8", "Feasible but\nclass F1 < 0.8"]
+    values = [1 - feasible_nonunique, feasible_nonunique]
+    axes[1, 1].bar(categories, values, color=["#0f766e", "#dc2626"])
+    axes[1, 1].set_ylim(0, 1)
+    axes[1, 1].set_ylabel("Fraction of constrained fits")
+    for index, value in enumerate(values):
+        axes[1, 1].text(index, value + 0.03, f"{value:.2f}", ha="center")
+    panel_label(axes[1, 1], "d")
+    fig.suptitle(
+        "Figure 5 | Thermodynamic screening removes impossibility, not equifinality",
+        y=1.01,
+        fontweight="bold",
+    )
+    fig.tight_layout()
+    save(fig, "figure5_thermodynamic_screening")
+
+
+def figure6_ghana_field() -> None:
+    pairs = pd.read_csv(RESULTS_DIR / "ghana_field_pairs.csv")
+    heldout = pd.read_csv(RESULTS_DIR / "ghana_field_heldout_ions.csv")
+    classes = pd.read_csv(RESULTS_DIR / "ghana_field_class_support.csv")
+    aquifer_short = {
+        "Birimian fractured basement aquifer": "Birimian basement",
+        "Granitoid fractured basement aquifer": "Granitoid basement",
+        "Middle Voltaian sedimentary aquifer": "Middle Voltaian",
+        "Regolith/alluvial shallow aquifer": "Regolith/alluvial",
     }
-    df = pd.DataFrame(data)
-    
-    fig, ax = plt.subplots(figsize=(8, 5))
-    colors = ['#ef4444' if v else '#3b82f6' for v in df['violation']]
-    ax.scatter(df['si'], df['l1_extent'], c=colors, s=100, edgecolors='black')
-    
-    # Label points
-    for i, txt in enumerate(df['mineral']):
-        ax.annotate(txt, (df['si'][i], df['l1_extent'][i]), xytext=(5, 5), textcoords='offset points')
-        
-    ax.axhline(0, color='black', lw=1)
-    ax.axvline(0, color='black', lw=1)
-    ax.set_xlabel('Saturation Index (SI)')
-    ax.set_ylabel('Inferred Reaction Extent (mmol/L)')
-    ax.set_title('Figure 4. Thermodynamic Override & Feasibility Gating', fontweight="bold")
-    
-    # Custom legend
-    from matplotlib.lines import Line2D
-    legend_elements = [Line2D([0], [0], marker='o', color='w', label='Feasible', markerfacecolor='#3b82f6', markersize=10),
-                      Line2D([0], [0], marker='o', color='w', label='Thermodynamic Violation', markerfacecolor='#ef4444', markersize=10)]
-    ax.legend(handles=legend_elements)
-    
-    _save(fig, "figure4_thermodynamic_overrides.png")
+    pairs["aquifer_short"] = pairs["aquifer"].map(aquifer_short)
+    heldout["aquifer_short"] = heldout["aquifer"].map(aquifer_short)
+    classes["aquifer_short"] = classes["aquifer"].map(aquifer_short)
+    class_defs = pd.read_csv(RESULTS_DIR / "equivalence_classes.csv")
+    class_names = dict(zip(class_defs["class_id"], class_defs["members"]))
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    sns.boxplot(
+        data=pairs,
+        x="aquifer_short",
+        y="mechanism_resolution_score",
+        color="#93c5fd",
+        fliersize=2,
+        ax=axes[0, 0],
+    )
+    axes[0, 0].tick_params(axis="x", rotation=22)
+    axes[0, 0].set_xlabel("")
+    axes[0, 0].set_ylabel("Calibrated MRS")
+    panel_label(axes[0, 0], "a")
 
-def main():
-    plot_figure1_honest_matrix()
-    plot_figure2_residual_decomposition()
-    plot_figure4_thermodynamic_overrides()
-    print("M5 Methodological figures (1, 2, 4) generated.")
+    aquifer_errors = (
+        heldout.groupby(["aquifer_short", "heldout_ion"])["absolute_error_mmolL"]
+        .median()
+        .reset_index()
+    )
+    sns.barplot(
+        data=aquifer_errors,
+        x="heldout_ion",
+        y="absolute_error_mmolL",
+        hue="aquifer_short",
+        ax=axes[0, 1],
+    )
+    axes[0, 1].set_yscale("log")
+    axes[0, 1].set_xlabel("Retrospectively hidden ion")
+    axes[0, 1].set_ylabel("Median prediction error (mmol/L)")
+    axes[0, 1].legend(frameon=False, fontsize=6)
+    panel_label(axes[0, 1], "b")
+
+    top_classes = (
+        classes.groupby("equivalence_class")["selected"]
+        .mean()
+        .sort_values(ascending=False)
+        .head(8)
+        .index
+    )
+    class_heat = (
+        classes[classes["equivalence_class"].isin(top_classes)]
+        .pivot_table(
+            index="equivalence_class",
+            columns="aquifer_short",
+            values="selected",
+            aggfunc="mean",
+        )
+        .loc[top_classes]
+    )
+    class_heat.index = [class_names.get(value, value) for value in class_heat.index]
+    sns.heatmap(
+        class_heat,
+        cmap="mako",
+        vmin=0,
+        vmax=1,
+        ax=axes[1, 0],
+        cbar_kws={"label": "Support frequency"},
+    )
+    axes[1, 0].set_xlabel("")
+    axes[1, 0].set_ylabel("Reaction class")
+    panel_label(axes[1, 0], "c")
+
+    ranking = (
+        heldout.groupby("heldout_ion")["measurement_value_score"]
+        .mean()
+        .sort_values()
+    )
+    axes[1, 1].barh(ranking.index, ranking.values, color="#d97706")
+    axes[1, 1].set_xlabel("Mean retrospective measurement value")
+    axes[1, 1].text(
+        0.98,
+        0.04,
+        "138 quantitative wet-dry pairs\n4 aquifer classes; 12 lithologies\nchemistry-only transfer",
+        transform=axes[1, 1].transAxes,
+        ha="right",
+        va="bottom",
+        fontsize=8,
+        bbox={"facecolor": "white", "edgecolor": "#9ca3af", "alpha": 0.9},
+    )
+    panel_label(axes[1, 1], "d")
+    fig.suptitle(
+        "Figure 6 | Northern Ghana seasonal chemistry remains only partially identifiable",
+        y=1.01,
+        fontweight="bold",
+    )
+    fig.tight_layout()
+    save(fig, "figure6_northern_ghana")
+
+
+def supplementary_figures() -> None:
+    matrix = pd.DataFrame(
+        reaction_matrix(),
+        index=REACTION_LABELS,
+        columns=ION_ORDER,
+    )
+    fig, ax = plt.subplots(figsize=(11, 7))
+    sns.heatmap(matrix, cmap="RdBu_r", center=0, annot=True, fmt=".1f", ax=ax)
+    ax.set_xlabel("Observed ion")
+    ax.set_ylabel("Candidate reaction")
+    save(fig, "figureS1_reaction_dictionary", True)
+
+    diagnostics = pd.read_csv(RESULTS_DIR / "identifiability_diagnostics.csv")
+    classes = pd.read_csv(RESULTS_DIR / "equivalence_classes.csv")
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    axes[0].plot(
+        diagnostics["panel"],
+        diagnostics["minimum_singular_value"],
+        marker="o",
+        label="Minimum",
+    )
+    axes[0].plot(
+        diagnostics["panel"],
+        diagnostics["maximum_singular_value"],
+        marker="o",
+        label="Maximum",
+    )
+    axes[0].set_yscale("log")
+    axes[0].tick_params(axis="x", rotation=25)
+    axes[0].set_ylabel("Singular value")
+    axes[0].legend(frameon=False)
+    class_sizes = classes["n_members"].value_counts().sort_index()
+    axes[1].bar(class_sizes.index.astype(str), class_sizes.values, color="#7c3aed")
+    axes[1].set_xlabel("Members per equivalence class")
+    axes[1].set_ylabel("Number of classes")
+    fig.tight_layout()
+    save(fig, "figureS2_singular_values_and_classes", True)
+
+    truth = pd.read_csv(RESULTS_DIR / "phreeqc_ground_truth.csv")
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    sns.histplot(truth["generation_rmse_mmolL"], bins=30, ax=axes[0], color="#0f766e")
+    axes[0].set_xlabel("PHREEQC generation RMSE (mmol/L)")
+    sns.scatterplot(
+        data=truth,
+        x="upstream_pH",
+        y="downstream_pH",
+        hue="archetype",
+        palette=ARCHETYPE_COLORS,
+        ax=axes[1],
+    )
+    axes[1].plot([truth.upstream_pH.min(), truth.upstream_pH.max()], [truth.upstream_pH.min(), truth.upstream_pH.max()], ls="--", color="black")
+    axes[1].legend(frameon=False, fontsize=7)
+    fig.tight_layout()
+    save(fig, "figureS3_phreeqc_quality_control", True)
+
+    fits = pd.read_csv(RESULTS_DIR / "benchmark_fits.csv")
+    subset = fits[
+        (fits["method"] == PRIMARY_METHOD) & (fits["panel"] == "full_11")
+    ]
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    sns.lineplot(data=subset, x="noise_level", y="phase_f1", hue="archetype", palette=ARCHETYPE_COLORS, marker="o", ax=axes[0])
+    sns.lineplot(data=subset, x="noise_level", y="extent_rmse_mmolL", hue="archetype", palette=ARCHETYPE_COLORS, marker="o", ax=axes[1], legend=False)
+    axes[0].set_ylim(0, 1)
+    axes[0].legend(frameon=False, fontsize=7)
+    fig.tight_layout()
+    save(fig, "figureS4_noise_sensitivity", True)
+
+    recovery = pd.read_csv(RESULTS_DIR / "reaction_recovery.csv")
+    rec = recovery[
+        (recovery["method"] == PRIMARY_METHOD)
+        & (recovery["panel"] == "full_11")
+        & (recovery["noise_level"] == 0.03)
+        & (recovery["true_active"].astype(bool))
+    ].copy()
+    rec["bias"] = rec["recovered_extent_mmolL"] - rec["true_extent_mmolL"]
+    fig, ax = plt.subplots(figsize=(11, 5))
+    sns.boxplot(data=rec, x="reaction", y="bias", color="#93c5fd", fliersize=1, ax=ax)
+    ax.axhline(0, color="black", lw=0.7)
+    ax.tick_params(axis="x", rotation=40)
+    ax.set_ylabel("Extent bias (mmol/L)")
+    fig.tight_layout()
+    save(fig, "figureS5_phase_extent_bias", True)
+
+    paths = pd.read_csv(RESULTS_DIR / "regularization_paths.csv")
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8), sharex=True)
+    for ax, archetype in zip(axes.flat, ARCHETYPE_COLORS):
+        group = paths[paths["archetype"] == archetype]
+        active = [
+            label for label in REACTION_LABELS if group[label].abs().max() >= 0.015
+        ]
+        for label in active:
+            ax.plot(group["lambda_l1"], group[label], lw=1, label=label)
+        ax.set_xscale("log")
+        ax.axhline(0, color="black", lw=0.5)
+        ax.set_title(archetype.title())
+    axes[1, 0].set_xlabel(r"$\lambda_1$")
+    axes[1, 1].set_xlabel(r"$\lambda_1$")
+    axes[0, 0].set_ylabel("Extent")
+    axes[1, 0].set_ylabel("Extent")
+    fig.tight_layout()
+    save(fig, "figureS6_full_regularization_paths", True)
+
+    mrs = pd.read_csv(RESULTS_DIR / "mechanism_resolution_scores.csv")
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+    sns.boxplot(data=mrs[mrs.archetype != "mixed"], x="true_resolution_class", y="mechanism_resolution_score", order=CLASS_ORDER, ax=axes[0], color="#c4b5fd")
+    sns.boxplot(data=mrs[mrs.archetype == "mixed"], x="true_resolution_class", y="mechanism_resolution_score", order=CLASS_ORDER, ax=axes[1], color="#93c5fd")
+    axes[0].set_title("Calibration archetypes")
+    axes[1].set_title("Held-out mixed archetype")
+    for ax in axes:
+        ax.tick_params(axis="x", rotation=35)
+        ax.set_xlabel("")
+    fig.tight_layout()
+    save(fig, "figureS7_mrs_calibration_transfer", True)
+
+    ablation = (
+        fits[fits["method"] == PRIMARY_METHOD]
+        .pivot_table(index="panel", columns="noise_level", values="class_f1", aggfunc="mean")
+    )
+    fig, ax = plt.subplots(figsize=(7, 4))
+    sns.heatmap(ablation, annot=True, fmt=".2f", cmap="viridis", vmin=0, vmax=1, ax=ax)
+    ax.set_xlabel("Analytical noise")
+    ax.set_ylabel("Ion panel")
+    fig.tight_layout()
+    save(fig, "figureS8_complete_ion_ablation", True)
+
+    next_best = pd.read_csv(RESULTS_DIR / "next_best_measurement.csv")
+    ranking = next_best.pivot_table(index="candidate_measurement", columns="archetype", values="measurement_value_score", aggfunc="mean").reindex(ION_ORDER)
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.heatmap(ranking.rank(ascending=False), annot=True, fmt=".0f", cmap="crest_r", ax=ax)
+    ax.set_xlabel("Archetype")
+    ax.set_ylabel("Candidate measurement")
+    fig.tight_layout()
+    save(fig, "figureS9_measurement_rankings", True)
+
+    thermo = pd.read_csv(RESULTS_DIR / "thermodynamic_threshold_sensitivity.csv")
+    fig, ax = plt.subplots(figsize=(7, 4))
+    sns.lineplot(data=thermo, x="si_threshold", y="class_f1", hue="archetype", palette=ARCHETYPE_COLORS, marker="o", ax=ax)
+    ax.set_ylim(0, 1)
+    ax.set_ylabel("Equivalence-class F1")
+    ax.legend(frameon=False, fontsize=7)
+    fig.tight_layout()
+    save(fig, "figureS10_thermodynamic_thresholds", True)
+
+    bootstrap = pd.read_csv(RESULTS_DIR / "bootstrap_support_stability.csv")
+    top_reactions = (
+        bootstrap.groupby("reaction")["support_frequency"].mean().nlargest(10).index
+    )
+    fig, ax = plt.subplots(figsize=(10, 5))
+    sns.boxplot(data=bootstrap[bootstrap.reaction.isin(top_reactions)], x="reaction", y="support_frequency", color="#86efac", fliersize=1, ax=ax)
+    ax.tick_params(axis="x", rotation=35)
+    ax.set_ylim(0, 1.03)
+    fig.tight_layout()
+    save(fig, "figureS11_bootstrap_support", True)
+
+    runtime = (
+        fits.groupby(["method", "panel"])
+        .agg(runtime_ms=("runtime_ms", "median"), convergence=("converged", "mean"))
+        .reset_index()
+    )
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    sns.barplot(data=runtime, x="panel", y="runtime_ms", hue="method", palette=PALETTE, ax=axes[0])
+    sns.barplot(data=runtime, x="panel", y="convergence", hue="method", palette=PALETTE, ax=axes[1], legend=False)
+    for ax in axes:
+        ax.tick_params(axis="x", rotation=30)
+        ax.set_xlabel("")
+    axes[1].set_ylim(0, 1)
+    axes[0].legend(frameon=False, fontsize=6)
+    fig.tight_layout()
+    save(fig, "figureS12_runtime_and_convergence", True)
+
+    field = pd.read_csv(RESULTS_DIR / "ghana_field_pairs.csv")
+    field_heldout = pd.read_csv(RESULTS_DIR / "ghana_field_heldout_ions.csv")
+    fig, axes = plt.subplots(2, 2, figsize=(10, 7))
+    sns.histplot(field["solver_rmse_mmolL"], bins=25, color="#0f766e", ax=axes[0, 0])
+    sns.histplot(field["mean_heldout_rmse_mmolL"], bins=25, color="#d97706", ax=axes[0, 1])
+    sns.countplot(data=field, x="aquifer", color="#93c5fd", ax=axes[1, 0])
+    sns.boxplot(data=field_heldout, x="heldout_ion", y="absolute_error_mmolL", color="#c4b5fd", fliersize=1, ax=axes[1, 1])
+    axes[1, 0].tick_params(axis="x", rotation=25)
+    axes[1, 1].set_yscale("log")
+    fig.tight_layout()
+    save(fig, "figureS13_ghana_quality_control", True)
+
+    field_classes = pd.read_csv(RESULTS_DIR / "ghana_field_class_support.csv")
+    selected_classes = (
+        field_classes.groupby("equivalence_class")["selected"]
+        .mean()
+        .nlargest(10)
+        .index
+    )
+    heat = field_classes[field_classes.equivalence_class.isin(selected_classes)].pivot_table(index="equivalence_class", columns="aquifer", values="selected", aggfunc="mean").loc[selected_classes]
+    fig, ax = plt.subplots(figsize=(9, 6))
+    sns.heatmap(heat, annot=True, fmt=".2f", cmap="mako", vmin=0, vmax=1, ax=ax)
+    ax.set_xlabel("")
+    ax.set_ylabel("Equivalence class")
+    fig.tight_layout()
+    save(fig, "figureS14_ghana_reaction_class_ensemble", True)
+
+    evidence_path = RESULTS_DIR / "hydrosheaf_core_evidence.csv"
+    if evidence_path.exists():
+        evidence = pd.read_csv(evidence_path)
+        evidence = evidence[
+            (evidence["panel"] == "full_11")
+            & (evidence["noise_level"] == 0.03)
+        ].copy()
+        summary = (
+            evidence.groupby(["reaction", "family"])
+            .agg(
+                evidence_score=("hydrosheaf_core_evidence_score", "mean"),
+                true_active_fraction=("true_active", "mean"),
+                recovered_active_fraction=("recovered_active", "mean"),
+            )
+            .reset_index()
+            .sort_values("evidence_score", ascending=True)
+        )
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
+        axes[0].barh(summary["reaction"], summary["evidence_score"], color="#111827")
+        axes[0].axvline(0.5, color="#9ca3af", lw=0.8, ls="--")
+        axes[0].set_xlabel("Mean Hydrosheaf-Core evidence score")
+        axes[0].set_ylabel("Reaction")
+        axes[1].scatter(
+            summary["true_active_fraction"],
+            summary["recovered_active_fraction"],
+            s=45,
+            c=summary["evidence_score"],
+            cmap="viridis",
+            vmin=0,
+            vmax=1,
+        )
+        axes[1].plot([0, 1], [0, 1], color="#6b7280", lw=0.8, ls="--")
+        axes[1].set_xlabel("Truth-active fraction")
+        axes[1].set_ylabel("Recovered-active fraction")
+        fig.tight_layout()
+        save(fig, "figureS15_hydrosheaf_core_evidence_gates", True)
+
+    field_evidence_path = RESULTS_DIR / "ghana_field_hydrosheaf_core_evidence.csv"
+    if field_evidence_path.exists():
+        field_evidence = pd.read_csv(field_evidence_path)
+        top_reactions = (
+            field_evidence.groupby("reaction")["selected"]
+            .mean()
+            .nlargest(10)
+            .index
+        )
+        plot_data = field_evidence[field_evidence["reaction"].isin(top_reactions)]
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+        sns.boxplot(
+            data=plot_data,
+            x="reaction",
+            y="hydrosheaf_core_evidence_score",
+            color="#a7f3d0",
+            fliersize=1,
+            ax=axes[0],
+        )
+        axes[0].tick_params(axis="x", rotation=35)
+        axes[0].set_ylabel("Field evidence score")
+        axes[0].set_xlabel("")
+        support = (
+            field_evidence.pivot_table(
+                index="reaction",
+                columns="aquifer",
+                values="selected",
+                aggfunc="mean",
+            )
+            .loc[top_reactions]
+        )
+        sns.heatmap(support, annot=True, fmt=".2f", cmap="mako", vmin=0, vmax=1, ax=axes[1])
+        axes[1].set_xlabel("")
+        axes[1].set_ylabel("Reaction")
+        fig.tight_layout()
+        save(fig, "figureS16_ghana_hydrosheaf_core_evidence", True)
+
+    data_tier_path = RESULTS_DIR / "data_tier_experiment.csv"
+    if data_tier_path.exists():
+        data_tiers = pd.read_csv(data_tier_path)
+        tier_order = ["core", "plus_lite", "enhanced"]
+        fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+        sns.barplot(
+            data=data_tiers,
+            x="data_tier",
+            y="class_f1",
+            hue="archetype",
+            order=tier_order,
+            palette=ARCHETYPE_COLORS,
+            errorbar=("ci", 95),
+            ax=axes[0],
+        )
+        axes[0].set_ylim(0, 1)
+        axes[0].set_xlabel("Data tier")
+        axes[0].set_ylabel("Equivalence-class F1")
+        axes[0].legend(frameon=False, fontsize=7)
+        sns.barplot(
+            data=data_tiers,
+            x="data_tier",
+            y="false_discovery_rate",
+            hue="archetype",
+            order=tier_order,
+            palette=ARCHETYPE_COLORS,
+            errorbar=("ci", 95),
+            ax=axes[1],
+        )
+        axes[1].set_ylim(0, 1)
+        axes[1].set_xlabel("Data tier")
+        axes[1].set_ylabel("False-discovery rate")
+        axes[1].legend(frameon=False, fontsize=7)
+        fig.tight_layout()
+        save(fig, "figureS17_data_tier_experiment", True)
+
+    data_tier_evidence_path = RESULTS_DIR / "data_tier_reaction_evidence.csv"
+    if data_tier_evidence_path.exists():
+        tier_evidence = pd.read_csv(data_tier_evidence_path)
+        enhanced = tier_evidence[tier_evidence["data_tier"] == "enhanced"]
+        top_reactions = (
+            enhanced.groupby("reaction")["optional_evidence_score"]
+            .mean()
+            .nlargest(12)
+            .index
+        )
+        plot_data = tier_evidence[tier_evidence["reaction"].isin(top_reactions)]
+        fig, ax = plt.subplots(figsize=(12, 5))
+        sns.boxplot(
+            data=plot_data,
+            x="reaction",
+            y="optional_evidence_score",
+            hue="data_tier",
+            hue_order=["core", "plus_lite", "enhanced"],
+            fliersize=1,
+            ax=ax,
+        )
+        ax.tick_params(axis="x", rotation=35)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel("")
+        ax.set_ylabel("Optional diagnostic evidence score")
+        ax.legend(frameon=False, fontsize=7)
+        fig.tight_layout()
+        save(fig, "figureS18_data_tier_reaction_evidence", True)
+
+
+def main() -> None:
+    setup_style()
+    figure1_workflow()
+    figure2_fit_vs_mechanism()
+    figure3_regularization_and_mrs()
+    figure4_measurement_value()
+    figure5_thermodynamic_screening()
+    figure6_ghana_field()
+    supplementary_figures()
+    print("Generated six main and up to eighteen supplementary M5 figures.")
+
 
 if __name__ == "__main__":
     main()

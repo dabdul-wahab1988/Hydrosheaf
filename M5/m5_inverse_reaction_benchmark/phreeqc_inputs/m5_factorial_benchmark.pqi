@@ -1,0 +1,7011 @@
+SOLUTION 1 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+SELECTED_OUTPUT 1
+    -file m5_factorial_selected.tsv
+    -reset false
+    -high_precision true
+    -simulation true
+    -solution true
+    -pH true
+    -charge_balance true
+    -totals Ca Mg Na K C(4) Cl S(6) N(5) F Fe P
+    -saturation_indices Albite Anorthite Calcite Dolomite Fluorapatite Fluorite Gypsum Halite K-feldspar
+END
+
+USE solution 1
+REACTION 1
+    CaMg(HCO3)4 0.00024509517983901
+    1 moles in 1 steps
+SAVE solution 10001
+END
+
+SOLUTION 2 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 2
+REACTION 2
+    CaMg(HCO3)4 0.00012695077082325
+    HCl 7.2839289731466e-05
+    HNO3 -7.2839289731466e-05
+    NaCl -7.2839289731466e-05
+    NaHCO3 7.2839289731466e-05
+    1 moles in 1 steps
+SAVE solution 10002
+END
+
+SOLUTION 3 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 3
+REACTION 3
+    Ca(HCO3)2 0.00024097595570912
+    CaMg(HCO3)4 -0.0002691587138222
+    HCl 0.00014410877420515
+    HNO3 -0.00014410877420515
+    NaCl -0.00014410877420515
+    NaHCO3 0.00014410877420515
+    1 moles in 1 steps
+SAVE solution 10003
+END
+
+SOLUTION 4 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 4
+REACTION 4
+    CaCl2 0.0001477011098415
+    CaMg(HCO3)4 0.0001031177889286
+    CaSO4:2H2O -0.00013888370313394
+    HCl 0.00013126741511669
+    HNO3 -0.00013126741511669
+    NaCl -0.00042666963479969
+    NaHCO3 0.00013126741511669
+    1 moles in 1 steps
+SAVE solution 10004
+END
+
+SOLUTION 5 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 5
+REACTION 5
+    Ca(HCO3)2 0.00014827722721667
+    CaCl2 4.1473146849021e-05
+    CaMg(HCO3)4 0.00018759582464674
+    HCl 0.00022752299064219
+    HNO3 -0.00014133013984778
+    NaCl -0.00031046928434023
+    NaHCO3 0.00014133013984778
+    NaNO3 8.6192850794404e-05
+    1 moles in 1 steps
+SAVE solution 10005
+END
+
+SOLUTION 6 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 6
+REACTION 6
+    CaCl2 0.00011602869173974
+    NaCl -0.00023205738347948
+    1 moles in 1 steps
+SAVE solution 10006
+END
+
+SOLUTION 7 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 7
+REACTION 7
+    CaCl2 4.6510589056627e-05
+    CaSO4:2H2O 8.5343592911909e-05
+    NaCl -9.3021178113254e-05
+    1 moles in 1 steps
+SAVE solution 10007
+END
+
+SOLUTION 8 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 8
+REACTION 8
+    CaSO4:2H2O 9.4256366690344e-05
+    HCl 0.00016144229436851
+    HNO3 -0.00011657092213268
+    NaCl -0.00016144229436851
+    NaHCO3 0.00011657092213268
+    NaNO3 4.4871372235836e-05
+    1 moles in 1 steps
+SAVE solution 10008
+END
+
+SOLUTION 9 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 9
+REACTION 9
+    CaCl2 0.00019336253582216
+    CaMg(HCO3)4 0.00015141836057116
+    HCl 0.00019746623078194
+    HNO3 -5.469287097787e-05
+    NaCl -0.00058419130242626
+    NaHCO3 5.469287097787e-05
+    NaNO3 0.00014277335980407
+    1 moles in 1 steps
+SAVE solution 10009
+END
+
+SOLUTION 10 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 10
+REACTION 10
+    Ca(HCO3)2 9.3399582556858e-05
+    CaCl2 0.00016078426153221
+    CaSO4:2H2O 3.7932055458545e-05
+    HCl 0.00032411985670471
+    HNO3 -0.00012641355396136
+    NaCl -0.00064568837976913
+    NaHCO3 0.00012641355396136
+    NaNO3 0.00019770630274335
+    1 moles in 1 steps
+SAVE solution 10010
+END
+
+SOLUTION 11 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 11
+REACTION 11
+    CaSO4:2H2O 9.2691477640704e-05
+    1 moles in 1 steps
+SAVE solution 10011
+END
+
+SOLUTION 12 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 12
+REACTION 12
+    CaCl2 0.00015288485827212
+    CaSO4:2H2O -0.0001748650797532
+    NaCl -0.00030576971654423
+    1 moles in 1 steps
+SAVE solution 10012
+END
+
+SOLUTION 13 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 13
+REACTION 13
+    CaCl2 0.00013594810917724
+    CaMg(HCO3)4 0.00015658418173765
+    HCl 3.4392578753112e-05
+    HNO3 -3.4392578753112e-05
+    NaCl -0.00030628879710759
+    NaHCO3 3.4392578753112e-05
+    1 moles in 1 steps
+SAVE solution 10013
+END
+
+SOLUTION 14 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 14
+REACTION 14
+    Ca(HCO3)2 9.7141248883289e-05
+    CaCl2 0.00013964824692247
+    CaMg(HCO3)4 0.00015240947378981
+    HCl 0.00021662921749404
+    NaCl -0.00049592571133897
+    NaNO3 0.00021662921749404
+    1 moles in 1 steps
+SAVE solution 10014
+END
+
+SOLUTION 15 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 15
+REACTION 15
+    Ca(HCO3)2 -0.00015527428452188
+    CaCl2 0.00017321102370338
+    CaSO4:2H2O 0.00016289181208934
+    HCl 0.00037074808973222
+    HNO3 -0.00014716656486585
+    NaCl -0.00071717013713899
+    NaHCO3 0.00014716656486585
+    NaNO3 0.00022358152486637
+    1 moles in 1 steps
+SAVE solution 10015
+END
+
+SOLUTION 16 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 16
+REACTION 16
+    HCl 9.0314223571206e-05
+    HNO3 -9.0314223571206e-05
+    NaCl -9.0314223571206e-05
+    NaHCO3 9.0314223571206e-05
+    1 moles in 1 steps
+SAVE solution 10016
+END
+
+SOLUTION 17 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 17
+REACTION 17
+    CaSO4:2H2O 0.00013954537321344
+    HCl 4.0735710619609e-05
+    HNO3 -4.0735710619609e-05
+    NaCl -4.0735710619609e-05
+    NaHCO3 4.0735710619609e-05
+    1 moles in 1 steps
+SAVE solution 10017
+END
+
+SOLUTION 18 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 18
+REACTION 18
+    CaSO4:2H2O 0.00010779974682106
+    HCl 0.0002447737219042
+    HNO3 -6.3351406389099e-05
+    NaCl -0.0002447737219042
+    NaHCO3 6.3351406389099e-05
+    NaNO3 0.0001814223155151
+    1 moles in 1 steps
+SAVE solution 10018
+END
+
+SOLUTION 19 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 19
+REACTION 19
+    Ca(HCO3)2 6.3566440777989e-05
+    CaMg(HCO3)4 9.8037870845248e-05
+    HCl 0.00035610425766371
+    HNO3 -0.00014563211625028
+    NaCl -0.00035610425766371
+    NaHCO3 0.00014563211625028
+    NaNO3 0.00021047214141342
+    1 moles in 1 steps
+SAVE solution 10019
+END
+
+SOLUTION 20 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 20
+REACTION 20
+    Ca(HCO3)2 0.00027001555342351
+    CaCl2 0.0001039246564743
+    CaMg(HCO3)4 -0.00021138897573259
+    HCl 0.00029157301123665
+    HNO3 -0.00010033861779508
+    NaCl -0.00049942232418524
+    NaHCO3 0.00010033861779508
+    NaNO3 0.00019123439344157
+    1 moles in 1 steps
+SAVE solution 10020
+END
+
+SOLUTION 21 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 21
+REACTION 21
+    HCl 0.00020807294084121
+    NaCl -0.00020807294084121
+    NaNO3 0.00020807294084121
+    1 moles in 1 steps
+SAVE solution 10021
+END
+
+SOLUTION 22 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 22
+REACTION 22
+    CaCl2 6.5055643752347e-05
+    HCl 0.0001461611606187
+    NaCl -0.00027627244812339
+    NaNO3 0.0001461611606187
+    1 moles in 1 steps
+SAVE solution 10022
+END
+
+SOLUTION 23 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 23
+REACTION 23
+    CaSO4:2H2O 0.0001263101540824
+    HCl 0.00027150318491347
+    HNO3 -7.3207102622488e-05
+    NaCl -0.00027150318491347
+    NaHCO3 7.3207102622488e-05
+    NaNO3 0.00019829608229098
+    1 moles in 1 steps
+SAVE solution 10023
+END
+
+SOLUTION 24 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 24
+REACTION 24
+    Ca(HCO3)2 0.00019684653057904
+    CaSO4:2H2O 0.00013388954779886
+    HCl 0.00021129190888394
+    HNO3 -0.00013723971848324
+    NaCl -0.00021129190888394
+    NaHCO3 0.00013723971848324
+    NaNO3 7.4052190400696e-05
+    1 moles in 1 steps
+SAVE solution 10024
+END
+
+SOLUTION 25 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 25
+REACTION 25
+    Ca(HCO3)2 -4.8286250786329e-05
+    CaCl2 0.0001956304368776
+    CaMg(HCO3)4 8.3278837956191e-05
+    HCl 0.00018286150819375
+    HNO3 -8.0274842089019e-05
+    NaCl -0.00057412238194895
+    NaHCO3 8.0274842089019e-05
+    NaNO3 0.00010258666610473
+    1 moles in 1 steps
+SAVE solution 10025
+END
+
+SOLUTION 26 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 26
+REACTION 26
+    Ca(HCO3)2 -9.6992480901082e-05
+    1 moles in 1 steps
+SAVE solution 10026
+END
+
+SOLUTION 27 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 27
+REACTION 27
+    CaMg(HCO3)4 -0.00013098723402524
+    HCl 0.00019448656726648
+    NaCl -0.00019448656726648
+    NaNO3 0.00019448656726648
+    1 moles in 1 steps
+SAVE solution 10027
+END
+
+SOLUTION 28 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 28
+REACTION 28
+    Ca(HCO3)2 0.00015032234397527
+    CaMg(HCO3)4 8.4863885882741e-05
+    HCl 0.00032323599032712
+    NaCl -0.00032323599032712
+    NaNO3 0.00032323599032712
+    1 moles in 1 steps
+SAVE solution 10028
+END
+
+SOLUTION 29 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 29
+REACTION 29
+    Ca(HCO3)2 0.00025668067404181
+    CaCl2 0.0001545770748287
+    CaMg(HCO3)4 -0.00016895941058416
+    HCl 0.00012041342714617
+    NaCl -0.00042956757680357
+    NaNO3 0.00012041342714617
+    1 moles in 1 steps
+SAVE solution 10029
+END
+
+SOLUTION 30 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 30
+REACTION 30
+    Ca(HCO3)2 0.0001850638551763
+    CaCl2 3.4501466538645e-05
+    CaSO4:2H2O 0.00020608438248592
+    HCl 0.00021405035804398
+    HNO3 -0.00014680148980812
+    NaCl -0.00028305329112127
+    NaHCO3 0.00014680148980812
+    NaNO3 6.7248868235865e-05
+    1 moles in 1 steps
+SAVE solution 10030
+END
+
+SOLUTION 31 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 31
+REACTION 31
+    CaMg(HCO3)4 -0.00023568648826807
+    1 moles in 1 steps
+SAVE solution 10031
+END
+
+SOLUTION 32 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 32
+REACTION 32
+    CaCl2 6.1611824689345e-05
+    HCl 0.00014478197697798
+    NaCl -0.00026800562635667
+    NaNO3 0.00014478197697798
+    1 moles in 1 steps
+SAVE solution 10032
+END
+
+SOLUTION 33 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 33
+REACTION 33
+    Ca(HCO3)2 9.3882629617057e-05
+    CaCl2 0.00013361433007132
+    HCl 0.00010974844919962
+    NaCl -0.00037697710934227
+    NaNO3 0.00010974844919962
+    1 moles in 1 steps
+SAVE solution 10033
+END
+
+SOLUTION 34 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 34
+REACTION 34
+    Ca(HCO3)2 0.00022129038837865
+    CaCl2 0.0001397159281141
+    CaSO4:2H2O 0.00025036813885524
+    HCl 0.00034428702630666
+    NaCl -0.00062371888253486
+    NaNO3 0.00034428702630666
+    1 moles in 1 steps
+SAVE solution 10034
+END
+
+SOLUTION 35 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 35
+REACTION 35
+    CaCl2 4.9051390023438e-05
+    CaMg(HCO3)4 -0.00027103908975292
+    CaSO4:2H2O 9.1027986886055e-05
+    HCl 0.00029484209632921
+    HNO3 -9.4218197321487e-05
+    NaCl -0.00039294487637609
+    NaHCO3 9.4218197321487e-05
+    NaNO3 0.00020062389900772
+    1 moles in 1 steps
+SAVE solution 10035
+END
+
+SOLUTION 36 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 36
+REACTION 36
+    CaSO4:2H2O 8.726954814184e-05
+    1 moles in 1 steps
+SAVE solution 10036
+END
+
+SOLUTION 37 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 37
+REACTION 37
+    CaMg(HCO3)4 -9.9226608814193e-05
+    HCl 0.00010241912406047
+    HNO3 -0.00010241912406047
+    NaCl -0.00010241912406047
+    NaHCO3 0.00010241912406047
+    1 moles in 1 steps
+SAVE solution 10037
+END
+
+SOLUTION 38 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 38
+REACTION 38
+    CaMg(HCO3)4 0.00013010550398963
+    CaSO4:2H2O -0.00014130938578498
+    HCl 0.00017670405552366
+    NaCl -0.00017670405552366
+    NaNO3 0.00017670405552366
+    1 moles in 1 steps
+SAVE solution 10038
+END
+
+SOLUTION 39 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 39
+REACTION 39
+    Ca(HCO3)2 -0.00014024272718141
+    CaMg(HCO3)4 2.6787524675377e-05
+    CaSO4:2H2O 0.00011400964440503
+    HCl 6.6187855144467e-05
+    HNO3 -6.6187855144467e-05
+    NaCl -6.6187855144467e-05
+    NaHCO3 6.6187855144467e-05
+    1 moles in 1 steps
+SAVE solution 10039
+END
+
+SOLUTION 40 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 40
+REACTION 40
+    Ca(HCO3)2 -8.0509859058092e-05
+    CaCl2 9.326292067247e-05
+    CaMg(HCO3)4 2.6408100131546e-05
+    CaSO4:2H2O 0.00011158546570095
+    HCl 0.0001071402773041
+    HNO3 -0.0001071402773041
+    NaCl -0.00029366611864904
+    NaHCO3 0.0001071402773041
+    1 moles in 1 steps
+SAVE solution 10040
+END
+
+SOLUTION 41 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 41
+REACTION 41
+    HCl 0.00033237120938735
+    NaCl -0.00033237120938735
+    NaNO3 0.00033237120938735
+    1 moles in 1 steps
+SAVE solution 10041
+END
+
+SOLUTION 42 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 42
+REACTION 42
+    CaCl2 5.412034613124e-05
+    HCl 0.00013237390303985
+    NaCl -0.00024061459530233
+    NaNO3 0.00013237390303985
+    1 moles in 1 steps
+SAVE solution 10042
+END
+
+SOLUTION 43 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 43
+REACTION 43
+    CaMg(HCO3)4 0.00027676246429973
+    CaSO4:2H2O 0.00021861562762675
+    HCl 7.9616386284388e-05
+    HNO3 -7.9616386284388e-05
+    NaCl -7.9616386284388e-05
+    NaHCO3 7.9616386284388e-05
+    1 moles in 1 steps
+SAVE solution 10043
+END
+
+SOLUTION 44 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 44
+REACTION 44
+    CaCl2 8.2146657578334e-05
+    CaSO4:2H2O 0.00013769986287671
+    HCl 0.00024927925137464
+    HNO3 -0.0001285020504417
+    NaCl -0.00041357256653131
+    NaHCO3 0.0001285020504417
+    NaNO3 0.00012077720093293
+    1 moles in 1 steps
+SAVE solution 10044
+END
+
+SOLUTION 45 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 45
+REACTION 45
+    Ca(HCO3)2 -0.00017956950628086
+    CaCl2 0.00013920101518305
+    CaSO4:2H2O 0.00010462659929746
+    HCl 0.00026347164989599
+    HNO3 -0.00014594937193439
+    NaCl -0.00054187368026209
+    NaHCO3 0.00014594937193439
+    NaNO3 0.0001175222779616
+    1 moles in 1 steps
+SAVE solution 10045
+END
+
+SOLUTION 46 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 46
+REACTION 46
+    CaSO4:2H2O -0.00019275710920208
+    1 moles in 1 steps
+SAVE solution 10046
+END
+
+SOLUTION 47 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 47
+REACTION 47
+    CaMg(HCO3)4 9.8582522515051e-05
+    CaSO4:2H2O 0.00023474163137971
+    1 moles in 1 steps
+SAVE solution 10047
+END
+
+SOLUTION 48 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 48
+REACTION 48
+    CaCl2 5.7754739237493e-05
+    CaMg(HCO3)4 0.00018163374120293
+    HCl 0.00013315250543023
+    HNO3 -0.00013315250543023
+    NaCl -0.00024866198390522
+    NaHCO3 0.00013315250543023
+    1 moles in 1 steps
+SAVE solution 10048
+END
+
+SOLUTION 49 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 49
+REACTION 49
+    Ca(HCO3)2 0.00012416387530517
+    CaCl2 0.00015717002687798
+    CaMg(HCO3)4 0.00016080983751407
+    CaSO4:2H2O 0.00014822380654601
+    NaCl -0.00031434005375596
+    1 moles in 1 steps
+SAVE solution 10049
+END
+
+SOLUTION 50 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 50
+REACTION 50
+    CaCl2 0.00019419241859867
+    CaMg(HCO3)4 0.00019274634808055
+    CaSO4:2H2O 0.00025827844573831
+    HCl 0.0002103686302899
+    HNO3 -0.00011333629193501
+    NaCl -0.00059875346748725
+    NaHCO3 0.00011333629193501
+    NaNO3 9.7032338354891e-05
+    1 moles in 1 steps
+SAVE solution 10050
+END
+
+SOLUTION 51 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 51
+REACTION 51
+    HCl 4.0168572846762e-05
+    HNO3 -4.0168572846762e-05
+    NaCl -4.0168572846762e-05
+    NaHCO3 4.0168572846762e-05
+    1 moles in 1 steps
+SAVE solution 10051
+END
+
+SOLUTION 52 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 52
+REACTION 52
+    Ca(HCO3)2 -0.00013017935770218
+    HCl 0.00026139779518328
+    NaCl -0.00026139779518328
+    NaNO3 0.00026139779518328
+    1 moles in 1 steps
+SAVE solution 10052
+END
+
+SOLUTION 53 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 53
+REACTION 53
+    Ca(HCO3)2 7.1239302678828e-05
+    CaSO4:2H2O 0.00020608891766791
+    HCl 0.00012571418824845
+    HNO3 -0.00012571418824845
+    NaCl -0.00012571418824845
+    NaHCO3 0.00012571418824845
+    1 moles in 1 steps
+SAVE solution 10053
+END
+
+SOLUTION 54 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 54
+REACTION 54
+    Ca(HCO3)2 -4.6554874046495e-05
+    CaMg(HCO3)4 0.00021727673991074
+    HCl 0.00032312705343476
+    HNO3 -3.7303948973234e-05
+    NaCl -0.00032312705343476
+    NaHCO3 3.7303948973234e-05
+    NaNO3 0.00028582310446152
+    1 moles in 1 steps
+SAVE solution 10054
+END
+
+SOLUTION 55 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 55
+REACTION 55
+    Ca(HCO3)2 0.000179394077612
+    CaCl2 0.00015429638153326
+    CaSO4:2H2O 4.8023410308696e-05
+    HCl 0.00020211198885647
+    HNO3 -7.4257809115523e-05
+    NaCl -0.00051070475192298
+    NaHCO3 7.4257809115523e-05
+    NaNO3 0.00012785417974094
+    1 moles in 1 steps
+SAVE solution 10055
+END
+
+SOLUTION 56 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 56
+REACTION 56
+    CaMg(HCO3)4 0.00012191314720537
+    1 moles in 1 steps
+SAVE solution 10056
+END
+
+SOLUTION 57 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 57
+REACTION 57
+    CaCl2 0.00012803524977237
+    CaSO4:2H2O 0.00012564883979015
+    NaCl -0.00025607049954474
+    1 moles in 1 steps
+SAVE solution 10057
+END
+
+SOLUTION 58 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 58
+REACTION 58
+    Ca(HCO3)2 6.9471784159452e-05
+    CaMg(HCO3)4 0.00015869173248662
+    CaSO4:2H2O 0.0001828935404828
+    1 moles in 1 steps
+SAVE solution 10058
+END
+
+SOLUTION 59 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 59
+REACTION 59
+    CaCl2 2.6986175086439e-05
+    CaMg(HCO3)4 -6.482981909166e-05
+    CaSO4:2H2O 9.6696242888694e-05
+    HCl 5.7230886447284e-05
+    HNO3 -5.7230886447284e-05
+    NaCl -0.00011120323662016
+    NaHCO3 5.7230886447284e-05
+    1 moles in 1 steps
+SAVE solution 10059
+END
+
+SOLUTION 60 upstream
+    units mmol/kgw
+    temp 24.000000
+    pH 7.150000
+    pe 4
+    Ca 1.5
+    Mg 0.75
+    Na 0.8
+    K 0.08
+    Cl 0.55
+    S(6) 0.22 as SO4
+    N(5) 0.18 as NO3
+    F 0.015
+    Fe 0.002
+    P 0.012 as PO4
+    Alkalinity 3.5 as HCO3
+    -water 1.0
+END
+
+USE solution 60
+REACTION 60
+    Ca(HCO3)2 3.1002622855672e-05
+    CaCl2 2.8035575072076e-05
+    CaMg(HCO3)4 0.00018110003266974
+    HCl 0.00027941431452396
+    HNO3 -0.00012327443919469
+    NaCl -0.00033548546466811
+    NaHCO3 0.00012327443919469
+    NaNO3 0.00015613987532927
+    1 moles in 1 steps
+SAVE solution 10060
+END
+
+SOLUTION 61 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 61
+REACTION 61
+    Ca(HCO3)2 0.00019233247636636
+    1 moles in 1 steps
+SAVE solution 10061
+END
+
+SOLUTION 62 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 62
+REACTION 62
+    Fe(SO4)2 2.9814653694333e-05
+    NaHCO3 4.212412831984e-05
+    1 moles in 1 steps
+SAVE solution 10062
+END
+
+SOLUTION 63 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 63
+REACTION 63
+    CaCl2 -0.00020189370609539
+    CaF2 0.00018040976720168
+    Fe(SO4)2 1.686744105413e-05
+    NaCl 0.00040378741219077
+    1 moles in 1 steps
+SAVE solution 10063
+END
+
+SOLUTION 64 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 64
+REACTION 64
+    Ca5(PO4)3F -5.1630397938843e-06
+    CaCl2 8.2251174961217e-05
+    CaF2 4.3576095374936e-05
+    NaCl -0.00016450234992243
+    NaHCO3 0.00012114385412
+    1 moles in 1 steps
+SAVE solution 10064
+END
+
+SOLUTION 65 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 65
+REACTION 65
+    Ca(HCO3)2 2.3250853130411e-05
+    Ca5(PO4)3F 8.889515931608e-07
+    CaF2 -2.213254844374e-05
+    KHCO3 1.2585703506999e-05
+    NaHCO3 3.5861485527457e-05
+    1 moles in 1 steps
+SAVE solution 10065
+END
+
+SOLUTION 66 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 66
+REACTION 66
+    Ca5(PO4)3F 6.2637787323184e-06
+    1 moles in 1 steps
+SAVE solution 10066
+END
+
+SOLUTION 67 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 67
+REACTION 67
+    CaCl2 8.2604712347775e-05
+    NaCl -0.00016520942469555
+    NaHCO3 -0.0002428448735987
+    1 moles in 1 steps
+SAVE solution 10067
+END
+
+SOLUTION 68 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 68
+REACTION 68
+    Ca5(PO4)3F -3.0859135016332e-06
+    CaCl2 0.00015870500501858
+    NaCl -0.00031741001003716
+    NaHCO3 0.00026904406266896
+    1 moles in 1 steps
+SAVE solution 10068
+END
+
+SOLUTION 69 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 69
+REACTION 69
+    Ca(HCO3)2 0.00022275386412899
+    CaCl2 4.0091241581817e-05
+    Fe(SO4)2 1.621760742519e-05
+    KHCO3 2.599266492509e-05
+    NaCl -8.0182483163635e-05
+    1 moles in 1 steps
+SAVE solution 10069
+END
+
+SOLUTION 70 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 70
+REACTION 70
+    Ca(HCO3)2 2.546661026035e-05
+    Ca5(PO4)3F -5.1553328975535e-06
+    CaF2 5.2132827591103e-05
+    Fe(SO4)2 3.972117024464e-05
+    KHCO3 0.00010907015358015
+    1 moles in 1 steps
+SAVE solution 10070
+END
+
+SOLUTION 71 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 71
+REACTION 71
+    CaCl2 -0.00014118897309751
+    NaCl 0.00028237794619502
+    1 moles in 1 steps
+SAVE solution 10071
+END
+
+SOLUTION 72 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 72
+REACTION 72
+    Ca(HCO3)2 5.5121572418922e-05
+    Fe(SO4)2 5.9335675106883e-05
+    1 moles in 1 steps
+SAVE solution 10072
+END
+
+SOLUTION 73 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 73
+REACTION 73
+    Ca(HCO3)2 8.381810632237e-05
+    Ca5(PO4)3F -5.7145919615632e-06
+    NaHCO3 1.4041303857889e-05
+    1 moles in 1 steps
+SAVE solution 10073
+END
+
+SOLUTION 74 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 74
+REACTION 74
+    Ca(HCO3)2 -0.00017677919403715
+    CaCl2 6.0869378619354e-05
+    CaF2 0.00010306043065239
+    Fe(SO4)2 6.4071518962841e-05
+    NaCl -0.00012173875723871
+    1 moles in 1 steps
+SAVE solution 10074
+END
+
+SOLUTION 75 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 75
+REACTION 75
+    Ca(HCO3)2 -0.00014424758206063
+    Ca5(PO4)3F 8.8010607082323e-06
+    CaCl2 -0.00021300511762448
+    KHCO3 0.00020185158294848
+    NaCl 0.00042601023524896
+    NaHCO3 9.6075178008208e-05
+    1 moles in 1 steps
+SAVE solution 10075
+END
+
+SOLUTION 76 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 76
+REACTION 76
+    NaHCO3 5.1288837956955e-05
+    1 moles in 1 steps
+SAVE solution 10076
+END
+
+SOLUTION 77 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 77
+REACTION 77
+    Ca(HCO3)2 0.00022148108021037
+    NaHCO3 -8.2724308239335e-05
+    1 moles in 1 steps
+SAVE solution 10077
+END
+
+SOLUTION 78 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 78
+REACTION 78
+    Ca(HCO3)2 -7.1514050828824e-05
+    CaCl2 -0.00016612964920118
+    Fe(SO4)2 5.6713168484788e-05
+    NaCl 0.00033225929840236
+    1 moles in 1 steps
+SAVE solution 10078
+END
+
+SOLUTION 79 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 79
+REACTION 79
+    CaCl2 -5.1423658086023e-05
+    CaF2 0.00017166842668987
+    Fe(SO4)2 7.5591491612007e-05
+    NaCl 0.00010284731617205
+    NaHCO3 0.00012706569202499
+    1 moles in 1 steps
+SAVE solution 10079
+END
+
+SOLUTION 80 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 80
+REACTION 80
+    Ca(HCO3)2 -0.0001957593647013
+    CaCl2 -0.00018898321716401
+    Fe(SO4)2 7.0309703185233e-05
+    KHCO3 3.9882745501054e-05
+    NaCl 0.00037796643432802
+    NaHCO3 8.2760018732969e-05
+    1 moles in 1 steps
+SAVE solution 10080
+END
+
+SOLUTION 81 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 81
+REACTION 81
+    Ca(HCO3)2 0.0002360750642236
+    1 moles in 1 steps
+SAVE solution 10081
+END
+
+SOLUTION 82 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 82
+REACTION 82
+    Ca5(PO4)3F 1.0138115716964e-05
+    CaF2 0.00023383195085852
+    1 moles in 1 steps
+SAVE solution 10082
+END
+
+SOLUTION 83 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 83
+REACTION 83
+    Ca(HCO3)2 0.00027599085770809
+    CaF2 9.4716871535966e-05
+    KHCO3 6.3933579219728e-05
+    1 moles in 1 steps
+SAVE solution 10083
+END
+
+SOLUTION 84 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 84
+REACTION 84
+    Ca(HCO3)2 0.00014978866447009
+    CaF2 0.00026231150054556
+    Fe(SO4)2 3.1585209537727e-05
+    NaHCO3 9.5418810807777e-05
+    1 moles in 1 steps
+SAVE solution 10084
+END
+
+SOLUTION 85 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 85
+REACTION 85
+    Ca(HCO3)2 0.00025136938646753
+    Ca5(PO4)3F 8.9628700565231e-06
+    CaCl2 0.00010332225893261
+    Fe(SO4)2 2.3552545642006e-05
+    NaCl -0.00020664451786522
+    NaHCO3 0.00022143274387186
+    1 moles in 1 steps
+SAVE solution 10085
+END
+
+SOLUTION 86 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 86
+REACTION 86
+    CaCl2 -0.00015747143121462
+    NaCl 0.00031494286242923
+    1 moles in 1 steps
+SAVE solution 10086
+END
+
+SOLUTION 87 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 87
+REACTION 87
+    Ca(HCO3)2 8.661351986593e-05
+    NaHCO3 0.00024770538318742
+    1 moles in 1 steps
+SAVE solution 10087
+END
+
+SOLUTION 88 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 88
+REACTION 88
+    Ca(HCO3)2 0.0001801268967088
+    Ca5(PO4)3F 1.1157061598269e-05
+    CaCl2 -0.00010451236124587
+    NaCl 0.00020902472249174
+    1 moles in 1 steps
+SAVE solution 10088
+END
+
+SOLUTION 89 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 89
+REACTION 89
+    Ca(HCO3)2 0.0001046152646443
+    Ca5(PO4)3F -4.3025863121735e-06
+    CaCl2 5.5854009479454e-05
+    KHCO3 -7.9284078515622e-05
+    NaCl -0.00011170801895891
+    1 moles in 1 steps
+SAVE solution 10089
+END
+
+SOLUTION 90 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 90
+REACTION 90
+    Ca(HCO3)2 0.00011043343372598
+    CaCl2 -0.0001838791290167
+    Fe(SO4)2 3.2972095907546e-05
+    KHCO3 6.9412568168149e-05
+    NaCl 0.00036775825803341
+    NaHCO3 0.00027272800764359
+    1 moles in 1 steps
+SAVE solution 10090
+END
+
+SOLUTION 91 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 91
+REACTION 91
+    Ca(HCO3)2 -3.1080271025363e-05
+    1 moles in 1 steps
+SAVE solution 10091
+END
+
+SOLUTION 92 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 92
+REACTION 92
+    Ca5(PO4)3F 6.200384797053e-06
+    CaF2 0.0001635234724833
+    1 moles in 1 steps
+SAVE solution 10092
+END
+
+SOLUTION 93 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 93
+REACTION 93
+    Ca5(PO4)3F 1.2382120845308e-05
+    CaCl2 3.4324669153315e-05
+    Fe(SO4)2 5.6360770697393e-05
+    NaCl -6.864933830663e-05
+    1 moles in 1 steps
+SAVE solution 10093
+END
+
+SOLUTION 94 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 94
+REACTION 94
+    Ca(HCO3)2 0.00011781078128494
+    Ca5(PO4)3F 9.1494526611799e-06
+    CaCl2 8.5471421821492e-05
+    KHCO3 0.00016644907557288
+    NaCl -0.00017094284364298
+    1 moles in 1 steps
+SAVE solution 10094
+END
+
+SOLUTION 95 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 95
+REACTION 95
+    Ca(HCO3)2 0.00012357942021499
+    CaCl2 0.000168645939334
+    Fe(SO4)2 1.1995470205024e-05
+    KHCO3 4.1737899187316e-05
+    NaCl -0.00033729187866801
+    NaHCO3 0.0001612649788383
+    1 moles in 1 steps
+SAVE solution 10095
+END
+
+SOLUTION 96 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 96
+REACTION 96
+    CaCl2 5.258408971339e-05
+    NaCl -0.00010516817942678
+    1 moles in 1 steps
+SAVE solution 10096
+END
+
+SOLUTION 97 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 97
+REACTION 97
+    Ca(HCO3)2 -7.4020350096507e-05
+    CaF2 0.0001048425772724
+    1 moles in 1 steps
+SAVE solution 10097
+END
+
+SOLUTION 98 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 98
+REACTION 98
+    Ca5(PO4)3F 8.0963622083175e-06
+    KHCO3 0.00022417364246682
+    NaHCO3 0.00023409201839166
+    1 moles in 1 steps
+SAVE solution 10098
+END
+
+SOLUTION 99 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 99
+REACTION 99
+    Ca(HCO3)2 4.1999924310103e-05
+    Ca5(PO4)3F -4.9550105671429e-06
+    Fe(SO4)2 3.6759002359669e-05
+    NaHCO3 4.9178225505986e-05
+    1 moles in 1 steps
+SAVE solution 10099
+END
+
+SOLUTION 100 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 100
+REACTION 100
+    Ca5(PO4)3F 1.1444617577837e-05
+    CaCl2 -0.00020952729141621
+    CaF2 0.00020184451618044
+    KHCO3 0.00016251550674263
+    NaCl 0.00041905458283242
+    NaHCO3 0.00025454739500842
+    1 moles in 1 steps
+SAVE solution 10100
+END
+
+SOLUTION 101 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 101
+REACTION 101
+    KHCO3 0.00025127181877871
+    1 moles in 1 steps
+SAVE solution 10101
+END
+
+SOLUTION 102 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 102
+REACTION 102
+    Ca5(PO4)3F 5.6196730704447e-06
+    NaHCO3 -0.00024596270103676
+    1 moles in 1 steps
+SAVE solution 10102
+END
+
+SOLUTION 103 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 103
+REACTION 103
+    CaCl2 0.00012523893892001
+    Fe(SO4)2 4.0817508953798e-05
+    KHCO3 3.1573536446963e-05
+    NaCl -0.00025047787784002
+    1 moles in 1 steps
+SAVE solution 10103
+END
+
+SOLUTION 104 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 104
+REACTION 104
+    Ca(HCO3)2 -0.00011155431057
+    CaCl2 -0.00018871991391364
+    Fe(SO4)2 3.5741254486809e-05
+    NaCl 0.00037743982782728
+    NaHCO3 0.00024298731635533
+    1 moles in 1 steps
+SAVE solution 10104
+END
+
+SOLUTION 105 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 105
+REACTION 105
+    Ca(HCO3)2 0.00017233411955671
+    Ca5(PO4)3F -5.7275698866465e-06
+    CaCl2 -0.00014086405905978
+    CaF2 9.5235080319361e-05
+    KHCO3 5.421934726728e-05
+    NaCl 0.00028172811811956
+    1 moles in 1 steps
+SAVE solution 10105
+END
+
+SOLUTION 106 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 106
+REACTION 106
+    CaF2 0.00021990263342846
+    1 moles in 1 steps
+SAVE solution 10106
+END
+
+SOLUTION 107 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 107
+REACTION 107
+    CaCl2 -0.00011827143611535
+    KHCO3 -0.00015158389783614
+    NaCl 0.00023654287223069
+    1 moles in 1 steps
+SAVE solution 10107
+END
+
+SOLUTION 108 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 108
+REACTION 108
+    Ca(HCO3)2 0.00024396654482796
+    Ca5(PO4)3F 3.0975635687734e-06
+    CaF2 0.00012644648338792
+    1 moles in 1 steps
+SAVE solution 10108
+END
+
+SOLUTION 109 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 109
+REACTION 109
+    Ca5(PO4)3F -4.205573231428e-06
+    CaCl2 0.00010702069362933
+    CaF2 5.1274748500013e-05
+    Fe(SO4)2 1.8457662395354e-05
+    NaCl -0.00021404138725865
+    1 moles in 1 steps
+SAVE solution 10109
+END
+
+SOLUTION 110 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 110
+REACTION 110
+    Ca5(PO4)3F 4.8572804861175e-06
+    CaCl2 -5.9402518206405e-05
+    CaF2 -2.3478412154184e-05
+    KHCO3 9.9025030032039e-06
+    NaCl 0.00011880503641281
+    NaHCO3 -2.4723839615882e-05
+    1 moles in 1 steps
+SAVE solution 10110
+END
+
+SOLUTION 111 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 111
+REACTION 111
+    CaCl2 -5.9597515496057e-05
+    NaCl 0.00011919503099211
+    1 moles in 1 steps
+SAVE solution 10111
+END
+
+SOLUTION 112 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 112
+REACTION 112
+    CaF2 0.00020443462993098
+    Fe(SO4)2 7.5002311322134e-05
+    1 moles in 1 steps
+SAVE solution 10112
+END
+
+SOLUTION 113 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 113
+REACTION 113
+    Ca(HCO3)2 -0.00026476011257314
+    Fe(SO4)2 7.7661364262241e-05
+    KHCO3 8.0080792668195e-05
+    1 moles in 1 steps
+SAVE solution 10113
+END
+
+SOLUTION 114 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 114
+REACTION 114
+    Ca5(PO4)3F 1.2490939525109e-05
+    Fe(SO4)2 7.7786378949857e-05
+    KHCO3 0.00020061751640798
+    NaHCO3 0.00025615953106356
+    1 moles in 1 steps
+SAVE solution 10114
+END
+
+SOLUTION 115 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 115
+REACTION 115
+    Ca(HCO3)2 0.00018840785288619
+    Ca5(PO4)3F 7.501054422726e-06
+    CaCl2 9.4598450947451e-05
+    KHCO3 -0.00018224975396166
+    NaCl -0.0001891969018949
+    NaHCO3 0.0002351558708612
+    1 moles in 1 steps
+SAVE solution 10115
+END
+
+SOLUTION 116 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 116
+REACTION 116
+    CaCl2 4.4271948707694e-05
+    NaCl -8.8543897415387e-05
+    1 moles in 1 steps
+SAVE solution 10116
+END
+
+SOLUTION 117 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 117
+REACTION 117
+    CaCl2 0.00014097442461892
+    NaCl -0.00028194884923784
+    NaHCO3 0.00016445597518516
+    1 moles in 1 steps
+SAVE solution 10117
+END
+
+SOLUTION 118 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 118
+REACTION 118
+    Ca(HCO3)2 0.00014450027518211
+    KHCO3 -0.00018100853339119
+    NaHCO3 -4.7476523432135e-05
+    1 moles in 1 steps
+SAVE solution 10118
+END
+
+SOLUTION 119 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 119
+REACTION 119
+    CaCl2 0.00019366360866366
+    CaF2 0.00026842218109003
+    Fe(SO4)2 2.0093447105558e-05
+    NaCl -0.00038732721732731
+    NaHCO3 7.1174108809684e-05
+    1 moles in 1 steps
+SAVE solution 10119
+END
+
+SOLUTION 120 upstream
+    units mmol/kgw
+    temp 27.000000
+    pH 6.750000
+    pe 4
+    Ca 0.48
+    Mg 0.3
+    Na 1.25
+    K 0.19
+    Cl 0.7
+    S(6) 0.32 as SO4
+    N(5) 0.25 as NO3
+    F 0.045
+    Fe 0.012
+    P 0.018 as PO4
+    Alkalinity 1.9 as HCO3
+    -water 1.0
+END
+
+USE solution 120
+REACTION 120
+    Ca(HCO3)2 0.00017232946420981
+    Ca5(PO4)3F 8.7989750217794e-06
+    CaCl2 -0.00015115959772923
+    KHCO3 0.00027652884519539
+    NaCl 0.00030231919545846
+    NaHCO3 -0.0001044726696953
+    1 moles in 1 steps
+SAVE solution 10120
+END
+
+SOLUTION 121 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 121
+REACTION 121
+    Ca(HCO3)2 0.00013118242819074
+    1 moles in 1 steps
+SAVE solution 10121
+END
+
+SOLUTION 122 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 122
+REACTION 122
+    Ca(HCO3)2 7.1333700961382e-05
+    CaCl2 3.4876551046192e-05
+    NaCl -6.9753102092383e-05
+    1 moles in 1 steps
+SAVE solution 10122
+END
+
+SOLUTION 123 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 123
+REACTION 123
+    CaCl2 0.00018363069906803
+    CaSO4:2H2O 2.5663075214697e-05
+    HCl 0.00034392790646645
+    NaCl -0.00071118930460251
+    NaNO3 0.00034392790646645
+    1 moles in 1 steps
+SAVE solution 10123
+END
+
+SOLUTION 124 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 124
+REACTION 124
+    CaCl2 0.00021660615150066
+    CaSO4:2H2O -0.00017267766610306
+    HCl 6.4408942858282e-05
+    NaCl -0.00029736482453505
+    NaNO3 6.4408942858282e-05
+    1 moles in 1 steps
+SAVE solution 10124
+END
+
+SOLUTION 125 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 125
+REACTION 125
+    Ca(HCO3)2 -7.853241578036e-05
+    CaCl2 0.00014498893707068
+    CaSO4:2H2O 4.82589886589e-05
+    HCl 0.00019309395968505
+    MgCl2 3.4587863023828e-05
+    NaCl -0.00055224755987406
+    NaNO3 0.00019309395968505
+    1 moles in 1 steps
+SAVE solution 10125
+END
+
+SOLUTION 126 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 126
+REACTION 126
+    NaCl 0.000242612326675
+    1 moles in 1 steps
+SAVE solution 10126
+END
+
+SOLUTION 127 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 127
+REACTION 127
+    Ca(HCO3)2 0.00018238928352404
+    MgCl2 0.00015752636990321
+    NaCl -0.00031505273980642
+    1 moles in 1 steps
+SAVE solution 10127
+END
+
+SOLUTION 128 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 128
+REACTION 128
+    Ca(HCO3)2 0.00014570106404237
+    CaCl2 0.00020627759134978
+    NaCl -0.00023667028651901
+    1 moles in 1 steps
+SAVE solution 10128
+END
+
+SOLUTION 129 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 129
+REACTION 129
+    Ca(HCO3)2 0.00027999656949014
+    CaCl2 0.00014198704237334
+    HCl 0.00010261945828394
+    NaCl -0.00016290613122127
+    NaNO3 0.00010261945828394
+    1 moles in 1 steps
+SAVE solution 10129
+END
+
+SOLUTION 130 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 130
+REACTION 130
+    Ca(HCO3)2 3.6491515019977e-05
+    CaCl2 0.00021400503032466
+    CaSO4:2H2O 0.00018656767128614
+    MgCl2 0.00011795371378291
+    NaCl -0.00041001319256874
+    1 moles in 1 steps
+SAVE solution 10130
+END
+
+SOLUTION 131 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 131
+REACTION 131
+    Ca(HCO3)2 4.8456212222911e-05
+    1 moles in 1 steps
+SAVE solution 10131
+END
+
+SOLUTION 132 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 132
+REACTION 132
+    CaSO4:2H2O 0.0001604786186333
+    MgCl2 0.00016704004125803
+    NaCl -0.00033408008251606
+    1 moles in 1 steps
+SAVE solution 10132
+END
+
+SOLUTION 133 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 133
+REACTION 133
+    Ca(HCO3)2 0.00027123357712931
+    HCl 0.00029221117505293
+    NaCl -0.00053055743018465
+    NaNO3 0.00029221117505293
+    1 moles in 1 steps
+SAVE solution 10133
+END
+
+SOLUTION 134 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 134
+REACTION 134
+    Ca(HCO3)2 0.0001132011805923
+    CaCl2 0.00020473254144207
+    CaSO4:2H2O 0.00024517788471391
+    MgCl2 2.8055462083547e-05
+    NaCl -0.00046557600705124
+    1 moles in 1 steps
+SAVE solution 10134
+END
+
+SOLUTION 135 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 135
+REACTION 135
+    Ca(HCO3)2 0.00022832306636777
+    CaCl2 0.00021193563875615
+    CaSO4:2H2O 0.00023768492118667
+    HCl 0.0002725703347209
+    NaCl -0.00046875013660193
+    NaNO3 0.0002725703347209
+    1 moles in 1 steps
+SAVE solution 10135
+END
+
+SOLUTION 136 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 136
+REACTION 136
+    CaSO4:2H2O 0.00018280563753997
+    1 moles in 1 steps
+SAVE solution 10136
+END
+
+SOLUTION 137 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 137
+REACTION 137
+    Ca(HCO3)2 9.3315778756158e-05
+    HCl 0.00021523232381684
+    NaCl -0.00021523232381684
+    NaNO3 0.00021523232381684
+    1 moles in 1 steps
+SAVE solution 10137
+END
+
+SOLUTION 138 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 138
+REACTION 138
+    Ca(HCO3)2 -0.0002145923893643
+    CaCl2 0.00016345316752565
+    HCl 0.00025671272913245
+    NaCl -0.00058361906418375
+    NaNO3 0.00025671272913245
+    1 moles in 1 steps
+SAVE solution 10138
+END
+
+SOLUTION 139 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 139
+REACTION 139
+    Ca(HCO3)2 8.7605951325377e-05
+    CaCl2 0.00016641117464051
+    CaSO4:2H2O 0.00010186545290904
+    MgCl2 2.9426527333857e-05
+    NaCl -0.00039167540394873
+    1 moles in 1 steps
+SAVE solution 10139
+END
+
+SOLUTION 140 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 140
+REACTION 140
+    Ca(HCO3)2 8.0553901976289e-05
+    CaCl2 0.00017967348336385
+    CaSO4:2H2O 7.8828771763426e-05
+    HCl 0.00014814180575896
+    NaCl -0.00045390904904893
+    NaNO3 0.00014814180575896
+    1 moles in 1 steps
+SAVE solution 10140
+END
+
+SOLUTION 141 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 141
+REACTION 141
+    MgCl2 9.6398704924302e-05
+    NaCl -0.0001927974098486
+    1 moles in 1 steps
+SAVE solution 10141
+END
+
+SOLUTION 142 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 142
+REACTION 142
+    CaCl2 0.00017153480487075
+    MgCl2 0.00010869319233931
+    NaCl -0.00056045599442011
+    1 moles in 1 steps
+SAVE solution 10142
+END
+
+SOLUTION 143 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 143
+REACTION 143
+    Ca(HCO3)2 0.00014189326243147
+    CaCl2 0.00010489001030954
+    CaSO4:2H2O 0.00027022744479981
+    NaCl -0.00020978002061909
+    1 moles in 1 steps
+SAVE solution 10143
+END
+
+SOLUTION 144 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 144
+REACTION 144
+    Ca(HCO3)2 -5.2639892290301e-05
+    CaCl2 4.3965311272628e-05
+    HCl 0.00025007891259739
+    NaCl -0.00022790856370669
+    NaNO3 0.00025007891259739
+    1 moles in 1 steps
+SAVE solution 10144
+END
+
+SOLUTION 145 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 145
+REACTION 145
+    Ca(HCO3)2 -0.00011837859774953
+    CaCl2 8.3204649717088e-05
+    HCl 5.3846909573893e-05
+    MgCl2 8.0564958004901e-05
+    NaCl -0.00024733949697703
+    NaNO3 5.3846909573893e-05
+    1 moles in 1 steps
+SAVE solution 10145
+END
+
+SOLUTION 146 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 146
+REACTION 146
+    CaSO4:2H2O 0.00013124016251359
+    1 moles in 1 steps
+SAVE solution 10146
+END
+
+SOLUTION 147 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 147
+REACTION 147
+    HCl 0.00019133411048592
+    NaCl -0.00022770215766701
+    NaNO3 0.00019133411048592
+    1 moles in 1 steps
+SAVE solution 10147
+END
+
+SOLUTION 148 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 148
+REACTION 148
+    CaSO4:2H2O 0.00027076771206308
+    MgCl2 2.9743031634964e-05
+    NaCl 0.00019400706870596
+    1 moles in 1 steps
+SAVE solution 10148
+END
+
+SOLUTION 149 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 149
+REACTION 149
+    Ca(HCO3)2 0.00024251504746252
+    HCl 0.00015324450316165
+    MgCl2 9.4893206340729e-05
+    NaCl -8.2597878494292e-05
+    NaNO3 0.00015324450316165
+    1 moles in 1 steps
+SAVE solution 10149
+END
+
+SOLUTION 150 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 150
+REACTION 150
+    CaCl2 0.00014547534328527
+    CaSO4:2H2O 0.00026254351926733
+    HCl 0.00031146368236313
+    MgCl2 0.0001377561175312
+    NaCl -0.00099789795757661
+    NaNO3 0.00031146368236313
+    1 moles in 1 steps
+SAVE solution 10150
+END
+
+SOLUTION 151 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 151
+REACTION 151
+    HCl 0.00023624048531667
+    NaCl -0.00023624048531667
+    NaNO3 0.00023624048531667
+    1 moles in 1 steps
+SAVE solution 10151
+END
+
+SOLUTION 152 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 152
+REACTION 152
+    CaCl2 0.00017884348593579
+    CaSO4:2H2O 0.000189820101623
+    NaCl -0.00035768697187158
+    1 moles in 1 steps
+SAVE solution 10152
+END
+
+SOLUTION 153 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 153
+REACTION 153
+    Ca(HCO3)2 0.00021467730330397
+    HCl 0.00028045308599785
+    NaCl -7.3848478412783e-05
+    NaNO3 0.00028045308599785
+    1 moles in 1 steps
+SAVE solution 10153
+END
+
+SOLUTION 154 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 154
+REACTION 154
+    CaSO4:2H2O 0.00010789472321199
+    HCl 0.00012064728464977
+    MgCl2 0.0001191871638986
+    NaCl -0.00045935309526173
+    NaNO3 0.00012064728464977
+    1 moles in 1 steps
+SAVE solution 10154
+END
+
+SOLUTION 155 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 155
+REACTION 155
+    Ca(HCO3)2 5.2009263240605e-05
+    CaCl2 0.00021969365574936
+    CaSO4:2H2O 0.00022923982435478
+    MgCl2 3.6284993319109e-05
+    NaCl -0.00047492730742114
+    1 moles in 1 steps
+SAVE solution 10155
+END
+
+SOLUTION 156 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 156
+REACTION 156
+    CaCl2 0.00015480525574082
+    NaCl -0.00030961051148163
+    1 moles in 1 steps
+SAVE solution 10156
+END
+
+SOLUTION 157 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 157
+REACTION 157
+    Ca(HCO3)2 0.00012772371121858
+    HCl 8.7100045680754e-05
+    NaCl -8.7100045680754e-05
+    NaNO3 8.7100045680754e-05
+    1 moles in 1 steps
+SAVE solution 10157
+END
+
+SOLUTION 158 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 158
+REACTION 158
+    Ca(HCO3)2 0.00011812747253758
+    HCl 0.00033953927301032
+    MgCl2 0.00015635767727162
+    NaCl -0.00065225462755355
+    NaNO3 0.00033953927301032
+    1 moles in 1 steps
+SAVE solution 10158
+END
+
+SOLUTION 159 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 159
+REACTION 159
+    Ca(HCO3)2 -6.9943690593435e-05
+    CaSO4:2H2O 6.4452361680274e-05
+    HCl 0.00032759008999729
+    MgCl2 7.9022684045594e-05
+    NaCl -0.00048563545808848
+    NaNO3 0.00032759008999729
+    1 moles in 1 steps
+SAVE solution 10159
+END
+
+SOLUTION 160 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 160
+REACTION 160
+    Ca(HCO3)2 0.00022362014079639
+    CaCl2 0.0001955148364712
+    CaSO4:2H2O 3.092044961435e-05
+    MgCl2 4.8832189009986e-05
+    NaCl -0.00043024804769473
+    1 moles in 1 steps
+SAVE solution 10160
+END
+
+SOLUTION 161 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 161
+REACTION 161
+    CaCl2 7.2723706448177e-05
+    NaCl -0.00014544741289635
+    1 moles in 1 steps
+SAVE solution 10161
+END
+
+SOLUTION 162 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 162
+REACTION 162
+    Ca(HCO3)2 0.00012277188092094
+    MgCl2 0.00016163620114835
+    NaCl -0.00032327240229671
+    1 moles in 1 steps
+SAVE solution 10162
+END
+
+SOLUTION 163 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 163
+REACTION 163
+    CaSO4:2H2O 4.1223674826034e-05
+    MgCl2 6.7964138042787e-05
+    NaCl -7.5502198593733e-05
+    1 moles in 1 steps
+SAVE solution 10163
+END
+
+SOLUTION 164 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 164
+REACTION 164
+    Ca(HCO3)2 8.0201638822525e-05
+    CaCl2 0.00018563509773211
+    CaSO4:2H2O 0.0002664916413202
+    HCl 0.00028593933322083
+    NaCl -0.00065720952868504
+    NaNO3 0.00028593933322083
+    1 moles in 1 steps
+SAVE solution 10164
+END
+
+SOLUTION 165 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 165
+REACTION 165
+    Ca(HCO3)2 4.8061746962464e-05
+    CaCl2 0.00014039651686501
+    CaSO4:2H2O 0.00010428026803601
+    MgCl2 9.1116331226498e-05
+    NaCl -0.00027247099753683
+    1 moles in 1 steps
+SAVE solution 10165
+END
+
+SOLUTION 166 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 166
+REACTION 166
+    CaSO4:2H2O -0.00020648773743418
+    1 moles in 1 steps
+SAVE solution 10166
+END
+
+SOLUTION 167 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 167
+REACTION 167
+    Ca(HCO3)2 -5.6658069266821e-05
+    NaCl 0.00023389662799664
+    1 moles in 1 steps
+SAVE solution 10167
+END
+
+SOLUTION 168 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 168
+REACTION 168
+    Ca(HCO3)2 9.0834979325286e-05
+    MgCl2 3.9332869891623e-05
+    NaCl 0.00016119530874614
+    1 moles in 1 steps
+SAVE solution 10168
+END
+
+SOLUTION 169 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 169
+REACTION 169
+    Ca(HCO3)2 0.00026091534408018
+    CaSO4:2H2O 0.00015059928392629
+    HCl 0.0002306980045416
+    NaCl -8.0783224042329e-05
+    NaNO3 0.0002306980045416
+    1 moles in 1 steps
+SAVE solution 10169
+END
+
+SOLUTION 170 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 170
+REACTION 170
+    Ca(HCO3)2 -0.00023088174957839
+    CaSO4:2H2O -0.00010750635877902
+    HCl 0.00019626555271566
+    MgCl2 0.00016310790926296
+    NaCl -0.00036103027263064
+    NaNO3 0.00019626555271566
+    1 moles in 1 steps
+SAVE solution 10170
+END
+
+SOLUTION 171 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 171
+REACTION 171
+    CaCl2 0.00020230292099932
+    NaCl -0.00040460584199864
+    1 moles in 1 steps
+SAVE solution 10171
+END
+
+SOLUTION 172 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 172
+REACTION 172
+    HCl 0.00026297281037571
+    NaCl -5.8706547215697e-05
+    NaNO3 0.00026297281037571
+    1 moles in 1 steps
+SAVE solution 10172
+END
+
+SOLUTION 173 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 173
+REACTION 173
+    HCl 6.8932909158088e-05
+    MgCl2 0.00015641852127859
+    NaCl -0.00028049106871063
+    NaNO3 6.8932909158088e-05
+    1 moles in 1 steps
+SAVE solution 10173
+END
+
+SOLUTION 174 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 174
+REACTION 174
+    CaCl2 0.00012912488865802
+    HCl 0.00013516036572347
+    MgCl2 0.00010517000299777
+    NaCl -0.0003939179274593
+    NaNO3 0.00013516036572347
+    1 moles in 1 steps
+SAVE solution 10174
+END
+
+SOLUTION 175 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 175
+REACTION 175
+    Ca(HCO3)2 0.00019379521108253
+    CaCl2 6.3018204244401e-05
+    CaSO4:2H2O -7.2702886724993e-05
+    HCl 0.00032579013354915
+    MgCl2 3.6946485889363e-05
+    NaCl -0.00052571951381668
+    NaNO3 0.00032579013354915
+    1 moles in 1 steps
+SAVE solution 10175
+END
+
+SOLUTION 176 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 176
+REACTION 176
+    CaSO4:2H2O 8.1952608680262e-05
+    1 moles in 1 steps
+SAVE solution 10176
+END
+
+SOLUTION 177 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 177
+REACTION 177
+    CaSO4:2H2O 0.00023700505505544
+    HCl 0.00013415345998885
+    NaCl -0.00013415345998885
+    NaNO3 0.00013415345998885
+    1 moles in 1 steps
+SAVE solution 10177
+END
+
+SOLUTION 178 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 178
+REACTION 178
+    CaCl2 8.8455914201549e-05
+    MgCl2 7.6245618192229e-05
+    NaCl -0.00023906553056684
+    1 moles in 1 steps
+SAVE solution 10178
+END
+
+SOLUTION 179 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 179
+REACTION 179
+    CaSO4:2H2O -9.9592947916073e-05
+    HCl 0.00030452473355478
+    MgCl2 0.0001400406908639
+    NaCl -0.00031620524830848
+    NaNO3 0.00030452473355478
+    1 moles in 1 steps
+SAVE solution 10179
+END
+
+SOLUTION 180 upstream
+    units mmol/kgw
+    temp 30.000000
+    pH 7.550000
+    pe 4
+    Ca 2.2
+    Mg 1.3
+    Na 6.5
+    K 0.28
+    Cl 7.4
+    S(6) 2.2 as SO4
+    N(5) 0.38 as NO3
+    F 0.055
+    Fe 0.002
+    P 0.01 as PO4
+    Alkalinity 2.4 as HCO3
+    -water 1.0
+END
+
+USE solution 180
+REACTION 180
+    Ca(HCO3)2 0.00017682060786366
+    CaSO4:2H2O 4.173273523271e-05
+    HCl 4.0569684585583e-05
+    MgCl2 0.0001121179250286
+    NaCl -0.00052525692799482
+    NaNO3 4.0569684585583e-05
+    1 moles in 1 steps
+SAVE solution 10180
+END
+
+SOLUTION 181 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 181
+REACTION 181
+    CaCl2 -0.00020224684138932
+    NaCl 0.00040449368277865
+    1 moles in 1 steps
+SAVE solution 10181
+END
+
+SOLUTION 182 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 182
+REACTION 182
+    Ca(HCO3)2 6.625079121707e-05
+    NaCl 0.00014896441753529
+    1 moles in 1 steps
+SAVE solution 10182
+END
+
+SOLUTION 183 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 183
+REACTION 183
+    CaCl2 -2.641710141023e-05
+    Fe(SO4)2 4.9301792325632e-05
+    KHCO3 0.00017879571759645
+    NaCl 5.2834202820461e-05
+    1 moles in 1 steps
+SAVE solution 10183
+END
+
+SOLUTION 184 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 184
+REACTION 184
+    CaCl2 -2.7037754846985e-05
+    CaSO4:2H2O 0.00027782390615346
+    KHCO3 -0.00014060493384096
+    MgCl2 -5.7344329797046e-05
+    NaCl 0.00016876416928806
+    1 moles in 1 steps
+SAVE solution 10184
+END
+
+SOLUTION 185 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 185
+REACTION 185
+    CaCl2 7.0560883347082e-05
+    CaF2 0.0002316404771014
+    CaMg(HCO3)4 0.00010765119031651
+    HCl 0.00011717908880058
+    HNO3 -0.00011717908880058
+    MgCl2 0.00010285571435738
+    NaCl -0.00046401228420951
+    NaHCO3 0.00011717908880058
+    1 moles in 1 steps
+SAVE solution 10185
+END
+
+SOLUTION 186 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 186
+REACTION 186
+    CaCl2 2.8574878468874e-05
+    NaCl -5.7149756937747e-05
+    1 moles in 1 steps
+SAVE solution 10186
+END
+
+SOLUTION 187 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 187
+REACTION 187
+    CaCl2 -0.0001079167941839
+    MgCl2 -5.0222711517374e-05
+    NaCl 0.00031627901140254
+    1 moles in 1 steps
+SAVE solution 10187
+END
+
+SOLUTION 188 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 188
+REACTION 188
+    Ca(HCO3)2 3.2247727935252e-06
+    CaF2 -1.4715783275875e-05
+    CaMg(HCO3)4 4.028644642067e-06
+    1 moles in 1 steps
+SAVE solution 10188
+END
+
+SOLUTION 189 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 189
+REACTION 189
+    Ca(HCO3)2 -5.5993743483682e-05
+    CaMg(HCO3)4 2.5413574386699e-05
+    Fe(SO4)2 3.8106543742396e-05
+    1 moles in 1 steps
+SAVE solution 10189
+END
+
+SOLUTION 190 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 190
+REACTION 190
+    Ca(HCO3)2 0.00011481580670278
+    Ca5(PO4)3F -3.8186964927258e-06
+    HCl 7.2405538770629e-05
+    HNO3 -7.2405538770629e-05
+    KHCO3 0.00012509878071671
+    NaCl 4.3553262135189e-05
+    NaHCO3 7.2405538770629e-05
+    1 moles in 1 steps
+SAVE solution 10190
+END
+
+SOLUTION 191 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 191
+REACTION 191
+    CaF2 -1.2861506120943e-05
+    1 moles in 1 steps
+SAVE solution 10191
+END
+
+SOLUTION 192 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 192
+REACTION 192
+    CaF2 -1.3619678957322e-05
+    HCl 3.1628240048801e-05
+    NaCl -3.1628240048801e-05
+    NaNO3 3.1628240048801e-05
+    1 moles in 1 steps
+SAVE solution 10192
+END
+
+SOLUTION 193 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 193
+REACTION 193
+    Ca(HCO3)2 7.1667856395431e-05
+    CaSO4:2H2O 0.00024717595569443
+    HCl 7.8137829437035e-05
+    HNO3 -7.8137829437035e-05
+    NaCl -7.8137829437035e-05
+    NaHCO3 7.8137829437035e-05
+    1 moles in 1 steps
+SAVE solution 10193
+END
+
+SOLUTION 194 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 194
+REACTION 194
+    Ca(HCO3)2 8.67561372204e-05
+    CaSO4:2H2O 7.9910794246324e-05
+    Fe(SO4)2 1.9103316180519e-05
+    MgCl2 0.00012342579779273
+    NaCl -0.00024685159558546
+    1 moles in 1 steps
+SAVE solution 10194
+END
+
+SOLUTION 195 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 195
+REACTION 195
+    CaCl2 -0.00017337408857085
+    CaF2 2.7834843620689e-05
+    CaSO4:2H2O -0.00024825915123545
+    HCl 0.00025187518569732
+    NaCl 9.4872991444372e-05
+    NaHCO3 0.00016475671095131
+    NaNO3 0.00025187518569732
+    1 moles in 1 steps
+SAVE solution 10195
+END
+
+SOLUTION 196 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 196
+REACTION 196
+    MgCl2 -2.9566197764998e-05
+    NaCl 5.9132395529996e-05
+    1 moles in 1 steps
+SAVE solution 10196
+END
+
+SOLUTION 197 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 197
+REACTION 197
+    Ca(HCO3)2 0.00016081237597873
+    MgCl2 -3.2152102743204e-05
+    NaCl 6.4304205486407e-05
+    1 moles in 1 steps
+SAVE solution 10197
+END
+
+SOLUTION 198 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 198
+REACTION 198
+    CaCl2 0.00012960098073894
+    CaF2 0.00022942468128012
+    NaCl -9.2068329988047e-05
+    1 moles in 1 steps
+SAVE solution 10198
+END
+
+SOLUTION 199 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 199
+REACTION 199
+    Ca(HCO3)2 -0.00012784669685799
+    Fe(SO4)2 3.7531171526976e-05
+    HCl 0.00030161740179965
+    MgCl2 -0.00016921944245503
+    NaCl 3.6821483110417e-05
+    NaNO3 0.00030161740179965
+    1 moles in 1 steps
+SAVE solution 10199
+END
+
+SOLUTION 200 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 200
+REACTION 200
+    Ca(HCO3)2 0.00021419451890267
+    Fe(SO4)2 7.0765284184214e-05
+    HCl 0.00021908188458502
+    HNO3 -7.2300617288187e-05
+    NaCl -0.00014938169370716
+    NaHCO3 7.2300617288187e-05
+    NaNO3 0.00014678126729683
+    1 moles in 1 steps
+SAVE solution 10200
+END
+
+SOLUTION 201 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 201
+REACTION 201
+    KHCO3 -0.00012435439166015
+    1 moles in 1 steps
+SAVE solution 10201
+END
+
+SOLUTION 202 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 202
+REACTION 202
+    Ca(HCO3)2 -0.00016276815257218
+    CaSO4:2H2O 0.00014433928440834
+    1 moles in 1 steps
+SAVE solution 10202
+END
+
+SOLUTION 203 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 203
+REACTION 203
+    Ca(HCO3)2 -0.0002502629821873
+    CaCl2 0.00020530953073366
+    MgCl2 0.00014867939680815
+    NaCl -0.00070797785508361
+    1 moles in 1 steps
+SAVE solution 10203
+END
+
+SOLUTION 204 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 204
+REACTION 204
+    Ca5(PO4)3F 6.4471681242602e-06
+    CaCl2 -0.00020958997830125
+    HCl 0.00026470875510824
+    NaCl 0.00023255422711176
+    NaNO3 0.00026470875510824
+    1 moles in 1 steps
+SAVE solution 10204
+END
+
+SOLUTION 205 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 205
+REACTION 205
+    Ca(HCO3)2 0.00032019491912412
+    CaCl2 -0.00020507406592101
+    KHCO3 2.7537498086882e-05
+    MgCl2 -0.00012120375303093
+    NaCl 0.00065255563790389
+    1 moles in 1 steps
+SAVE solution 10205
+END
+
+SOLUTION 206 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 206
+REACTION 206
+    MgCl2 6.4513052861334e-05
+    NaCl -0.00012902610572267
+    1 moles in 1 steps
+SAVE solution 10206
+END
+
+SOLUTION 207 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 207
+REACTION 207
+    Ca(HCO3)2 0.00017899552100722
+    NaCl 0.00027480890264519
+    1 moles in 1 steps
+SAVE solution 10207
+END
+
+SOLUTION 208 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 208
+REACTION 208
+    CaF2 0.00024058289200956
+    Fe(SO4)2 7.6921027356314e-05
+    KHCO3 4.4495524582905e-05
+    1 moles in 1 steps
+SAVE solution 10208
+END
+
+SOLUTION 209 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 209
+REACTION 209
+    CaF2 0.00018838866611009
+    HCl 7.3069594342722e-05
+    HNO3 -7.3069594342722e-05
+    KHCO3 0.00027330908606552
+    MgCl2 -0.00010084466346031
+    NaCl 0.0001286197325779
+    NaHCO3 7.3069594342722e-05
+    1 moles in 1 steps
+SAVE solution 10209
+END
+
+SOLUTION 210 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 210
+REACTION 210
+    Ca(HCO3)2 9.8808024395248e-06
+    Fe(SO4)2 5.1823562321996e-05
+    KHCO3 8.0278468016857e-05
+    NaCl 0.00022067922439975
+    1 moles in 1 steps
+SAVE solution 10210
+END
+
+SOLUTION 211 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 211
+REACTION 211
+    CaSO4:2H2O 9.9082469896739e-05
+    1 moles in 1 steps
+SAVE solution 10211
+END
+
+SOLUTION 212 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 212
+REACTION 212
+    CaF2 0.00010844222532198
+    MgCl2 -0.00013315200007226
+    NaCl 0.00026630400014453
+    1 moles in 1 steps
+SAVE solution 10212
+END
+
+SOLUTION 213 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 213
+REACTION 213
+    Ca(HCO3)2 -0.00015381368796862
+    CaSO4:2H2O 0.00026136125851758
+    MgCl2 -3.0548766557457e-05
+    NaCl 6.1097533114914e-05
+    1 moles in 1 steps
+SAVE solution 10213
+END
+
+SOLUTION 214 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 214
+REACTION 214
+    CaCl2 4.4152655365239e-05
+    HCl 5.1835976536918e-05
+    HNO3 -5.1835976536918e-05
+    KHCO3 0.00018917854231304
+    MgCl2 4.710854086282e-05
+    NaCl -0.00023435836899304
+    NaHCO3 5.1835976536918e-05
+    1 moles in 1 steps
+SAVE solution 10214
+END
+
+SOLUTION 215 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 215
+REACTION 215
+    CaF2 0.00017805319423492
+    CaMg(HCO3)4 0.00017568688437802
+    Fe(SO4)2 4.7133348419648e-05
+    HCl 4.9401896183173e-05
+    HNO3 -4.9401896183173e-05
+    MgCl2 7.1288649743431e-05
+    NaCl -0.00019197919567004
+    NaHCO3 4.9401896183173e-05
+    1 moles in 1 steps
+SAVE solution 10215
+END
+
+SOLUTION 216 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 216
+REACTION 216
+    CaSO4:2H2O 0.00016445111833497
+    1 moles in 1 steps
+SAVE solution 10216
+END
+
+SOLUTION 217 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 217
+REACTION 217
+    CaCl2 -6.5918436140525e-05
+    KHCO3 -0.0001224129527529
+    NaCl 0.00013183687228105
+    1 moles in 1 steps
+SAVE solution 10217
+END
+
+SOLUTION 218 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 218
+REACTION 218
+    Ca(HCO3)2 0.00021523214301799
+    CaCl2 -5.3079452149684e-05
+    HCl 7.618419882206e-05
+    NaCl 2.9974705477309e-05
+    NaNO3 7.618419882206e-05
+    1 moles in 1 steps
+SAVE solution 10218
+END
+
+SOLUTION 219 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 219
+REACTION 219
+    CaCl2 -2.7596060712137e-05
+    Fe(SO4)2 2.6272878977862e-05
+    HCl 0.0002540123800009
+    MgCl2 0.00014731062066682
+    NaCl -0.00049344149991026
+    NaNO3 0.0002540123800009
+    1 moles in 1 steps
+SAVE solution 10219
+END
+
+SOLUTION 220 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 220
+REACTION 220
+    Ca5(PO4)3F -3.9755418703334e-06
+    CaSO4:2H2O 0.00015803281648643
+    HCl 9.4702507126393e-05
+    HNO3 -9.4702507126393e-05
+    MgCl2 5.5673322026987e-05
+    NaCl -0.00036603716654159
+    NaHCO3 9.4702507126393e-05
+    1 moles in 1 steps
+SAVE solution 10220
+END
+
+SOLUTION 221 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 221
+REACTION 221
+    CaSO4:2H2O 9.9558470735464e-05
+    1 moles in 1 steps
+SAVE solution 10221
+END
+
+SOLUTION 222 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 222
+REACTION 222
+    Ca(HCO3)2 -0.00010233306364169
+    MgCl2 -0.00011692635021297
+    NaCl 0.00023385270042594
+    1 moles in 1 steps
+SAVE solution 10222
+END
+
+SOLUTION 223 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 223
+REACTION 223
+    CaCl2 -0.00015975339150035
+    CaMg(HCO3)4 0.00022065597683457
+    HCl 0.0002648628032762
+    NaCl 5.4643979724503e-05
+    NaNO3 0.0002648628032762
+    1 moles in 1 steps
+SAVE solution 10223
+END
+
+SOLUTION 224 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 224
+REACTION 224
+    Ca(HCO3)2 2.9052825169505e-05
+    CaMg(HCO3)4 0.00025411371923252
+    HCl 0.00028630634889345
+    MgCl2 -8.515221720946e-05
+    NaCl -0.00011600191447453
+    NaNO3 0.00028630634889345
+    1 moles in 1 steps
+SAVE solution 10224
+END
+
+SOLUTION 225 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 225
+REACTION 225
+    Ca(HCO3)2 0.00025800135739847
+    CaF2 0.00027000229709354
+    CaMg(HCO3)4 0.00027972111151229
+    MgCl2 -0.00012521947477766
+    NaCl 0.00033663815548221
+    1 moles in 1 steps
+SAVE solution 10225
+END
+
+SOLUTION 226 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 226
+REACTION 226
+    KHCO3 -0.00011785645605085
+    1 moles in 1 steps
+SAVE solution 10226
+END
+
+SOLUTION 227 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 227
+REACTION 227
+    CaCl2 -0.00015826651025267
+    MgCl2 -0.00012088847316707
+    NaCl 0.00055830996683947
+    1 moles in 1 steps
+SAVE solution 10227
+END
+
+SOLUTION 228 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 228
+REACTION 228
+    Ca(HCO3)2 1.1139166399251e-05
+    HCl 6.840981375077e-05
+    HNO3 -6.840981375077e-05
+    NaCl -6.840981375077e-05
+    NaHCO3 6.840981375077e-05
+    1 moles in 1 steps
+SAVE solution 10228
+END
+
+SOLUTION 229 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 229
+REACTION 229
+    Ca(HCO3)2 0.00021682071703085
+    CaCl2 -0.00015336444399588
+    MgCl2 8.3972738551632e-05
+    NaCl 0.00013878341088849
+    NaHCO3 -0.0002784490425089
+    1 moles in 1 steps
+SAVE solution 10229
+END
+
+SOLUTION 230 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 230
+REACTION 230
+    CaCl2 -0.00018892700123812
+    CaMg(HCO3)4 0.00022357374601478
+    MgCl2 0.0001366373031051
+    NaCl 0.00013161430626715
+    NaHCO3 0.00017242566369201
+    1 moles in 1 steps
+SAVE solution 10230
+END
+
+SOLUTION 231 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 231
+REACTION 231
+    MgCl2 0.00017340656409941
+    NaCl -0.00034681312819882
+    1 moles in 1 steps
+SAVE solution 10231
+END
+
+SOLUTION 232 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 232
+REACTION 232
+    HCl 0.00010562532316401
+    HNO3 -0.00010562532316401
+    NaCl -0.00010562532316401
+    NaHCO3 0.00031420819774017
+    1 moles in 1 steps
+SAVE solution 10232
+END
+
+SOLUTION 233 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 233
+REACTION 233
+    CaCl2 -8.4878894205351e-05
+    MgCl2 0.0001637080746714
+    NaCl -2.5717952596309e-05
+    1 moles in 1 steps
+SAVE solution 10233
+END
+
+SOLUTION 234 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 234
+REACTION 234
+    Ca(HCO3)2 0.0001188877616882
+    CaCl2 -0.00021236363239033
+    Fe(SO4)2 3.5829019078654e-05
+    HCl 0.00032774037054359
+    NaCl 9.6986894237074e-05
+    NaNO3 0.00032774037054359
+    1 moles in 1 steps
+SAVE solution 10234
+END
+
+SOLUTION 235 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 235
+REACTION 235
+    Ca(HCO3)2 0.00013600314895286
+    Ca5(PO4)3F 1.3175679493115e-05
+    CaF2 6.3597128620165e-05
+    CaMg(HCO3)4 0.00025440801691343
+    CaSO4:2H2O 0.00024621340733865
+    1 moles in 1 steps
+SAVE solution 10235
+END
+
+SOLUTION 236 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 236
+REACTION 236
+    MgCl2 -9.5203904883366e-05
+    NaCl 0.00019040780976673
+    1 moles in 1 steps
+SAVE solution 10236
+END
+
+SOLUTION 237 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 237
+REACTION 237
+    CaF2 0.00024357388746837
+    MgCl2 -0.00012860887876271
+    NaCl 0.00025721775752542
+    1 moles in 1 steps
+SAVE solution 10237
+END
+
+SOLUTION 238 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 238
+REACTION 238
+    Ca(HCO3)2 0.00019007672506573
+    HCl 9.0418221077376e-05
+    NaCl -9.0418221077376e-05
+    NaNO3 9.0418221077376e-05
+    1 moles in 1 steps
+SAVE solution 10238
+END
+
+SOLUTION 239 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 239
+REACTION 239
+    CaF2 0.00027304013674071
+    Fe(SO4)2 7.2700603347593e-05
+    HCl 0.00024371653940015
+    NaCl -0.00024371653940015
+    NaHCO3 0.00011678428850186
+    NaNO3 0.00024371653940015
+    1 moles in 1 steps
+SAVE solution 10239
+END
+
+SOLUTION 240 upstream
+    units mmol/kgw
+    temp 28.000000
+    pH 7.050000
+    pe 4
+    Ca 1.05
+    Mg 0.62
+    Na 2.7
+    K 0.16
+    Cl 2.5
+    S(6) 0.85 as SO4
+    N(5) 0.42 as NO3
+    F 0.035
+    Fe 0.006
+    P 0.015 as PO4
+    Alkalinity 2.65 as HCO3
+    -water 1.0
+END
+
+USE solution 240
+REACTION 240
+    Ca5(PO4)3F -3.9406327837247e-06
+    CaCl2 -8.4811714166066e-05
+    CaF2 3.0483213881013e-05
+    HCl 0.00010263728634942
+    HNO3 -6.614208357194e-05
+    NaCl 6.6986141982715e-05
+    NaHCO3 6.614208357194e-05
+    NaNO3 3.6495202777476e-05
+    1 moles in 1 steps
+SAVE solution 10240
+END
