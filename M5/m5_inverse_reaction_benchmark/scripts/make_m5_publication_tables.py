@@ -382,6 +382,7 @@ def supplementary_tables() -> None:
                 recovered_active_fraction=("recovered_active", "mean"),
                 mean_core_evidence_score=("core_evidence_score", "mean"),
                 mean_optional_evidence_score=("optional_evidence_score", "mean"),
+                mean_combined_evidence_score=("combined_evidence_score", "mean"),
                 median_combined_penalty_scale=("combined_penalty_scale", "median"),
                 n=("scenario_id", "count"),
             )
@@ -389,6 +390,52 @@ def supplementary_tables() -> None:
             .sort_values(["data_tier", "mean_optional_evidence_score"], ascending=[True, False])
         )
         write(evidence_summary, "tableS15_data_tier_reaction_evidence.csv")
+
+    data_tier_resolution_path = RESULTS_DIR / "data_tier_evidence_lifted_resolution.csv"
+    if data_tier_resolution_path.exists():
+        tier_resolution = pd.read_csv(data_tier_resolution_path)
+        tier_resolution["class_active"] = (
+            tier_resolution["n_true_active_members"] > 0
+        )
+
+        def active_top_fraction(values: pd.Series) -> float:
+            active = tier_resolution.loc[values.index, "class_active"]
+            subset = values[active]
+            return float(subset.mean()) if len(subset) else np.nan
+
+        resolution_summary = (
+            tier_resolution.groupby(["data_tier", "class_id", "members"])
+            .agg(
+                mean_elri=("evidence_lifted_resolution_index", "mean"),
+                median_elri=("evidence_lifted_resolution_index", "median"),
+                mean_top_probability=("top_probability", "mean"),
+                class_active_fraction=("class_active", "mean"),
+                conditionally_preferred_or_resolved_fraction=(
+                    "resolution_status",
+                    lambda values: values.isin(
+                        [
+                            "conditionally_preferred",
+                            "evidence_lifted_resolved",
+                        ]
+                    ).mean(),
+                ),
+                top_member_true_active_fraction_all=(
+                    "top_member_true_active",
+                    "mean",
+                ),
+                top_member_true_active_fraction_when_class_active=(
+                    "top_member_true_active",
+                    active_top_fraction,
+                ),
+                n=("scenario_id", "count"),
+            )
+            .reset_index()
+            .sort_values(["data_tier", "class_id"])
+        )
+        write(
+            resolution_summary,
+            "tableS16_evidence_lifted_resolution.csv",
+        )
 
 
 def main() -> None:

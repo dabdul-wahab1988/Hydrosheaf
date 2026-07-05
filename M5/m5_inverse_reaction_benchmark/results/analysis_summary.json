@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-05T16:10:59.971331+00:00",
+  "generated_at": "2026-07-05T21:43:52.691425+00:00",
   "random_seed": 20250615,
   "phreeqc_version": "3.7.3-15968",
   "phreeqc_executable": "C:\\Program Files\\USGS\\phreeqc-3.7.3-15968-x64\\bin\\Release\\phreeqc.exe",
@@ -123,6 +123,27 @@
       "n_optional_diagnostics": 3.0
     }
   },
+  "data_tier_evidence_lifted_resolution_summary": {
+    "core": {
+      "mean_evidence_lifted_resolution_index": 0.22503000036150808,
+      "median_evidence_lifted_resolution_index": 0.0723261436121447,
+      "conditionally_preferred_or_resolved_fraction": 0.5513888888888889,
+      "n_class_evaluations": 720
+    },
+    "enhanced": {
+      "mean_evidence_lifted_resolution_index": 0.23190708498616044,
+      "median_evidence_lifted_resolution_index": 0.1139896057438968,
+      "conditionally_preferred_or_resolved_fraction": 0.6277777777777778,
+      "n_class_evaluations": 720
+    },
+    "plus_lite": {
+      "mean_evidence_lifted_resolution_index": 0.2427189126442851,
+      "median_evidence_lifted_resolution_index": 0.2069509952220228,
+      "conditionally_preferred_or_resolved_fraction": 0.6277777777777778,
+      "n_class_evaluations": 720
+    }
+  },
+  "hydrosheaf_core_mean_evidence_lifted_resolution_index": 0.22503000036150808,
   "phreeqc_inverse_success_fraction": 0.9958333333333333,
   "phreeqc_inverse_strict_success_fraction": 0.4583333333333333,
   "phreeqc_inverse_relaxed_fallback_fraction": 0.5416666666666666,

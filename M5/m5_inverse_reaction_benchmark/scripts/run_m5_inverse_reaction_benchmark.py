@@ -23,6 +23,9 @@ from hydrosheaf.isotopes import (  # noqa: E402
     evaporation_index,
 )
 from hydrosheaf.models.ec_tds import fit_linear_model  # noqa: E402
+from hydrosheaf.models.evidence_lifted import (  # noqa: E402
+    evidence_lifted_resolution,
+)
 from hydrosheaf.models.exchange import (  # noqa: E402
     classify_exchange_direction,
     compute_cai_indices,
@@ -827,6 +830,147 @@ def _combine_core_and_optional_penalties(
         optional_scales, dtype=float
     )
     return np.clip(combined, 0.20, 5.00)
+
+
+def _combine_evidence_scores(core_score: object, optional_score: object) -> float:
+    core = _finite_float(core_score)
+    optional = _finite_float(optional_score)
+    core = 0.5 if core is None else core
+    optional = 0.5 if optional is None else optional
+    return float(np.clip(core + optional - 0.5, 0.05, 0.95))
+
+
+def _ambiguous_class_members(class_map: Mapping[str, str]) -> dict[str, list[str]]:
+    grouped: dict[str, list[str]] = {}
+    for reaction, class_id in class_map.items():
+        grouped.setdefault(class_id, []).append(reaction)
+    return {
+        class_id: sorted(members)
+        for class_id, members in grouped.items()
+        if len(members) > 1
+    }
+
+
+def _evidence_lifted_resolution_frame(
+    evidence: pd.DataFrame,
+    class_map: Mapping[str, str],
+    *,
+    score_column: str,
+    group_columns: Sequence[str],
+    evidence_source: str,
+) -> pd.DataFrame:
+    if evidence.empty or score_column not in evidence.columns:
+        return pd.DataFrame()
+
+    ambiguous = _ambiguous_class_members(class_map)
+    rows: list[dict[str, object]] = []
+    group_keys: str | list[str]
+    group_keys = list(group_columns) if len(group_columns) > 1 else group_columns[0]
+    for key_values, group in evidence.groupby(group_keys, dropna=False):
+        if len(group_columns) == 1:
+            key_tuple = (key_values,)
+        elif isinstance(key_values, tuple):
+            key_tuple = key_values
+        else:
+            key_tuple = tuple(key_values)
+        group_context = dict(zip(group_columns, key_tuple))
+        by_reaction = group.drop_duplicates("reaction").set_index("reaction")
+        for class_id, members in ambiguous.items():
+            available = [member for member in members if member in by_reaction.index]
+            if len(available) != len(members):
+                continue
+            scores = {
+                member: float(by_reaction.loc[member, score_column])
+                for member in members
+            }
+            resolution = evidence_lifted_resolution(
+                members,
+                scores,
+                class_id=class_id,
+            )
+            row = {
+                **group_context,
+                "evidence_source": evidence_source,
+                **resolution.as_row(),
+            }
+            if "true_active" in by_reaction.columns:
+                true_members = [
+                    member
+                    for member in members
+                    if bool(by_reaction.loc[member, "true_active"])
+                ]
+                row["true_active_members"] = ";".join(true_members)
+                row["n_true_active_members"] = len(true_members)
+                row["top_member_true_active"] = resolution.top_member in true_members
+            if "recovered_active" in by_reaction.columns:
+                recovered_members = [
+                    member
+                    for member in members
+                    if bool(by_reaction.loc[member, "recovered_active"])
+                ]
+                row["recovered_active_members"] = ";".join(recovered_members)
+                row["n_recovered_active_members"] = len(recovered_members)
+                row["top_member_recovered_active"] = (
+                    resolution.top_member in recovered_members
+                )
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def write_core_evidence_lifted_resolution(
+    class_map: Mapping[str, str],
+    evidence: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    if evidence is None:
+        evidence_path = RESULTS_DIR / "hydrosheaf_core_evidence.csv"
+        if not evidence_path.exists():
+            return pd.DataFrame()
+        evidence = pd.read_csv(evidence_path)
+    resolution = _evidence_lifted_resolution_frame(
+        evidence,
+        class_map,
+        score_column="hydrosheaf_core_evidence_score",
+        group_columns=[
+            "scenario_id",
+            "archetype",
+            "replicate",
+            "noise_level",
+            "transport_error_level",
+            "panel",
+            "method",
+        ],
+        evidence_source="hydrosheaf_core_major_ions",
+    )
+    resolution.to_csv(
+        RESULTS_DIR / "hydrosheaf_core_evidence_lifted_resolution.csv",
+        index=False,
+    )
+    return resolution
+
+
+def write_field_evidence_lifted_resolution(
+    class_map: Mapping[str, str],
+    evidence: pd.DataFrame,
+) -> pd.DataFrame:
+    resolution = _evidence_lifted_resolution_frame(
+        evidence,
+        class_map,
+        score_column="hydrosheaf_core_evidence_score",
+        group_columns=[
+            "well_id",
+            "aquifer",
+            "geology_group",
+            "lithology",
+            "region",
+            "district",
+        ],
+        evidence_source="ghana_field_hydrosheaf_core",
+    )
+    resolution.to_csv(
+        RESULTS_DIR / "ghana_evidence_lifted_resolution.csv",
+        index=False,
+    )
+    return resolution
 
 
 def _draw_support(
@@ -2078,6 +2222,10 @@ def run_data_tier_experiment(
             ):
                 core_row = core_by_reaction[reaction.label]
                 optional_row = optional_by_reaction[reaction.label]
+                combined_evidence_score = _combine_evidence_scores(
+                    core_row["hydrosheaf_core_evidence_score"],
+                    optional_row["optional_evidence_score"],
+                )
                 evidence_rows.append(
                     {
                         "scenario_id": scenario["scenario_id"],
@@ -2098,6 +2246,7 @@ def run_data_tier_experiment(
                         "optional_evidence_score": optional_row[
                             "optional_evidence_score"
                         ],
+                        "combined_evidence_score": combined_evidence_score,
                         "optional_penalty_scale": optional_row[
                             "optional_penalty_scale"
                         ],
@@ -2151,6 +2300,22 @@ def write_data_tier_outputs(
     data_tiers.to_csv(RESULTS_DIR / "data_tier_experiment.csv", index=False)
     data_tier_evidence.to_csv(
         RESULTS_DIR / "data_tier_reaction_evidence.csv", index=False
+    )
+    data_tier_resolution = _evidence_lifted_resolution_frame(
+        data_tier_evidence,
+        class_map,
+        score_column="combined_evidence_score",
+        group_columns=[
+            "scenario_id",
+            "archetype",
+            "replicate",
+            "data_tier",
+        ],
+        evidence_source="data_tier_combined_evidence",
+    )
+    data_tier_resolution.to_csv(
+        RESULTS_DIR / "data_tier_evidence_lifted_resolution.csv",
+        index=False,
     )
     data_tier_diagnostics.to_csv(
         RESULTS_DIR / "data_tier_optional_diagnostics.csv", index=False
@@ -2955,6 +3120,47 @@ def write_summary(
             }
             for tier, group in data_tiers.groupby("data_tier")
         }
+    data_tier_resolution_path = RESULTS_DIR / "data_tier_evidence_lifted_resolution.csv"
+    if data_tier_resolution_path.exists():
+        data_tier_resolution = pd.read_csv(data_tier_resolution_path)
+        data_tier_resolution_summary = {
+            str(tier): {
+                "mean_evidence_lifted_resolution_index": float(
+                    group["evidence_lifted_resolution_index"].mean()
+                ),
+                "median_evidence_lifted_resolution_index": float(
+                    group["evidence_lifted_resolution_index"].median()
+                ),
+                "conditionally_preferred_or_resolved_fraction": float(
+                    group["resolution_status"]
+                    .isin(
+                        [
+                            "conditionally_preferred",
+                            "evidence_lifted_resolved",
+                        ]
+                    )
+                    .mean()
+                ),
+                "n_class_evaluations": int(len(group)),
+            }
+            for tier, group in data_tier_resolution.groupby("data_tier")
+        }
+    else:
+        data_tier_resolution_summary = {}
+    core_resolution_path = RESULTS_DIR / "hydrosheaf_core_evidence_lifted_resolution.csv"
+    if core_resolution_path.exists():
+        core_resolution = pd.read_csv(core_resolution_path)
+        core_resolution_primary = core_resolution[
+            (core_resolution["panel"] == "full_11")
+            & (core_resolution["noise_level"] == 0.03)
+        ]
+        core_elri_mean = (
+            float(core_resolution_primary["evidence_lifted_resolution_index"].mean())
+            if not core_resolution_primary.empty
+            else None
+        )
+    else:
+        core_elri_mean = None
     inverse_strict_success = (
         float(
             (
@@ -3049,6 +3255,10 @@ def write_summary(
             else None
         ),
         "data_tier_summary": data_tier_summary,
+        "data_tier_evidence_lifted_resolution_summary": (
+            data_tier_resolution_summary
+        ),
+        "hydrosheaf_core_mean_evidence_lifted_resolution_index": core_elri_mean,
         "phreeqc_inverse_success_fraction": inverse_success,
         "phreeqc_inverse_strict_success_fraction": inverse_strict_success,
         "phreeqc_inverse_relaxed_fallback_fraction": inverse_relaxed_fraction,
@@ -3120,6 +3330,16 @@ def write_summary(
             f"{fmt3(item.get('mean_false_discovery_rate'))} FDR"
         )
 
+    def tier_elri_text(tier: str) -> str:
+        item = dict(
+            summary["data_tier_evidence_lifted_resolution_summary"]
+        ).get(tier, {})
+        return (
+            f"{fmt3(item.get('mean_evidence_lifted_resolution_index'))} mean ELRI, "
+            f"{fmt3(item.get('conditionally_preferred_or_resolved_fraction'))} "
+            "conditionally preferred/resolved"
+        )
+
     lines = [
         "# M5 Complete Analysis Summary",
         "",
@@ -3157,6 +3377,12 @@ def write_summary(
             "- Data-tier experiment at 3% noise: Core "
             f"{tier_text('core')}; Plus-lite {tier_text('plus_lite')}; "
             f"Enhanced {tier_text('enhanced')}."
+        ),
+        (
+            "- Evidence-lifted resolution of ambiguous reaction classes: Core "
+            f"{tier_elri_text('core')}; Plus-lite {tier_elri_text('plus_lite')}; "
+            f"Enhanced {tier_elri_text('enhanced')}. ELRI quantifies "
+            "within-class evidence separation, not new mass-balance uniqueness."
         ),
         (
             "- Conventional PHREEQC inverse-model baseline success fraction "
@@ -3400,6 +3626,7 @@ def main() -> None:
         thermo_sensitivity.to_csv(
             RESULTS_DIR / "thermodynamic_threshold_sensitivity.csv", index=False
         )
+    write_core_evidence_lifted_resolution(class_map)
     if args.skip_field:
         field_pairs = pd.DataFrame()
     else:
@@ -3414,6 +3641,7 @@ def main() -> None:
         field_evidence.to_csv(
             RESULTS_DIR / "ghana_field_hydrosheaf_core_evidence.csv", index=False
         )
+        write_field_evidence_lifted_resolution(class_map, field_evidence)
     write_summary(
         scenarios,
         phreeqc_frame,

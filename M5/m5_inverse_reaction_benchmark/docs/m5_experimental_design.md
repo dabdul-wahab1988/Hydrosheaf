@@ -45,9 +45,11 @@ Evidence:
 
 - `results/data_tier_experiment.csv`
 - `results/data_tier_reaction_evidence.csv`
+- `results/data_tier_evidence_lifted_resolution.csv`
 - `results/data_tier_optional_diagnostics.csv`
 - `tables/tableS14_data_tier_experiment.csv`
 - `tables/tableS15_data_tier_reaction_evidence.csv`
+- `tables/tableS16_evidence_lifted_resolution.csv`
 
 Tiers:
 
@@ -60,6 +62,12 @@ Tiers:
 The optional diagnostics are generated from controlled reaction truth with
 measurement noise. They are a measurement-design experiment, not field-measured
 validation.
+
+Evidence-lifted resolution index (ELRI) is reported for ambiguous equivalence
+classes. ELRI is entropy based: zero means evidence does not separate class
+members, and values approaching one mean one member has dominant evidence
+support. It measures conditional evidence separation, not new stoichiometric
+uniqueness.
 
 ## Experiment 4: Field Transfer
 

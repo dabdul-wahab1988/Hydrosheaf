@@ -5,7 +5,7 @@
 - `scripts/run_m5_all.py`: one-command analysis, tables, and figures.
 - `scripts/run_m5_inverse_reaction_benchmark.py`: live-PHREEQC benchmark,
   factorial inversion, MRS, measurement value, bootstrap, and Ghana transfer.
-- `scripts/make_m5_publication_tables.py`: one main and 15 supplementary tables.
+- `scripts/make_m5_publication_tables.py`: one main and 16 supplementary tables.
 - `scripts/make_m5_publication_figures.py`: six main and up to 18 supplementary figures.
 
 ## Core results
@@ -26,14 +26,17 @@
 - `results/phreeqc_inverse_baseline.csv`
 - `results/phreeqc_inverse_baseline_models.csv`
 - `results/hydrosheaf_core_evidence.csv`
+- `results/hydrosheaf_core_evidence_lifted_resolution.csv`
 - `results/data_tier_experiment.csv`
 - `results/data_tier_reaction_evidence.csv`
+- `results/data_tier_evidence_lifted_resolution.csv`
 - `results/data_tier_optional_diagnostics.csv`
 - `results/ghana_field_pairs.csv`
 - `results/ghana_field_reaction_extents.csv`
 - `results/ghana_field_heldout_ions.csv`
 - `results/ghana_field_class_support.csv`
 - `results/ghana_field_hydrosheaf_core_evidence.csv`
+- `results/ghana_evidence_lifted_resolution.csv`
 - `results/analysis_summary.json`
 
 ## Displays
@@ -44,7 +47,7 @@
   `figures/supplementary/figureS1_*.{png,pdf}` through
   `figures/supplementary/figureS18_*.{png,pdf}`.
 - `tables/table1_comparative_inverse_performance.csv`.
-- `tables/tableS1_*.csv` through `tables/tableS15_*.csv`.
+- `tables/tableS1_*.csv` through `tables/tableS16_*.csv`.
 
 ## Reproducibility and evidence maps
 

@@ -18,3 +18,4 @@
 | Table S13 | `tableS13_ghana_hydrosheaf_core_evidence.csv` | `ghana_field_hydrosheaf_core_evidence.csv` | Field evidence-gate support frequencies by aquifer and reaction. |
 | Table S14 | `tableS14_data_tier_experiment.csv` | `data_tier_experiment.csv` | Core, Plus-lite, and Enhanced measurement-tier recovery under controlled synthetic optional diagnostics. |
 | Table S15 | `tableS15_data_tier_reaction_evidence.csv` | `data_tier_reaction_evidence.csv` | Reaction-level optional diagnostic evidence and penalty scales by data tier. |
+| Table S16 | `tableS16_evidence_lifted_resolution.csv` | `data_tier_evidence_lifted_resolution.csv` | Entropy-based evidence-lifted resolution index for ambiguous reaction classes across Core, Plus-lite, and Enhanced tiers. |

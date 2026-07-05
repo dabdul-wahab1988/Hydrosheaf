@@ -23,6 +23,18 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
     "calibrate_ec_tds": (".models.ec_tds", "calibrate_ec_tds"),
     "predict_ec_tds": (".models.ec_tds", "predict_ec_tds"),
     "build_reaction_dictionary": (".models.reactions", "build_reaction_dictionary"),
+    "EvidenceLiftedResolution": (
+        ".models.evidence_lifted",
+        "EvidenceLiftedResolution",
+    ),
+    "evidence_lifted_resolution": (
+        ".models.evidence_lifted",
+        "evidence_lifted_resolution",
+    ),
+    "stoichiometric_equivalence_classes": (
+        ".models.evidence_lifted",
+        "stoichiometric_equivalence_classes",
+    ),
     "run_phreeqc": (".phreeqc.runner", "run_phreeqc"),
     "build_edge_bounds": (".phreeqc.constraints", "build_edge_bounds"),
     "compute_d_excess": (".isotopes", "compute_d_excess"),

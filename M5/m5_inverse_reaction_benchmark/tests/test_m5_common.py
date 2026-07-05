@@ -168,6 +168,48 @@ def test_plus_lite_diagnostics_prioritize_silicate_over_carbonate() -> None:
     ]["optional_penalty_scale"]
 
 
+def test_evidence_lifted_resolution_reports_class_preference_not_uniqueness() -> None:
+    class_map, _ = equivalence_classes()
+    diagnostics = ["SiO2", "Sr", "water_isotope_evaporation"]
+    observed = np.asarray([0.4, 0.02, 0.0], dtype=float)
+    _, optional_rows = m5._optional_diagnostic_evidence(diagnostics, observed)
+    frame_rows = []
+    for row in optional_rows:
+        reaction = str(row["reaction"])
+        frame_rows.append(
+            {
+                "scenario_id": "unit",
+                "archetype": "unit",
+                "replicate": 0,
+                "data_tier": "plus_lite",
+                "reaction": reaction,
+                "equivalence_class": class_map[reaction],
+                "combined_evidence_score": m5._combine_evidence_scores(
+                    0.5,
+                    row["optional_evidence_score"],
+                ),
+                "true_active": reaction == "anorthite",
+                "recovered_active": reaction == "anorthite",
+            }
+        )
+
+    resolution = m5._evidence_lifted_resolution_frame(
+        m5.pd.DataFrame(frame_rows),
+        class_map,
+        score_column="combined_evidence_score",
+        group_columns=["scenario_id", "archetype", "replicate", "data_tier"],
+        evidence_source="unit_test",
+    )
+    ca_hco3 = resolution[resolution["members"].eq("anorthite;calcite")].iloc[0]
+
+    assert ca_hco3["top_member"] == "anorthite"
+    assert ca_hco3["resolution_status"] in {
+        "conditionally_preferred",
+        "evidence_lifted_resolved",
+    }
+    assert ca_hco3["top_member_true_active"]
+
+
 def test_data_tier_simulation_is_deterministic_for_same_scenario() -> None:
     scenario = {
         "scenario_index": 7,
