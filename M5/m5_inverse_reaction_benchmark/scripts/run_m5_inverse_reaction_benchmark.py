@@ -60,6 +60,11 @@ DOCS_DIR = BENCHMARK_DIR / "docs"
 PHREEQC_DIR = BENCHMARK_DIR / "phreeqc_inputs"
 PHREEQC_INVERSE_DIR = PHREEQC_DIR / "inverse_baseline"
 GHANA_WORKBOOK = REPO_ROOT / "data" / "NorthenGhana" / "Aquifers_Dataset_Mendeley.xlsx"
+LEGACY_NORTHERN_GHANA_WORKBOOK = (
+    REPO_ROOT / "data" / "NorthenGhana" / "NorthernGhana.xlsx"
+)
+TALENSI_CSV = REPO_ROOT / "data" / "Talensi_MiningArea" / "talensi.csv"
+LOWER_ANAYARI_CSV = REPO_ROOT / "data" / "LowerAnayari" / "manu.csv"
 RANDOM_SEED = 20250615
 N_SCENARIOS_PER_ARCHETYPE = 60
 NOISE_LEVELS = [0.0, 0.03, 0.08]
@@ -729,6 +734,181 @@ def _field_optional_tracer_metrics(wet: pd.Series, dry: pd.Series) -> dict[str, 
         )
     metrics["plus_lite_tracer_count"] = tracer_count
     return metrics
+
+
+def _numeric_field_value(value: object) -> float | None:
+    if value is None or pd.isna(value):
+        return None
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return None
+        censored = text.startswith("<")
+        text = text.lstrip("<>").strip()
+        try:
+            number = float(text)
+        except ValueError:
+            return None
+        return 0.5 * number if censored else number
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _field_vector_from_row(
+    row: pd.Series,
+    column_map: Mapping[str, str],
+) -> tuple[np.ndarray, list[str]]:
+    values: list[float] = []
+    measured: list[str] = []
+    for ion in ION_ORDER:
+        column = column_map.get(ion)
+        value = _numeric_field_value(row.get(column)) if column else None
+        if value is not None:
+            values.append(value / MOLAR_MASS_G_MOL[ion])
+            measured.append(ion)
+        else:
+            values.append(np.nan)
+    return np.asarray(values, dtype=float), measured
+
+
+def _field_major_ion_sum_mg(
+    row: pd.Series,
+    column_map: Mapping[str, str],
+) -> float:
+    total = 0.0
+    for ion in ION_ORDER:
+        column = column_map.get(ion)
+        value = _numeric_field_value(row.get(column)) if column else None
+        if value is not None:
+            total += max(value, 0.0)
+    return total
+
+
+def _field_optional_diagnostics_from_rows(
+    upstream: pd.Series,
+    downstream: pd.Series,
+    optional_columns: Mapping[str, str],
+) -> tuple[list[str], np.ndarray]:
+    diagnostics: list[str] = []
+    observed: list[float] = []
+    si_up = _numeric_field_value(upstream.get(optional_columns.get("SiO2", "")))
+    si_down = _numeric_field_value(downstream.get(optional_columns.get("SiO2", "")))
+    if si_up is not None and si_down is not None:
+        diagnostics.append("SiO2")
+        observed.append((si_down - si_up) / 10.0)
+
+    sr_up = _numeric_field_value(upstream.get(optional_columns.get("Sr", "")))
+    sr_down = _numeric_field_value(downstream.get(optional_columns.get("Sr", "")))
+    if sr_up is not None and sr_down is not None:
+        diagnostics.append("Sr")
+        observed.append((sr_down - sr_up) / 0.1)
+
+    d18_col = optional_columns.get("d18O")
+    d2h_col = optional_columns.get("d2H")
+    if d18_col and d2h_col:
+        up_d18 = _numeric_field_value(upstream.get(d18_col))
+        up_d2h = _numeric_field_value(upstream.get(d2h_col))
+        down_d18 = _numeric_field_value(downstream.get(d18_col))
+        down_d2h = _numeric_field_value(downstream.get(d2h_col))
+        if None not in (up_d18, up_d2h, down_d18, down_d2h):
+            upstream_evap = evaporation_index(
+                float(up_d18), float(up_d2h), 10.0, 8.0
+            )
+            downstream_evap = evaporation_index(
+                float(down_d18), float(down_d2h), 10.0, 8.0
+            )
+            diagnostics.append("water_isotope_evaporation")
+            observed.append(downstream_evap - upstream_evap)
+    return diagnostics, np.asarray(observed, dtype=float)
+
+
+def _external_sample_records(
+    frame: pd.DataFrame,
+    *,
+    dataset: str,
+    id_column: str,
+    x_column: str,
+    y_column: str,
+    z_column: str,
+    column_map: Mapping[str, str],
+    optional_columns: Mapping[str, str],
+    metadata_columns: Sequence[str] = (),
+) -> list[dict[str, object]]:
+    records: list[dict[str, object]] = []
+    for _, row in frame.iterrows():
+        sample_id = str(row.get(id_column, "")).strip()
+        x = _numeric_field_value(row.get(x_column))
+        y = _numeric_field_value(row.get(y_column))
+        if not sample_id or x is None or y is None:
+            continue
+        vector, measured = _field_vector_from_row(row, column_map)
+        if len(measured) < 6:
+            continue
+        records.append(
+            {
+                "dataset": dataset,
+                "sample_id": sample_id,
+                "x": float(x),
+                "y": float(y),
+                "z": _numeric_field_value(row.get(z_column)),
+                "row": row,
+                "vector": vector,
+                "measured": measured,
+                "major_sum_mg_L": _field_major_ion_sum_mg(row, column_map),
+                "column_map": dict(column_map),
+                "optional_columns": dict(optional_columns),
+                "metadata": {
+                    column: row.get(column, "")
+                    for column in metadata_columns
+                    if column in row.index
+                },
+            }
+        )
+    return records
+
+
+def _nearest_external_edges(
+    records: Sequence[Mapping[str, object]],
+    *,
+    neighbours: int = 2,
+) -> list[tuple[Mapping[str, object], Mapping[str, object]]]:
+    if len(records) < 2:
+        return []
+    from scipy.spatial import cKDTree
+
+    coords = np.asarray([[float(item["x"]), float(item["y"])] for item in records])
+    tree = cKDTree(coords)
+    k = min(len(records), neighbours + 1)
+    pairs: set[tuple[int, int]] = set()
+    for index, item in enumerate(records):
+        _, neighbours_idx = tree.query([float(item["x"]), float(item["y"])], k=k)
+        for other in np.atleast_1d(neighbours_idx):
+            other_index = int(other)
+            if index == other_index:
+                continue
+            pairs.add(tuple(sorted((index, other_index))))
+
+    oriented: list[tuple[Mapping[str, object], Mapping[str, object]]] = []
+    for left_index, right_index in sorted(pairs):
+        left = records[left_index]
+        right = records[right_index]
+        left_z = _finite_float(left.get("z"))
+        right_z = _finite_float(right.get("z"))
+        if left_z is not None and right_z is not None and left_z != right_z:
+            upstream, downstream = (
+                (left, right) if left_z > right_z else (right, left)
+            )
+        else:
+            left_sum = float(left.get("major_sum_mg_L", 0.0))
+            right_sum = float(right.get("major_sum_mg_L", 0.0))
+            upstream, downstream = (
+                (left, right) if left_sum <= right_sum else (right, left)
+            )
+        oriented.append((upstream, downstream))
+    return oriented
 
 
 def _delta_consistency_score(
@@ -3025,6 +3205,339 @@ def run_ghana_field_demonstration(
     )
 
 
+def _external_field_edge_outputs(
+    *,
+    dataset: str,
+    edge_id: str,
+    upstream: Mapping[str, object],
+    downstream: Mapping[str, object],
+    hyperparameters: Mapping[str, float],
+    class_map: Mapping[str, str],
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    support_threshold = float(
+        hyperparameters.get("support_threshold_mmolL", SUPPORT_THRESHOLD)
+    )
+    upstream_vector = np.asarray(upstream["vector"], dtype=float)
+    downstream_vector = np.asarray(downstream["vector"], dtype=float)
+    measured = [
+        ion
+        for ion in ION_ORDER
+        if ion in upstream["measured"] and ion in downstream["measured"]
+    ]
+    if len(measured) < 6:
+        return [], []
+
+    indices = [ION_ORDER.index(ion) for ion in measured]
+    residual = downstream_vector[indices] - upstream_vector[indices]
+    core_scales, core_rows = hydrosheaf_core_evidence(
+        upstream_vector,
+        residual,
+        measured,
+        {},
+    )
+    optional_diagnostics, optional_observed = _field_optional_diagnostics_from_rows(
+        upstream["row"],
+        downstream["row"],
+        upstream["optional_columns"],
+    )
+    optional_scales, optional_rows = _optional_diagnostic_evidence(
+        optional_diagnostics,
+        optional_observed,
+    )
+    combined_scales = _combine_core_and_optional_penalties(
+        core_scales,
+        optional_scales,
+    )
+    core_by_reaction = {str(row["reaction"]): row for row in core_rows}
+    optional_by_reaction = {str(row["reaction"]): row for row in optional_rows}
+
+    pair_rows: list[dict[str, object]] = []
+    evidence_rows: list[dict[str, object]] = []
+    for data_tier, penalty_scales in [
+        ("core", core_scales),
+        ("available_plus_lite", combined_scales),
+    ]:
+        fit = fit_inverse(
+            residual,
+            measured,
+            LEGACY_PRIMARY_METHOD,
+            hyperparameters["lambda_l1"],
+            hyperparameters["lambda_l2"],
+            {},
+            SI_THRESHOLD,
+            penalty_scales=penalty_scales,
+        )
+        extents = np.asarray(fit["extents"], dtype=float)
+        selected = support_from_extents(extents, support_threshold)
+        selected_classes = class_set(selected, class_map)
+        evidence_scores = []
+        for reaction, extent in zip(REACTIONS, extents):
+            core_row = core_by_reaction[reaction.label]
+            optional_row = optional_by_reaction[reaction.label]
+            optional_score = float(optional_row["optional_evidence_score"])
+            combined_score = (
+                float(core_row["hydrosheaf_core_evidence_score"])
+                if data_tier == "core"
+                else _combine_evidence_scores(
+                    core_row["hydrosheaf_core_evidence_score"],
+                    optional_score,
+                )
+            )
+            evidence_scores.append(combined_score)
+            evidence_rows.append(
+                {
+                    "dataset": dataset,
+                    "edge_id": edge_id,
+                    "data_tier": data_tier,
+                    "upstream_id": upstream["sample_id"],
+                    "downstream_id": downstream["sample_id"],
+                    "reaction": reaction.label,
+                    "family": reaction.family,
+                    "equivalence_class": class_map[reaction.label],
+                    "selected": reaction.label in selected,
+                    "extent_mmolL": float(extent),
+                    "core_evidence_score": core_row[
+                        "hydrosheaf_core_evidence_score"
+                    ],
+                    "optional_evidence_score": optional_score,
+                    "combined_evidence_score": combined_score,
+                    "core_penalty_scale": core_row["penalty_scale"],
+                    "optional_penalty_scale": optional_row[
+                        "optional_penalty_scale"
+                    ],
+                    "combined_penalty_scale": float(
+                        penalty_scales[REACTION_LABELS.index(reaction.label)]
+                    ),
+                    "optional_diagnostic_alignment": optional_row[
+                        "optional_diagnostic_alignment"
+                    ],
+                    "optional_support_alignment": optional_row[
+                        "optional_support_alignment"
+                    ],
+                    "diagnostics_with_nonzero_signature": optional_row[
+                        "diagnostics_with_nonzero_signature"
+                    ],
+                    "panel_ions": ";".join(measured),
+                    "optional_diagnostics": ";".join(optional_diagnostics),
+                    "evidence_flags": core_row["evidence_flags"],
+                }
+            )
+        metadata = {
+            f"meta_{key}": value for key, value in dict(upstream["metadata"]).items()
+        }
+        pair_rows.append(
+            {
+                "dataset": dataset,
+                "edge_id": edge_id,
+                "data_tier": data_tier,
+                "upstream_id": upstream["sample_id"],
+                "downstream_id": downstream["sample_id"],
+                "n_measured_ions": len(measured),
+                "measured_ions": ";".join(measured),
+                "n_optional_diagnostics": len(optional_diagnostics),
+                "optional_diagnostics": ";".join(optional_diagnostics),
+                "support_threshold_mmolL": support_threshold,
+                "selected_support": ";".join(sorted(selected)),
+                "selected_classes": ";".join(sorted(selected_classes)),
+                "mean_combined_evidence_score": float(np.mean(evidence_scores)),
+                "max_combined_evidence_score": float(np.max(evidence_scores)),
+                "solver_rmse_mmolL": fit["rmse"],
+                "l1_norm": fit["l1_norm"],
+                "thermodynamic_violations": fit["thermodynamic_violations"],
+                "converged": fit["converged"],
+                "upstream_major_sum_mg_L": upstream["major_sum_mg_L"],
+                "downstream_major_sum_mg_L": downstream["major_sum_mg_L"],
+                **metadata,
+            }
+        )
+    return pair_rows, evidence_rows
+
+
+def _legacy_northern_ghana_external_edges() -> list[
+    tuple[str, Mapping[str, object], Mapping[str, object]]
+]:
+    dry = pd.read_excel(LEGACY_NORTHERN_GHANA_WORKBOOK, sheet_name="Dry")
+    wet = pd.read_excel(LEGACY_NORTHERN_GHANA_WORKBOOK, sheet_name="Wet")
+    dry = dry.copy()
+    wet = wet.copy()
+    dry["_sample_id"] = dry["Well_ID"].astype(str) + "_dry"
+    wet["_sample_id"] = wet["Well_ID"].astype(str) + "_wet"
+    column_map = {ion: f"{ion}_mg_L" for ion in ION_ORDER}
+    optional_columns = {
+        "SiO2": "SiO2_mg_L",
+        "Sr": "Sr_mg_L",
+        "d18O": "d18O_permil",
+        "d2H": "d2H_permil",
+    }
+    metadata = ["Well_ID", "Region", "District", "Community_Code"]
+    wet_records = _external_sample_records(
+        wet,
+        dataset="NorthernGhana.xlsx",
+        id_column="_sample_id",
+        x_column="Longitude",
+        y_column="Latitude",
+        z_column="Elevation_m",
+        column_map=column_map,
+        optional_columns=optional_columns,
+        metadata_columns=metadata,
+    )
+    dry_records = _external_sample_records(
+        dry,
+        dataset="NorthernGhana.xlsx",
+        id_column="_sample_id",
+        x_column="Longitude",
+        y_column="Latitude",
+        z_column="Elevation_m",
+        column_map=column_map,
+        optional_columns=optional_columns,
+        metadata_columns=metadata,
+    )
+    wet_by_well = {
+        str(record["metadata"]["Well_ID"]): record for record in wet_records
+    }
+    dry_by_well = {
+        str(record["metadata"]["Well_ID"]): record for record in dry_records
+    }
+    edges = []
+    for well_id in sorted(set(wet_by_well) & set(dry_by_well)):
+        edges.append((f"{well_id}_wet_to_dry", wet_by_well[well_id], dry_by_well[well_id]))
+    return edges
+
+
+def _spatial_external_edges_from_csv(
+    path: Path,
+    *,
+    dataset: str,
+    id_column: str,
+    x_column: str,
+    y_column: str,
+    z_column: str,
+    column_map: Mapping[str, str],
+    optional_columns: Mapping[str, str],
+    metadata_columns: Sequence[str],
+) -> list[tuple[str, Mapping[str, object], Mapping[str, object]]]:
+    frame = pd.read_csv(path)
+    records = _external_sample_records(
+        frame,
+        dataset=dataset,
+        id_column=id_column,
+        x_column=x_column,
+        y_column=y_column,
+        z_column=z_column,
+        column_map=column_map,
+        optional_columns=optional_columns,
+        metadata_columns=metadata_columns,
+    )
+    edges = []
+    for index, (upstream, downstream) in enumerate(
+        _nearest_external_edges(records),
+        start=1,
+    ):
+        edge_id = (
+            f"{dataset}_{index:03d}_"
+            f"{upstream['sample_id']}_to_{downstream['sample_id']}"
+        )
+        edges.append((edge_id, upstream, downstream))
+    return edges
+
+
+def run_external_field_transfer(
+    hyperparameters: Mapping[str, float],
+    class_map: Mapping[str, str],
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    edge_specs: list[tuple[str, Mapping[str, object], Mapping[str, object]]] = []
+    edge_specs.extend(_legacy_northern_ghana_external_edges())
+    edge_specs.extend(
+        _spatial_external_edges_from_csv(
+            TALENSI_CSV,
+            dataset="Talensi",
+            id_column="Code",
+            x_column="Longitude",
+            y_column="Latitude",
+            z_column="Elevation",
+            column_map={
+                "Ca": "Ca",
+                "Mg": "Mg",
+                "Na": "Na",
+                "K": "K",
+                "HCO3": "HCO3",
+                "Cl": "Cl",
+                "SO4": "SO4",
+                "NO3": "NO3",
+                "Fe": "Fe",
+            },
+            optional_columns={"d18O": "d18O", "d2H": "d2H"},
+            metadata_columns=["Town", "Code"],
+        )
+    )
+    edge_specs.extend(
+        _spatial_external_edges_from_csv(
+            LOWER_ANAYARI_CSV,
+            dataset="LowerAnayari",
+            id_column="Sample ID",
+            x_column="X coordinate",
+            y_column="Y coordinate",
+            z_column="Elevation",
+            column_map={
+                "Ca": "Ca",
+                "Mg": "Mg",
+                "Na": "Na",
+                "K": "K",
+                "HCO3": "HCO3",
+                "Cl": "Cl",
+                "SO4": "SO4",
+                "NO3": "NO3",
+                "F": "F",
+                "Fe": "Fe",
+            },
+            optional_columns={"d18O": "d18O", "d2H": "d2H"},
+            metadata_columns=["Sample ID", "Station"],
+        )
+    )
+
+    pair_rows: list[dict[str, object]] = []
+    evidence_rows: list[dict[str, object]] = []
+    for edge_id, upstream, downstream in edge_specs:
+        rows, evidence = _external_field_edge_outputs(
+            dataset=str(upstream["dataset"]),
+            edge_id=edge_id,
+            upstream=upstream,
+            downstream=downstream,
+            hyperparameters=hyperparameters,
+            class_map=class_map,
+        )
+        pair_rows.extend(rows)
+        evidence_rows.extend(evidence)
+    pairs = pd.DataFrame(pair_rows)
+    evidence = pd.DataFrame(evidence_rows)
+    resolution = _evidence_lifted_resolution_frame(
+        evidence,
+        class_map,
+        score_column="combined_evidence_score",
+        group_columns=["dataset", "edge_id", "data_tier"],
+        evidence_source="external_field_transfer",
+    )
+    return pairs, evidence, resolution
+
+
+def write_external_field_transfer_outputs(
+    hyperparameters: Mapping[str, float],
+    class_map: Mapping[str, str],
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    print("M5: running external field ELRI transfer on NorthernGhana, Talensi, and Lower Anayari...")
+    pairs, evidence, resolution = run_external_field_transfer(
+        hyperparameters,
+        class_map,
+    )
+    pairs.to_csv(RESULTS_DIR / "external_field_transfer_pairs.csv", index=False)
+    evidence.to_csv(RESULTS_DIR / "external_field_reaction_evidence.csv", index=False)
+    resolution.to_csv(
+        RESULTS_DIR / "external_field_evidence_lifted_resolution.csv",
+        index=False,
+    )
+    return pairs, evidence, resolution
+
+
 def write_diagnostics_and_classes() -> tuple[dict[str, str], pd.DataFrame]:
     class_map, class_rows = equivalence_classes()
     pd.DataFrame(class_rows).to_csv(
@@ -3161,6 +3674,45 @@ def write_summary(
         )
     else:
         core_elri_mean = None
+    external_resolution_path = (
+        RESULTS_DIR / "external_field_evidence_lifted_resolution.csv"
+    )
+    external_pairs_path = RESULTS_DIR / "external_field_transfer_pairs.csv"
+    if external_resolution_path.exists():
+        external_resolution = pd.read_csv(external_resolution_path)
+        external_field_elri_summary: dict[str, dict[str, dict[str, float]]] = {}
+        for keys, group in external_resolution.groupby(["dataset", "data_tier"]):
+            dataset, tier = keys
+            external_field_elri_summary.setdefault(str(dataset), {})[str(tier)] = {
+                "mean_evidence_lifted_resolution_index": float(
+                    group["evidence_lifted_resolution_index"].mean()
+                ),
+                "median_evidence_lifted_resolution_index": float(
+                    group["evidence_lifted_resolution_index"].median()
+                ),
+                "conditionally_preferred_or_resolved_fraction": float(
+                    group["resolution_status"]
+                    .isin(
+                        [
+                            "conditionally_preferred",
+                            "evidence_lifted_resolved",
+                        ]
+                    )
+                    .mean()
+                ),
+                "n_class_evaluations": int(len(group)),
+            }
+    else:
+        external_field_elri_summary = {}
+    if external_pairs_path.exists():
+        external_pairs = pd.read_csv(external_pairs_path)
+        external_field_edge_counts = {
+            str(dataset): int(group["edge_id"].nunique())
+            for dataset, group in external_pairs.groupby("dataset")
+        }
+    else:
+        external_pairs = pd.DataFrame()
+        external_field_edge_counts = {}
     inverse_strict_success = (
         float(
             (
@@ -3259,6 +3811,10 @@ def write_summary(
             data_tier_resolution_summary
         ),
         "hydrosheaf_core_mean_evidence_lifted_resolution_index": core_elri_mean,
+        "external_field_edge_counts": external_field_edge_counts,
+        "external_field_evidence_lifted_resolution_summary": (
+            external_field_elri_summary
+        ),
         "phreeqc_inverse_success_fraction": inverse_success,
         "phreeqc_inverse_strict_success_fraction": inverse_strict_success,
         "phreeqc_inverse_relaxed_fallback_fraction": inverse_relaxed_fraction,
@@ -3340,6 +3896,19 @@ def write_summary(
             "conditionally preferred/resolved"
         )
 
+    def external_elri_text(dataset: str) -> str:
+        item = (
+            dict(summary["external_field_evidence_lifted_resolution_summary"])
+            .get(dataset, {})
+            .get("available_plus_lite", {})
+        )
+        edges = dict(summary["external_field_edge_counts"]).get(dataset, 0)
+        return (
+            f"{dataset}: {edges} edges, "
+            f"{fmt3(item.get('median_evidence_lifted_resolution_index'))} "
+            "median ELRI"
+        )
+
     lines = [
         "# M5 Complete Analysis Summary",
         "",
@@ -3416,6 +3985,13 @@ def write_summary(
             f"{fmt3(summary['field_median_tds_consistency_score'])}; "
             "pairs with optional SiO2/Sr/isotope support: "
             f"{summary['field_pairs_with_plus_lite_tracers']}."
+        ),
+        (
+            "- External field ELRI transfer: "
+            f"{external_elri_text('NorthernGhana.xlsx')}; "
+            f"{external_elri_text('Talensi')}; "
+            f"{external_elri_text('LowerAnayari')}. These are field "
+            "plausibility audits, not reaction-truth validation."
         ),
         "",
         "## Claim Guardrail",
@@ -3642,6 +4218,7 @@ def main() -> None:
             RESULTS_DIR / "ghana_field_hydrosheaf_core_evidence.csv", index=False
         )
         write_field_evidence_lifted_resolution(class_map, field_evidence)
+        write_external_field_transfer_outputs(hyperparameters, class_map)
     write_summary(
         scenarios,
         phreeqc_frame,

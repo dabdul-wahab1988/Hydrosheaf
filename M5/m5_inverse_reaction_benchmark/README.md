@@ -29,7 +29,8 @@ water-isotope diagnostics; `enhanced` adds controlled synthetic Br, DO, DOC,
 sulphate-isotope, and nitrate-isotope diagnostics. These optional diagnostics
 are a measurement-design experiment, not field-measured reaction truth.
 
-Run the complete analysis, table, and figure workflow from the repository root:
+Run the complete analysis, table, database, and figure workflow from the
+repository root:
 
 ```powershell
 .\.venv\Scripts\python.exe M5\m5_inverse_reaction_benchmark\scripts\run_m5_all.py
@@ -51,3 +52,19 @@ regenerate the sparse-inversion outputs, tables, and figures:
 The full run requires USGS PHREEQC 3.7.3 or environment variables
 `PHREEQC_EXE` and `PHREEQC_DATABASE`. Outputs are written to `results/`,
 `tables/`, `figures/`, `phreeqc_inputs/`, and `docs/`.
+
+The workflow now writes a complete DuckDB evidence store at
+`results/m5_results.duckdb` plus `results/m5_results_database_catalog.csv`.
+The intended manuscript-grade display layer is the R Nature-style figure set in
+`figures/r_publication/` and `figures/r_publication/supplementary/`, saved as
+PNG, TIFF, and PDF. Python database-backed figures in `figures/publication/`
+remain a reproducible fallback and quality-control display layer.
+
+To regenerate only the R publication figures after the database/CSV outputs
+exist, run from `M5/m5_inverse_reaction_benchmark`:
+
+```powershell
+& "C:\Program Files\R\R-4.3.2\bin\x64\Rscript.exe" r_figures\plot_m5_publication_figures.R
+```
+
+Use `--skip-r-figures` with `run_m5_all.py` only on machines without R.

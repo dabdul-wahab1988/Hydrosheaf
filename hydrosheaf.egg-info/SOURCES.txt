@@ -48,6 +48,7 @@ hydrosheaf/examples/demo_small_network.py
 hydrosheaf/examples/transport_validation.py
 hydrosheaf/graph/__init__.py
 hydrosheaf/graph/build.py
+hydrosheaf/graph/flow_direction.py
 hydrosheaf/graph/head_inference.py
 hydrosheaf/graph/parameter_regularize.py
 hydrosheaf/graph/types.py
@@ -65,6 +66,7 @@ hydrosheaf/inference/topology_posterior.py
 hydrosheaf/models/__init__.py
 hydrosheaf/models/dictionary.py
 hydrosheaf/models/ec_tds.py
+hydrosheaf/models/evidence_lifted.py
 hydrosheaf/models/exchange.py
 hydrosheaf/models/gibbs.py
 hydrosheaf/models/latent.py
@@ -108,7 +110,9 @@ hydrosheaf/phreeqc/outputs.py
 hydrosheaf/phreeqc/runner.py
 hydrosheaf/phreeqc/templates.py
 hydrosheaf/physics/__init__.py
+hydrosheaf/physics/head_gradient_scale.py
 hydrosheaf/physics/kinetic_limit.py
+hydrosheaf/physics/modflow_head.py
 hydrosheaf/physics/modpath.py
 hydrosheaf/physics/priors.py
 hydrosheaf/reactive_transport/__init__.py
@@ -119,6 +123,7 @@ hydrosheaf/reactive_transport/validation.py
 hydrosheaf/sheaf/__init__.py
 hydrosheaf/sheaf/cohomology.py
 hydrosheaf/sheaf/directed_section.py
+hydrosheaf/sheaf/hydraulic_hodge.py
 hydrosheaf/sheaf/isotope_metrics.py
 hydrosheaf/sheaf/topology_refine.py
 hydrosheaf/temporal/__init__.py
@@ -187,6 +192,7 @@ tests/test_ec_tds.py
 tests/test_edge_fit.py
 tests/test_endmembers_json.py
 tests/test_enhanced_isotope_metrics.py
+tests/test_evidence_lifted_identifiability.py
 tests/test_fixes_v051.py
 tests/test_flopy_transport.py
 tests/test_geochemical_logic.py
@@ -194,6 +200,7 @@ tests/test_gibbs_flaws.py
 tests/test_graph.py
 tests/test_graph_probabilistic.py
 tests/test_hierarchical_inference.py
+tests/test_hydraulic_hodge.py
 tests/test_isotope_flaw.py
 tests/test_isotopes.py
 tests/test_joint_lpm.py
@@ -206,6 +213,7 @@ tests/test_m3_real_graph_benchmark.py
 tests/test_m3_usgs_benchmark.py
 tests/test_m4_claim_guardrails.py
 tests/test_m4_public_archive_pipeline.py
+tests/test_mathematical_review_regressions.py
 tests/test_mcmc_mixing.py
 tests/test_minerals.py
 tests/test_missing_values.py
@@ -239,6 +247,7 @@ tests/test_schema.py
 tests/test_sheaf_cohomology.py
 tests/test_sheaf_stability.py
 tests/test_sheaf_topology.py
+tests/test_steepest_descent.py
 tests/test_stratigraphic_priority.py
 tests/test_topology_posterior.py
 tests/test_topology_validation.py

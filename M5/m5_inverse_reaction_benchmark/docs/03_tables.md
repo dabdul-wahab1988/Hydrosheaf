@@ -19,3 +19,11 @@
 | Table S14 | `tableS14_data_tier_experiment.csv` | `data_tier_experiment.csv` | Core, Plus-lite, and Enhanced measurement-tier recovery under controlled synthetic optional diagnostics. |
 | Table S15 | `tableS15_data_tier_reaction_evidence.csv` | `data_tier_reaction_evidence.csv` | Reaction-level optional diagnostic evidence and penalty scales by data tier. |
 | Table S16 | `tableS16_evidence_lifted_resolution.csv` | `data_tier_evidence_lifted_resolution.csv` | Entropy-based evidence-lifted resolution index for ambiguous reaction classes across Core, Plus-lite, and Enhanced tiers. |
+| Table S17 | `tableS17_external_field_evidence_lifted_resolution.csv` | `external_field_evidence_lifted_resolution.csv` | Field-transfer ELRI audit for `NorthernGhana.xlsx`, Talensi, and Lower Anayari chemistry. |
+
+## Results Database
+
+The complete M5 results database is `results/m5_results.duckdb`. Its table
+catalog is `results/m5_results_database_catalog.csv`, and the run-specific
+figure/table/code manifest is written to `docs/m5_artifact_manifest.csv` and
+`docs/m5_artifact_manifest.md`.

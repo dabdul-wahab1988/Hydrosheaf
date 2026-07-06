@@ -26,6 +26,7 @@ dependencies = [
     "pymc",
     "nutpie",
     "PyYAML",
+    "duckdb>=1.5.4",
 ]
 
 [project.optional-dependencies]

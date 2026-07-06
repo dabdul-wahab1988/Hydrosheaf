@@ -14,6 +14,7 @@
 - Fraction of lowest-residual fits with phase F1 below 0.80: 0.550.
 - Mixed-archetype held-out MRS classification accuracy: 0.489.
 - Ghana median Hydrosheaf-Core evidence score / TDS consistency score: 0.681 / 0.941; pairs with optional SiO2/Sr/isotope support: 138.
+- External field ELRI transfer: NorthernGhana.xlsx: 160 edges, 0.072 median ELRI; Talensi: 85 edges, 0.072 median ELRI; LowerAnayari: 49 edges, 0.010 median ELRI. These are field plausibility audits, not reaction-truth validation.
 
 ## Claim Guardrail
 

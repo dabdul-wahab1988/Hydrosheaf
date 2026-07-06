@@ -78,8 +78,14 @@ Evidence:
 - `results/ghana_field_pairs.csv`
 - `results/ghana_field_reaction_extents.csv`
 - `results/ghana_field_hydrosheaf_core_evidence.csv`
+- `results/external_field_transfer_pairs.csv`
+- `results/external_field_evidence_lifted_resolution.csv`
 - `tables/tableS10_northern_ghana_summary.csv`
 - `tables/tableS13_ghana_hydrosheaf_core_evidence.csv`
+- `tables/tableS17_external_field_evidence_lifted_resolution.csv`
 
 Main interpretation: the Ghana component demonstrates plausible sparse-data
 transfer and evidence auditing. It is not independent reaction-truth validation.
+The external field-transfer extension repeats the ELRI audit on
+`NorthernGhana.xlsx`, Talensi, and Lower Anayari chemistry using wet-dry or
+nearest-neighbour field edges.

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-05T21:43:52.691425+00:00",
+  "generated_at": "2026-07-06T01:17:18.903103+00:00",
   "random_seed": 20250615,
   "phreeqc_version": "3.7.3-15968",
   "phreeqc_executable": "C:\\Program Files\\USGS\\phreeqc-3.7.3-15968-x64\\bin\\Release\\phreeqc.exe",
@@ -144,6 +144,55 @@
     }
   },
   "hydrosheaf_core_mean_evidence_lifted_resolution_index": 0.22503000036150808,
+  "external_field_edge_counts": {
+    "LowerAnayari": 49,
+    "NorthernGhana.xlsx": 160,
+    "Talensi": 85
+  },
+  "external_field_evidence_lifted_resolution_summary": {
+    "LowerAnayari": {
+      "available_plus_lite": {
+        "mean_evidence_lifted_resolution_index": 0.12508465062130267,
+        "median_evidence_lifted_resolution_index": 0.0103459978162632,
+        "conditionally_preferred_or_resolved_fraction": 0.48299319727891155,
+        "n_class_evaluations": 147
+      },
+      "core": {
+        "mean_evidence_lifted_resolution_index": 0.12508465062130267,
+        "median_evidence_lifted_resolution_index": 0.0103459978162632,
+        "conditionally_preferred_or_resolved_fraction": 0.48299319727891155,
+        "n_class_evaluations": 147
+      }
+    },
+    "NorthernGhana.xlsx": {
+      "available_plus_lite": {
+        "mean_evidence_lifted_resolution_index": 0.11657843126755202,
+        "median_evidence_lifted_resolution_index": 0.0723261436121447,
+        "conditionally_preferred_or_resolved_fraction": 0.65,
+        "n_class_evaluations": 480
+      },
+      "core": {
+        "mean_evidence_lifted_resolution_index": 0.10000675430731253,
+        "median_evidence_lifted_resolution_index": 0.0723261436121447,
+        "conditionally_preferred_or_resolved_fraction": 0.525,
+        "n_class_evaluations": 480
+      }
+    },
+    "Talensi": {
+      "available_plus_lite": {
+        "mean_evidence_lifted_resolution_index": 0.24931682663809948,
+        "median_evidence_lifted_resolution_index": 0.0723261436121447,
+        "conditionally_preferred_or_resolved_fraction": 0.5529411764705883,
+        "n_class_evaluations": 255
+      },
+      "core": {
+        "mean_evidence_lifted_resolution_index": 0.24931682663809948,
+        "median_evidence_lifted_resolution_index": 0.0723261436121447,
+        "conditionally_preferred_or_resolved_fraction": 0.5529411764705883,
+        "n_class_evaluations": 255
+      }
+    }
+  },
   "phreeqc_inverse_success_fraction": 0.9958333333333333,
   "phreeqc_inverse_strict_success_fraction": 0.4583333333333333,
   "phreeqc_inverse_relaxed_fallback_fraction": 0.5416666666666666,

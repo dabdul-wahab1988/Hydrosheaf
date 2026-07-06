@@ -1,5 +1,6 @@
 numpy
 pandas
+openpyxl
 scipy
 networkx
 matplotlib
@@ -11,6 +12,7 @@ phreeqpython
 pymc
 nutpie
 PyYAML
+duckdb>=1.5.4
 
 [dev]
 pytest

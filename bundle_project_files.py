@@ -64,6 +64,11 @@ def read_text_file(path: Path) -> str:
             return infile.read()
 
 
+def normalise_bundle_content(content: str) -> str:
+    """Strip trailing whitespace so generated bundle files pass git checks."""
+    return "\n".join(line.rstrip() for line in content.splitlines())
+
+
 def iter_bundle_files(
     root_path: Path,
     include_paths: tuple[str, ...] | None,
@@ -180,7 +185,7 @@ def bundle_files(
             outfile.write(f"{'=' * 80}\n\n")
 
             try:
-                content = read_text_file(path)
+                content = normalise_bundle_content(read_text_file(path))
                 outfile.write(content)
                 outfile.write("\n")
                 file_count += 1

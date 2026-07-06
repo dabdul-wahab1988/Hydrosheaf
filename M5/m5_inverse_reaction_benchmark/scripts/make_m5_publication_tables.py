@@ -437,6 +437,37 @@ def supplementary_tables() -> None:
             "tableS16_evidence_lifted_resolution.csv",
         )
 
+    external_resolution_path = (
+        RESULTS_DIR / "external_field_evidence_lifted_resolution.csv"
+    )
+    if external_resolution_path.exists():
+        external_resolution = pd.read_csv(external_resolution_path)
+        external_summary = (
+            external_resolution.groupby(["dataset", "data_tier", "class_id", "members"])
+            .agg(
+                mean_elri=("evidence_lifted_resolution_index", "mean"),
+                median_elri=("evidence_lifted_resolution_index", "median"),
+                mean_top_probability=("top_probability", "mean"),
+                conditionally_preferred_or_resolved_fraction=(
+                    "resolution_status",
+                    lambda values: values.isin(
+                        [
+                            "conditionally_preferred",
+                            "evidence_lifted_resolved",
+                        ]
+                    ).mean(),
+                ),
+                n_edges=("edge_id", "nunique"),
+                n_class_evaluations=("edge_id", "count"),
+            )
+            .reset_index()
+            .sort_values(["dataset", "data_tier", "class_id"])
+        )
+        write(
+            external_summary,
+            "tableS17_external_field_evidence_lifted_resolution.csv",
+        )
+
 
 def main() -> None:
     main_table()

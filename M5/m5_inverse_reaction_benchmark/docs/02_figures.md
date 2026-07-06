@@ -1,5 +1,28 @@
 # M5 Figure Evidence Map
 
+## Intended R manuscript figures
+
+The R figures in `figures/r_publication/` are the intended Nature-style
+manuscript display layer. They are generated from `results/m5_results.duckdb`
+when the R `duckdb` package is available, with a verified fallback to the
+generated CSV/JSON mirrors from the same run.
+
+| Display | File stem | Primary evidence | Defensible interpretation |
+|---|---|---|---|
+| Figure 1 | `figure1_r_database_design` | `analysis_summary.json`; `m5_results_database_catalog.csv`; `benchmark_fits.csv` | Documents the reproducible M5 evidence architecture and database scale. |
+| Figure 2 | `figure2_r_model_performance` | `benchmark_fits.csv`; `phreeqc_inverse_baseline.csv` | Hydrosheaf Guarded is best on class recovery, but gains are moderate and must be interpreted under equifinality. |
+| Figure 3 | `figure3_r_equifinality_elri` | `equivalence_classes.csv`; `tableS1_reaction_stoichiometry.csv`; `data_tier_evidence_lifted_resolution.csv` | Sparse chemistry has exact non-uniqueness; evidence lifts ambiguity conditionally rather than creating new mass-balance uniqueness. |
+| Figure 4 | `figure4_r_data_tiers` | `data_tier_experiment.csv`; `data_tier_evidence_lifted_resolution.csv`; `tableS15_data_tier_reaction_evidence.csv` | Plus-lite and enhanced diagnostics reduce overinterpretation and improve conditional identifiability. |
+| Figure 5 | `figure5_r_phreeqc_thermo` | `thermodynamic_threshold_sensitivity.csv`; `phreeqc_inverse_baseline.csv` | Thermodynamic gates and conventional PHREEQC inverse modelling expose feasible multiplicity rather than eliminating it. |
+| Figure 6 | `figure6_r_field_transfer` | `ghana_field_pairs.csv`; `external_field_evidence_lifted_resolution.csv`; `tableS17_external_field_evidence_lifted_resolution.csv` | Ghana and external field datasets are plausibility/transfer audits, not reaction-truth validation. |
+
+R Supplementary Figures S1-S11 report the reaction dictionary, structural
+diagnostics, panel-by-method heatmap, Hydrosheaf-Core reaction recovery,
+measurement-value ranking, regularisation paths, bootstrap support, evidence
+gates, data-tier evidence, external-field ELRI, and PHREEQC archetype behaviour.
+
+## Python fallback and QC figures
+
 | Display | File stem | Primary evidence | Defensible interpretation |
 |---|---|---|---|
 | Figure 1 | `figure1_identifiability_workflow` | `phreeqc_ground_truth.csv`; `benchmark_fits.csv`; `heldout_ion_results.csv`; `ghana_field_pairs.csv` | Documents benchmark design and evidence scale. |

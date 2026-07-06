@@ -8,6 +8,7 @@ Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: numpy
 Requires-Dist: pandas
+Requires-Dist: openpyxl
 Requires-Dist: scipy
 Requires-Dist: networkx
 Requires-Dist: matplotlib
@@ -19,6 +20,7 @@ Requires-Dist: phreeqpython
 Requires-Dist: pymc
 Requires-Dist: nutpie
 Requires-Dist: PyYAML
+Requires-Dist: duckdb>=1.5.4
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
 Requires-Dist: black; extra == "dev"
