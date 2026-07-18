@@ -243,41 +243,63 @@ def plot_manuscript_fig1_architecture() -> None:
 
 
 def plot_manuscript_fig2_topology_validation() -> None:
-    """Figure 2: Physical Prior & Topology Validation (MODPATH agreement)."""
-    modpath_path = EXTERNAL_DIR / "modpath" / "results" / "modpath_topology_summary.csv"
-    if not modpath_path.exists():
-        print("Skipping Figure 2: MODPATH results not found.")
+    """Figure 2: Topology validation vs MODPATH reference.
+
+    Shows BOTH operational modes side by side, honestly labelled:
+      - independent no-prior inference (the genuine capability test): F1=0.618,
+        high recall with substantial overconnection (FP > TP);
+      - prior-assisted ingestion (a fidelity check, NOT independent inference):
+        F1=1.00 by construction.
+    The independent result is the headline; the prior-assisted result is shown
+    only to confirm the physics-prior integration mechanism transmits topology
+    exactly. Data: results/modpath_noprior_topology.csv (reproduced by
+    run_m2_modpath_noprior_topology.py, matches the M4 benchmark).
+    """
+    noprior_path = RESULT_DIR / "modpath_noprior_topology.csv"
+    if not noprior_path.exists():
+        print("Skipping Figure 2: run run_m2_modpath_noprior_topology.py first.")
         return
 
-    modpath = pd.read_csv(modpath_path).iloc[0]
-    fig, ax = plt.subplots(figsize=(8, 7.5))
+    df = pd.read_csv(noprior_path).set_index("mode")
+    indep = df.loc["no_prior_head_gradient"]
+    prior = df.loc["prior_assisted_ingestion"]
 
+    fig, axes = plt.subplots(1, 2, figsize=(13, 7), sharey=True)
     labels = ["True\nPositive", "False\nPositive", "False\nNegative"]
-    values = [modpath["true_positive_edges"], modpath["false_positive_edges"], modpath["false_negative_edges"]]
-    bars = ax.bar(labels, values, color=["#2563eb", "#ef4444", "#f97316"], alpha=0.85, width=0.6)
+    colours = ["#2563eb", "#ef4444", "#f97316"]
 
-    ax.set_title("Topology Validation vs. MODPATH Reference", fontsize=FONT_TITLE, fontweight="bold", pad=20)
-    ax.set_ylabel("Count of Directed Edges", fontsize=FONT_LABEL, fontweight="bold")
+    panels = [
+        (axes[0], indep,
+         "Independent (no-prior) inference",
+         "Genuine capability test: high recall, overconnection"),
+        (axes[1], prior,
+         "Prior-assisted ingestion",
+         "Fidelity check only — not independent inference"),
+    ]
+    for ax, row, title, sub in panels:
+        values = [int(row["tp"]), int(row["fp"]), int(row["fn"])]
+        bars = ax.bar(labels, values, color=colours, alpha=0.85, width=0.6)
+        ax.set_title(title, fontsize=FONT_LABEL, fontweight="bold", pad=14)
+        ax.tick_params(axis='both', which='major', labelsize=FONT_TICK)
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=6, integer=True))
+        stats_text = (f"F1-Score: {row['f1']:.3f}\n"
+                      f"Precision: {row['precision']:.3f}\n"
+                      f"Recall: {row['recall']:.3f}")
+        ax.text(0.95, 0.95, stats_text, transform=ax.transAxes, ha="right", va="top",
+                fontsize=FONT_ANNOTATE, fontweight="bold",
+                bbox=dict(facecolor="white", edgecolor="#d1d5db", boxstyle="round,pad=0.5"))
+        ax.text(0.5, -0.13, sub, transform=ax.transAxes, ha="center", va="center",
+                fontsize=FONT_ANNOTATE, style='italic', color="#475569")
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height + 1,
+                    f'{int(height)}', ha='center', va='bottom',
+                    fontsize=FONT_ANNOTATE, fontweight="bold")
 
-    ax.tick_params(axis='both', which='major', labelsize=FONT_TICK)
-    ax.yaxis.set_major_locator(MaxNLocator(nbins=5, integer=True))
-
-    stats_text = (f"F1-Score: {modpath['edge_f1']:.2f}\n"
-                  f"Precision: {modpath['edge_precision']:.2f}\n"
-                  f"Recall: {modpath['edge_recall']:.2f}")
-    ax.text(0.95, 0.95, stats_text, transform=ax.transAxes, ha="right", va="top",
-            fontsize=FONT_ANNOTATE, fontweight="bold",
-            bbox=dict(facecolor="white", edgecolor="#d1d5db", boxstyle="round,pad=0.5"))
-
-    ax.text(0.5, -0.25, "Comparison of Hydrosheaf inferred topology against physical flow simulation.",
-            transform=ax.transAxes, ha="center", va="center", fontsize=FONT_ANNOTATE, style='italic', color="#475569")
-
-    for bar in bars:
-        height = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2., height + 1,
-                f'{int(height)}', ha='center', va='bottom', fontsize=FONT_ANNOTATE, fontweight="bold")
-
-    fig.tight_layout()
+    axes[0].set_ylabel("Count of Directed Edges", fontsize=FONT_LABEL, fontweight="bold")
+    fig.suptitle("Topology Validation vs. MODPATH Reference (174 directed edges)",
+                 fontsize=FONT_TITLE, fontweight="bold", y=0.99)
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
     _save(fig, "Manuscript_Fig2_Topology_Validation.png")
 
 
@@ -895,10 +917,18 @@ def plot_manuscript_fig6_optimal_model_selection() -> None:
 
 
 def plot_manuscript_fig7_psi_robustness_guarantee() -> None:
-    """Figure 7: The Phase Stability Matrix (PSI) Heatmap."""
-    path = M6_RESULT_DIR / "m6_phase_stability_index.csv"
+    """Figure 7: The Phase Stability Matrix (PSI) Heatmap.
+
+    Reads the M2 phase-stability matrix computed with GEOLOGICALLY-CORRECT per-site
+    mineral dictionaries (Talensi excludes gypsum: crystalline basement mining area has
+    no evaporites, so SO4 is attributed to pyrite oxidation). This replaces the earlier
+    M6 source, which applied a single generic dictionary (including gypsum) to both sites
+    and produced a false-positive gypsum PSI for Talensi. See
+    scripts/analysis/run_m2_phase_stability_matrix.py.
+    """
+    path = RESULT_DIR / "m2_phase_stability_index.csv"
     if not path.exists():
-        print("Skipping Figure 7: PSI data not found.")
+        print("Skipping Figure 7: PSI data not found (run run_m2_phase_stability_matrix.py).")
         return
 
     df = pd.read_csv(path)

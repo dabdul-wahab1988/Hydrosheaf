@@ -90,10 +90,14 @@ def endmember_null_score(
 
     # --- Common anthropogenic source ---
     anthro_weight = float(getattr(config, "null_anthropogenic_weight", 0.2))
-    no3_a = _maybe_float(sample_a.get("NO3"))
-    no3_b = _maybe_float(sample_b.get("NO3"))
-    cl_a = _maybe_float(sample_a.get("Cl"))
-    cl_b = _maybe_float(sample_b.get("Cl"))
+    # The core chemistry vector is commonly stored in mmol/L, while these
+    # screening thresholds are expressed in mg/L.  Prefer explicit mg/L
+    # companion fields when available and retain the legacy fields as a
+    # backwards-compatible fallback for callers that already provide mg/L.
+    no3_a = _maybe_float(sample_a.get("NO3_mg_L", sample_a.get("NO3")))
+    no3_b = _maybe_float(sample_b.get("NO3_mg_L", sample_b.get("NO3")))
+    cl_a = _maybe_float(sample_a.get("Cl_mg_L", sample_a.get("Cl")))
+    cl_b = _maybe_float(sample_b.get("Cl_mg_L", sample_b.get("Cl")))
 
     anthro_hits = 0
     # Both have elevated nitrate (>10 mg/L proxy): could be common fertilizer

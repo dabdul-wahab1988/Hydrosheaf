@@ -164,11 +164,20 @@ def infer_network_ages_bayesian(
         velocity = pm.LogNormal(
             "velocity", mu=np.log(velocity_mu), sigma=velocity_sigma_log
         )
-        
-        # Node Ages
+
+        # Node Ages.
+        # NOTE (identifiability caveat): for tracers that are uninformative at old
+        # age (dead tritium beyond ~60-70 yr), node age is only weakly identified —
+        # the joint velocity/input-scale/age posterior is degenerate and the model
+        # cannot recover accurate old ages from tritium alone. Bayesian network
+        # dating is therefore reliable in the tracer-INFORMATIVE / ambiguity-
+        # resolution regime; old-water accuracy requires an independent velocity
+        # (hydraulic) constraint or a longer-lived tracer (14C). Ordering-based
+        # alias resolution (see M3 run_m3_network_dating_demo) is the robust
+        # network-dating method for the tritium bomb-peak regime.
         log_ages = pm.Normal("log_ages", mu=np.log(20), sigma=2.0, shape=n_nodes)
         ages = pm.Deterministic("ages", pm.math.exp(log_ages))
-        
+
         # 2. Physics/Topology Constraint
         if edge_us.size:
             age_u = ages[edge_us]

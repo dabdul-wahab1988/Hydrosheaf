@@ -194,3 +194,8 @@ extract_pdf.py
 pdf_extract.txt
 gmd-18-7147-2025.txt
 M4/m4_topology_benchmark/public_archives/savage/output/
+
+# Local Codex/analysis tool state and crash artifacts
+.codex_work/
+graphify-out/
+*.stackdump

@@ -1,0 +1,240 @@
+About the journal
+Aims and scope
+Computers & Geosciences publishes original, high-impact research at the interface between computing/informatics and the geosciences. Submissions must make a substantive contribution in both dimensions: (1) an innovative computational, informatics, or software element, and (2) a clear geoscientific contribution addressing a scientific problem of broad interest to the geoscience community.
+
+Manuscripts are suitable for the journal only when the computational/informatics component is central to the work and advances the state of the art beyond routine implementation, straightforward application, or incremental adaptation of existing methods. It is expected that code is provided for all scientific research articles.
+
+Relevant computational/informatics contributions include, but are not limited to: novel algorithms; computational methods; scientific software; data models; scientific databases and retrieval systems; machine learning and artificial intelligence; inversion and data assimilation frameworks; uncertainty quantification workflows; visualization and human-computer interaction for geoscientific analysis; high-performance, parallel, cloud, or distributed computing; reproducible research infrastructures; and interoperable digital frameworks for geoscientific data and modelling.
+
+Relevant geoscientific domains include: geology; geophysics; geochemistry; geomorphology; sedimentology; stratigraphy; palaeontology; tectonics and structural geology; seismology; volcanology; hydrology; hydrogeology; and Earth-system science. Manuscripts centered primarily on generic environmental engineering, routine GIS applications, signal processing, agriculture, ecology, or other topics outside the core geosciences are normally outside the journal’s scope unless the geoscientific contribution is explicit, substantial, and of clear interest to the readership.
+
+Code, software, data, and reproducibility requirements
+
+For any manuscript presenting software, code, workflows, trained models, computational pipelines, or implementation details essential to the results, public access to the corresponding repository is mandatory at submission and required for acceptance. A manuscript will not be accepted for review without a GitHub repository or equivalent public repository that is properly documented and enables evaluation, reuse, and long-term utility to the community.
+
+there needs to be a link to the repository in the manuscript and at a minimum, the repository must include:
+
+a clear license;
+
+a ReadMe file in English with basic usage and installation instructions;
+
+documentation of dependencies and computational requirements;
+
+sufficient material to reproduce the main results in the paper, or a clear explanation of any justified limitations if data cannot be shared, a dummy model or a synthetic dataset for test cases should be provided
+
+how-to files or tutorials for typical use cases;
+
+a user guide describing inputs, outputs, options, and expected behaviour;
+
+and for security reasons, a single compacted file is not accepted (e.g. .zip, .rar, .7z)
+
+any comments in the code must be in English
+
+Repositories that are incomplete, poorly documented, inaccessible, private at the review or acceptance stage, or lacking reproducible examples are grounds for rejection. Manuscripts describing software that is not open source are normally desk rejected.
+
+Computers & Geosciences will not consider manuscripts that fall into any of the following categories:
+
+geoscience studies with no genuine computational or informatics innovation;
+
+computer science or informatics papers with no clear and substantive geoscientific contribution;
+
+routine application of established methods, software, machine learning models, GIS workflows, or visualization tools to a case study;
+
+incremental code implementations of already published methods without a clear methodological or software advance;
+
+manuscripts focused mainly on engineering design, operational management, consultancy-style case studies, or site-specific technical problem solving rather than geoscientific insight of broader relevance;
+
+papers in which the computational element is peripheral, cosmetic, or limited to software packaging or interface development;
+
+purely methodological developments (e.g. geophysics, hydrology)
+
+purely analytical developments unless they have significant implications on computational geoscientific problems
+
+pure case studies and application examples less they have significant implications on computational geoscientific problems
+
+GUI papers unless the interface itself solves a significant, non-trivial scientific-computing problem;
+
+benchmark or comparison papers lacking novelty, reproducibility, or transferable insight;
+
+papers whose results cannot be independently evaluated because code, workflow details, trained models, key parameters, or supporting data are unavailable; and
+
+manuscripts generated around black-box tools or proprietary workflows with insufficient transparency for scientific scrutiny.
+
+Submissions should make clear, from the title, abstract, and introduction onward, what is new computationally, what is new geoscientifically, and why both matter.
+
+Manuscripts better aligned with applied implementation, software deployment, or practical case studies may be more suitable for the companion journal Applied Computing & Geosciences.
+
+Article types
+Original research article: Providing a novel and original contribution to the scientific fields of study outlined above.
+
+Scientific review article: Critically describing the state-of-the art of applications of computer science in the geosciences, as a stand-alone contribution or to frame a special issue. Criteria for assessment shall be: completeness, depth, novelty, timeliness, quality, and interest to the Journal's readership. Review outlines should be pre-approved by an Section Editor or Editorial Board Member of the Journal.
+
+Book and software reviews: Describing and evaluating a new or significant publication or piece of software relevant to aspects of computation or informatics in the geosciences.
+
+Letter to the Editor: Commenting on published articles. Criteria for assessment shall be the merit of the question or comment raised. The author(s) of the commented-on article shall be offered the opportunity to prepare a reply, to be published alongside the comment.
+
+For Original Submission:
+
+Research Articles and Application Articles - 5,500 words maximum.
+
+Review Articles - 10,000 maximum.
+
+Book Review and Short Notes - 1,650 maximum.
+
+Maximum numbers plus 10% is permissible for all EXCEPT Review Articles.
+
+For Revised Submission:
+
+Research Articles and Application Articles - 6,500 words maximum
+
+Review Articles - 10,000 maximum.
+
+Book Review and Short Notes - 1,650 maximum.
+
+Maximum numbers plus 10% is permissible for all EXCEPT Review Articles.
+
+NOTE: Only the Manuscript file will be included for wordcount (Abstract, Keywords, Highlights, References and Captions will be excluded).
+
+Peer review
+This journal follows a single anonymized review process. Your submission will initially be assessed by our editors to determine suitability for publication in this journal. If your submission is deemed suitable, it will typically be sent to a minimum of two reviewers for an independent expert assessment of the scientific quality. The decision as to whether your article is accepted or rejected will be taken by our editors.
+
+Read more about peer review.
+
+Our editors are not involved in making decisions about papers which:
+
+they have written themselves.
+
+have been written by family members or colleagues.
+
+relate to products or services in which they have an interest.
+
+Any such submissions will be subject to the journal's usual procedures and peer review will be handled independently of the editor involved and their research group. Read more about editor duties.
+
+Authors may submit a formal appeal request to the editorial decision, provided it meets all the requirements and follows the procedure outlined in Elsevier’s Appeal Policy. Only one appeal per submission will be considered and the appeal decision will be final.
+
+Special issues and article collections
+The peer review process for special issues and article collections follows the same process as outlined above for regular submissions, except, a guest editor may send the submissions out to the reviewers and may recommend a decision to the journal editor. The journal editor oversees the peer review process of all special issues and article collections to ensure the high standards of publishing ethics and responsiveness are respected and is responsible for the final decision regarding acceptance or rejection of articles.
+
+Open access
+We refer you to our open access information page to learn about open access options for this journal.
+
+Ethics and policies
+Ethics in publishing
+Authors must follow ethical guidelines stated in Elsevier's Publishing Ethics Policy.
+
+Submission declaration
+When authors submit an article to an Elsevier journal it is implied that:
+
+the work described has not been published previously except in the form of a preprint, an abstract, a published lecture, academic thesis or registered report. See our policy on multiple, redundant or concurrent publication.
+
+the article is not under consideration for publication elsewhere.
+
+the article's publication is approved by all authors and tacitly or explicitly by the responsible authorities where the work was carried out.
+
+if accepted, the article will not be published elsewhere in the same form, in English or in any other language, including electronically, without the written consent of the copyright-holder.
+
+To verify compliance with our journal publishing policies, we may check your manuscript with our screening tools.
+
+Authorship
+All authors should have made substantial contributions to all of the following:
+
+The conception and design of the study, or acquisition of data, or analysis and interpretation of data
+
+Drafting the article or revising it critically for important intellectual content.
+
+Final approval of the version to be submitted.
+
+All authors are accountable for all aspects of the work, to ensure that questions related to the accuracy or integrity of any part of the work are appropriately investigated and resolved.
+
+Authors should appoint a single corresponding author to communicate with the journal during the editorial process. This individual submits the manuscript and all required documentation to the journal, and serves as the primary contact between the journal and the co-authors. Only the corresponding author’s affiliation will be used to determine eligibility for a publishing agreement, and possible discounts related to it. Affiliations of other co-authors are not relevant for eligibility.
+
+Changes to authorship
+The editors of this journal generally will not consider changes to authorship once a manuscript has been submitted. It is important that authors carefully consider the authorship list and order of authors and provide a definitive author list at submission.  
+
+The policy of this journal around authorship changes:  
+
+All authors must be listed in the manuscript and their details entered into the submission system. Changes can only be made prior to acceptance, and only if approved by the journal editor. This includes additions, deletion, or rearrangement of author names.
+
+Requests to change authorship must be made by the corresponding author using the Authorship Change Request form. The corresponding author must provide the reason for the request to the journal editor with written confirmation from all authors, including any authors being added or removed, that they agree with the changes. Requests which do not comply with the instructions outlined in the form will not be considered.
+
+This journal does not allow authorship changes after acceptance. This includes additions, deletions, or the rearrangement of author names, including changes to the corresponding author.
+
+The review process may be paused while a change in authorship request is being considered.
+
+Change requests made by the authors without the Authorship Change Request form or editor approval may result in the rejection of the manuscript, or retraction if the article has already been published.
+
+Declaration of competing interests
+All authors must disclose any financial and personal relationships with other people or organizations that could inappropriately influence or bias their work. Examples of potential competing interests include:
+
+Employment
+
+Consultancies
+
+Stock ownership
+
+Honoraria
+
+Paid expert testimony
+
+Patent applications or registrations
+
+Grants or any other funding
+
+Affiliation with the journal as an Editor or Advisory Board Member
+
+The declarations tool should always be completed.
+
+Authors with a journal affiliation to declare should enter the following text under “Other Activities” within the  declarations tool and should inform the journal and publisher prior to completing the submission process:
+Given their role as [insert journal role title], [insert your name] had no involvement in the peer-review of this article and has no access to information regarding its peer-review.  Full responsibility for the editorial process for this article was delegated to another journal editor.
+
+Editorial disclosure statements will be included as a footnote and/or in the declaration of competing interest section of the article.
+
+Authors with no competing interests to declare should select the option "I have nothing to declare".
+
+The resulting Word document containing your declaration should be uploaded at the "attach/upload files" step in the submission process. It is important that the Word document is saved in the .doc/.docx file format. Author signatures are not required.
+
+Funding sources
+Authors must disclose any funding sources who provided financial support for the conduct of the research and/or preparation of the article. The role of sponsors, if any, should be declared in relation to the study design, collection, analysis and interpretation of data, writing of the report and decision to submit the article for publication. If funding sources had no such involvement this should be stated in your submission.
+
+List funding sources in this standard way to facilitate compliance to funder's requirements:
+
+Funding: This work was supported by the National Institutes of Health [grant numbers xxxx, yyyy]; the Bill & Melinda Gates Foundation, Seattle, WA [grant number zzzz]; and the United States Institutes of Peace [grant number aaaa].
+
+It is not necessary to include detailed descriptions on the program or type of grants, scholarships and awards. When funding is from a block grant or other resources available to a university, college, or other research institution, submit the name of the institute or organization that provided the funding.
+
+If no funding has been provided for the research, it is recommended to include the following sentence:
+
+This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
+
+Declaration of generative AI use
+Authors must declare the use of generative AI in the manuscript preparation process upon submission of the paper.
+
+Elsevier recognizes the potential of generative AI and AI-assisted technologies (“AI Tools”), when used responsibly, to help researchers work efficiently, gain critical insights fast and achieve better outcomes. Increasingly, these tools, including AI agents and deep research tools, are helping researchers to synthesize complex literature, provide an overview of a field or research question, identify research gaps, generate ideas, and provide tailored support for tasks such as content organization and improving language and readability.
+
+Authors preparing a manuscript for this journal can use AI Tools to support them. However, these tools must never be used as a substitute for human critical thinking, expertise and evaluation. AI technology should always be applied with human oversight and control.
+
+Ultimately, authors are responsible and accountable for the contents of their work. This includes accountability for:
+
+Carefully reviewing and verifying the accuracy, comprehensiveness, and impartiality of all AI-generated output (including checking the sources, as AI-generated references can be incorrect or fabricated).
+
+Editing and adapting all material thoroughly to ensure the manuscript represents the author’s authentic and original contribution and reflects their own analysis, interpretation, insights and ideas.
+
+Ensuring the use of any tools or sources, AI-based or otherwise, is made clear and transparent to readers. If AI Tools have been used, we require a disclosure statement upon submission; please see example below.
+
+Ensuring the manuscript is developed in a way that safeguards data privacy, intellectual property and other rights, by checking the terms and conditions of any AI tool that is used.
+
+Finally, authors must not list or cite AI Tools as an author or co-author on the manuscript since authorship implies responsibilities and tasks that can only be attributed to, and performed by, humans.
+
+The use of AI Tools in the manuscript preparation process must be declared by adding a statement at the end of the manuscript when the paper is first submitted. The statement will appear in the published work and should be placed in a new section before the references list.
+
+An example:
+
+Title of new section: Declaration of generative AI and AI-assisted technologies in the manuscript preparation process.
+
+Statement: During the preparation of this work the author(s) used [NAME OF TOOL / SERVICE] in order to [REASON]. After using this tool/service, the author(s) reviewed and edited the content as needed and take(s) full responsibility for the content of the published article.
+
+The declaration does not apply to the use of basic tools, such as tools used to check grammar, spelling and references. If you have nothing to disclose, you do not need to add a statement.
+
+Please read Elsevier’s author policy on the use of generative AI and AI-assisted technologies, which can be found in the generative AI policies for journals.
+
+Please note: to protect authors’ rights and the confidentiality of their research, this journal does not currently allow the use of generative AI or AI-assisted technologies such as ChatGPT or similar services by reviewers or editors in the peer review and manuscript evaluation process, as is stated in Elsevier's generative AI policies for journals. Elsevier is actively evaluating compliant AI Tools and may revise this policy in the future.
