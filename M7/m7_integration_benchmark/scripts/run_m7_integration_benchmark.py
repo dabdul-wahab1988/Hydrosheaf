@@ -13,15 +13,16 @@ Defensibility (see docs/m7_integration_defensibility.md):
   * anti-inverse-crime: generator adds noise, evaporation and an unmodelled mixing
     perturbation not representable by the reaction dictionary;
   * negative controls: planted trap edges that defeat exactly one single stream;
-  * drives the REAL framework (nuclear.network_aging.infer_network_ages_bayesian,
-    nuclear.age_coherence.audit_graph_age_coherence, lpm.convolve_input) plus the
-    M5/M6 inverse-reaction pillar.
+  * drives the real tritium forward model and age-coherence audit. The chemistry
+    screen is a conservative mass/Cl falsifier; full inverse-reaction fitting and
+    blind topology inference are exercised by the separate M7.1 benchmark.
 
 Four integration tests:
-  T1 age<->topology : network-enhanced Bayesian dating beats single-node LPM.
+  T1 age<->topology : single-node tritium ordering powers the coherence audit.
   T2 chem<->topology: chemistry feasibility improves edge classification / rejects traps.
   T3 age<->chem     : age coherence rejects age-reversal traps chemistry accepts.
-  T4 integration gain: JOINT (all three) edge classification beats every single stream.
+  T4 integration gain: JOINT screening raises precision and lowers false-edge
+  acceptance at a documented recall cost.
 Deterministic (seed 1234).
 """
 from __future__ import annotations

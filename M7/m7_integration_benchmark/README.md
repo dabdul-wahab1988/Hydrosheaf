@@ -10,6 +10,24 @@ controlled synthetic twin with known joint truth, driving the REAL Hydrosheaf mo
 
 See `docs/m7_integration_defensibility.md` for the full design and defensibility argument.
 
+## M7.1 blind replicated stress test
+
+The original locked M7 is retained for historical reproducibility. The stronger
+M7.1 extension removes truth-informed candidate construction and tests the real
+pipeline on independent aquifer realizations:
+
+```bash
+python scripts/run_m7_1_blind_benchmark.py
+```
+
+M7.1 separates truth generation from inference, freezes a regularized fusion
+model and decision thresholds on 20 development aquifers, evaluates them once on
+100 disjoint test aquifers, and runs an 8-aquifer PHREEQC/Bayesian-aging/topology-
+posterior audit. It includes a truth-poisoning leakage test, strict held-out ions,
+aquifer-level bootstrap intervals, calibration and graph-structure metrics, and a
+machine-readable provenance manifest. See `docs/m7_1_blind_protocol.md` and
+`docs/m7_1_blind_results.md`.
+
 ## What it drives (real framework, synthetic data)
 - `hydrosheaf.nuclear.age_coherence.audit_graph_age_coherence` — age↔topology consistency audit
 - `hydrosheaf.nuclear.lpm.convolve_input` + `input_history` — tritium forward model + single-node ages
@@ -56,3 +74,9 @@ A controlled capability/mechanism demonstration, not field validation. Chemistry
 a falsifier (rejects impossible edges) not a confirmer (equifinality); the integration
 value is the streams' complementary blind spots — only the joint test rejects every trap
 type. The Ghana field application (M6) remains the realistic, chemistry-dominant transfer.
+
+The replicated M7.1 result supersedes the locked single-realization M7 for
+performance claims. In M7.1, naive equal-weight integration is inferior to the
+hydraulic-spatial baseline; only development-trained logistic fusion improves edge
+classification, and it does not improve every metric. This is synthetic
+capability evidence, not field validation.

@@ -185,7 +185,10 @@ def _log_mix_cost(cost_a: float, cost_b: float, weight_b: float) -> float:
 
 def _edge_prior_penalty(edge: Edge, weight: float) -> float:
     attrs = edge.attrs or {}
-    prior = attrs.get("edge_confidence", attrs.get("p_uv", 1.0))
+    prior = attrs.get(
+        "prior_edge_probability",
+        attrs.get("edge_confidence", attrs.get("p_uv", 1.0)),
+    )
     p_uv = 1.0
     if isinstance(prior, (int, float, str)):
         try:
@@ -351,6 +354,10 @@ def _build_node_info(
         # Check for pre-calculated age
         if "mean_age_years" in sample:
              age_years = parse_numeric(sample["mean_age_years"], config.detection_limit_policy)
+             age_sigma = parse_numeric(
+                 sample.get("mean_age_std_years"),
+                 config.detection_limit_policy,
+             )
         
         # If no pre-calculated age, try to infer from Tritium
         if age_years is None and _NUCLEAR_AVAILABLE and infer_age_from_tracer is not None and get_nuclide is not None:
@@ -661,11 +668,15 @@ def _select_by_score(
             # Normalized weight
             prob = weight_factor / sum_exps if sum_exps > 0 else 0.0
             
-            # Update edge attributes for the solver
-            attrs = edge.attrs or {}
+            # Preserve the immutable hydraulic prior. The sheaf weight is a
+            # data-derived solver weight and must not overwrite the prior used
+            # by topology posterior sampling.
+            attrs = dict(edge.attrs or {})
+            if "prior_edge_probability" not in attrs:
+                attrs["prior_edge_probability"] = attrs.get(
+                    "edge_confidence", attrs.get("p_uv", 0.5)
+                )
             attrs["sheaf_weight"] = prob
-            # Update edge_confidence so build_edge_maps uses it naturally
-            attrs["edge_confidence"] = prob
             edge.attrs = attrs
 
             weighted_edges.append((prob, score, edge))

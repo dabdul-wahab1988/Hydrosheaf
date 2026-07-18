@@ -25,12 +25,13 @@ dependencies = [
     "phreeqpython",
     "pymc",
     "nutpie",
+    "arviz",
     "PyYAML",
     "duckdb>=1.5.4",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "black", "mypy"]
+dev = ["pytest", "black", "mypy", "ruff", "scikit-learn"]
 viz3d = ["pyvista", "vtk"]
 
 [tool.setuptools.packages.find]

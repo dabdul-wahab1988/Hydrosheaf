@@ -199,3 +199,11 @@ M4/m4_topology_benchmark/public_archives/savage/output/
 .codex_work/
 graphify-out/
 *.stackdump
+
+# Track the compact, source-frozen M7.1 audit artifact used for thesis claims.
+!M7/m7_integration_benchmark/results/
+!M7/m7_integration_benchmark/results/m7_1_blind/
+!M7/m7_integration_benchmark/results/m7_1_blind/manifest.json
+!M7/m7_integration_benchmark/results/m7_1_blind/summary.json
+!M7/m7_integration_benchmark/results/m7_1_blind/replicate_metrics.csv
+!M7/m7_integration_benchmark/results/m7_1_blind/heavy_module_audit.csv

@@ -124,8 +124,16 @@ class Config:
     topology_posterior_enabled: bool = False
     topology_posterior_samples: int = 2000
     topology_posterior_burnin: int = 500
+    topology_posterior_chains: int = 1
     topology_posterior_beta: float = 1.0
     topology_posterior_edge_penalty: float = 0.0
+    topology_posterior_min_edges: int = 0
+    topology_posterior_max_out_degree: int = 0
+    topology_posterior_require_acyclic: bool = False
+    topology_posterior_require_weak_connectivity: bool = False
+    topology_posterior_require_root_reachability: bool = False
+    topology_posterior_root_nodes: List[str] = field(default_factory=list)
+    topology_posterior_invalid_cost: float = 1.0e6
     # Optimal transport plausibility screen
     ot_enabled: bool = False
     ot_weight: float = 0.25
@@ -652,10 +660,18 @@ class Config:
             raise ValueError("topology_posterior_burnin must be non-negative.")
         if self.topology_posterior_burnin >= self.topology_posterior_samples:
             raise ValueError("topology_posterior_burnin must be less than topology_posterior_samples.")
+        if self.topology_posterior_chains < 1:
+            raise ValueError("topology_posterior_chains must be at least 1.")
         if self.topology_posterior_beta <= 0:
             raise ValueError("topology_posterior_beta must be positive.")
         if self.topology_posterior_edge_penalty < 0:
             raise ValueError("topology_posterior_edge_penalty must be non-negative.")
+        if self.topology_posterior_min_edges < 0:
+            raise ValueError("topology_posterior_min_edges must be non-negative.")
+        if self.topology_posterior_max_out_degree < 0:
+            raise ValueError("topology_posterior_max_out_degree must be non-negative.")
+        if self.topology_posterior_invalid_cost <= 0:
+            raise ValueError("topology_posterior_invalid_cost must be positive.")
         if self.projected_gradient_weight < 0:
             raise ValueError("projected_gradient_weight must be non-negative.")
         if self.projected_gradient_sharpness <= 0:

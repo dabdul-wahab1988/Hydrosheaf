@@ -213,6 +213,8 @@ tests/test_m3_real_graph_benchmark.py
 tests/test_m3_usgs_benchmark.py
 tests/test_m4_claim_guardrails.py
 tests/test_m4_public_archive_pipeline.py
+tests/test_m7_1_blind_benchmark.py
+tests/test_m7_digital_twin.py
 tests/test_mathematical_review_regressions.py
 tests/test_mcmc_mixing.py
 tests/test_minerals.py

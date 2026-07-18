@@ -8,6 +8,7 @@ from hydrosheaf.graph.types import Edge
 from hydrosheaf.inference.topology_posterior import (
     run_topology_posterior,
     attach_posterior_attrs,
+    make_topology_cost_fn,
 )
 
 
@@ -124,6 +125,10 @@ class TestTopologyPosterior(unittest.TestCase):
         self.assertIn("edge_log_odds", result)
         self.assertIn("map_edges", result)
         self.assertIn("entropy", result)
+        self.assertEqual(
+            result["entropy_definition"],
+            "sum_of_marginal_bernoulli_edge_entropies",
+        )
         self.assertIn("n_edges_mean", result)
         self.assertIn("n_edges_ci95", result)
         self.assertIn("acceptance_rate", result)
@@ -246,6 +251,68 @@ class TestTopologyPosterior(unittest.TestCase):
             result_penalty["n_edges_mean"],
         )
 
+    def test_explicit_empty_initial_state_is_preserved(self):
+        universe = [
+            _make_edge("A->B", "A", "B", confidence=0.6),
+            _make_edge("B->C", "B", "C", confidence=0.4),
+        ]
+        self.cfg.topology_posterior_samples = 30
+        self.cfg.topology_posterior_burnin = 5
+        result = run_topology_posterior(
+            universe, _simple_cost_fn, self.cfg, initial_edges=[], seed=12
+        )
+        self.assertEqual(result["initial_edge_ids"], [])
+
+    def test_multiple_chains_emit_convergence_diagnostics(self):
+        universe = [
+            _make_edge("A->B", "A", "B", confidence=0.7),
+            _make_edge("B->C", "B", "C", confidence=0.6),
+            _make_edge("A->C", "A", "C", confidence=0.3),
+        ]
+        self.cfg.topology_posterior_samples = 80
+        self.cfg.topology_posterior_burnin = 20
+        self.cfg.topology_posterior_chains = 3
+        result = run_topology_posterior(universe, _simple_cost_fn, self.cfg, seed=5)
+        self.assertEqual(result["n_chains"], 3)
+        self.assertEqual(len(result["acceptance_rates_by_chain"]), 3)
+        self.assertEqual(len(result["initial_edge_ids_by_chain"]), 3)
+        self.assertIn("n_edges_r_hat", result)
+        self.assertIn("n_edges_ess", result)
+
+    def test_topology_constraints_reject_invalid_graphs(self):
+        samples = {
+            "A": {"site_id": "A"},
+            "B": {"site_id": "B"},
+            "C": {"site_id": "C"},
+        }
+        config = Config(
+            phreeqc_enabled=False,
+            topology_posterior_min_edges=2,
+            topology_posterior_max_out_degree=1,
+            topology_posterior_require_acyclic=True,
+            topology_posterior_require_weak_connectivity=True,
+            topology_posterior_require_root_reachability=True,
+            topology_posterior_root_nodes=["A"],
+            topology_posterior_invalid_cost=12345.0,
+        )
+        cost_fn = make_topology_cost_fn(samples, config)
+        valid = [
+            _make_edge("A->B", "A", "B"),
+            _make_edge("B->C", "B", "C"),
+        ]
+        cycle = valid + [_make_edge("C->A", "C", "A")]
+        disconnected = [_make_edge("A->B", "A", "B")]
+        excessive_out_degree = [
+            _make_edge("A->B", "A", "B"),
+            _make_edge("A->C", "A", "C"),
+        ]
+        self.assertLess(cost_fn(valid), config.topology_posterior_invalid_cost)
+        self.assertEqual(cost_fn(cycle), config.topology_posterior_invalid_cost)
+        self.assertEqual(cost_fn(disconnected), config.topology_posterior_invalid_cost)
+        self.assertEqual(
+            cost_fn(excessive_out_degree), config.topology_posterior_invalid_cost
+        )
+
 
 class TestAttachPosteriorAttrs(unittest.TestCase):
     def test_attrs_attached(self):
@@ -269,6 +336,11 @@ class TestAttachPosteriorAttrs(unittest.TestCase):
             self.assertIn("posterior_edge_log_odds", attrs)
             self.assertIn("posterior_map_selected", attrs)
             self.assertIn("posterior_topology_entropy", attrs)
+            self.assertIn("posterior_marginal_edge_entropy", attrs)
+            self.assertEqual(
+                attrs["posterior_entropy_definition"],
+                "sum_of_marginal_bernoulli_edge_entropies",
+            )
 
 
 if __name__ == "__main__":

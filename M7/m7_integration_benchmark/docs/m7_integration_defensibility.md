@@ -32,12 +32,12 @@ Four safeguards keep it defensible:
      impossible (edge into an old, dilute fossil water requires net precipitation).
      Only the chemistry stream rejects it.
    - *Spurious* — distant / up-gradient random pairs (geometry rejects).
-3. **Drives the REAL framework.** Age uses
-   `hydrosheaf.nuclear.network_aging.infer_network_ages_bayesian` (graph-constrained
-   Bayesian dating) versus a single-node LPM baseline (`lpm.convolve_input`);
-   age–topology consistency uses `hydrosheaf.nuclear.age_coherence.audit_graph_age_coherence`;
-   chemistry uses the M5/M6 sparse inverse-reaction pillar with held-out-ion
-   falsification. Only the synthetic *data* is fabricated.
+3. **Drives framework components.** The locked benchmark uses the single-node
+   LPM and age-coherence audit plus the M5/M6 reaction pillar; it does not execute
+   Bayesian network aging or the full blind topology selector. The separate M7.1
+   stress test executes candidate inference, sheaf refinement, inverse chemistry,
+   constrained topology posterior, PHREEQC, and Bayesian network aging under a
+   truth–inference firewall.
 4. **Capability, not field truth.** M7 demonstrates the integration *mechanism*;
    it is explicitly not a claim about any real aquifer. The Ghana field transfer
    (M6) remains the realistic, chemistry-dominant application.
@@ -66,3 +66,10 @@ in false connections (lower non-uniqueness) at a conservative recall cost — th
 same "reduce overinterpretation" trade-off that characterises the whole framework.
 
 Locked headline numbers are in `docs/m7_results.md` / `results/`.
+
+These safeguards describe the locked, constructed-trap demonstration. For
+performance claims, the replicated blind M7.1 protocol and its adverse controls
+supersede this single realization. M7.1 shows that naive equal-weight coupling is
+inferior to its hydraulic-spatial baseline; only development-trained logistic fusion
+improves selected held-out metrics, and important chemistry, age, and calibration
+limitations remain.

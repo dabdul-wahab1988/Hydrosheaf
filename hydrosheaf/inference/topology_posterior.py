@@ -11,6 +11,7 @@ Uses Metropolis-Hastings edge flips with bitmap-based state caching.
 
 import math
 import random
+from dataclasses import replace
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Set, Tuple
 
 import numpy as np
@@ -75,6 +76,21 @@ def _get_config_float(config: Any, name: str, default: float) -> float:
 
 def _get_config_int(config: Any, name: str, default: int) -> int:
     return int(_get_config_float(config, name, float(default)))
+
+
+def _edge_prior_probability(edge: Any) -> float:
+    attrs = _get_edge_attrs(edge)
+    value = attrs.get(
+        "prior_edge_probability",
+        attrs.get("edge_confidence", attrs.get("p_uv", 0.5)),
+    )
+    try:
+        probability = float(value)
+    except (TypeError, ValueError):
+        probability = 0.5
+    if not math.isfinite(probability):
+        probability = 0.5
+    return min(1.0 - 1e-12, max(1e-12, probability))
 
 
 def _sample_map(samples: object) -> Dict[str, Mapping[str, object]]:
@@ -149,10 +165,7 @@ def _log_posterior(
     # Full Bernoulli prior over all edges in the universe
     included_ids = {_get_edge_id(e) for e in edge_set}
     for e in universe:
-        attrs = _get_edge_attrs(e)
-        _p = attrs.get("edge_confidence", attrs.get("p_uv", None))
-        p = float(_p) if _p is not None else 0.5
-        p = min(1.0 - 1e-12, max(1e-12, p))
+        p = _edge_prior_probability(e)
         if _get_edge_id(e) in included_ids:
             logp += math.log(p)
         else:
@@ -192,6 +205,74 @@ def _propose_flip(
     return proposed, f"add_{edge_id}"
 
 
+def _propose_swap(
+    current: Sequence[Any],
+    universe: Sequence[Any],
+    rng: random.Random,
+) -> Tuple[List[Any], str]:
+    """Symmetrically replace one included edge with one excluded edge."""
+
+    current_ids = {_get_edge_id(edge) for edge in current}
+    included = list(current)
+    excluded = [
+        edge for edge in universe if _get_edge_id(edge) not in current_ids
+    ]
+    if not included or not excluded:
+        return _propose_flip(current, universe, rng)
+    removed = rng.choice(included)
+    added = rng.choice(excluded)
+    proposed = [
+        edge
+        for edge in current
+        if _get_edge_id(edge) != _get_edge_id(removed)
+    ]
+    proposed.append(added)
+    return (
+        proposed,
+        f"swap_{_get_edge_id(removed)}_for_{_get_edge_id(added)}",
+    )
+
+
+def _propose_parent_swap(
+    current: Sequence[Any],
+    universe: Sequence[Any],
+    rng: random.Random,
+) -> Tuple[List[Any], str]:
+    """Swap an incoming parent while preserving the child's in-degree.
+
+    The proposal is symmetric because the eligible child and its included and
+    excluded incoming-edge counts are unchanged by the replacement.
+    """
+
+    current_ids = {_get_edge_id(edge) for edge in current}
+    included_by_v: Dict[str, List[Any]] = {}
+    excluded_by_v: Dict[str, List[Any]] = {}
+    for edge in universe:
+        _, v = _get_edge_u_v(edge)
+        target = (
+            included_by_v
+            if _get_edge_id(edge) in current_ids
+            else excluded_by_v
+        )
+        target.setdefault(v, []).append(edge)
+    eligible = sorted(set(included_by_v) & set(excluded_by_v))
+    if not eligible:
+        return _propose_swap(current, universe, rng)
+    v = rng.choice(eligible)
+    removed = rng.choice(included_by_v[v])
+    added = rng.choice(excluded_by_v[v])
+    proposed = [
+        edge
+        for edge in current
+        if _get_edge_id(edge) != _get_edge_id(removed)
+    ]
+    proposed.append(added)
+    return (
+        proposed,
+        f"parent_swap_{_get_edge_id(removed)}_for_{_get_edge_id(added)}",
+    )
+
+
 def run_topology_posterior(
     universe: Sequence[Any],
     cost_fn: Callable[[Sequence[Any]], float],
@@ -224,7 +305,7 @@ def run_topology_posterior(
         map_edges : List[str]
             Edge IDs of the maximum a posteriori graph.
         entropy : float
-            Posterior entropy over graphs.
+            Legacy alias for the sum of marginal Bernoulli edge entropies.
         n_edges_mean : float
             Posterior mean number of edges.
         n_edges_ci95 : Tuple[float, float]
@@ -234,93 +315,204 @@ def run_topology_posterior(
     """
     n_samples = _get_config_int(config, "topology_posterior_samples", 2000)
     n_burnin = _get_config_int(config, "topology_posterior_burnin", 500)
+    n_chains = _get_config_int(config, "topology_posterior_chains", 1)
     beta = _get_config_float(config, "topology_posterior_beta", 1.0)
     edge_penalty = _get_config_float(config, "topology_posterior_edge_penalty", 0.0)
 
-    rng = random.Random(seed)
     cost_cache: Dict[str, float] = {}
-
     universe_list = list(universe)
+    edge_ids = [_get_edge_id(edge) for edge in universe_list]
     if not universe_list:
         return {
             "edge_probabilities": {},
             "edge_log_odds": {},
             "map_edges": [],
             "entropy": 0.0,
+            "marginal_edge_entropy": 0.0,
+            "entropy_definition": "sum_of_marginal_bernoulli_edge_entropies",
             "n_edges_mean": 0.0,
             "n_edges_ci95": (0.0, 0.0),
             "acceptance_rate": 0.0,
+            "acceptance_rates_by_chain": [],
+            "n_chains": n_chains,
+            "n_edges_r_hat": None,
+            "n_edges_ess": 0.0,
+            "edge_r_hat": {},
+            "edge_ess": {},
+            "initial_edge_ids": [],
+            "initial_edge_ids_by_chain": [],
         }
 
-    # Initialize
-    current = list(initial_edges) if initial_edges else list(universe_list)
-    current_logp = _log_posterior(current, universe_list, cost_fn, cost_cache, beta, edge_penalty)
-    best_logp = current_logp
-    best_edges = list(current)
-
-    # Track per-edge inclusion counts
-    edge_counts: Dict[str, int] = {_get_edge_id(e): 0 for e in universe_list}
-    n_edges_trace: List[int] = []
-    acceptance_count = 0
-
+    aggregate_counts: Dict[str, int] = {edge_id: 0 for edge_id in edge_ids}
+    chain_counts: List[Dict[str, int]] = []
+    chain_edge_traces: List[Dict[str, List[int]]] = []
+    chain_n_edges: List[List[int]] = []
+    acceptance_rates: List[float] = []
+    initial_edge_ids_by_chain: List[List[str]] = []
+    best_logp = -math.inf
+    best_edges: List[Any] = []
     total_samples = n_samples + n_burnin
-    for iteration in range(total_samples):
-        proposed_edges, label = _propose_flip(current, universe_list, rng)
-        if label == "noop":
-            continue
-
-        proposed_logp = _log_posterior(
-            proposed_edges, universe_list, cost_fn, cost_cache, beta, edge_penalty
+    constrained = any(
+        (
+            _get_config_int(config, "topology_posterior_min_edges", 0) > 0,
+            _get_config_int(config, "topology_posterior_max_out_degree", 0) > 0,
+            bool(getattr(config, "topology_posterior_require_acyclic", False)),
+            bool(
+                getattr(
+                    config, "topology_posterior_require_weak_connectivity", False
+                )
+            ),
+            bool(
+                getattr(
+                    config,
+                    "topology_posterior_require_root_reachability",
+                    False,
+                )
+            ),
         )
+    )
+    base_initial = (
+        list(initial_edges) if initial_edges is not None else list(universe_list)
+    )
 
-        # Metropolis-Hastings acceptance
-        log_ratio = proposed_logp - current_logp
-        if log_ratio >= 0.0 or rng.random() < math.exp(log_ratio):
-            current = proposed_edges
-            current_logp = proposed_logp
+    for chain_index in range(n_chains):
+        rng = random.Random(seed + 104729 * chain_index)
+        if chain_index == 0 or constrained:
+            # Empty/prior-random starts can be knowingly invalid under DAG,
+            # connectivity, reachability, or degree constraints. Start every
+            # constrained chain from the caller's feasible graph and let
+            # independent burn-in trajectories disperse it.
+            current = list(base_initial)
+        elif chain_index % 2 == 1:
+            current = []
+        else:
+            current = [
+                edge
+                for edge in universe_list
+                if rng.random() < _edge_prior_probability(edge)
+            ]
+        initial_edge_ids_by_chain.append(
+            [_get_edge_id(edge) for edge in current]
+        )
+        current_logp = _log_posterior(
+            current, universe_list, cost_fn, cost_cache, beta, edge_penalty
+        )
+        if current_logp > best_logp:
+            best_logp = current_logp
+            best_edges = list(current)
+
+        counts = {edge_id: 0 for edge_id in edge_ids}
+        edge_trace = {edge_id: [] for edge_id in edge_ids}
+        n_edges_trace: List[int] = []
+        acceptance_count = 0
+        for iteration in range(total_samples):
+            if constrained and rng.random() < 0.85:
+                proposed_edges, label = _propose_parent_swap(
+                    current, universe_list, rng
+                )
+            else:
+                proposed_edges, label = _propose_flip(
+                    current, universe_list, rng
+                )
+            if label == "noop":
+                continue
+            proposed_logp = _log_posterior(
+                proposed_edges,
+                universe_list,
+                cost_fn,
+                cost_cache,
+                beta,
+                edge_penalty,
+            )
+            log_ratio = proposed_logp - current_logp
+            if log_ratio >= 0.0 or rng.random() < math.exp(log_ratio):
+                current = proposed_edges
+                current_logp = proposed_logp
+                if iteration >= n_burnin:
+                    acceptance_count += 1
+
             if iteration >= n_burnin:
-                acceptance_count += 1
+                included = {_get_edge_id(edge) for edge in current}
+                for edge_id in edge_ids:
+                    present = int(edge_id in included)
+                    counts[edge_id] += present
+                    edge_trace[edge_id].append(present)
+                n_edges_trace.append(len(current))
+                if current_logp > best_logp:
+                    best_logp = current_logp
+                    best_edges = list(current)
 
-        # Track posterior
-        if iteration >= n_burnin:
-            for e in current:
-                edge_counts[_get_edge_id(e)] += 1
-            n_edges_trace.append(len(current))
+        for edge_id, count in counts.items():
+            aggregate_counts[edge_id] += count
+        chain_counts.append(counts)
+        chain_edge_traces.append(edge_trace)
+        chain_n_edges.append(n_edges_trace)
+        acceptance_rates.append(acceptance_count / max(1, n_samples))
 
-            if current_logp > best_logp:
-                best_logp = current_logp
-                best_edges = list(current)
-
-    n_post_samples = n_samples if n_samples > 0 else 1
+    n_post_samples = max(1, n_samples * n_chains)
     edge_probabilities = {
-        eid: count / n_post_samples for eid, count in edge_counts.items()
+        edge_id: count / n_post_samples
+        for edge_id, count in aggregate_counts.items()
     }
     edge_log_odds = {
         eid: math.log(max(1e-12, p / (1.0 - p + 1e-12))) for eid, p in edge_probabilities.items()
     }
 
-    # Entropy over the posterior (approximated from edge marginal probs)
-    entropy = 0.0
+    # Sum of marginal Bernoulli edge entropies. This is not the entropy of the
+    # joint graph posterior because dependencies among edges are not represented.
+    marginal_edge_entropy = 0.0
     for p in edge_probabilities.values():
         if 0.0 < p < 1.0:
-            entropy -= p * math.log(p) + (1.0 - p) * math.log(1.0 - p)
+            marginal_edge_entropy -= p * math.log(p) + (1.0 - p) * math.log(1.0 - p)
 
-    n_edges_mean = float(np.mean(n_edges_trace)) if n_edges_trace else 0.0
-    if n_edges_trace:
-        sorted_trace = sorted(n_edges_trace)
+    flattened_n_edges = [
+        value for trace in chain_n_edges for value in trace
+    ]
+    n_edges_mean = (
+        float(np.mean(flattened_n_edges)) if flattened_n_edges else 0.0
+    )
+    if flattened_n_edges:
+        sorted_trace = sorted(flattened_n_edges)
         lo_idx = int(0.025 * len(sorted_trace))
         hi_idx = int(0.975 * len(sorted_trace))
         n_edges_ci95 = (float(sorted_trace[max(0, lo_idx)]), float(sorted_trace[min(len(sorted_trace) - 1, hi_idx)]))
     else:
         n_edges_ci95 = (0.0, 0.0)
 
-    acceptance_rate = acceptance_count / max(1, n_samples)
+    acceptance_rate = (
+        float(np.mean(acceptance_rates)) if acceptance_rates else 0.0
+    )
+    n_edges_r_hat: Optional[float] = None
+    n_edges_ess = float(len(flattened_n_edges))
+    edge_r_hat: Dict[str, Optional[float]] = {}
+    edge_ess: Dict[str, float] = {}
+    if n_chains > 1 and n_samples > 1:
+        from ..uncertainty.bayesian import compute_ess, compute_r_hat
+
+        n_edge_array = np.asarray(chain_n_edges, dtype=float)
+        n_edges_r_hat = compute_r_hat(n_edge_array)
+        n_edges_ess = sum(compute_ess(chain) for chain in n_edge_array)
+        for edge_id in edge_ids:
+            traces = np.asarray(
+                [chain[edge_id] for chain in chain_edge_traces],
+                dtype=float,
+            )
+            chain_means = np.mean(traces, axis=1)
+            if np.all(np.var(traces, axis=1) == 0.0) and not np.allclose(
+                chain_means, chain_means[0]
+            ):
+                edge_r_hat[edge_id] = None
+            else:
+                edge_r_hat[edge_id] = compute_r_hat(traces)
+            edge_ess[edge_id] = sum(compute_ess(chain) for chain in traces)
 
     logger.info(
-        "Topology posterior: %d edges, mean edges=%.1f, entropy=%.2f, accept=%.3f",
+        "Topology posterior: %d edges, %d chains, mean edges=%.1f, "
+        "marginal entropy=%.2f, accept=%.3f",
         len(universe_list),
+        n_chains,
         n_edges_mean,
-        entropy,
+        marginal_edge_entropy,
         acceptance_rate,
     )
 
@@ -328,10 +520,20 @@ def run_topology_posterior(
         "edge_probabilities": edge_probabilities,
         "edge_log_odds": edge_log_odds,
         "map_edges": [_get_edge_id(e) for e in best_edges],
-        "entropy": entropy,
+        "entropy": marginal_edge_entropy,
+        "marginal_edge_entropy": marginal_edge_entropy,
+        "entropy_definition": "sum_of_marginal_bernoulli_edge_entropies",
         "n_edges_mean": n_edges_mean,
         "n_edges_ci95": n_edges_ci95,
         "acceptance_rate": acceptance_rate,
+        "acceptance_rates_by_chain": acceptance_rates,
+        "n_chains": n_chains,
+        "n_edges_r_hat": n_edges_r_hat,
+        "n_edges_ess": float(n_edges_ess),
+        "edge_r_hat": edge_r_hat,
+        "edge_ess": edge_ess,
+        "initial_edge_ids": initial_edge_ids_by_chain[0],
+        "initial_edge_ids_by_chain": initial_edge_ids_by_chain,
     }
 
 
@@ -376,20 +578,88 @@ def make_topology_cost_fn(
 
     global_weight = _get_config_float(config, "sheaf_weight_global", 1.0)
     hydraulic_weight = _get_config_float(config, "hydraulic_hodge_weight", 1.0)
+    invalid_cost = _get_config_float(
+        config, "topology_posterior_invalid_cost", 1.0e6
+    )
+    likelihood_config = replace(config, sheaf_weight_head_prior=0.0)
+
+    def constraint_cost(edges: Sequence[Any]) -> float:
+        min_edges = _get_config_int(config, "topology_posterior_min_edges", 0)
+        if len(edges) < min_edges:
+            return invalid_cost
+
+        require_acyclic = bool(
+            getattr(config, "topology_posterior_require_acyclic", False)
+        )
+        require_connected = bool(
+            getattr(config, "topology_posterior_require_weak_connectivity", False)
+        )
+        require_reachability = bool(
+            getattr(config, "topology_posterior_require_root_reachability", False)
+        )
+        max_out_degree = _get_config_int(
+            config, "topology_posterior_max_out_degree", 0
+        )
+        if not (
+            require_acyclic
+            or require_connected
+            or require_reachability
+            or max_out_degree > 0
+        ):
+            return 0.0
+
+        import networkx as nx
+
+        graph = nx.DiGraph()
+        graph.add_nodes_from(str(node_id) for node_id in sample_map)
+        graph.add_edges_from(_get_edge_u_v(edge) for edge in edges)
+        if require_acyclic and not nx.is_directed_acyclic_graph(graph):
+            return invalid_cost
+        if require_connected and (
+            graph.number_of_nodes() > 1
+            and (
+                graph.number_of_edges() == 0
+                or not nx.is_weakly_connected(graph)
+            )
+        ):
+            return invalid_cost
+        if max_out_degree > 0 and any(
+            degree > max_out_degree for _, degree in graph.out_degree()
+        ):
+            return invalid_cost
+        if require_reachability:
+            roots = [
+                str(node)
+                for node in getattr(config, "topology_posterior_root_nodes", [])
+                if str(node) in graph
+            ]
+            if not roots:
+                return invalid_cost
+            reachable = set(roots)
+            for root in roots:
+                reachable.update(nx.descendants(graph, root))
+            if reachable != set(graph.nodes):
+                return invalid_cost
+        return 0.0
 
     def cost_fn(edges: Sequence[Any]) -> float:
+        invalid = constraint_cost(edges)
+        if invalid > 0.0:
+            return invalid
         if not edges:
             return 0.0
 
-        # Score candidates using the same scoring function
-        scores = _score_candidates(edges, node_info, sample_map, stats, config)
+        # Score likelihood terms without reusing the hydraulic Bernoulli prior.
+        scores = _score_candidates(
+            edges, node_info, sample_map, stats, likelihood_config
+        )
         local_cost = sum(s.local_score for s in scores.values())
 
         if node_vectors:
             try:
                 maps = build_edge_maps(
                     edges, node_vectors, config,
-                    prior_weight=_get_config_float(config, "sheaf_weight_head_prior", 1.0),
+                    prior_weight=0.0,
                 )
                 node_estimates = solve_directed_section(
                     list(node_vectors.keys()),
@@ -632,6 +902,12 @@ def attach_posterior_attrs(
         attrs["posterior_edge_log_odds"] = log_odds.get(eid)
         attrs["posterior_map_selected"] = eid in map_edges
         attrs["posterior_topology_entropy"] = entropy
+        attrs["posterior_marginal_edge_entropy"] = posterior_result.get(
+            "marginal_edge_entropy"
+        )
+        attrs["posterior_entropy_definition"] = posterior_result.get(
+            "entropy_definition"
+        )
         attrs["posterior_n_edges_mean"] = n_mean
         attrs["posterior_n_edges_ci95"] = f"{ci[0]:.2f}-{ci[1]:.2f}"
         attrs["posterior_acceptance_rate"] = accept

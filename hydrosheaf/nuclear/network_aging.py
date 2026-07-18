@@ -217,6 +217,44 @@ def infer_network_ages_bayesian(
         "inferred_velocity_m_y": float(np.mean(trace.posterior["velocity"])),
         "model_type": model_type
     }
+    try:
+        import arviz as az
+
+        age_summary = az.summary(
+            trace,
+            var_names=["ages"],
+            round_to=None,
+        )
+        r_hat_values = np.asarray(age_summary["r_hat"], dtype=float)
+        ess_bulk_values = np.asarray(age_summary["ess_bulk"], dtype=float)
+        ess_tail_values = np.asarray(age_summary["ess_tail"], dtype=float)
+        mcse_mean_values = np.asarray(age_summary["mcse_mean"], dtype=float)
+        diag.update(
+            {
+                "age_r_hat_max": float(np.nanmax(r_hat_values)),
+                "age_ess_bulk_min": float(np.nanmin(ess_bulk_values)),
+                "age_ess_tail_min": float(np.nanmin(ess_tail_values)),
+                "age_mcse_mean_max": float(np.nanmax(mcse_mean_values)),
+            }
+        )
+    except Exception as exc:
+        logger.warning("Could not compute Bayesian-age diagnostics: %s", exc)
+        diag.update(
+            {
+                "age_r_hat_max": None,
+                "age_ess_bulk_min": None,
+                "age_ess_tail_min": None,
+                "age_mcse_mean_max": None,
+            }
+        )
+    sample_stats = getattr(trace, "sample_stats", None)
+    divergences = None
+    if sample_stats is not None:
+        for key in ("diverging", "divergence"):
+            if key in sample_stats:
+                divergences = int(np.asarray(sample_stats[key]).sum())
+                break
+    diag["divergences"] = divergences
     if "c14_a0_mu" in trace.posterior:
         diag["inferred_c14_a0_global"] = float(np.mean(trace.posterior["c14_a0_mu"]))
         

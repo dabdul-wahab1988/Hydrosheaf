@@ -25,16 +25,11 @@ jobs:
         pip install .[dev]
     - name: Lint with Ruff
       run: |
-        pip install ruff
-        # Run ruff but don't fail the build yet if there are existing issues, just report
-        ruff check . || true
+        # Block syntax errors, undefined names, and other execution-critical findings.
+        ruff check . --select E9,F63,F7,F82
     - name: Run enhanced tests
       run: |
         pytest tests/test_enhanced_isotope_metrics.py
     - name: Run all tests
-      # We allow failure here for now because the existing test suite might have environmental dependencies
-      # that are not fully captured in pyproject.toml yet (like specific system libraries for phreeqc).
-      # But we want to see the output.
-      continue-on-error: true
       run: |
         pytest

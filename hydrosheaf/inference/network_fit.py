@@ -409,15 +409,6 @@ def fit_network(
     return results
 
 
-def fit_edges(
-    samples: object,
-    edges: Iterable[object],
-    config: Config,
-    phreeqc_results: Optional[Mapping[str, Mapping[str, object]]] = None,
-) -> List[EdgeResult]:
-    return fit_network(samples, edges, config, phreeqc_results=phreeqc_results)
-
-
 def infer_edges(
     samples: object,
     max_neighbors: int = 1,

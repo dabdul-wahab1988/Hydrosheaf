@@ -73,7 +73,11 @@ class EdgeResult:
     posterior_edge_probability: Optional[float] = None
     posterior_edge_log_odds: Optional[float] = None
     posterior_map_selected: Optional[bool] = None
+    # Legacy name retained for exported-schema compatibility. The value is the
+    # sum of marginal Bernoulli edge entropies, not joint graph entropy.
     posterior_topology_entropy: Optional[float] = None
+    posterior_marginal_edge_entropy: Optional[float] = None
+    posterior_entropy_definition: Optional[str] = None
     posterior_n_edges_mean: Optional[float] = None
     posterior_n_edges_ci95: Optional[str] = None
     posterior_acceptance_rate: Optional[float] = None

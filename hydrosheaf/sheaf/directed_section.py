@@ -25,7 +25,13 @@ class DirectedEdgeMap:
 
 def _edge_confidence(edge: Edge) -> float:
     attrs = edge.attrs or {}
-    prior = attrs.get("edge_confidence", attrs.get("p_uv", 1.0))
+    prior = attrs.get(
+        "sheaf_weight",
+        attrs.get(
+            "prior_edge_probability",
+            attrs.get("edge_confidence", attrs.get("p_uv", 1.0)),
+        ),
+    )
     p_uv = 1.0
     if isinstance(prior, (int, float, str)):
         try:

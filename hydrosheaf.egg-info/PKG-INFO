@@ -19,12 +19,15 @@ Requires-Dist: seaborn
 Requires-Dist: phreeqpython
 Requires-Dist: pymc
 Requires-Dist: nutpie
+Requires-Dist: arviz
 Requires-Dist: PyYAML
 Requires-Dist: duckdb>=1.5.4
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
 Requires-Dist: black; extra == "dev"
 Requires-Dist: mypy; extra == "dev"
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: scikit-learn; extra == "dev"
 Provides-Extra: viz3d
 Requires-Dist: pyvista; extra == "viz3d"
 Requires-Dist: vtk; extra == "viz3d"
