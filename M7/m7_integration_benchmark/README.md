@@ -78,5 +78,8 @@ type. The Ghana field application (M6) remains the realistic, chemistry-dominant
 The replicated M7.1 result supersedes the locked single-realization M7 for
 performance claims. In M7.1, naive equal-weight integration is inferior to the
 hydraulic-spatial baseline; only development-trained logistic fusion improves edge
-classification, and it does not improve every metric. This is synthetic
-capability evidence, not field validation.
+classification, and it does not improve every metric. The fitted age coefficient
+is negative, neither topology nor Bayesian-age posteriors pass their convergence
+gates, and the PHREEQC constraints are non-binding in the heavy audit. This is
+synthetic capability evidence and a model-development diagnostic, not field
+validation or a validated digital twin.

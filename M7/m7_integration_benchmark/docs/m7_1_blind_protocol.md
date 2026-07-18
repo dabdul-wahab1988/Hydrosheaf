@@ -97,10 +97,13 @@ are separate status fields; a completed call is not labelled converged.
 
 The runner writes `replicate_metrics.csv`, `heavy_module_audit.csv`,
 `summary.json`, and `manifest.json`. The manifest records seeds, frozen
-coefficients/thresholds, source SHA-256 hashes, package versions, configuration,
-Git state, runtime, module call counts, and every heavy-tier failure. No failed
-seed is replaced. A truth-poison failure or any heavy-tier failure makes the
-command fail.
+coefficients/thresholds, package versions, configuration, runtime, module call
+counts, and every heavy-tier failure. It captures the Git commit and source-tree
+status before execution; hashes the complete HydroSheaf runtime tree, all M7
+scripts, dependency metadata/lockfile, and databases; and verifies the commit
+and every runtime-input hash again at the end. No failed seed is replaced. A
+truth-poison failure, heavy-tier exception, commit change, or runtime-input
+change makes the command fail.
 
 Reproduce from the repository root after installing `.[dev]`:
 
