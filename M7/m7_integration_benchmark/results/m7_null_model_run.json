@@ -1,0 +1,41 @@
+{
+  "analysis": "M7 null-model sensitivity extension",
+  "locked_baseline_unchanged": true,
+  "synthetic_metadata": true,
+  "constructed_fields": [
+    "18O",
+    "2H",
+    "lat",
+    "lon",
+    "lithology",
+    "aquifer_unit"
+  ],
+  "null_gate": "null_score <= 0.5",
+  "thresholds": {
+    "competing_no_flow": 0.5,
+    "dominant_no_flow": 0.8
+  },
+  "config": {
+    "null_model_enabled": true,
+    "evidence_ladder_enabled": true,
+    "assumption_calibration_enabled": true,
+    "null_chemistry_similarity_threshold": 0.3,
+    "null_lithology_weight": 0.3,
+    "null_endmember_weight": 0.4,
+    "null_spatial_weight": 0.2,
+    "null_anthropogenic_weight": 0.2
+  },
+  "generator_replay": {
+    "seed": 1234,
+    "stable_archetype_hash_used": true,
+    "reason": "baseline generator uses process-randomised Python hash(node_id)"
+  },
+  "source_hashes": {
+    "baseline_script": "441bbcbdd53d459e714f132a67c002e0515da5bf2e41a53e99f03d38bb1b3e22"
+  },
+  "outputs": [
+    "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_integration_benchmark\\results\\m7_null_edge_scores.csv",
+    "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_integration_benchmark\\results\\m7_null_sensitivity_summary.csv",
+    "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_integration_benchmark\\results\\m7_null_trap_rejection.csv"
+  ]
+}

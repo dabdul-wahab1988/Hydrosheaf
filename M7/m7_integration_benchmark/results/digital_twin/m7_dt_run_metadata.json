@@ -1,0 +1,58 @@
+{
+  "benchmark_name": "M7 operational synthetic-twin extension",
+  "claim_class": "controlled synthetic operational capability",
+  "generated_utc": "2026-07-18T03:55:41.725701+00:00",
+  "configuration": {
+    "n_nodes": 24,
+    "n_steps": 72,
+    "spinup_steps": 6,
+    "forecast_start": 42,
+    "ensemble_size": 80,
+    "n_replicates": 24,
+    "horizons": [
+      1,
+      3,
+      6
+    ],
+    "seed": 20260718,
+    "inflation": 1.025,
+    "dropout_fraction": 0.5,
+    "interval": 0.9
+  },
+  "python": "3.14.6 (tags/v3.14.6:c63aec6, Jun 10 2026, 10:26:10) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy": "2.5.1",
+  "pandas": "3.0.3",
+  "source_sha256": {
+    "run_m7_digital_twin_extension.py": "c923daac71f9647b24b7eded727df99d7f879884584c46a100ecd627c2e75c32",
+    "m7_digital_twin.py": "f49ae79578f8b5902c6f272df94dd3ff6c85acf1ed4ca3afe3325d00a4058a25"
+  },
+  "locked_m7_baseline_sha256_before": {
+    "m7_age_coherence_demo.csv": "1fbbd085e4356e60f1e73f2be14d349ceb92c15c5b999893415f3e41ac3df914",
+    "m7_age_gain.csv": "693e68031d08cbb0c0d3d10433ad58e0f6064f4c77d3f2fd0f3a7545744e3ff3",
+    "m7_age_recovery.csv": "e5e1b0d6ad903f9dfd5eb8bbbd2db15c8728932eece87d7b7151576cfe9a9188",
+    "m7_edge_classification.csv": "a3946d5e47303f8fe042c4c60d7c5d18838c4e1ff25e325ae2a0c189f1979eb5",
+    "m7_integration_gain.csv": "d513129728640ee2fe05090aefdff87f7458236eb21eb09ee44df6d92b07b7cf",
+    "m7_trap_rejection.csv": "e06e3832654d49378d187c20c9de8f9ebaf034dc546bc472c8f4cef41cc47a2c"
+  },
+  "locked_m7_baseline_sha256_after": {
+    "m7_age_coherence_demo.csv": "1fbbd085e4356e60f1e73f2be14d349ceb92c15c5b999893415f3e41ac3df914",
+    "m7_age_gain.csv": "693e68031d08cbb0c0d3d10433ad58e0f6064f4c77d3f2fd0f3a7545744e3ff3",
+    "m7_age_recovery.csv": "e5e1b0d6ad903f9dfd5eb8bbbd2db15c8728932eece87d7b7151576cfe9a9188",
+    "m7_edge_classification.csv": "a3946d5e47303f8fe042c4c60d7c5d18838c4e1ff25e325ae2a0c189f1979eb5",
+    "m7_integration_gain.csv": "d513129728640ee2fe05090aefdff87f7458236eb21eb09ee44df6d92b07b7cf",
+    "m7_trap_rejection.csv": "e06e3832654d49378d187c20c9de8f9ebaf034dc546bc472c8f4cef41cc47a2c"
+  },
+  "locked_baseline_unchanged": true,
+  "figures": [
+    "figures\\digital_twin\\figure_m7_digital_twin_extension.png",
+    "figures\\digital_twin\\figure_m7_digital_twin_extension.pdf"
+  ],
+  "limitations": [
+    "synthetic truth rather than a named field aquifer",
+    "graph state-space surrogate rather than MODFLOW/PHREEQC co-simulation",
+    "future seasonal climatology and pumping schedule treated as known inputs",
+    "EnKF Gaussian update can underrepresent multimodality",
+    "management decisions and safety constraints are not evaluated"
+  ]
+}
