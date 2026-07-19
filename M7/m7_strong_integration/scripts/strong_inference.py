@@ -46,12 +46,23 @@ class StrongInferenceResult:
         return asdict(self)
 
 
-def strong_config(*, phreeqc_enabled: bool = False) -> Config:
+def strong_config(
+    *,
+    phreeqc_enabled: bool = False,
+    measured_ions: Optional[Sequence[str]] = None,
+) -> Config:
+    selected_ions = set(measured_ions or ION_ORDER)
+    unknown = selected_ions - set(ION_ORDER)
+    if unknown:
+        raise ValueError(f"Unknown chemistry ions: {sorted(unknown)}")
     config = Config(
         ion_order=list(ION_ORDER),
-        weights=[1.0] * len(ION_ORDER),
-        conservative_weights=[1.0 if ion == "Cl" else 0.01 for ion in ION_ORDER],
-        measured_ions=list(ION_ORDER),
+        weights=[1.0 if ion in selected_ions else 0.0 for ion in ION_ORDER],
+        conservative_weights=[
+            (1.0 if ion == "Cl" else 0.01) if ion in selected_ions else 0.0
+            for ion in ION_ORDER
+        ],
+        measured_ions=[ion for ion in ION_ORDER if ion in selected_ions],
         phreeqc_enabled=phreeqc_enabled,
         missing_policy="impute_zero",
         uncertainty_method="none",
@@ -201,6 +212,7 @@ def run_strong_inference(
     topology_samples: Optional[int] = None,
     topology_updates_per_sample: Optional[int] = None,
     age_travel_cost_weight: Optional[float] = None,
+    chemistry_ions: Optional[Sequence[str]] = None,
 ) -> StrongInferenceResult:
     """Run HydroSheaf using observables only."""
 
@@ -224,7 +236,10 @@ def run_strong_inference(
         "fit_network_constrained": 0,
         "run_topology_posterior": 0,
     }
-    base_config = strong_config(phreeqc_enabled=False)
+    base_config = strong_config(
+        phreeqc_enabled=False,
+        measured_ions=chemistry_ions,
+    )
     if topology_samples is not None:
         base_config.topology_posterior_samples = int(topology_samples)
         base_config.topology_posterior_burnin = min(
@@ -297,12 +312,18 @@ def run_strong_inference(
     calls["refine_edges_with_sheaf"] += 1
     age_by_id = {edge.edge_id: edge for edge in age_edges}
 
-    unconstrained_config = strong_config(phreeqc_enabled=False)
+    unconstrained_config = strong_config(
+        phreeqc_enabled=False,
+        measured_ions=chemistry_ions,
+    )
     unconstrained_results = fit_network(
         rows, deepcopy(candidates), unconstrained_config
     )
     calls["fit_network_unconstrained"] += 1
-    phreeqc_config = strong_config(phreeqc_enabled=True)
+    phreeqc_config = strong_config(
+        phreeqc_enabled=True,
+        measured_ions=chemistry_ions,
+    )
     phreeqc_results = run_phreeqc(rows, phreeqc_config)
     calls["run_phreeqc"] += 1
     constrained_results = fit_network(
