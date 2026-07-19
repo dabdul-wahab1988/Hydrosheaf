@@ -15,9 +15,11 @@ Northern Ghana's independent CBE reproduces the workbook's own `Data_Class` spli
 
 ## Interpretation
 
-- **Northern Ghana** is the only Tier-4 (fully integrated) dataset: it carries major
-  ions, F, Sr, SiO₂, δ18O, δ2H, saturation indices, aquifer/geology/lithology metadata,
-  QC classes and candidate graph edges. It supports the full Hydrosheaf field workflow.
+- **Northern Ghana** is the only dataset at the maximum M6 chemistry/metadata
+  tier: it carries major ions, F, Sr, SiO₂, δ18O, δ2H, saturation indices,
+  aquifer/geology/lithology metadata, QC classes and candidate graph edges. It
+  supports the M6 reaction-component diagnostic workflow, not a fully observed
+  age–head–screen integration.
 - **Lower Anayari** is a clean Tier-2 external set (majors + F + isotopes; no Sr/SiO₂,
   no season, no metadata). 36/41 samples pass quantitative CBE — suitable for external
   reaction-class transfer, but silicate/carbonate corroboration is limited without Sr/SiO₂.
@@ -29,8 +31,8 @@ Northern Ghana's independent CBE reproduces the workbook's own `Data_Class` spli
 
 ## Claim strength by dataset
 
-- Northern Ghana: integrated field workflow; class-level reaction inference with evidence
-  gates; conservative identifiability reporting.
+- Northern Ghana: reaction-component field workflow; class-level reaction
+  inference with evidence gates; conservative identifiability reporting.
 - Lower Anayari: external reaction-class transfer; reduced corroboration; wider uncertainty.
 - Talensi: screening only; charge-balance-limited; conclusions reported as low-confidence
   with explicit failure-mode flags.

@@ -21,6 +21,9 @@ The locked protocol is in
 [docs/m7_3_protocol.md](docs/m7_3_protocol.md). Results must be written only
 after the protocol and runner have been committed.
 
+The locked interpretation and decision table are in
+[docs/m7_3_results.md](docs/m7_3_results.md).
+
 ## Replay
 
 Place `mf6.exe` and `mp7.exe` in `.codex_work/modflow-bin`, then run:

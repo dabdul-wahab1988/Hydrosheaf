@@ -1,0 +1,144 @@
+{
+  "benchmark": "M7.3 conditional integration and non-uniqueness",
+  "protocol_commit_before_5301_series": "d336e8769d72610a5afe7b2b8fc39ff538a3e8c8",
+  "development_seeds": [
+    5201,
+    5202,
+    5203,
+    5204,
+    5205,
+    5206
+  ],
+  "locked_test_seeds": [
+    5301,
+    5302,
+    5303,
+    5304,
+    5305,
+    5306,
+    5307,
+    5308,
+    5309,
+    5310,
+    5311,
+    5312
+  ],
+  "n_development_cases": 6,
+  "n_locked_test_cases": 12,
+  "age_draws_per_chain": 600,
+  "age_importance_particles": 50000,
+  "reaction_bootstrap_per_case": 64,
+  "paired_case_bootstrap": 10000,
+  "candidate_recall": 1.0,
+  "all_local_age_cases_converged": true,
+  "all_topology_age_importance_runs_stable": false,
+  "native_incremental_age_pr_auc": {
+    "contrast": "native_incremental_age",
+    "condition": "native",
+    "full_panel": "HAC",
+    "baseline_panel": "HC",
+    "metric": "pr_auc",
+    "mean_difference": -0.006002890796950502,
+    "ci95_low": -0.01217320317641322,
+    "ci95_high": -0.0010943788721566594,
+    "n_cases": 12,
+    "n_bootstrap": 10000,
+    "resampling_unit": "independent_MODFLOW_case"
+  },
+  "native_incremental_age_log_loss": {
+    "contrast": "native_incremental_age",
+    "condition": "native",
+    "full_panel": "HAC",
+    "baseline_panel": "HC",
+    "metric": "log_loss",
+    "mean_difference": 2.2652138841218934e-05,
+    "ci95_low": -0.00013992671475923657,
+    "ci95_high": 0.000220860324471115,
+    "n_cases": 12,
+    "n_bootstrap": 10000,
+    "resampling_unit": "independent_MODFLOW_case"
+  },
+  "tritium_only_correct_topology_mae_contrast": {
+    "tracer_regime": "tritium_only",
+    "contrast": "correct_minus_no_topology",
+    "left": "complete_true",
+    "right": "none",
+    "metric": "age_mae_years",
+    "mean_difference": -0.1641726364619793,
+    "ci95_low": -0.1843703786938695,
+    "ci95_high": -0.1452707371226383,
+    "n_cases": 12,
+    "n_bootstrap": 10000
+  },
+  "tritium_only_reversed_topology_mae_contrast": {
+    "tracer_regime": "tritium_only",
+    "contrast": "reversed_minus_correct",
+    "left": "reversed",
+    "right": "complete_true",
+    "metric": "age_mae_years",
+    "mean_difference": 0.024126136778064706,
+    "ci95_low": -0.8889898388930001,
+    "ci95_high": 0.887974124225994,
+    "n_cases": 12,
+    "n_bootstrap": 10000
+  },
+  "reaction_overall": {
+    "core": {
+      "n_edges": 108.0,
+      "modal_family_accuracy": 0.5555555555555556,
+      "mean_true_family_probability": 0.5237268518518519,
+      "mean_family_support_entropy": 0.1506408778967845,
+      "mean_effective_supported_families": 1.1953675585347587
+    },
+    "enhanced": {
+      "n_edges": 108.0,
+      "modal_family_accuracy": 0.6111111111111112,
+      "mean_true_family_probability": 0.5882523148148148,
+      "mean_family_support_entropy": 0.1345280225960429,
+      "mean_effective_supported_families": 1.1730532060971823
+    }
+  },
+  "carbonate_recovery": {
+    "core": {
+      "carbonate_weathering": {
+        "n_edges": 24.0,
+        "modal_family_accuracy": 0.0,
+        "mean_true_family_probability": 0.0,
+        "mean_family_support_entropy": 0.11551034044612755,
+        "mean_effective_supported_families": 1.137759542725657
+      },
+      "carbonate_precipitation": {
+        "n_edges": 12.0,
+        "modal_family_accuracy": 0.0,
+        "mean_true_family_probability": 0.0,
+        "mean_family_support_entropy": 0.03384136842605095,
+        "mean_effective_supported_families": 1.041745605707222
+      }
+    },
+    "enhanced": {
+      "carbonate_weathering": {
+        "n_edges": 24.0,
+        "modal_family_accuracy": 0.0,
+        "mean_true_family_probability": 0.0,
+        "mean_family_support_entropy": 0.09020199266988378,
+        "mean_effective_supported_families": 1.110323659027418
+      },
+      "carbonate_precipitation": {
+        "n_edges": 12.0,
+        "modal_family_accuracy": 0.0,
+        "mean_true_family_probability": 0.0,
+        "mean_family_support_entropy": 0.0,
+        "mean_effective_supported_families": 1.0
+      }
+    }
+  },
+  "ghana_scope": {
+    "environmental_age_tracer_panel_available": false,
+    "screen_intervals_available": false,
+    "time_varying_head_series_available": false,
+    "single_occasion_head_proxy_possible": true,
+    "coordinates_masked": true,
+    "independent_field_connectivity_truth_available": false
+  },
+  "claim_guardrail": "Integration is evaluated as conditional uncertainty reduction. Synthetic truth is model-conditioned. Ghana evidence supports component diagnostics and non-identifiability mapping, not field age, exact topology, or reaction truth."
+}

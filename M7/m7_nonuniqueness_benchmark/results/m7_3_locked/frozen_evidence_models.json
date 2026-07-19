@@ -1,0 +1,155 @@
+{
+  "H": {
+    "panel": "H",
+    "feature_names": [
+      "hydraulic_logit"
+    ],
+    "means": [
+      10.211463586299796
+    ],
+    "scales": [
+      6.112694147496156
+    ],
+    "coefficients": [
+      1.548526036345142
+    ],
+    "intercept": -2.492741931394261,
+    "training_split": "development_external_simulator_cases_only",
+    "class_weight": null,
+    "regularization_C": 1.0
+  },
+  "A": {
+    "panel": "A",
+    "feature_names": [
+      "negative_age_cost"
+    ],
+    "means": [
+      -0.1785886786182262
+    ],
+    "scales": [
+      0.4288728232073259
+    ],
+    "coefficients": [
+      1.8623498046489473
+    ],
+    "intercept": -2.402059031616744,
+    "training_split": "development_external_simulator_cases_only",
+    "class_weight": null,
+    "regularization_C": 1.0
+  },
+  "C": {
+    "panel": "C",
+    "feature_names": [
+      "negative_chemistry_log_objective"
+    ],
+    "means": [
+      -0.17492891386178383
+    ],
+    "scales": [
+      0.04584866229235482
+    ],
+    "coefficients": [
+      3.0852134322642426
+    ],
+    "intercept": -3.193233325157055,
+    "training_split": "development_external_simulator_cases_only",
+    "class_weight": null,
+    "regularization_C": 1.0
+  },
+  "HA": {
+    "panel": "HA",
+    "feature_names": [
+      "hydraulic_logit",
+      "negative_age_cost"
+    ],
+    "means": [
+      10.211463586299796,
+      -0.1785886786182262
+    ],
+    "scales": [
+      6.112694147496156,
+      0.4288728232073259
+    ],
+    "coefficients": [
+      1.3398929527785448,
+      0.5038266573304154
+    ],
+    "intercept": -2.565549078684905,
+    "training_split": "development_external_simulator_cases_only",
+    "class_weight": null,
+    "regularization_C": 1.0
+  },
+  "HC": {
+    "panel": "HC",
+    "feature_names": [
+      "hydraulic_logit",
+      "negative_chemistry_log_objective"
+    ],
+    "means": [
+      10.211463586299796,
+      -0.17492891386178383
+    ],
+    "scales": [
+      6.112694147496156,
+      0.04584866229235482
+    ],
+    "coefficients": [
+      1.455822965542349,
+      2.7789424758494907
+    ],
+    "intercept": -3.60342325632676,
+    "training_split": "development_external_simulator_cases_only",
+    "class_weight": null,
+    "regularization_C": 1.0
+  },
+  "AC": {
+    "panel": "AC",
+    "feature_names": [
+      "negative_age_cost",
+      "negative_chemistry_log_objective"
+    ],
+    "means": [
+      -0.1785886786182262,
+      -0.17492891386178383
+    ],
+    "scales": [
+      0.4288728232073259,
+      0.04584866229235482
+    ],
+    "coefficients": [
+      1.7761992624696996,
+      2.8361962647126817
+    ],
+    "intercept": -3.549294110181399,
+    "training_split": "development_external_simulator_cases_only",
+    "class_weight": null,
+    "regularization_C": 1.0
+  },
+  "HAC": {
+    "panel": "HAC",
+    "feature_names": [
+      "hydraulic_logit",
+      "negative_age_cost",
+      "negative_chemistry_log_objective"
+    ],
+    "means": [
+      10.211463586299796,
+      -0.1785886786182262,
+      -0.17492891386178383
+    ],
+    "scales": [
+      6.112694147496156,
+      0.4288728232073259,
+      0.04584866229235482
+    ],
+    "coefficients": [
+      1.2773124006058194,
+      0.4433928008133414,
+      2.774683186049994
+    ],
+    "intercept": -3.6740236994085893,
+    "training_split": "development_external_simulator_cases_only",
+    "class_weight": null,
+    "regularization_C": 1.0
+  }
+}

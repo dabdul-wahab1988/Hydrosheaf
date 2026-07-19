@@ -4,6 +4,10 @@ Deterministic run (seed 1234), 866 s. All numbers below are reproducible via
 `python scripts/run_m6_all.py`. Inferred Mendeley labels are concordance references,
 never validation targets.
 
+Under revised Objective 6, `Tier 4` is the maximum M6 chemistry/metadata tier,
+not a fully observed age–head–screen field integration. The objective-level
+interpretation is in `docs/objective6_data_limited_synthesis.md`.
+
 ## E1 — Dataset readiness
 - Independent charge-balance error reproduces the Northern Ghana workbook `Data_Class`
   split exactly: **294 quantitative / 19 screening / 7 exploratory** (median |CBE| 1.5%).

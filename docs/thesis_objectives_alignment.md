@@ -79,3 +79,20 @@ The required outputs are:
 - conflict detection when one evidence stream is misspecified;
 - reaction-family support entropy under core and enhanced chemistry; and
 - a machine-readable Ghana data-scope audit enforcing the claim boundary above.
+
+## Evidence-to-objective crosswalk
+
+Objective 6 is answered across three complementary analyses:
+
+- M6 applies readiness, reaction-equivalence, tier-ablation, edge-sensitivity
+  and limitation-map diagnostics to the Ghanaian datasets.
+- M7.2 tests Northern Ghana wet-to-dry chemistry prediction without using
+  future observations at the issue date.
+- M7.3 uses independent synthetic truth to establish which integration
+  behaviors can be tested only where topology, age and reaction truth exist.
+
+The consolidated field interpretation is in
+`M6/m6_field_transfer_benchmark/docs/objective6_data_limited_synthesis.md`.
+Here, M6 `Tier 4` means the highest chemistry–isotope–metadata tier in that
+benchmark; it does not mean that age tracers, repeated heads or screen
+intervals are available.

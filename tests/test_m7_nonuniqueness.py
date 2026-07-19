@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 from pathlib import Path
 import sys
@@ -167,3 +168,47 @@ def test_ghana_scope_audit_enforces_data_limited_claim() -> None:
     assert audit["time_varying_head_series_available"] is False
     assert audit["coordinates_masked"] is True
     assert audit["independent_field_connectivity_truth_available"] is False
+
+
+def test_locked_result_decisions_trace_to_raw_artifacts() -> None:
+    result = ROOT / "M7" / "m7_nonuniqueness_benchmark" / "results" / "m7_3_locked"
+    manifest = json.loads((result / "manifest.json").read_text(encoding="utf-8"))
+    decision = json.loads(
+        (result / "confirmatory_decision.json").read_text(encoding="utf-8")
+    )
+    contrasts = pd.read_csv(result / "evidence_case_bootstrap_contrasts.csv")
+    topology = pd.read_csv(result / "topology_age_sensitivity.csv")
+
+    assert manifest["protocol_commit_before_5301_series"] == (
+        decision["protocol_commit_before_test_generation"]
+    )
+    assert manifest["locked_test_seeds"] == list(range(5301, 5313))
+
+    age_pr_auc = contrasts[
+        (contrasts["contrast"] == "native_incremental_age")
+        & (contrasts["metric"] == "pr_auc")
+    ].iloc[0]
+    assert decision["decisions"]["age_adds_topology_ranking_value"][
+        "pr_auc_difference_hac_minus_hc"
+    ] == pytest.approx(age_pr_auc["mean_difference"])
+
+    correct = topology[topology["graph_condition"] == "complete_true"]
+    assert correct["importance_stable_ess_ge_400"].all()
+    reversed_tritium = topology[
+        (topology["graph_condition"] == "reversed")
+        & (topology["tracer_regime"] == "tritium_only")
+    ]
+    assert (~reversed_tritium["importance_stable_ess_ge_400"]).sum() == 8
+
+    case_directories = [path for path in (result / "cases").iterdir() if path.is_dir()]
+    assert len(case_directories) == 18
+    required = {
+        "blind_observations.csv",
+        "heldout_truth.csv",
+        "modpath_pathline_truth.csv",
+        "provenance.json",
+        "diagnostics.json",
+    }
+    assert all(
+        required <= {path.name for path in case.iterdir()} for case in case_directories
+    )

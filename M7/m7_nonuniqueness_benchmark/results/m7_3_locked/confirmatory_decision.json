@@ -1,0 +1,83 @@
+{
+  "analysis": "M7.3 conditional integration and non-identifiability",
+  "protocol_commit_before_test_generation": "d336e8769d72610a5afe7b2b8fc39ff538a3e8c8",
+  "locked_test_seeds": [
+    5301,
+    5302,
+    5303,
+    5304,
+    5305,
+    5306,
+    5307,
+    5308,
+    5309,
+    5310,
+    5311,
+    5312
+  ],
+  "decisions": {
+    "age_adds_topology_ranking_value": {
+      "supported": false,
+      "pr_auc_difference_hac_minus_hc": -0.006002890796950502,
+      "ci95": [
+        -0.01217320317641322,
+        -0.0010943788721566594
+      ],
+      "interpretation": "Age slightly reduced entropy but significantly worsened ranking; positive incremental age value is not established."
+    },
+    "chemistry_adds_topology_ranking_value": {
+      "supported": true,
+      "pr_auc_difference_hac_minus_ha": 0.4471345559504152,
+      "ci95": [
+        0.35745426074081516,
+        0.5400959944780771
+      ]
+    },
+    "hydraulics_adds_topology_ranking_value": {
+      "supported": true,
+      "pr_auc_difference_hac_minus_ac": 0.009053291511581782,
+      "ci95": [
+        0.000973786957780304,
+        0.01981752100792667
+      ]
+    },
+    "correct_topology_improves_informative_tracer_age_mae": {
+      "supported": true,
+      "mean_difference_years": -0.06190774767994752,
+      "ci95": [
+        -0.071274699822984,
+        -0.05252124360924995
+      ]
+    },
+    "correct_topology_improves_tritium_only_age_mae": {
+      "supported": true,
+      "mean_difference_years": -0.1641726364619793,
+      "ci95": [
+        -0.1843703786938695,
+        -0.1452707371226383
+      ]
+    },
+    "reversed_graph_incompatibility_detected": {
+      "supported": true,
+      "informative_reversed_minus_correct_mae_years": 0.2820946270045776,
+      "informative_mae_ci95": [
+        0.01637813414875081,
+        0.544652728775695
+      ],
+      "tritium_only_unstable_reversed_cases": 8,
+      "tritium_only_total_reversed_cases": 12
+    },
+    "carbonate_family_recovery": {
+      "supported": false,
+      "core_modal_accuracy": 0.0,
+      "enhanced_modal_accuracy": 0.0,
+      "n_carbonate_edges": 36
+    },
+    "predeclared_edge_conflict_flag": {
+      "supported": false,
+      "flagged_fraction": 0.0,
+      "interpretation": "The threshold was insensitive; case-level calibration and negative-transfer metrics detected the adverse controls."
+    }
+  },
+  "ghana_claim": "Component diagnostics and non-identifiability mapping only; no field validation of age, exact topology, screen-resolved flow, unique reactions, or a fully observed digital twin."
+}

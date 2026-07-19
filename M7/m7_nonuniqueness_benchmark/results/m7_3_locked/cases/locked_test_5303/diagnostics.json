@@ -1,0 +1,59 @@
+{
+  "age": {
+    "inferred_input_scale": 1.0,
+    "input_scale_mode": "fixed",
+    "inferred_velocity_m_y": null,
+    "velocity_mode": "not_applicable_edge_free",
+    "model_type": "PFM",
+    "n_tracer_panels": 2,
+    "n_tune": 0,
+    "target_accept": null,
+    "sampler": "exact_grid",
+    "likelihood": "student_t",
+    "likelihood_degrees_of_freedom": 4.0,
+    "age_parameterization": "independent_lognormal_grid_quadrature",
+    "age_r_hat_max": 1.0020987074066936,
+    "age_ess_bulk_min": 1992.4755333566793,
+    "age_ess_tail_min": 2070.0515746550745,
+    "age_mcse_mean_max": 0.12235062945819844,
+    "diagnostic_method": "rank_normalized_split_rhat_bulk_tail_ess",
+    "divergences": 0,
+    "posterior_predictive": {
+      "3H": {
+        "standardized_rmse": 0.5065867875891727,
+        "observed_95_interval_coverage": 1.0,
+        "n_observations": 12
+      },
+      "39Ar": {
+        "standardized_rmse": 1.3354883369823827,
+        "observed_95_interval_coverage": 1.0,
+        "n_observations": 12
+      }
+    },
+    "n_nodes_tracer_identifiable": 12,
+    "all_nodes_tracer_identifiable": true,
+    "edge_age_order": {},
+    "converged": true
+  },
+  "phreeqc": {
+    "n_samples": 12,
+    "n_successful_samples": 12,
+    "success_fraction": 1.0,
+    "n_candidate_edge_fits": 69,
+    "n_edges_with_active_direction_constraints": 69,
+    "n_edges_hitting_thermodynamic_bound": 69,
+    "n_edges_with_material_objective_change": 61,
+    "mean_absolute_objective_change": 0.021516017968507717,
+    "max_absolute_objective_change": 0.12652155775336438
+  },
+  "topology": {},
+  "module_calls": {
+    "infer_edges": 1,
+    "infer_network_ages_bayesian": 1,
+    "refine_edges_with_sheaf": 1,
+    "run_phreeqc": 1,
+    "fit_network_unconstrained": 1,
+    "fit_network_constrained": 1,
+    "run_topology_posterior": 0
+  }
+}

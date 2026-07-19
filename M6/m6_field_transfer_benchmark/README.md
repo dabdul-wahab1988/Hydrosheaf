@@ -16,9 +16,15 @@ See `Outline.md` (Q1 Nature-Portfolio outline) and `docs/m6_locked_analysis_plan
 ## Datasets (real)
 | Dataset | n | Native tier | Role |
 |---|---:|---|---|
-| Northern Ghana (Mendeley workbook) | 320 (160 wells × wet/dry) | Tier 4 | Primary field transfer + robustness |
+| Northern Ghana (Mendeley workbook) | 320 (160 wells × wet/dry) | Tier 4 (M6 chemistry/metadata ladder) | Primary field transfer + robustness |
 | Talensi (mining area) | 63 | Tier 1 | External sparse transfer |
 | Lower Anayari (manu) | 41 | Tier 2 | External sparse transfer |
+
+`Tier 4` is the maximum tier of the M6 reaction-diagnostic ladder. It does not
+imply that environmental age tracers, repeated heads, screen intervals or
+independent flow-path truth are available. See
+[`docs/objective6_data_limited_synthesis.md`](docs/objective6_data_limited_synthesis.md)
+for the revised Objective 6 interpretation.
 
 ## Reproduce
 ```bash
