@@ -4,9 +4,16 @@ Tests for Network-Enhanced Bayesian Groundwater Dating.
 import unittest
 import numpy as np
 import networkx as nx
-from hydrosheaf.nuclear.network_aging import infer_network_ages_bayesian
-from hydrosheaf.nuclear.input_history import build_default_tritium_input
+from hydrosheaf.nuclear.network_aging import (
+    TracerObservationSet,
+    infer_network_ages_bayesian,
+)
+from hydrosheaf.nuclear.input_history import (
+    InputHistory,
+    build_default_tritium_input,
+)
 from hydrosheaf.nuclear.lpm import convolve_input
+from hydrosheaf.nuclear.nuclides import ARGON39
 
 class NetworkAgingTests(unittest.TestCase):
     
@@ -39,18 +46,12 @@ class NetworkAgingTests(unittest.TestCase):
 
     def test_bayesian_network_inference(self):
         """Test that network inference recovers age order correctly."""
-        # Check numpy version compatibility for numba/nutpie
-        import numpy as np
-        from packaging import version
-        if version.parse(np.__version__) >= version.parse("2.4"):
-            self.skipTest(f"NumPy version {np.__version__} is incompatible with current Numba. Skipping Bayesian test.")
-
-        # Run inference with fewer samples for speed in test environment
+        # SMC does not depend on Numba and is robust to separated bomb-peak modes.
         try:
-            import nutpie
-            _ = nutpie
+            import pymc
+            _ = pymc
         except Exception as exc:
-            self.skipTest(f"Nutpie unavailable in this environment: {exc}")
+            self.skipTest(f"PyMC unavailable in this environment: {exc}")
 
         results = infer_network_ages_bayesian(
             graph=self.graph,
@@ -58,8 +59,9 @@ class NetworkAgingTests(unittest.TestCase):
             node_sigmas=self.sigmas,
             sample_date=self.sample_date,
             input_hist=self.hist,
-            n_samples=50, # Fast test
-            n_chains=2
+            n_samples=300,
+            n_chains=4,
+            sampler="smc",
         )
         
         # Check results structure
@@ -79,8 +81,82 @@ class NetworkAgingTests(unittest.TestCase):
         
         # Check modern prob (relaxed for fast test environment with 50 samples)
         self.assertGreater(results["A"]["p_modern"], 0.5)
-        # Note: with 50 samples, C may get stuck on the young side of the bomb peak barrier.
-        # We verify that A is younger than C, which is the primary topological recovery check.
+        diagnostics = results["_diagnostics"]
+        self.assertEqual(diagnostics["sampler"], "smc")
+        self.assertEqual(diagnostics["divergences"], 0)
+        self.assertLess(diagnostics["age_r_hat_max"], 1.1)
+        self.assertLess(
+            diagnostics["posterior_predictive"]["3H"]["standardized_rmse"],
+            2.0,
+        )
+
+    def test_cycles_are_rejected_before_sampling(self):
+        graph = nx.DiGraph([("A", "B"), ("B", "A")])
+        with self.assertRaisesRegex(ValueError, "directed acyclic"):
+            infer_network_ages_bayesian(
+                graph=graph,
+                node_observations={"A": 1.0, "B": 0.5},
+                node_sigmas={"A": 0.1, "B": 0.1},
+                sample_date=2025.0,
+                n_samples=10,
+                n_chains=1,
+            )
+
+    def test_exact_grid_multi_tracer_panel_converges(self):
+        graph = nx.DiGraph()
+        graph.add_nodes_from(["young", "old"])
+        ages = {"young": 5.0, "old": 80.0}
+        tritium_history = InputHistory(
+            np.asarray([1850.0, 2030.0]),
+            np.asarray([6.0, 6.0]),
+        )
+        lambda_3h = np.log(2.0) / 12.32
+        tritium = {
+            node: 6.0 * np.exp(-lambda_3h * age)
+            for node, age in ages.items()
+        }
+        argon = {
+            node: 100.0 * np.exp(-np.log(2.0) * age / 269.0)
+            for node, age in ages.items()
+        }
+        result = infer_network_ages_bayesian(
+            graph,
+            tritium,
+            {node: 0.12 for node in ages},
+            sample_date=2025.0,
+            input_hist=tritium_history,
+            additional_tracers=[
+                TracerObservationSet(
+                    name="39Ar",
+                    nuclide=ARGON39,
+                    observations=argon,
+                    sigmas={node: 1.0 for node in ages},
+                    sample_date=2025.0,
+                )
+            ],
+            n_samples=500,
+            n_chains=4,
+            sampler="grid",
+            max_age_years=150.0,
+        )
+        diagnostics = result["_diagnostics"]
+        self.assertTrue(diagnostics["converged"])
+        self.assertEqual(diagnostics["divergences"], 0)
+        self.assertLess(abs(result["young"]["mean_age_years"] - 5.0), 5.0)
+        self.assertLess(abs(result["old"]["mean_age_years"] - 80.0), 10.0)
+
+    def test_exact_grid_rejects_network_edges(self):
+        graph = nx.DiGraph([("A", "B")])
+        with self.assertRaisesRegex(ValueError, "edge-free"):
+            infer_network_ages_bayesian(
+                graph,
+                {"A": 5.0, "B": 2.0},
+                {"A": 0.2, "B": 0.2},
+                sample_date=2025.0,
+                n_samples=20,
+                n_chains=2,
+                sampler="grid",
+            )
 
 if __name__ == "__main__":
     unittest.main()

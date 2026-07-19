@@ -13,6 +13,8 @@ class MineralLibraryTests(unittest.TestCase):
         self.assertIn("pyrite_oxidation_aerobic", MINERAL_LIBRARY)
         self.assertIn("enstatite", MINERAL_LIBRARY)
         self.assertIn("diopside", MINERAL_LIBRARY)
+        self.assertIn("sulfate_reduction", MINERAL_LIBRARY)
+        self.assertIn("iron_reduction", MINERAL_LIBRARY)
         # Check specific stoichiometry
         calcite = MINERAL_LIBRARY["calcite"]
         self.assertEqual(calcite["Ca"], 1)
@@ -52,6 +54,42 @@ class MineralLibraryTests(unittest.TestCase):
         self.assertEqual(denit["SO4"], 2)
         self.assertEqual(denit["NO3"], -2.8)
         self.assertEqual(denit["Fe"], 1)
+
+    def test_reducing_processes_require_indicator_ions_and_redox_gate(self):
+        reducing = Config(
+            active_minerals=[],
+            measured_ions=["SO4", "HCO3", "Fe", "NO3"],
+            exchange_enabled=False,
+        )
+        _, labels, _, _ = build_reaction_dictionary(
+            reducing,
+            sample={"SO4": 0.4, "HCO3": 2.0, "Fe": 0.02, "NO3": 0.01},
+        )
+        self.assertIn("sulfate_reduction", labels)
+        self.assertIn("iron_reduction", labels)
+
+        oxic = Config(
+            active_minerals=[],
+            measured_ions=["SO4", "HCO3", "Fe", "NO3"],
+            exchange_enabled=False,
+        )
+        _, oxic_labels, _, _ = build_reaction_dictionary(
+            oxic,
+            sample={"SO4": 0.4, "HCO3": 2.0, "Fe": 0.001, "NO3": 1.0},
+        )
+        self.assertNotIn("sulfate_reduction", oxic_labels)
+        self.assertNotIn("iron_reduction", oxic_labels)
+
+        missing_sulfate = Config(
+            active_minerals=[],
+            measured_ions=["HCO3", "Fe", "NO3"],
+            exchange_enabled=False,
+        )
+        _, missing_labels, _, _ = build_reaction_dictionary(
+            missing_sulfate,
+            sample={"HCO3": 2.0, "Fe": 0.02, "NO3": 0.01},
+        )
+        self.assertNotIn("sulfate_reduction", missing_labels)
 
 
 if __name__ == "__main__":

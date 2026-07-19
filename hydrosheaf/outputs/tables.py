@@ -45,6 +45,13 @@ def edge_results_table(results: List[EdgeResult]) -> List[dict]:
                 "reaction_iterations": result.reaction_iterations,
                 "reaction_converged": result.reaction_converged,
                 "constraints_active": json.dumps(result.constraints_active),
+                "constraints_binding": json.dumps(result.constraints_binding),
+                "thermodynamic_constraints_active_count": (
+                    result.thermodynamic_constraints_active_count
+                ),
+                "thermodynamic_bound_hit_count": (
+                    result.thermodynamic_bound_hit_count
+                ),
                 "si_u": json.dumps(result.si_u),
                 "si_v": json.dumps(result.si_v),
                 "phreeqc_ok": result.phreeqc_ok,

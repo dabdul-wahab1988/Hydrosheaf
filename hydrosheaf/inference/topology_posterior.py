@@ -257,7 +257,10 @@ def _propose_parent_swap(
         target.setdefault(v, []).append(edge)
     eligible = sorted(set(included_by_v) & set(excluded_by_v))
     if not eligible:
-        return _propose_swap(current, universe, rng)
+        # Do not fall back to a different kernel here.  A state-dependent
+        # fallback would change the reverse proposal probability and would
+        # require a Hastings correction.
+        return list(current), "noop"
     v = rng.choice(eligible)
     removed = rng.choice(included_by_v[v])
     added = rng.choice(excluded_by_v[v])
@@ -271,6 +274,268 @@ def _propose_parent_swap(
         proposed,
         f"parent_swap_{_get_edge_id(removed)}_for_{_get_edge_id(added)}",
     )
+
+
+def _propose_multi_flip(
+    current: Sequence[Any],
+    universe: Sequence[Any],
+    rng: random.Random,
+) -> Tuple[List[Any], str]:
+    """Toggle two uniformly selected edges.
+
+    Selecting the same unordered pair in the reverse state restores the
+    original graph, so this blocked proposal is exactly symmetric.  It permits
+    two-edge structural changes that a constrained single flip cannot traverse
+    directly.
+    """
+
+    if len(universe) < 2:
+        return list(current), "noop"
+    selected = rng.sample(list(universe), 2)
+    selected_ids = {_get_edge_id(edge) for edge in selected}
+    current_ids = {_get_edge_id(edge) for edge in current}
+    proposed = [
+        edge for edge in current if _get_edge_id(edge) not in selected_ids
+    ]
+    proposed.extend(
+        edge for edge in selected if _get_edge_id(edge) not in current_ids
+    )
+    return proposed, "multi_flip_" + "_and_".join(sorted(selected_ids))
+
+
+def _constraint_nodes(universe: Sequence[Any], config: Config) -> Set[str]:
+    nodes: Set[str] = set()
+    for edge in universe:
+        u, v = _get_edge_u_v(edge)
+        nodes.update((u, v))
+    nodes.update(str(node) for node in config.topology_posterior_root_nodes)
+    return nodes
+
+
+def _satisfies_topology_constraints(
+    edges: Sequence[Any],
+    universe: Sequence[Any],
+    config: Config,
+) -> bool:
+    """Return whether a graph satisfies the configured hard constraints."""
+
+    min_edges = _get_config_int(config, "topology_posterior_min_edges", 0)
+    if len(edges) < min_edges:
+        return False
+
+    require_acyclic = bool(
+        getattr(config, "topology_posterior_require_acyclic", False)
+    )
+    require_connected = bool(
+        getattr(config, "topology_posterior_require_weak_connectivity", False)
+    )
+    require_reachability = bool(
+        getattr(config, "topology_posterior_require_root_reachability", False)
+    )
+    max_out_degree = _get_config_int(
+        config, "topology_posterior_max_out_degree", 0
+    )
+    if not (
+        require_acyclic
+        or require_connected
+        or require_reachability
+        or max_out_degree > 0
+    ):
+        return True
+
+    nodes = _constraint_nodes(universe, config)
+    adjacency: Dict[str, Set[str]] = {node: set() for node in nodes}
+    reverse: Dict[str, Set[str]] = {node: set() for node in nodes}
+    for edge in edges:
+        u, v = _get_edge_u_v(edge)
+        adjacency.setdefault(u, set()).add(v)
+        adjacency.setdefault(v, set())
+        reverse.setdefault(v, set()).add(u)
+        reverse.setdefault(u, set())
+    if max_out_degree > 0 and any(
+        len(children) > max_out_degree for children in adjacency.values()
+    ):
+        return False
+    if require_acyclic:
+        indegree = {node: len(reverse[node]) for node in nodes}
+        stack = [node for node, degree in indegree.items() if degree == 0]
+        visited = 0
+        while stack:
+            node = stack.pop()
+            visited += 1
+            for child in adjacency[node]:
+                indegree[child] -= 1
+                if indegree[child] == 0:
+                    stack.append(child)
+        if visited != len(nodes):
+            return False
+    if require_connected and len(nodes) > 1:
+        if not edges:
+            return False
+        start = next(iter(nodes))
+        visited_nodes = {start}
+        stack = [start]
+        while stack:
+            node = stack.pop()
+            for neighbour in adjacency[node] | reverse[node]:
+                if neighbour not in visited_nodes:
+                    visited_nodes.add(neighbour)
+                    stack.append(neighbour)
+        if visited_nodes != nodes:
+            return False
+    if require_reachability:
+        roots = [
+            str(node)
+            for node in config.topology_posterior_root_nodes
+            if str(node) in nodes
+        ]
+        if not roots:
+            return False
+        reachable = set(roots)
+        stack = list(roots)
+        while stack:
+            node = stack.pop()
+            for child in adjacency[node]:
+                if child not in reachable:
+                    reachable.add(child)
+                    stack.append(child)
+        if reachable != nodes:
+            return False
+    return True
+
+
+def _gibbs_edge_update(
+    current: Sequence[Any],
+    universe: Sequence[Any],
+    config: Config,
+    cost_fn: Callable[[Sequence[Any]], float],
+    cost_cache: Dict[str, float],
+    beta: float,
+    edge_penalty: float,
+    constrained: bool,
+    rng: random.Random,
+) -> Tuple[List[Any], float, bool]:
+    """Sample one edge from its exact full conditional.
+
+    Mixing this kernel with reversible Metropolis structural moves preserves
+    the target posterior.  It substantially improves edge-count mixing near
+    hard constraint boundaries without weakening the constraints.
+    """
+
+    selected = rng.choice(list(universe))
+    selected_id = _get_edge_id(selected)
+    absent = [
+        edge for edge in current if _get_edge_id(edge) != selected_id
+    ]
+    present = list(absent) + [selected]
+    absent_valid = not constrained or _satisfies_topology_constraints(
+        absent, universe, config
+    )
+    present_valid = not constrained or _satisfies_topology_constraints(
+        present, universe, config
+    )
+    if not absent_valid and not present_valid:
+        raise RuntimeError(
+            "Neither state in a topology Gibbs update satisfies constraints."
+        )
+    absent_logp = (
+        _log_posterior(
+            absent, universe, cost_fn, cost_cache, beta, edge_penalty
+        )
+        if absent_valid
+        else -math.inf
+    )
+    present_logp = (
+        _log_posterior(
+            present, universe, cost_fn, cost_cache, beta, edge_penalty
+        )
+        if present_valid
+        else -math.inf
+    )
+    if present_logp == -math.inf:
+        proposed, proposed_logp = absent, absent_logp
+    elif absent_logp == -math.inf:
+        proposed, proposed_logp = present, present_logp
+    else:
+        log_odds = max(-40.0, min(40.0, present_logp - absent_logp))
+        probability_present = 1.0 / (1.0 + math.exp(-log_odds))
+        if rng.random() < probability_present:
+            proposed, proposed_logp = present, present_logp
+        else:
+            proposed, proposed_logp = absent, absent_logp
+    previous_ids = {_get_edge_id(edge) for edge in current}
+    proposed_ids = {_get_edge_id(edge) for edge in proposed}
+    return proposed, proposed_logp, previous_ids != proposed_ids
+
+
+def _proposal_probabilities(config: Config) -> Tuple[float, float, float]:
+    values = (
+        max(
+            0.0,
+            _get_config_float(
+                config, "topology_posterior_parent_swap_probability", 0.45
+            ),
+        ),
+        max(
+            0.0,
+            _get_config_float(
+                config, "topology_posterior_swap_probability", 0.20
+            ),
+        ),
+        max(
+            0.0,
+            _get_config_float(
+                config, "topology_posterior_multi_flip_probability", 0.10
+            ),
+        ),
+    )
+    if sum(values) > 1.0 + 1e-12:
+        raise ValueError(
+            "Topology proposal probabilities must sum to at most one; "
+            "the residual probability is the single-edge flip kernel."
+        )
+    return values
+
+
+def _draw_proposal(
+    current: Sequence[Any],
+    universe: Sequence[Any],
+    rng: random.Random,
+    probabilities: Tuple[float, float, float],
+) -> Tuple[List[Any], str]:
+    parent_probability, swap_probability, multi_probability = probabilities
+    draw = rng.random()
+    if draw < parent_probability:
+        return _propose_parent_swap(current, universe, rng)
+    draw -= parent_probability
+    if draw < swap_probability:
+        return _propose_swap(current, universe, rng)
+    draw -= swap_probability
+    if draw < multi_probability:
+        return _propose_multi_flip(current, universe, rng)
+    return _propose_flip(current, universe, rng)
+
+
+def _disperse_feasible_start(
+    initial: Sequence[Any],
+    universe: Sequence[Any],
+    config: Config,
+    rng: random.Random,
+    probabilities: Tuple[float, float, float],
+    n_steps: int,
+) -> List[Any]:
+    """Generate an overdispersed feasible start without using the likelihood."""
+
+    current = list(initial)
+    for _ in range(max(0, n_steps)):
+        proposed, label = _draw_proposal(
+            current, universe, rng, probabilities
+        )
+        if label != "noop" and _satisfies_topology_constraints(
+            proposed, universe, config
+        ):
+            current = proposed
+    return current
 
 
 def run_topology_posterior(
@@ -318,6 +583,23 @@ def run_topology_posterior(
     n_chains = _get_config_int(config, "topology_posterior_chains", 1)
     beta = _get_config_float(config, "topology_posterior_beta", 1.0)
     edge_penalty = _get_config_float(config, "topology_posterior_edge_penalty", 0.0)
+    proposal_probabilities = _proposal_probabilities(config)
+    initialization_steps = _get_config_int(
+        config, "topology_posterior_initialization_steps", 100
+    )
+    gibbs_probability = min(
+        1.0,
+        max(
+            0.0,
+            _get_config_float(
+                config, "topology_posterior_gibbs_probability", 0.0
+            ),
+        ),
+    )
+    updates_per_sample = max(
+        1,
+        _get_config_int(config, "topology_posterior_updates_per_sample", 1),
+    )
 
     cost_cache: Dict[str, float] = {}
     universe_list = list(universe)
@@ -337,10 +619,15 @@ def run_topology_posterior(
             "n_chains": n_chains,
             "n_edges_r_hat": None,
             "n_edges_ess": 0.0,
+            "n_edges_ess_bulk": 0.0,
+            "n_edges_ess_tail": 0.0,
             "edge_r_hat": {},
             "edge_ess": {},
+            "edge_ess_bulk": {},
+            "edge_ess_tail": {},
             "initial_edge_ids": [],
             "initial_edge_ids_by_chain": [],
+            "diagnostic_method": "rank_normalized_split_rhat_bulk_tail_ess",
         }
 
     aggregate_counts: Dict[str, int] = {edge_id: 0 for edge_id in edge_ids}
@@ -374,15 +661,30 @@ def run_topology_posterior(
     base_initial = (
         list(initial_edges) if initial_edges is not None else list(universe_list)
     )
+    if constrained and not _satisfies_topology_constraints(
+        base_initial, universe_list, config
+    ):
+        raise ValueError(
+            "The initial topology violates configured hard constraints. "
+            "Provide a feasible initial_edges graph."
+        )
 
     for chain_index in range(n_chains):
         rng = random.Random(seed + 104729 * chain_index)
-        if chain_index == 0 or constrained:
-            # Empty/prior-random starts can be knowingly invalid under DAG,
-            # connectivity, reachability, or degree constraints. Start every
-            # constrained chain from the caller's feasible graph and let
-            # independent burn-in trajectories disperse it.
+        if chain_index == 0:
             current = list(base_initial)
+        elif constrained:
+            # Disperse constrained chains before burn-in using only feasible
+            # symmetric structural moves.  This exposes separated modes rather
+            # than hiding them behind identical initial states.
+            current = _disperse_feasible_start(
+                base_initial,
+                universe_list,
+                config,
+                rng,
+                proposal_probabilities,
+                initialization_steps * chain_index,
+            )
         elif chain_index % 2 == 1:
             current = []
         else:
@@ -405,31 +707,48 @@ def run_topology_posterior(
         edge_trace = {edge_id: [] for edge_id in edge_ids}
         n_edges_trace: List[int] = []
         acceptance_count = 0
+        transition_count = 0
         for iteration in range(total_samples):
-            if constrained and rng.random() < 0.85:
-                proposed_edges, label = _propose_parent_swap(
-                    current, universe_list, rng
+            for _ in range(updates_per_sample):
+                transition_count += int(iteration >= n_burnin)
+                if rng.random() < gibbs_probability:
+                    current, current_logp, changed = _gibbs_edge_update(
+                        current,
+                        universe_list,
+                        config,
+                        cost_fn,
+                        cost_cache,
+                        beta,
+                        edge_penalty,
+                        constrained,
+                        rng,
+                    )
+                    acceptance_count += int(iteration >= n_burnin and changed)
+                    continue
+                proposed_edges, label = _draw_proposal(
+                    current, universe_list, rng, proposal_probabilities
                 )
-            else:
-                proposed_edges, label = _propose_flip(
-                    current, universe_list, rng
-                )
-            if label == "noop":
-                continue
-            proposed_logp = _log_posterior(
-                proposed_edges,
-                universe_list,
-                cost_fn,
-                cost_cache,
-                beta,
-                edge_penalty,
-            )
-            log_ratio = proposed_logp - current_logp
-            if log_ratio >= 0.0 or rng.random() < math.exp(log_ratio):
-                current = proposed_edges
-                current_logp = proposed_logp
-                if iteration >= n_burnin:
-                    acceptance_count += 1
+                if label == "noop":
+                    proposed_logp = -math.inf
+                elif constrained and not _satisfies_topology_constraints(
+                    proposed_edges, universe_list, config
+                ):
+                    proposed_logp = -math.inf
+                else:
+                    proposed_logp = _log_posterior(
+                        proposed_edges,
+                        universe_list,
+                        cost_fn,
+                        cost_cache,
+                        beta,
+                        edge_penalty,
+                    )
+                log_ratio = proposed_logp - current_logp
+                if log_ratio >= 0.0 or rng.random() < math.exp(log_ratio):
+                    current = proposed_edges
+                    current_logp = proposed_logp
+                    if iteration >= n_burnin:
+                        acceptance_count += 1
 
             if iteration >= n_burnin:
                 included = {_get_edge_id(edge) for edge in current}
@@ -447,7 +766,7 @@ def run_topology_posterior(
         chain_counts.append(counts)
         chain_edge_traces.append(edge_trace)
         chain_n_edges.append(n_edges_trace)
-        acceptance_rates.append(acceptance_count / max(1, n_samples))
+        acceptance_rates.append(acceptance_count / max(1, transition_count))
 
     n_post_samples = max(1, n_samples * n_chains)
     edge_probabilities = {
@@ -484,27 +803,88 @@ def run_topology_posterior(
     )
     n_edges_r_hat: Optional[float] = None
     n_edges_ess = float(len(flattened_n_edges))
+    n_edges_ess_bulk = float(len(flattened_n_edges))
+    n_edges_ess_tail = float(len(flattened_n_edges))
     edge_r_hat: Dict[str, Optional[float]] = {}
     edge_ess: Dict[str, float] = {}
+    edge_ess_bulk: Dict[str, float] = {}
+    edge_ess_tail: Dict[str, float] = {}
     if n_chains > 1 and n_samples > 1:
-        from ..uncertainty.bayesian import compute_ess, compute_r_hat
+        import arviz as az
 
         n_edge_array = np.asarray(chain_n_edges, dtype=float)
-        n_edges_r_hat = compute_r_hat(n_edge_array)
-        n_edges_ess = sum(compute_ess(chain) for chain in n_edge_array)
+        edge_array = np.asarray(
+            [
+                [
+                    chain_edge_traces[chain_index][edge_id]
+                    for edge_id in edge_ids
+                ]
+                for chain_index in range(n_chains)
+            ],
+            dtype=float,
+        ).transpose(0, 2, 1)
+        idata = az.from_dict(
+            {
+                "posterior": {
+                    "n_edges": n_edge_array,
+                    "edge_inclusion": edge_array,
+                }
+            },
+            coords={"edge": edge_ids},
+            dims={"edge_inclusion": ["edge"]},
+        )
+        if np.all(n_edge_array == n_edge_array.flat[0]):
+            n_edges_r_hat = 1.0
+        else:
+            n_edges_r_hat = float(
+                az.rhat(idata, var_names=["n_edges"], method="rank")[
+                    "n_edges"
+                ].item()
+            )
+        n_edges_ess_bulk = float(
+            az.ess(idata, var_names=["n_edges"], method="bulk")[
+                "n_edges"
+            ].item()
+        )
+        n_edges_ess_tail = float(
+            az.ess(idata, var_names=["n_edges"], method="tail")[
+                "n_edges"
+            ].item()
+        )
+        n_edges_ess = min(n_edges_ess_bulk, n_edges_ess_tail)
+        edge_rhat_values = az.rhat(
+            idata, var_names=["edge_inclusion"], method="rank"
+        )["edge_inclusion"].values
+        edge_bulk_values = az.ess(
+            idata, var_names=["edge_inclusion"], method="bulk"
+        )["edge_inclusion"].values
+        edge_tail_values = az.ess(
+            idata, var_names=["edge_inclusion"], method="tail"
+        )["edge_inclusion"].values
         for edge_id in edge_ids:
             traces = np.asarray(
                 [chain[edge_id] for chain in chain_edge_traces],
                 dtype=float,
             )
             chain_means = np.mean(traces, axis=1)
-            if np.all(np.var(traces, axis=1) == 0.0) and not np.allclose(
+            edge_index = edge_ids.index(edge_id)
+            if np.all(traces == traces.flat[0]):
+                edge_r_hat[edge_id] = 1.0
+                bulk = float(traces.size)
+                tail = float(traces.size)
+            elif np.all(np.var(traces, axis=1) == 0.0) and not np.allclose(
                 chain_means, chain_means[0]
             ):
-                edge_r_hat[edge_id] = None
+                edge_r_hat[edge_id] = float("inf")
+                bulk = 0.0
+                tail = 0.0
             else:
-                edge_r_hat[edge_id] = compute_r_hat(traces)
-            edge_ess[edge_id] = sum(compute_ess(chain) for chain in traces)
+                edge_r_hat[edge_id] = float(edge_rhat_values[edge_index])
+                bulk = float(edge_bulk_values[edge_index])
+                tail = float(edge_tail_values[edge_index])
+            edge_ess_bulk[edge_id] = bulk
+            edge_ess_tail[edge_id] = tail
+            edge_ess[edge_id] = min(bulk, tail)
 
     logger.info(
         "Topology posterior: %d edges, %d chains, mean edges=%.1f, "
@@ -530,10 +910,23 @@ def run_topology_posterior(
         "n_chains": n_chains,
         "n_edges_r_hat": n_edges_r_hat,
         "n_edges_ess": float(n_edges_ess),
+        "n_edges_ess_bulk": float(n_edges_ess_bulk),
+        "n_edges_ess_tail": float(n_edges_ess_tail),
         "edge_r_hat": edge_r_hat,
         "edge_ess": edge_ess,
+        "edge_ess_bulk": edge_ess_bulk,
+        "edge_ess_tail": edge_ess_tail,
         "initial_edge_ids": initial_edge_ids_by_chain[0],
         "initial_edge_ids_by_chain": initial_edge_ids_by_chain,
+        "diagnostic_method": "rank_normalized_split_rhat_bulk_tail_ess",
+        "proposal_probabilities": {
+            "gibbs": gibbs_probability,
+            "parent_swap": proposal_probabilities[0],
+            "swap": proposal_probabilities[1],
+            "multi_flip": proposal_probabilities[2],
+            "single_flip": 1.0 - sum(proposal_probabilities),
+        },
+        "updates_per_sample": updates_per_sample,
     }
 
 

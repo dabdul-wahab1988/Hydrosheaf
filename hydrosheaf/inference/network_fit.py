@@ -154,9 +154,6 @@ def fit_network(
     if config.phreeqc_enabled and phreeqc_results is None:
         phreeqc_results = run_phreeqc(sample_map.values(), config)
 
-    # Prepare reaction dictionary once to know active labels
-    _, reaction_labels, mineral_mask, _ = build_reaction_dictionary(config)
-
     results: List[EdgeResult] = []
     for edge in built_edges:
         if edge.u not in sample_map or edge.v not in sample_map:
@@ -198,6 +195,15 @@ def fit_network(
             minerals_for_layer = getattr(config, "layer_mineral_map", {}).get(layer_idx)
             if minerals_for_layer:
                 config_edge = replace(config, active_minerals=list(minerals_for_layer))
+
+        # The dictionary contains sample- and layer-specific logic gates.  Bounds
+        # must be constructed against this exact label order; using one global
+        # dictionary can silently apply a mineral SI bound to the wrong process.
+        _, reaction_labels, mineral_mask, _ = build_reaction_dictionary(
+            config_edge,
+            pre_si_mask=pre_si_mask,
+            sample=sample_u_norm,
+        )
 
         # Build thermodynamic bounds for this edge
         edge_bounds: Dict[str, object] = {}

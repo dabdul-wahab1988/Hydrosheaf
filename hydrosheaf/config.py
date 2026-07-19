@@ -45,6 +45,15 @@ class Config:
     allow_signed_reactions: bool = False
     signed_reaction_labels: List[str] = field(default_factory=list)
     denit_kappa: float = 1.0
+    reaction_processes_enabled: List[str] = field(
+        default_factory=lambda: [
+            "denitrification",
+            "sulfate_reduction",
+            "iron_reduction",
+        ]
+    )
+    redox_so4_min_mmol_l: float = 0.05
+    redox_no3_max_mmol_l: float = 0.20
     transport_models_enabled: List[str] = field(default_factory=lambda: ["evap", "mix"])
     mixing_endmembers: Dict[str, List[float]] = field(default_factory=dict)
     # Dictionary mapping endmember names to (d18O, d2H) tuples
@@ -88,6 +97,14 @@ class Config:
     sheaf_weight_cl: float = 0.5
     sheaf_weight_age: float = 2.0
     sheaf_weight_global: float = 1.0
+    # Age evidence is a travel-time likelihood rather than a one-sided
+    # reversal gate. Edge length is converted to expected travel time with an
+    # independently specified velocity and explicit uncertainty.
+    sheaf_age_velocity_m_year: float = 100.0
+    sheaf_age_travel_time_cv: float = 1.0
+    sheaf_age_process_sigma_years: float = 5.0
+    sheaf_age_default_sigma_years: float = 10.0
+    sheaf_age_travel_cost_weight: float = 0.1
 
     sheaf_shallow_depth_m: float = 30.0
     sheaf_evap_gate_strength: float = 1.0
@@ -134,6 +151,16 @@ class Config:
     topology_posterior_require_root_reachability: bool = False
     topology_posterior_root_nodes: List[str] = field(default_factory=list)
     topology_posterior_invalid_cost: float = 1.0e6
+    # State-independent mixture of symmetric topology proposals.  Keeping the
+    # probabilities independent of the current graph preserves the simple
+    # Metropolis acceptance ratio while allowing both structural and edge-count
+    # moves.  The residual probability is assigned to a single-edge flip.
+    topology_posterior_parent_swap_probability: float = 0.45
+    topology_posterior_swap_probability: float = 0.20
+    topology_posterior_multi_flip_probability: float = 0.10
+    topology_posterior_initialization_steps: int = 100
+    topology_posterior_gibbs_probability: float = 0.0
+    topology_posterior_updates_per_sample: int = 1
     # Optimal transport plausibility screen
     ot_enabled: bool = False
     ot_weight: float = 0.25
@@ -654,6 +681,10 @@ class Config:
             raise ValueError("hydraulic_hodge_min_head_drop must be non-negative.")
         if self.hydraulic_hodge_direction_penalty < 0:
             raise ValueError("hydraulic_hodge_direction_penalty must be non-negative.")
+        if self.sheaf_age_travel_cost_weight < 0:
+            raise ValueError(
+                "sheaf_age_travel_cost_weight must be non-negative."
+            )
         if self.topology_posterior_samples < 100:
             raise ValueError("topology_posterior_samples must be at least 100.")
         if self.topology_posterior_burnin < 0:
@@ -672,6 +703,14 @@ class Config:
             raise ValueError("topology_posterior_max_out_degree must be non-negative.")
         if self.topology_posterior_invalid_cost <= 0:
             raise ValueError("topology_posterior_invalid_cost must be positive.")
+        if not 0.0 <= self.topology_posterior_gibbs_probability <= 1.0:
+            raise ValueError(
+                "topology_posterior_gibbs_probability must be between 0 and 1."
+            )
+        if self.topology_posterior_updates_per_sample < 1:
+            raise ValueError(
+                "topology_posterior_updates_per_sample must be at least 1."
+            )
         if self.projected_gradient_weight < 0:
             raise ValueError("projected_gradient_weight must be non-negative.")
         if self.projected_gradient_sharpness <= 0:

@@ -90,6 +90,7 @@ class NodeIsotopeInfo:
     p_evap: float
     age_years: Optional[float] = None
     age_sigma_years: Optional[float] = None
+    age_identifiable: Optional[bool] = None
 
 
 
@@ -220,32 +221,65 @@ def _edge_cl_cost(
 def _edge_age_cost(
     node_u: NodeIsotopeInfo,
     node_v: NodeIsotopeInfo,
+    expected_travel_years: float = 0.0,
+    travel_sigma_years: float = 5.0,
+    default_age_sigma_years: float = 10.0,
+    travel_cost_weight: float = 0.1,
 ) -> Tuple[float, List[str]]:
+    """Score the observed age increment against a travel-time prior.
+
+    The previous one-sided gate assigned zero cost to every non-reversing edge,
+    so age could veto but not rank plausible parents.  This likelihood proxy
+    compares the age difference with expected travel time while propagating
+    both age and travel uncertainty.  Explicitly unidentified ages are neutral.
+    """
+
     flags: List[str] = []
     if node_u.age_years is None or node_v.age_years is None:
         return 0.0, flags
-        
-    diff = node_v.age_years - node_u.age_years
-    
-    # Calculate uncertainty
-    sigma_u = node_u.age_sigma_years or 1.0
-    sigma_v = node_v.age_sigma_years or 1.0
-    sigma_diff = math.sqrt(sigma_u**2 + sigma_v**2)
-    
-    # Check if age decreases significantly
-    # User said: penalize if A_v < A_u beyond uncertainty
-    # A_v - A_u >= -k * sigma -> Cost = 0
-    # Otherwise -> Cost = ((A_u - A_v) / sigma)^2
-    
-    k = 1.0 # Tolerance factor (1 sigma)
-    
-    if diff >= -k * sigma_diff:
+    if node_u.age_identifiable is False or node_v.age_identifiable is False:
+        flags.append("age_unidentified")
         return 0.0, flags
-    
-    cost = ((node_u.age_years - node_v.age_years) / sigma_diff) ** 2
-    flags.append("age_reversal")
-    
-    return cost, flags
+
+    diff = node_v.age_years - node_u.age_years
+    sigma_u = max(
+        1e-6,
+        float(node_u.age_sigma_years or default_age_sigma_years),
+    )
+    sigma_v = max(
+        1e-6,
+        float(node_v.age_sigma_years or default_age_sigma_years),
+    )
+    sigma_without_travel = math.sqrt(sigma_u**2 + sigma_v**2)
+    sigma_diff = math.sqrt(
+        sigma_without_travel**2
+        + max(1e-6, float(travel_sigma_years)) ** 2
+    )
+    travel_z = (
+        diff - max(0.0, float(expected_travel_years))
+    ) / sigma_diff
+    # Age contributes two distinct pieces of evidence.  The one-sided term is
+    # the probability that downstream water is older after propagating dating
+    # uncertainty; it discriminates direction even when a universal velocity
+    # is unavailable.  The weaker travel-time term retains information from an
+    # independently specified velocity without allowing a misspecified single
+    # velocity to dominate genuinely slow paths.
+    direction_z = diff / sigma_without_travel
+    probability_downstream_older = 0.5 * (
+        1.0 + math.erf(direction_z / math.sqrt(2.0))
+    )
+    direction_cost = -math.log(
+        min(1.0, max(1e-12, probability_downstream_older))
+    )
+    cost = (
+        direction_cost
+        + max(0.0, float(travel_cost_weight)) * 0.5 * travel_z**2
+    )
+    if diff < -1.645 * sigma_without_travel:
+        flags.append("age_reversal")
+    elif abs(travel_z) > 2.0:
+        flags.append("age_travel_mismatch")
+    return float(cost), flags
 
 
 
@@ -358,6 +392,17 @@ def _build_node_info(
                  sample.get("mean_age_std_years"),
                  config.detection_limit_policy,
              )
+        age_identifiable = None
+        if "tracer_identifiable" in sample:
+            raw_identifiable = sample.get("tracer_identifiable")
+            if isinstance(raw_identifiable, str):
+                age_identifiable = raw_identifiable.strip().lower() in {
+                    "1",
+                    "true",
+                    "yes",
+                }
+            elif raw_identifiable is not None:
+                age_identifiable = bool(raw_identifiable)
         
         # If no pre-calculated age, try to infer from Tritium
         if age_years is None and _NUCLEAR_AVAILABLE and infer_age_from_tracer is not None and get_nuclide is not None:
@@ -415,6 +460,7 @@ def _build_node_info(
             p_evap=p_evap,
             age_years=age_years,
             age_sigma_years=age_sigma,
+            age_identifiable=age_identifiable,
         )
     return node_info
 
@@ -492,7 +538,46 @@ def _score_candidates(
         
         age_cost = 0.0
         if getattr(config, "sheaf_age_enabled", True):
-            age_c, age_flags = _edge_age_cost(node_u, node_v)
+            attrs = edge.attrs or {}
+            length_m = attrs.get("length_m")
+            if length_m is None and attrs.get("distance_km") is not None:
+                length_m = float(attrs["distance_km"]) * 1000.0
+            velocity_m_year = max(
+                1e-6,
+                _get_config_float(
+                    config, "sheaf_age_velocity_m_year", 100.0
+                ),
+            )
+            expected_travel = (
+                max(0.0, float(length_m)) / velocity_m_year
+                if length_m is not None
+                else 0.0
+            )
+            travel_sigma = math.sqrt(
+                _get_config_float(
+                    config, "sheaf_age_process_sigma_years", 5.0
+                )
+                ** 2
+                + (
+                    _get_config_float(
+                        config, "sheaf_age_travel_time_cv", 1.0
+                    )
+                    * expected_travel
+                )
+                ** 2
+            )
+            age_c, age_flags = _edge_age_cost(
+                node_u,
+                node_v,
+                expected_travel_years=expected_travel,
+                travel_sigma_years=travel_sigma,
+                default_age_sigma_years=_get_config_float(
+                    config, "sheaf_age_default_sigma_years", 10.0
+                ),
+                travel_cost_weight=_get_config_float(
+                    config, "sheaf_age_travel_cost_weight", 0.1
+                ),
+            )
             age_cost = age_c * weight_age
             if age_flags:
                 flags.extend(age_flags)
@@ -651,20 +736,20 @@ def _select_by_score(
             if selection_penalties is not None:
                 penalty = float(selection_penalties.get(edge_id, 0.0))
             total = score_obj.local_score + global_weight * residual + penalty
-            scored.append((total, score_obj.edge))
+            scored.append((total, score_obj.edge, score_obj))
         
         if not scored:
             continue
 
         # Softmax weighting (lower score is better)
         # We negate scores and multiply by beta (sharpness)
-        vals = [-s * soft_beta for s, _ in scored]
+        vals = [-score * soft_beta for score, _, _ in scored]
         max_val = max(vals)
         exps = [math.exp(v - max_val) for v in vals]
         sum_exps = sum(exps)
         
         weighted_edges: List[Tuple[float, float, Edge]] = []
-        for (score, edge), weight_factor in zip(scored, exps):
+        for (score, edge, score_obj), weight_factor in zip(scored, exps):
             # Normalized weight
             prob = weight_factor / sum_exps if sum_exps > 0 else 0.0
             
@@ -677,6 +762,11 @@ def _select_by_score(
                     "edge_confidence", attrs.get("p_uv", 0.5)
                 )
             attrs["sheaf_weight"] = prob
+            attrs["sheaf_cost_prior"] = float(score_obj.prior_penalty)
+            attrs["sheaf_cost_isotope"] = float(score_obj.iso_cost)
+            attrs["sheaf_cost_cl"] = float(score_obj.cl_cost)
+            attrs["sheaf_cost_age"] = float(score_obj.age_cost)
+            attrs["sheaf_cost_total_local"] = float(score_obj.local_score)
             edge.attrs = attrs
 
             weighted_edges.append((prob, score, edge))

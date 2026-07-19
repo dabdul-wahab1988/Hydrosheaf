@@ -46,20 +46,20 @@ MINERAL_LIBRARY: Dict[str, Stoich] = {
     # Modeled as pure water weathering reactions usually transforming to Kaolinite/Clay
     # Albite: 2 NaAlSi3O8 + 2 CO2 + 11 H2O -> Al2Si2O5(OH)4 (Kaolinite) + 2 Na+ + 2 HCO3- + 4 H4SiO4
     # Simplified Ion Proxy: Na:1, HCO3:1
-    "albite": {"Na": 1, "HCO3": 1},
+    "albite": {"Na": 1, "HCO3": 1, "SiO2": 2},
     # Anorthite: CaAl2Si2O8 + 2 CO2 + 3 H2O -> Al2Si2O5(OH)4 + Ca++ + 2 HCO3-
     # Simplified Ion Proxy: Ca:1, HCO3:2
-    "anorthite": {"Ca": 1, "HCO3": 2},
+    "anorthite": {"Ca": 1, "HCO3": 2, "SiO2": 1},
     # K-Feldspar (Microcline/Orthoclase): 2 KAlSi3O8 + ...
     # Simplified Ion Proxy: K:1, HCO3:1
-    "k_feldspar": {"K": 1, "HCO3": 1},
-    "microcline": {"K": 1, "HCO3": 1},
+    "k_feldspar": {"K": 1, "HCO3": 1, "SiO2": 2},
+    "microcline": {"K": 1, "HCO3": 1, "SiO2": 2},
     # Olivine (Forsterite): Mg2SiO4 + 4CO2 + 4H2O -> 2Mg++ + 4HCO3- + H4SiO4
-    "forsterite": {"Mg": 2, "HCO3": 4},
+    "forsterite": {"Mg": 2, "HCO3": 4, "SiO2": 1},
     # Pyroxene (Enstatite): MgSiO3 + 2CO2 + 3H2O -> Mg++ + 2HCO3- + H4SiO4
-    "enstatite": {"Mg": 1, "HCO3": 2},
+    "enstatite": {"Mg": 1, "HCO3": 2, "SiO2": 1},
     # Clinopyroxene (Diopside): CaMgSi2O6 + 4CO2 + 2H2O -> Ca++ + Mg++ + 4HCO3- + 2H4SiO4
-    "diopside": {"Ca": 1, "Mg": 1, "HCO3": 4},
+    "diopside": {"Ca": 1, "Mg": 1, "HCO3": 4, "SiO2": 2},
     # Serpentine: Mg3Si2O5(OH)4 + 6CO2 + 5H2O -> 3Mg++ + 6HCO3- + 2H4SiO4
     "serpentine": {"Mg": 3, "HCO3": 6},
     # Talc: Mg3Si4O10(OH)2 + 6CO2 + 5H2O -> 3Mg++ + 6HCO3- + 4H4SiO4
@@ -82,6 +82,13 @@ MINERAL_LIBRARY: Dict[str, Stoich] = {
     # 5 FeS2 + 14 NO3- + 4 H+ -> 7 N2 + 10 SO4-- + 5 Fe++ + 2 H2O
     # Stoich per mole Pyrite: SO4: 2, NO3: -2.8, Fe: 1
     "pyrite_oxidation_denit": {"SO4": 2, "NO3": -2.8, "Fe": 1},
+    # Microbially mediated redox processes.  These are process-level aqueous
+    # net reactions rather than minerals and require diagnostic ions in the
+    # inverse dictionary.
+    # 2 CH2O + SO4-- -> H2S + 2 HCO3-
+    "sulfate_reduction": {"SO4": -1, "HCO3": 2},
+    # Simplified Fe(III)-oxide reduction aqueous signature.
+    "iron_reduction": {"Fe": 1, "HCO3": 1},
     # Generic/Legacy Proxies (for backward compatibility)
     "NaSil": {"Na": 1, "HCO3": 1},
     "CaMgSil": {

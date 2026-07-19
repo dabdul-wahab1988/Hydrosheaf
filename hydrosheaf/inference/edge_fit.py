@@ -38,6 +38,9 @@ class EdgeResult:
     transport_probabilities: Dict[str, float] = field(default_factory=dict)
     candidate_scores: List[Dict[str, object]] = field(default_factory=list)
     constraints_active: Dict[str, str] = field(default_factory=dict)
+    constraints_binding: Dict[str, str] = field(default_factory=dict)
+    thermodynamic_constraints_active_count: int = 0
+    thermodynamic_bound_hit_count: int = 0
     si_u: Dict[str, float] = field(default_factory=dict)
     si_v: Dict[str, float] = field(default_factory=dict)
     phreeqc_ok: bool = False
@@ -257,7 +260,11 @@ def fit_edge(
     reaction_matrix, labels, mineral_mask, penalty_scales = build_reaction_dictionary(
         config, pre_si_mask=pre_si_mask, sample=obs_u, dynamic_denit_scale=denit_scale
     )
-    signed_mask = [label in config.signed_reaction_labels for label in labels]
+    signed_mask = [
+        bool(config.allow_signed_reactions)
+        or label in config.signed_reaction_labels
+        for label in labels
+    ]
     
     lb: Optional[List[float]] = None
     ub: Optional[List[float]] = None
@@ -268,6 +275,26 @@ def fit_edge(
             lb = [float(v) if v is not None else -float("inf") for v in lb_raw]
         if isinstance(ub_raw, list):
             ub = [float(v) if v is not None else float("inf") for v in ub_raw]
+    # A PHREEQC precipitation-only bound requires negative mineral extent.
+    # The previous non-negative mask silently clipped those variables to zero,
+    # making the advertised thermodynamic constraint incapable of representing
+    # precipitation.
+    if lb is not None:
+        signed_mask = [
+            signed
+            or (
+                index < len(lb)
+                and math.isfinite(lb[index])
+                and lb[index] < 0.0
+            )
+            or (
+                ub is not None
+                and index < len(ub)
+                and math.isfinite(ub[index])
+                and ub[index] <= 0.0
+            )
+            for index, signed in enumerate(signed_mask)
+        ]
 
     candidates: List[Dict[str, object]] = []
     target_y = [v_val - u_val for v_val, u_val in zip(x_v, x_u)]
@@ -407,6 +434,7 @@ def fit_edge(
         
         final_reaction_fit = chem_fit
         constraints_active: Dict[str, str] = {}
+        constraints_binding: Dict[str, str] = {}
         si_u_dict: Dict[str, float] = {}
         si_v_dict: Dict[str, float] = {}
         phreeqc_ok_val = False
@@ -422,13 +450,41 @@ def fit_edge(
             if ce is not None: charge_error_val = float(ce)
             sr = bounds.get("skipped_reason")
             if sr is not None: skipped_reason_val = str(sr)
+            bound_tolerance = max(1e-8, 10.0 * float(config.reaction_tol))
+            for index, (label, extent) in enumerate(
+                zip(labels, final_reaction_fit.extents)
+            ):
+                lower = (
+                    lb[index]
+                    if lb is not None and index < len(lb)
+                    else -float("inf")
+                )
+                upper = (
+                    ub[index]
+                    if ub is not None and index < len(ub)
+                    else float("inf")
+                )
+                if math.isfinite(lower) and abs(extent - lower) <= (
+                    bound_tolerance * (1.0 + abs(lower))
+                ):
+                    constraints_binding[label] = "lower"
+                elif math.isfinite(upper) and abs(extent - upper) <= (
+                    bound_tolerance * (1.0 + abs(upper))
+                ):
+                    constraints_binding[label] = "upper"
 
         res_obj = EdgeResult(
             edge_id=edge_id, u=u, v=v, transport_model=transport_model, gamma=gamma_value, f=f_value, endmember_id=end_id,
             z_extents=final_reaction_fit.extents, z_labels=labels, transport_residual_norm=transport_residual_norm,
             anomaly_norm=chem_fit.residual_norm, objective_score=objective, l1_norm=final_reaction_fit.l1_norm,
             reaction_iterations=final_reaction_fit.iterations, reaction_converged=final_reaction_fit.converged,
-            ec_tds_penalty=penalty, qc_flags=[], constraints_active=constraints_active, si_u=si_u_dict, si_v=si_v_dict,
+            ec_tds_penalty=penalty, qc_flags=[], constraints_active=constraints_active,
+            constraints_binding=constraints_binding,
+            thermodynamic_constraints_active_count=sum(
+                value != "free" for value in constraints_active.values()
+            ),
+            thermodynamic_bound_hit_count=len(constraints_binding),
+            si_u=si_u_dict, si_v=si_v_dict,
             phreeqc_ok=phreeqc_ok_val, charge_error=charge_error_val, skipped_reason=skipped_reason_val,
             isotope_penalty=iso_penalty, isotope_metrics=iso_metrics, isotope_used=iso_used,
             gibbs_penalty=gibbs_penalty_val, gibbs_metrics=gibbs_metrics_val, gibbs_used=gibbs_used,

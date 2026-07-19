@@ -1,10 +1,74 @@
 import unittest
 import numpy as np
 from hydrosheaf import Config, infer_edges
-from hydrosheaf.sheaf.topology_refine import refine_edges_with_sheaf
+from hydrosheaf.sheaf.topology_refine import (
+    NodeIsotopeInfo,
+    _edge_age_cost,
+    refine_edges_with_sheaf,
+)
 from hydrosheaf.graph.types import Edge
 
 class SheafStabilityTests(unittest.TestCase):
+    @staticmethod
+    def _age_node(node_id, age, sigma=2.0, identifiable=True):
+        return NodeIsotopeInfo(
+            node_id=node_id,
+            d18o=None,
+            d2h=None,
+            d_excess=None,
+            evap_index=None,
+            cl=None,
+            depth_m=None,
+            p_evap=0.0,
+            age_years=age,
+            age_sigma_years=sigma,
+            age_identifiable=identifiable,
+        )
+
+    def test_age_likelihood_ranks_matching_travel_increment(self):
+        upstream = self._age_node("U", 10.0)
+        downstream = self._age_node("V", 20.0)
+        matching, _ = _edge_age_cost(
+            upstream,
+            downstream,
+            expected_travel_years=10.0,
+            travel_sigma_years=2.0,
+        )
+        mismatching, flags = _edge_age_cost(
+            upstream,
+            downstream,
+            expected_travel_years=40.0,
+            travel_sigma_years=2.0,
+        )
+        self.assertLess(matching, mismatching)
+        self.assertIn("age_travel_mismatch", flags)
+
+    def test_unidentified_age_is_neutral(self):
+        upstream = self._age_node("U", 10.0, identifiable=False)
+        downstream = self._age_node("V", 20.0)
+        cost, flags = _edge_age_cost(upstream, downstream)
+        self.assertEqual(cost, 0.0)
+        self.assertIn("age_unidentified", flags)
+
+    def test_age_direction_likelihood_penalizes_reversal(self):
+        upstream = self._age_node("U", 10.0)
+        older = self._age_node("V", 20.0)
+        younger = self._age_node("W", 0.0)
+        forward_cost, _ = _edge_age_cost(
+            upstream,
+            older,
+            expected_travel_years=10.0,
+            travel_sigma_years=5.0,
+        )
+        reverse_cost, flags = _edge_age_cost(
+            upstream,
+            younger,
+            expected_travel_years=10.0,
+            travel_sigma_years=5.0,
+        )
+        self.assertLess(forward_cost, reverse_cost)
+        self.assertIn("age_reversal", flags)
+
     def test_bistable_network_convergence(self):
         """
         Test a scenario where two parallel paths are nearly identical.

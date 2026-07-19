@@ -109,6 +109,7 @@ def _build_solution_composition(
     _add_value(composition, "S(6)", sample.get("SO4"))
     _add_value(composition, "N(5)", sample.get("NO3"))
     _add_value(composition, "P", sample.get("PO4"))
+    _add_value(composition, "Si", sample.get("SiO2"))
     _add_value(composition, "Alkalinity", sample.get("HCO3"))
 
     return composition

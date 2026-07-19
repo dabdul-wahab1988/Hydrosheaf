@@ -278,6 +278,70 @@ class TestTopologyPosterior(unittest.TestCase):
         self.assertEqual(len(result["initial_edge_ids_by_chain"]), 3)
         self.assertIn("n_edges_r_hat", result)
         self.assertIn("n_edges_ess", result)
+        self.assertEqual(
+            result["diagnostic_method"],
+            "rank_normalized_split_rhat_bulk_tail_ess",
+        )
+        self.assertIn("n_edges_ess_bulk", result)
+        self.assertIn("n_edges_ess_tail", result)
+
+    def test_gibbs_updates_respect_hard_constraints(self):
+        universe = [
+            _make_edge("A->B", "A", "B", confidence=0.7),
+            _make_edge("A->C", "A", "C", confidence=0.6),
+            _make_edge("B->C", "B", "C", confidence=0.7),
+            _make_edge("C->A", "C", "A", confidence=0.2),
+        ]
+        cfg = Config(
+            topology_posterior_samples=100,
+            topology_posterior_burnin=20,
+            topology_posterior_chains=2,
+            topology_posterior_min_edges=2,
+            topology_posterior_max_out_degree=2,
+            topology_posterior_require_acyclic=True,
+            topology_posterior_gibbs_probability=1.0,
+            topology_posterior_updates_per_sample=4,
+        )
+        result = run_topology_posterior(
+            universe,
+            lambda edges: 0.0,
+            cfg,
+            initial_edges=[universe[0], universe[2]],
+            seed=77,
+        )
+        self.assertEqual(result["proposal_probabilities"]["gibbs"], 1.0)
+        self.assertEqual(result["updates_per_sample"], 4)
+        self.assertGreaterEqual(result["n_edges_ci95"][0], 2.0)
+
+    def test_constrained_chains_start_from_dispersed_feasible_graphs(self):
+        universe = [
+            _make_edge("A->B", "A", "B", confidence=0.6),
+            _make_edge("C->B", "C", "B", confidence=0.4),
+            _make_edge("A->C", "A", "C", confidence=0.6),
+            _make_edge("B->C", "B", "C", confidence=0.4),
+        ]
+        initial = [universe[0], universe[2]]
+        cfg = Config(
+            topology_posterior_samples=30,
+            topology_posterior_burnin=10,
+            topology_posterior_chains=4,
+            topology_posterior_min_edges=2,
+            topology_posterior_require_acyclic=True,
+            topology_posterior_require_weak_connectivity=True,
+            topology_posterior_initialization_steps=200,
+        )
+        result = run_topology_posterior(
+            universe,
+            lambda edges: 0.0,
+            cfg,
+            initial_edges=initial,
+            seed=19,
+        )
+        starts = {
+            tuple(sorted(edge_ids))
+            for edge_ids in result["initial_edge_ids_by_chain"]
+        }
+        self.assertGreater(len(starts), 1)
 
     def test_topology_constraints_reject_invalid_graphs(self):
         samples = {

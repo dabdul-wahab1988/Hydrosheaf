@@ -19,6 +19,8 @@ INDICATOR_IONS = {
     "chlorite": ["Mg", "Fe"],
     "fluorite": ["F", "Ca"],
     "sylvite": ["K", "Cl"],
+    "sulfate_reduction": ["SO4", "HCO3"],
+    "iron_reduction": ["Fe", "HCO3"],
 }
 
 def _vector_from_coeffs(coeffs: Mapping[str, float], ion_order: Iterable[str]) -> List[float]:
@@ -126,8 +128,54 @@ def build_reaction_dictionary(
 
     if add_no3src:
         reactions.append(("NO3src", {"NO3": 1}, False, no3src_scale))
-    if add_denit:
+    enabled_processes = {
+        str(name).strip().lower()
+        for name in getattr(config, "reaction_processes_enabled", [])
+    }
+    if add_denit and (
+        not enabled_processes or "denitrification" in enabled_processes
+    ):
         reactions.append(("denit", {"HCO3": kappa, "NO3": -1}, False, 1.0))
+
+    # Redox coverage is added only when its diagnostic aqueous species are
+    # measured.  Concentration gates use upstream observations only, avoiding
+    # downstream-label leakage in predictive applications.
+    no3_value = float((sample or {}).get("NO3") or 0.0)
+    so4_value = float((sample or {}).get("SO4") or 0.0)
+    redox_compatible = (
+        sample is None
+        or no3_value <= float(config.redox_no3_max_mmol_l)
+    )
+    if (
+        "sulfate_reduction" in enabled_processes
+        and {"SO4", "HCO3"}.issubset(available)
+        and redox_compatible
+        and (
+            sample is None
+            or so4_value >= float(config.redox_so4_min_mmol_l)
+        )
+    ):
+        reactions.append(
+            (
+                "sulfate_reduction",
+                get_mineral_stoich("sulfate_reduction"),
+                False,
+                1.0,
+            )
+        )
+    if (
+        "iron_reduction" in enabled_processes
+        and {"Fe", "HCO3"}.issubset(available)
+        and redox_compatible
+    ):
+        reactions.append(
+            (
+                "iron_reduction",
+                get_mineral_stoich("iron_reduction"),
+                False,
+                1.0,
+            )
+        )
 
     if config.exchange_enabled:
         # Bidirectional Exchange: Forward = Ca/Mg release (salinization), Reverse = Na release (freshening)
