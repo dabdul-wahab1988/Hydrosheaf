@@ -1,0 +1,8 @@
+# Table S5 Conflict Diagnostics
+
+| condition | n_edges | conflict_fraction | mean_univariate_probability_span | integrated_error_rate_conflict | integrated_error_rate_concordant | integrated_overconfident_error_fraction |
+| --- | --- | --- | --- | --- | --- | --- |
+| native | 827 | 0.0 | 0.0919986822348765 |  | 0.1305925030229746 | 0.0 |
+| age_permuted | 827 | 0.0 | 0.1192894594287508 |  | 0.1305925030229746 | 0.0036275695284159 |
+| hydraulic_permuted | 827 | 0.0 | 0.1205483899098658 |  | 0.1305925030229746 | 0.0350665054413542 |
+| joint_misspecified | 827 | 0.0 | 0.1229550066017855 |  | 0.1305925030229746 | 0.0386940749697702 |

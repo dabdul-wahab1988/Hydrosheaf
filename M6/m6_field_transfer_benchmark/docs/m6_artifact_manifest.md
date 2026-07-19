@@ -10,12 +10,18 @@ Inventory of the M6 field-transfer benchmark package (auto-generated).
 - m6_locked_analysis_plan.md
 - m6_results_summary.md
 - m6_reviewer_response.md
+- manuscript_asset_plan.md
+
+## data/
+- ghana_adm0_natural_earth_110m.geojson
 
 ## scripts/
 - export_m6_figure_data.py
 - m6_common.py
 - m6_reactions.py
+- make_m6_dataset_figure.py
 - make_m6_tables.py
+- make_objective6_prequential_figure.py
 - run_m6_all.py
 - run_m6_field_transfer.py
 - run_m6_reviewer_response.py
@@ -69,6 +75,8 @@ Inventory of the M6 field-transfer benchmark package (auto-generated).
 - table3_tier_ablation.md
 - table4_external_transfer.csv
 - table4_external_transfer.md
+- table5_field_prequential.csv
+- table5_field_prequential.md
 - tableS2_qc_missingness.csv
 - tableS2_qc_missingness.md
 - tableS3_aquifer_summary.csv
@@ -109,6 +117,9 @@ Inventory of the M6 field-transfer benchmark package (auto-generated).
 - figure8_circularity_sensitivity.pdf
 - figure8_circularity_sensitivity.png
 - figure8_circularity_sensitivity.tif
+- figure9_field_prequential.pdf
+- figure9_field_prequential.png
+- figure9_field_prequential.tif
 - supplementary
 
 ## figures/r_publication/supplementary/

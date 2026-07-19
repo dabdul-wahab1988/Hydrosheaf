@@ -5,15 +5,20 @@ caption, an objective technical description, and a deductive scientific descript
 Style: Nature portfolio, 300 dpi, PNG/PDF/TIF.
 
 ## Figure 1 — Dataset and evidence-tier design
-- **Objective:** RQ1 (readiness). **Source:** `m6_map_coordinates.csv`, `m6_tier_ladder.csv`, `m6_variable_availability.csv`.
+- **Objective:** RQ1 (readiness). **Source:** `m6_map_coordinates.csv`,
+  `m6_tier_ladder.csv`, `m6_variable_availability.csv`, and the public-domain
+  Natural Earth 1:110m Ghana outline.
 - **Caption:** Three Ghanaian groundwater datasets and their evidence tiers. (a) Sample
   locations by dataset. (b) Evidence-tier attainment (Tier 0 majors → Tier 4 full metadata).
   (c) Variable-availability heatmap.
-- **Technical:** (a) 464 sample coordinates coloured by dataset; (b) 3×5 tile grid of tier
+- **Technical:** (a) supplied masked coordinates plotted on a sourced Ghana
+  outline, with no site-scale spatial interpretation; (b) 3×5 tile grid of tier
   attainment; (c) fraction-present of 16 variables across three datasets.
 - **Scientific:** Establishes that only Northern Ghana reaches Tier 4; Lower Anayari caps at
   Tier 2 (no Sr/SiO₂) and Talensi at Tier 1 (no F/Sr/SiO₂), fixing the evidence ceiling for
-  every downstream inference.
+  every downstream inference. Tier 4 is the maximum M6 chemistry/metadata tier; it does not
+  imply that environmental age tracers, screen intervals, repeated heads or independent flow
+  truth are available.
 - **Figure style compliance:** in-panel tags a–c, ≤6 major ticks, white background, 300 dpi.
 
 ## Figure 2 — Hydrosheaf field-transfer workflow
@@ -23,8 +28,9 @@ Style: Nature portfolio, 300 dpi, PNG/PDF/TIF.
   inference, evidence gates, robustness diagnostics and a limitation map.
 - **Technical:** node–arrow flow diagram; colour blocks group the M5, data, inference and
   diagnostic stages.
-- **Scientific:** Makes explicit that nothing is re-fit on field data — M6 is a transfer and
-  stress test, not a re-calibration.
+- **Scientific:** Makes explicit which frozen components are transferred and which field
+  diagnostics are computed. M6 is a chemistry/metadata transfer and stress test, not a
+  validation of residence time, exact directed topology or a field digital twin.
 
 ## Figure 3 — Northern Ghana seasonal/aquifer stability
 - **Objective:** RQ2. **Source:** `m6_ng_class_support.csv`, `m6_ng_family_by_aquifer.csv`, `m6_ng_field_pairs.csv`.
@@ -60,10 +66,26 @@ Style: Nature portfolio, 300 dpi, PNG/PDF/TIF.
   single best-fit reaction commitment.
 - **Technical:** identifiability-scored heatmap (process × dataset) and a jittered
   best-fit-vs-conservative scatter with a 1:1 reference.
-- **Scientific:** Silicate and carbonate weathering are non-identifiable in both external
-  datasets but resolvable in Northern Ghana, whereas majors-corroborable processes are
-  resolvable everywhere; conservative reporting consistently admits more alternatives than a
-  single best fit, i.e. avoids over-commitment.
+- **Scientific:** Silicate- and carbonate-related class assignments are non-identifiable in
+  both external datasets and more constrained in Northern Ghana at the M6 class/equivalence
+  level. This is not evidence of unique reaction-family recovery. Conservative reporting
+  consistently admits more alternatives than a single best fit and therefore avoids
+  over-commitment.
+
+## Extended-data and diagnostic figures
+
+- **Figure 7 — Synthetic validation.** Positive-control recovery checks for the transferred
+  component diagnostics. It supports implementation validity but is not independent field
+  truth.
+- **Figure 8 — Circularity sensitivity.** Sensitivity of field interpretation to inputs that
+  can enter both candidate construction and scoring. It is retained as an explicit
+  anti-circularity diagnostic.
+- **Figure 9 — Field prequential performance.** One-step seasonal hold-forward MAE, paired
+  well-block bootstrap contrasts, ion-level descriptive differences and predictive-interval
+  coverage. Graph ridge improves on persistence, but its incremental advantage over the
+  expanding-mean baseline is small and its 95% paired interval crosses zero. This is
+  within-campaign chemistry prediction with masked coordinates, not independent-basin
+  validation.
 
 ## Supplementary figures
 All supplementary figures use the same Nature-style theme (enlarged fonts, collected/

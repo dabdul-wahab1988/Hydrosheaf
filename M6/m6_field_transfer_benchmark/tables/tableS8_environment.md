@@ -1,0 +1,10 @@
+# Table S8. Software and computational environment
+
+| Component | Version / setting |
+| --- | --- |
+| Python | 3.14.6 |
+| numpy | 2.4.6 |
+| pandas | 2.3.3 |
+| Inverse solver | M5 fit_inverse (FISTA, column-normalised, SI-bounded) |
+| MRS calibration | frozen M5 mrs_calibration_model.json (not re-fit) |
+| Seed | 1234 |

@@ -1,0 +1,34 @@
+# Table S2 Case Block Contrasts
+
+| contrast | condition | full_panel | baseline_panel | metric | mean_difference | ci95_low | ci95_high | n_cases | n_bootstrap | resampling_unit |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| native_incremental_age | native | HAC | HC | pr_auc | -0.0060028907969505 | -0.0121732031764132 | -0.0010943788721566 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_age | native | HAC | HC | brier | 5.02863620451798e-05 | -6.375905608780253e-06 | 0.0001303295010841 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_age | native | HAC | HC | log_loss | 2.2652138841218934e-05 | -0.0001399267147592 | 0.0002208603244711 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_age | native | HAC | HC | mean_edge_entropy | -0.0006162947371865 | -0.000933948234285 | -0.0003140153481478 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_age | native | HAC | HC | overconfident_error_fraction | 0.0 | 0.0 | 0.0 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_chemistry | native | HAC | HA | pr_auc | 0.4471345559504152 | 0.3574542607408151 | 0.5400959944780771 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_chemistry | native | HAC | HA | brier | -0.0196242192097324 | -0.0213340031667321 | -0.0176252404761121 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_chemistry | native | HAC | HA | log_loss | -0.0790583151995293 | -0.0849983360892184 | -0.0719778988302428 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_chemistry | native | HAC | HA | mean_edge_entropy | -0.0827082856187811 | -0.0984817881431961 | -0.0652527395658933 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_chemistry | native | HAC | HA | overconfident_error_fraction | 0.0 | 0.0 | 0.0 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_hydraulics | native | HAC | AC | pr_auc | 0.0090532915115817 | 0.0009737869577803 | 0.0198175210079266 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_hydraulics | native | HAC | AC | brier | -0.0010047114263529 | -0.0012041839800427 | -0.0008189814321415 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_hydraulics | native | HAC | AC | log_loss | -0.0059306564740089 | -0.0069811502185557 | -0.0050471213832042 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_hydraulics | native | HAC | AC | mean_edge_entropy | -0.0146392249235574 | -0.0185422475506148 | -0.0118415015233526 | 12 | 10000 | independent_MODFLOW_case |
+| native_incremental_hydraulics | native | HAC | AC | overconfident_error_fraction | 0.0 | 0.0 | 0.0 | 12 | 10000 | independent_MODFLOW_case |
+| permuted_age_increment | age_permuted | HAC | HC | pr_auc | -0.0754392149413392 | -0.1352684143547555 | -0.0147935920231352 | 12 | 10000 | independent_MODFLOW_case |
+| permuted_age_increment | age_permuted | HAC | HC | brier | 0.0034087247878348 | 0.0011625824507302 | 0.0055413250715301 | 12 | 10000 | independent_MODFLOW_case |
+| permuted_age_increment | age_permuted | HAC | HC | log_loss | 0.0104890211570749 | 0.0030137033642124 | 0.0175584460974192 | 12 | 10000 | independent_MODFLOW_case |
+| permuted_age_increment | age_permuted | HAC | HC | mean_edge_entropy | -0.0206537513350374 | -0.0236303292977099 | -0.0175055306240742 | 12 | 10000 | independent_MODFLOW_case |
+| permuted_age_increment | age_permuted | HAC | HC | overconfident_error_fraction | 0.0036409491332764 | 0.0 | 0.0072996589940323 | 12 | 10000 | independent_MODFLOW_case |
+| permuted_hydraulic_increment | hydraulic_permuted | HAC | AC | pr_auc | -0.0685791321953232 | -0.1120002236788533 | -0.0270854629767437 | 12 | 10000 | independent_MODFLOW_case |
+| permuted_hydraulic_increment | hydraulic_permuted | HAC | AC | brier | 0.0110224820092931 | 0.0055418316096337 | 0.0164231784148594 | 12 | 10000 | independent_MODFLOW_case |
+| permuted_hydraulic_increment | hydraulic_permuted | HAC | AC | log_loss | 0.0745256349529817 | 0.0403571091239389 | 0.1091199883228554 | 12 | 10000 | independent_MODFLOW_case |
+| permuted_hydraulic_increment | hydraulic_permuted | HAC | AC | mean_edge_entropy | -0.0482108955294422 | -0.0592824963174776 | -0.0372325330065949 | 12 | 10000 | independent_MODFLOW_case |
+| permuted_hydraulic_increment | hydraulic_permuted | HAC | AC | overconfident_error_fraction | 0.0350241545893719 | 0.0229468599033816 | 0.0483091787439613 | 12 | 10000 | independent_MODFLOW_case |
+| joint_misspecification | joint_misspecified | HAC | C | pr_auc | -0.1389844030687265 | -0.2040673995972199 | -0.0741836663517572 | 12 | 10000 | independent_MODFLOW_case |
+| joint_misspecification | joint_misspecified | HAC | C | brier | 0.0106188717813229 | 0.0055018512222621 | 0.0162521338309558 | 12 | 10000 | independent_MODFLOW_case |
+| joint_misspecification | joint_misspecified | HAC | C | log_loss | 0.0729953847262887 | 0.0400701263363856 | 0.1073263455828748 | 12 | 10000 | independent_MODFLOW_case |
+| joint_misspecification | joint_misspecified | HAC | C | mean_edge_entropy | -0.0706326481061458 | -0.0827088048133212 | -0.0585553017457953 | 12 | 10000 | independent_MODFLOW_case |
+| joint_misspecification | joint_misspecified | HAC | C | overconfident_error_fraction | 0.0386651037226484 | 0.0278132992327365 | 0.0495169082125603 | 12 | 10000 | independent_MODFLOW_case |

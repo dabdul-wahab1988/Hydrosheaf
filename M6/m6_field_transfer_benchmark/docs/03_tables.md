@@ -12,6 +12,11 @@
 - **Table 4 — External transfer performance** (`table4_external_transfer`). MRS, stability and
   identifiability shares for Talensi and Lower Anayari against matched-tier Northern Ghana
   references. Serves RQ5/H4.
+- **Table 5 — Field prequential benchmark** (`table5_field_prequential`). Overall
+  one-step seasonal hold-forward MAE, RMSE and empirical 90% coverage for persistence,
+  expanding-mean and graph-ridge predictors, with the paired well-block bootstrap contrast
+  reported in the accompanying audit. This supports chemistry-prediction diagnostics only;
+  it does not validate residence time or field topology.
 
 ## Supplementary tables
 - **S2** charge-balance quality classes by dataset. **S3** Northern Ghana aquifer summary.

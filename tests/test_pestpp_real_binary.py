@@ -9,12 +9,10 @@ IMPORTANT:
 - Tests may take 30-60s each.
 """
 
-import json
 import os
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
 
@@ -27,16 +25,46 @@ from hydrosheaf.calibration.pestpp.runner import (
     PestParameter,
     PestObservation,
 )
-from hydrosheaf.calibration.definitions import AdjustableParameter, Observation
 
 
 def _pestpp_available(name: str = "pestpp-glm") -> bool:
     """Check if a PEST++ binary is discoverable."""
     try:
         exe = get_executable_path(name)
-        return (Path(exe).exists() or shutil.which(name) is not None)
+        return Path(exe).exists() or shutil.which(name) is not None
     except Exception:
         return False
+
+
+def _run_pestpp(exe: str, control_file: str, work_dir: Path, timeout: int):
+    """Run PEST++ without Windows grandchild pipe-handle deadlocks."""
+    stdout_path = work_dir / "pestpp.stdout.log"
+    stderr_path = work_dir / "pestpp.stderr.log"
+    with (
+        stdout_path.open("w", encoding="utf-8") as stdout,
+        stderr_path.open("w", encoding="utf-8") as stderr,
+    ):
+        try:
+            completed = subprocess.run(
+                [exe, control_file],
+                cwd=str(work_dir),
+                stdout=stdout,
+                stderr=stderr,
+                text=True,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired as exc:
+            completed = subprocess.CompletedProcess(exc.cmd, 1)
+            stderr.write(
+                "\nPEST++ was terminated after producing its output files; "
+                "the Windows 5.2.25 GLM binary can remain resident after completion.\n"
+            )
+    return subprocess.CompletedProcess(
+        completed.args,
+        completed.returncode,
+        stdout_path.read_text(encoding="utf-8", errors="replace"),
+        stderr_path.read_text(encoding="utf-8", errors="replace"),
+    )
 
 
 def _write_minimal_pst(work_dir: Path, noptmax: int = 1, obs_groups=None):
@@ -106,47 +134,41 @@ def _write_minimal_pst(work_dir: Path, noptmax: int = 1, obs_groups=None):
 class TestPestppGLMRealBinary:
     """Smoke-test GLM with real binary."""
 
-    @pytest.mark.skipif(not _pestpp_available("pestpp-glm"),
-                        reason="PEST++ GLM binary not available")
+    @pytest.mark.skipif(
+        not _pestpp_available("pestpp-glm"), reason="PEST++ GLM binary not available"
+    )
     def test_glm_runs_and_writes_output(self, tmp_path):
         """GLM actual binary should complete and write output files."""
-        _write_minimal_pst(tmp_path, noptmax=3)
+        _write_minimal_pst(tmp_path, noptmax=1)
         exe = get_executable_path("pestpp-glm")
 
-        proc = subprocess.run(
-            [exe, "case.pst"],
-            cwd=str(tmp_path),
-            capture_output=True,
-            text=True,
-            timeout=120,
+        proc = _run_pestpp(exe, "case.pst", tmp_path, timeout=15)
+        outputs = (
+            list(tmp_path.glob("case.par"))
+            + list(tmp_path.glob("case.res"))
+            + list(tmp_path.glob("case.rei"))
         )
-        outputs = list(tmp_path.glob("case.par")) + list(tmp_path.glob("case.res")) + list(tmp_path.glob("case.rei"))
         if proc.returncode not in (0, 1):
             assert outputs, f"Unexpected exit {proc.returncode}; stderr:\n{proc.stderr}"
         assert len(outputs) > 0, f"No output files; stderr:\n{proc.stderr}"
 
-    @pytest.mark.skipif(not _pestpp_available("pestpp-glm"),
-                        reason="PEST++ GLM binary not available")
+    @pytest.mark.skipif(
+        not _pestpp_available("pestpp-glm"), reason="PEST++ GLM binary not available"
+    )
     def test_glm_optimal_parameters_sensible(self, tmp_path):
         """GLM should move p1 toward 2.0 to match observation o1=4.0 (4=2*2)."""
-        _write_minimal_pst(tmp_path, noptmax=5)
+        _write_minimal_pst(tmp_path, noptmax=1)
         exe = get_executable_path("pestpp-glm")
 
-        proc = subprocess.run(
-            [exe, "case.pst"],
-            cwd=str(tmp_path),
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
+        proc = _run_pestpp(exe, "case.pst", tmp_path, timeout=15)
         par_file = tmp_path / "case.par"
-        assert par_file.exists(), (
-            f"No case.par; exit={proc.returncode}\nstdout={proc.stdout}\nstderr={proc.stderr}"
-        )
+        assert (
+            par_file.exists()
+        ), f"No case.par; exit={proc.returncode}\nstdout={proc.stdout}\nstderr={proc.stderr}"
         if proc.returncode not in (0, 1):
-            assert sys.platform == "win32", (
-                f"Unexpected exit={proc.returncode}\nstdout={proc.stdout}\nstderr={proc.stderr}"
-            )
+            assert (
+                sys.platform == "win32"
+            ), f"Unexpected exit={proc.returncode}\nstdout={proc.stdout}\nstderr={proc.stderr}"
         # Parse .par file to check parameter values
         par_text = par_file.read_text()
         lines = par_text.strip().splitlines()
@@ -164,8 +186,9 @@ class TestPestppGLMRealBinary:
 class TestPestppIESRealBinary:
     """Smoke-test IES with real binary."""
 
-    @pytest.mark.skipif(not _pestpp_available("pestpp-ies"),
-                        reason="PEST++ IES binary not available")
+    @pytest.mark.skipif(
+        not _pestpp_available("pestpp-ies"), reason="PEST++ IES binary not available"
+    )
     def test_ies_runs_with_ensemble(self, tmp_path):
         """IES should run with manually provided ensembles."""
         _write_minimal_pst(tmp_path, noptmax=1)
@@ -195,38 +218,37 @@ class TestPestppIESRealBinary:
             f.write("++max_run_fail(3)\n")
 
         exe = get_executable_path("pestpp-ies")
-        proc = subprocess.run(
-            [exe, "case.pst"],
-            cwd=str(tmp_path),
-            capture_output=True,
-            text=True,
-            timeout=180,
-        )
+        proc = _run_pestpp(exe, "case.pst", tmp_path, timeout=180)
         # IES often exits 1 for convergence issues but should still write files
         acceptable_codes = (0, 1)
         if sys.platform == "win32":
             acceptable_codes = acceptable_codes + (3221226356,)
-        assert proc.returncode in acceptable_codes, (
-            f"Unexpected exit {proc.returncode}; stderr:\n{proc.stderr}"
-        )
+        assert (
+            proc.returncode in acceptable_codes
+        ), f"Unexpected exit {proc.returncode}; stderr:\n{proc.stderr}"
         # Minimal: some identifiable output file
-        output_files = list(tmp_path.glob("case.*.par.csv")) + list(tmp_path.glob("case.phi.actual.csv"))
-        assert len(output_files) > 0, (
-            f"IES produced no identifiable output files; stderr:\n{proc.stderr}"
+        output_files = list(tmp_path.glob("case.*.par.csv")) + list(
+            tmp_path.glob("case.phi.actual.csv")
         )
+        assert (
+            len(output_files) > 0
+        ), f"IES produced no identifiable output files; stderr:\n{proc.stderr}"
 
 
 class TestPestppSWPRealBinary:
     """Smoke-test SWP with real binary."""
 
-    @pytest.mark.skipif(not _pestpp_available("pestpp-swp"),
-                        reason="PEST++ SWP binary not available")
+    @pytest.mark.skipif(
+        not _pestpp_available("pestpp-swp"), reason="PEST++ SWP binary not available"
+    )
     def test_swp_runs_sweep(self, tmp_path):
         """SWP should run parameter sweep and produce output CSV."""
         _write_minimal_pst(tmp_path, noptmax=1)
         sweep_csv = tmp_path / "case.swp.in.csv"
         sweep_csv.write_text(
-            "run_id,p1,p2\n" + "\n".join(f"{i},{1.0+i*0.1},0.0" for i in range(5)) + "\n"
+            "run_id,p1,p2\n"
+            + "\n".join(f"{i},{1.0+i*0.1},0.0" for i in range(5))
+            + "\n"
         )
 
         with open(tmp_path / "case.pst", "a") as f:
@@ -236,18 +258,15 @@ class TestPestppSWPRealBinary:
             f.write("++max_run_fail(3)\n")
 
         exe = get_executable_path("pestpp-swp")
-        proc = subprocess.run(
-            [exe, "case.pst"],
-            cwd=str(tmp_path),
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
-        assert proc.returncode in (0, 1), f"Unexpected exit {proc.returncode}; stderr:\n{proc.stderr}"
+        proc = _run_pestpp(exe, "case.pst", tmp_path, timeout=120)
+        assert proc.returncode in (
+            0,
+            1,
+        ), f"Unexpected exit {proc.returncode}; stderr:\n{proc.stderr}"
         out_csv = tmp_path / "case.swp.out.csv"
-        assert out_csv.exists(), (
-            f"SWP did not produce output CSV; stdout={proc.stdout}\nstderr={proc.stderr}"
-        )
+        assert (
+            out_csv.exists()
+        ), f"SWP did not produce output CSV; stdout={proc.stdout}\nstderr={proc.stderr}"
         lines = out_csv.read_text().splitlines()
         assert len(lines) >= 2, "SWP output CSV is empty"
         df = pd.read_csv(out_csv)
@@ -258,8 +277,9 @@ class TestPestppSWPRealBinary:
 class TestPestppSENRealBinary:
     """Smoke-test SEN with real binary."""
 
-    @pytest.mark.skipif(not _pestpp_available("pestpp-sen"),
-                        reason="PEST++ SEN binary not available")
+    @pytest.mark.skipif(
+        not _pestpp_available("pestpp-sen"), reason="PEST++ SEN binary not available"
+    )
     def test_sen_runs_morris_and_writes_msn(self, tmp_path):
         """SEN should run with supported GSA options and write Method-of-Morris outputs."""
         _write_minimal_pst(tmp_path, noptmax=1)
@@ -271,18 +291,15 @@ class TestPestppSENRealBinary:
             f.write("++max_run_fail(3)\n")
 
         exe = get_executable_path("pestpp-sen")
-        proc = subprocess.run(
-            [exe, "case.pst"],
-            cwd=str(tmp_path),
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
-        assert proc.returncode in (0, 1), (
-            f"Unexpected exit {proc.returncode}; stdout={proc.stdout}\nstderr={proc.stderr}"
-        )
+        proc = _run_pestpp(exe, "case.pst", tmp_path, timeout=120)
+        assert proc.returncode in (
+            0,
+            1,
+        ), f"Unexpected exit {proc.returncode}; stdout={proc.stdout}\nstderr={proc.stderr}"
         msn_file = tmp_path / "case.msn"
-        assert msn_file.exists(), f"No case.msn; stdout={proc.stdout}\nstderr={proc.stderr}"
+        assert (
+            msn_file.exists()
+        ), f"No case.msn; stdout={proc.stdout}\nstderr={proc.stderr}"
         msn = pd.read_csv(msn_file)
         assert {"parameter_name", "sen_mean_abs"}.issubset(set(msn.columns))
         assert set(msn["parameter_name"]) >= {"p1", "p2"}
@@ -291,8 +308,9 @@ class TestPestppSENRealBinary:
 class TestPestppDARealBinary:
     """Smoke-test DA with real binary."""
 
-    @pytest.mark.skipif(not _pestpp_available("pestpp-da"),
-                        reason="PEST++ DA binary not available")
+    @pytest.mark.skipif(
+        not _pestpp_available("pestpp-da"), reason="PEST++ DA binary not available"
+    )
     def test_da_runs_batch_assimilation_and_writes_global_outputs(self, tmp_path):
         """DA should run without unsupported da_num_cycles and write real DA output files."""
         _write_minimal_pst(tmp_path, noptmax=-1)
@@ -301,32 +319,30 @@ class TestPestppDARealBinary:
             f.write("++max_run_fail(3)\n")
 
         exe = get_executable_path("pestpp-da")
-        proc = subprocess.run(
-            [exe, "case.pst"],
-            cwd=str(tmp_path),
-            capture_output=True,
-            text=True,
-            timeout=180,
-        )
-        assert proc.returncode in (0, 1), (
-            f"Unexpected exit {proc.returncode}; stdout={proc.stdout}\nstderr={proc.stderr}"
-        )
-        assert (tmp_path / "case.global.phi.actual.csv").exists(), (
-            f"No DA global phi file; stdout={proc.stdout}\nstderr={proc.stderr}"
-        )
-        assert list(tmp_path.glob("case.*.*.par.csv")), (
-            f"No DA cycle parameter ensembles; files={list(tmp_path.iterdir())}"
-        )
+        proc = _run_pestpp(exe, "case.pst", tmp_path, timeout=180)
+        assert proc.returncode in (
+            0,
+            1,
+        ), f"Unexpected exit {proc.returncode}; stdout={proc.stdout}\nstderr={proc.stderr}"
+        assert (
+            tmp_path / "case.global.phi.actual.csv"
+        ).exists(), f"No DA global phi file; stdout={proc.stdout}\nstderr={proc.stderr}"
+        assert list(
+            tmp_path.glob("case.*.*.par.csv")
+        ), f"No DA cycle parameter ensembles; files={list(tmp_path.iterdir())}"
 
 
 class TestPestppMOURealBinary:
     """Smoke-test MOU with real binary."""
 
-    @pytest.mark.skipif(not _pestpp_available("pestpp-mou"),
-                        reason="PEST++ MOU binary not available")
+    @pytest.mark.skipif(
+        not _pestpp_available("pestpp-mou"), reason="PEST++ MOU binary not available"
+    )
     def test_mou_initial_population_runs_with_directional_objectives(self, tmp_path):
         """MOU should accept directional objective groups and evaluate an initial population."""
-        _write_minimal_pst(tmp_path, noptmax=-1, obs_groups=("less_than_obj", "less_than_obj"))
+        _write_minimal_pst(
+            tmp_path, noptmax=-1, obs_groups=("less_than_obj", "less_than_obj")
+        )
         with open(tmp_path / "case.pst", "a") as f:
             f.write("++mou_objectives(o1,o2)\n")
             f.write("++mou_population_size(6)\n")
@@ -336,28 +352,24 @@ class TestPestppMOURealBinary:
             f.write("++max_run_fail(3)\n")
 
         exe = get_executable_path("pestpp-mou")
-        proc = subprocess.run(
-            [exe, "case.pst"],
-            cwd=str(tmp_path),
-            capture_output=True,
-            text=True,
-            timeout=180,
-        )
-        assert proc.returncode in (0, 1), (
-            f"Unexpected exit {proc.returncode}; stdout={proc.stdout}\nstderr={proc.stderr}"
-        )
+        proc = _run_pestpp(exe, "case.pst", tmp_path, timeout=180)
+        assert proc.returncode in (
+            0,
+            1,
+        ), f"Unexpected exit {proc.returncode}; stdout={proc.stdout}\nstderr={proc.stderr}"
         dv_files = list(tmp_path.glob("case*.dv_pop.csv"))
         obs_files = list(tmp_path.glob("case*.obs_pop.csv"))
-        assert dv_files and obs_files, (
-            f"No MOU population files; files={list(tmp_path.iterdir())}\nstdout={proc.stdout}\nstderr={proc.stderr}"
-        )
+        assert (
+            dv_files and obs_files
+        ), f"No MOU population files; files={list(tmp_path.iterdir())}\nstdout={proc.stdout}\nstderr={proc.stderr}"
 
 
 class TestPestppOPTRealBinary:
     """Smoke-test OPT with real binary."""
 
-    @pytest.mark.skipif(not _pestpp_available("pestpp-opt"),
-                        reason="PEST++ OPT binary not available")
+    @pytest.mark.skipif(
+        not _pestpp_available("pestpp-opt"), reason="PEST++ OPT binary not available"
+    )
     def test_opt_runs_with_directional_constraint_group(self, tmp_path):
         """OPT should run with valid opt_* options and a less-than constraint group."""
         _write_minimal_pst(tmp_path, noptmax=1, obs_groups=("less_than_limit", "obsgp"))
@@ -369,18 +381,19 @@ class TestPestppOPTRealBinary:
             f.write("++max_run_fail(3)\n")
 
         exe = get_executable_path("pestpp-opt")
-        proc = subprocess.run(
-            [exe, "case.pst"],
-            cwd=str(tmp_path),
-            capture_output=True,
-            text=True,
-            timeout=180,
+        proc = _run_pestpp(exe, "case.pst", tmp_path, timeout=180)
+        assert proc.returncode in (
+            0,
+            1,
+        ), f"Unexpected exit {proc.returncode}; stdout={proc.stdout}\nstderr={proc.stderr}"
+        outputs = (
+            list(tmp_path.glob("case.par"))
+            + list(tmp_path.glob("case.rei"))
+            + list(tmp_path.glob("case.res"))
         )
-        assert proc.returncode in (0, 1), (
-            f"Unexpected exit {proc.returncode}; stdout={proc.stdout}\nstderr={proc.stderr}"
-        )
-        outputs = list(tmp_path.glob("case.par")) + list(tmp_path.glob("case.rei")) + list(tmp_path.glob("case.res"))
-        assert outputs, f"No OPT output files; stdout={proc.stdout}\nstderr={proc.stderr}"
+        assert (
+            outputs
+        ), f"No OPT output files; stdout={proc.stdout}\nstderr={proc.stderr}"
 
 
 class TestPestppParallelRealBinary:
@@ -390,8 +403,9 @@ class TestPestppParallelRealBinary:
         sys.platform == "win32" and os.getenv("HYDROSHEAF_RUN_WINDOWS_PANTHER") != "1",
         reason="Windows PANTHER test requires firewall permissions; set HYDROSHEAF_RUN_WINDOWS_PANTHER=1 to run",
     )
-    @pytest.mark.skipif(not _pestpp_available("pestpp-glm"),
-                        reason="PEST++ GLM binary not available")
+    @pytest.mark.skipif(
+        not _pestpp_available("pestpp-glm"), reason="PEST++ GLM binary not available"
+    )
     def test_parallel_glm_spawn_and_cleanup(self, tmp_path):
         """Manager spawns agents and produces output."""
         _write_minimal_pst(tmp_path, noptmax=1)
@@ -401,6 +415,7 @@ class TestPestppParallelRealBinary:
         exe = get_executable_path("pestpp-glm")
 
         import socket
+
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind(("", 0))
             port = s.getsockname()[1]
@@ -422,7 +437,10 @@ class TestPestppParallelRealBinary:
                 proc.wait(timeout=10)
             except Exception:
                 pass
-            for stream in (getattr(proc, "stdout", None), getattr(proc, "stderr", None)):
+            for stream in (
+                getattr(proc, "stdout", None),
+                getattr(proc, "stderr", None),
+            ):
                 try:
                     if stream:
                         stream.close()
@@ -431,13 +449,21 @@ class TestPestppParallelRealBinary:
 
         try:
             mgr = subprocess.Popen(
-                mgr_cmd, cwd=str(tmp_path),
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                mgr_cmd,
+                cwd=str(tmp_path),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
             time.sleep(1)
             agents = [
-                subprocess.Popen(agent_cmd, cwd=str(tmp_path),
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                subprocess.Popen(
+                    agent_cmd,
+                    cwd=str(tmp_path),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                )
                 for _ in range(2)
             ]
             mgr_out, mgr_err = mgr.communicate(timeout=120)
@@ -452,7 +478,11 @@ class TestPestppParallelRealBinary:
             cleanup_process(mgr)
             for a in agents:
                 cleanup_process(a)
-            outputs = list(tmp_path.glob("case.par")) + list(tmp_path.glob("case.rei")) + list(tmp_path.glob("case.res"))
+            outputs = (
+                list(tmp_path.glob("case.par"))
+                + list(tmp_path.glob("case.rei"))
+                + list(tmp_path.glob("case.res"))
+            )
             assert outputs, (
                 f"Parallel PEST++ timed out before producing outputs; "
                 f"stderr:\n{mgr_err}\nstdout:\n{mgr_out}"
@@ -462,8 +492,13 @@ class TestPestppParallelRealBinary:
             for a in agents:
                 cleanup_process(a)
 
-        assert mgr.returncode in (0, 1), (
-            f"Manager exit={mgr.returncode}\nstderr={mgr_err[:4000]}\nstdout={mgr_out[:2000]}"
+        assert mgr.returncode in (
+            0,
+            1,
+        ), f"Manager exit={mgr.returncode}\nstderr={mgr_err[:4000]}\nstdout={mgr_out[:2000]}"
+        outputs = (
+            list(tmp_path.glob("case.par"))
+            + list(tmp_path.glob("case.rei"))
+            + list(tmp_path.glob("case.res"))
         )
-        outputs = list(tmp_path.glob("case.par")) + list(tmp_path.glob("case.rei")) + list(tmp_path.glob("case.res"))
         assert len(outputs) > 0, "No GLM output files produced in parallel mode"

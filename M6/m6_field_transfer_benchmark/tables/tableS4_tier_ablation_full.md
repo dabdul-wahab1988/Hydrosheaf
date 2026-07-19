@@ -1,0 +1,9 @@
+# Table S4. Full tier-ablation identifiability counts
+
+| tier | non_identifiable | partially_identifiable |
+| --- | --- | --- |
+| tier0_majors | 96 | 64 |
+| tier1_isotopes | 83 | 77 |
+| tier2_fluoride | 83 | 77 |
+| tier3_sr_sio2 | 1 | 159 |
+| tier4_full_metadata | 0 | 160 |

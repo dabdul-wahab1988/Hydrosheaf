@@ -1,0 +1,8 @@
+# Table S5. Edge-set sensitivity summary
+
+| edge_set | n_edges | tvd_vs_provided | mean_mrs | mean_stability | frac_partial |
+| --- | --- | --- | --- | --- | --- |
+| provided_graph | 140 | 0.0 | 72.717 | 0.965 | 1.0 |
+| chemistry_knn | 140 | 0.229 | 73.324 | 0.97 | 0.986 |
+| geographic_nearest | 140 | 0.093 | 71.911 | 0.956 | 0.993 |
+| random_perturbed | 140 | 0.171 | 72.591 | 0.964 | 1.0 |
