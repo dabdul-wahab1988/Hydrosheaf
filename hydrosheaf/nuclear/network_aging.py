@@ -131,9 +131,11 @@ def _parent_mixing_weights(
         [
             max(
                 0.0,
-                float(graph.get_edge_data(parent, node, default={}).get(
-                    "flow_fraction", 1.0
-                )),
+                float(
+                    graph.get_edge_data(parent, node, default={}).get(
+                        "flow_fraction", 1.0
+                    )
+                ),
             )
             for parent in parents
         ],
@@ -162,10 +164,7 @@ def _count_likelihood_modes(
     ]
     if probabilities[0] >= threshold and probabilities[0] >= probabilities[1]:
         candidates.append(0)
-    if (
-        probabilities[-1] >= threshold
-        and probabilities[-1] >= probabilities[-2]
-    ):
+    if probabilities[-1] >= threshold and probabilities[-1] >= probabilities[-2]:
         candidates.append(probabilities.size - 1)
     selected: list[int] = []
     for idx in sorted(candidates, key=lambda item: probabilities[item], reverse=True):
@@ -214,9 +213,7 @@ def _local_likelihood_diagnostics(
     probabilities = relative / total
     cdf = np.cumsum(probabilities)
     low = float(age_grid[int(np.searchsorted(cdf, 0.025))])
-    high = float(
-        age_grid[min(len(age_grid) - 1, int(np.searchsorted(cdf, 0.975)))]
-    )
+    high = float(age_grid[min(len(age_grid) - 1, int(np.searchsorted(cdf, 0.975)))])
     modes = _count_likelihood_modes(probabilities, age_grid)
     width = high - low
     # A 100-year support window is intentionally permissive.  Results wider
@@ -297,9 +294,7 @@ def _infer_independent_grid(
             value = float(tracer.observations[node])
             sigma = max(
                 1e-6,
-                float(
-                    tracer.sigmas.get(node, max(0.5, 0.1 * max(value, 0.0)))
-                ),
+                float(tracer.sigmas.get(node, max(0.5, 0.1 * max(value, 0.0)))),
             )
             log_posterior += _student_t_logpdf(
                 value - expected,
@@ -313,9 +308,7 @@ def _infer_independent_grid(
             node, tracers, concentration_grids, age_grid
         )
 
-    draws = np.empty(
-        (int(n_chains), int(n_samples), len(nodes)), dtype=float
-    )
+    draws = np.empty((int(n_chains), int(n_samples), len(nodes)), dtype=float)
     for chain in range(int(n_chains)):
         rng = np.random.default_rng(int(random_seed) + 104729 * chain)
         for node_index, node in enumerate(nodes):
@@ -354,9 +347,7 @@ def _infer_independent_grid(
     from scipy.stats import t as student_t
 
     multiplier = float(student_t.ppf(0.975, df=degrees_of_freedom))
-    for tracer_index, (tracer, grid) in enumerate(
-        zip(tracers, concentration_grids)
-    ):
+    for tracer_index, (tracer, grid) in enumerate(zip(tracers, concentration_grids)):
         observed_nodes = [node for node in nodes if node in tracer.observations]
         if not observed_nodes:
             continue
@@ -392,11 +383,13 @@ def _infer_independent_grid(
             ),
             "observed_95_interval_coverage": float(
                 np.mean(
-                    (values >= np.quantile(predicted, 0.025, axis=0) - multiplier * errors)
+                    (
+                        values
+                        >= np.quantile(predicted, 0.025, axis=0) - multiplier * errors
+                    )
                     & (
                         values
-                        <= np.quantile(predicted, 0.975, axis=0)
-                        + multiplier * errors
+                        <= np.quantile(predicted, 0.975, axis=0) + multiplier * errors
                     )
                 )
             ),
@@ -541,9 +534,7 @@ def infer_network_ages_bayesian(
     graph_string = nx.relabel_nodes(graph, {node: str(node) for node in graph.nodes()})
     node_idx = {node: index for index, node in enumerate(nodes)}
     topological_nodes = list(nx.topological_sort(graph_string))
-    roots = [
-        node for node in topological_nodes if graph_string.in_degree(node) == 0
-    ]
+    roots = [node for node in topological_nodes if graph_string.in_degree(node) == 0]
     non_roots = [node for node in topological_nodes if node not in roots]
 
     primary = TracerObservationSet(
@@ -618,11 +609,7 @@ def infer_network_ages_bayesian(
     tune = (
         0
         if sampler_normalized == "smc"
-        else (
-            int(n_tune)
-            if n_tune is not None
-            else max(500, int(n_samples))
-        )
+        else (int(n_tune) if n_tune is not None else max(500, int(n_samples)))
     )
 
     logger.info(
@@ -681,13 +668,10 @@ def infer_network_ages_bayesian(
                 edge_data = graph_string.get_edge_data(parent, node, default={})
                 length_m = max(0.0, float(edge_data.get("length_m", 1.0)))
                 routed.append(
-                    float(weight)
-                    * (age_expressions[parent] + length_m / velocity)
+                    float(weight) * (age_expressions[parent] + length_m / velocity)
                 )
             parent_mean = sum(routed)
-            age_expressions[node] = (
-                parent_mean + age_increments[increment_index]
-            )
+            age_expressions[node] = parent_mean + age_increments[increment_index]
         ages = pm.Deterministic(
             "ages", pt.stack([age_expressions[node] for node in nodes])
         )
@@ -716,14 +700,10 @@ def infer_network_ages_bayesian(
         for tracer_index, (tracer, concentration_grid) in enumerate(
             zip(tracers, concentration_grids)
         ):
-            observed_nodes = [
-                node for node in nodes if node in tracer.observations
-            ]
+            observed_nodes = [node for node in nodes if node in tracer.observations]
             if not observed_nodes:
                 continue
-            indices = np.asarray(
-                [node_idx[node] for node in observed_nodes], dtype=int
-            )
+            indices = np.asarray([node_idx[node] for node in observed_nodes], dtype=int)
             values = np.asarray(
                 [max(0.0, tracer.observations[node]) for node in observed_nodes],
                 dtype=float,
@@ -766,8 +746,7 @@ def infer_network_ages_bayesian(
                 chains=int(n_chains),
                 cores=1,
                 random_seed=[
-                    int(random_seed) + 104729 * chain
-                    for chain in range(int(n_chains))
+                    int(random_seed) + 104729 * chain for chain in range(int(n_chains))
                 ],
                 compute_convergence_checks=False,
                 progressbar=False,
@@ -810,9 +789,7 @@ def infer_network_ages_bayesian(
         "target_accept": float(target_accept),
         "sampler": sampler_normalized,
         "likelihood": "student_t",
-        "likelihood_degrees_of_freedom": float(
-            likelihood_degrees_of_freedom
-        ),
+        "likelihood_degrees_of_freedom": float(likelihood_degrees_of_freedom),
         "age_parameterization": "dag_parent_mixture_plus_positive_increment",
     }
 
@@ -841,9 +818,7 @@ def infer_network_ages_bayesian(
                 "age_ess_bulk_min": float(np.nanmin(ess_bulk_values)),
                 "age_ess_tail_min": float(np.nanmin(ess_tail_values)),
                 "age_mcse_mean_max": float(np.nanmax(mcse_mean_values)),
-                "diagnostic_method": (
-                    "rank_normalized_split_rhat_bulk_tail_ess"
-                ),
+                "diagnostic_method": ("rank_normalized_split_rhat_bulk_tail_ess"),
             }
         )
     except Exception as exc:
@@ -897,9 +872,7 @@ def infer_network_ages_bayesian(
             [
                 max(
                     1e-6,
-                    tracer.sigmas.get(
-                        node, max(0.5, 0.1 * tracer.observations[node])
-                    ),
+                    tracer.sigmas.get(node, max(0.5, 0.1 * tracer.observations[node])),
                 )
                 for node in observed_nodes
             ],
@@ -912,19 +885,15 @@ def infer_network_ages_bayesian(
             from scipy.stats import t as student_t
 
             predictive_multiplier = float(
-                student_t.ppf(
-                    0.975, df=float(likelihood_degrees_of_freedom)
-                )
+                student_t.ppf(0.975, df=float(likelihood_degrees_of_freedom))
             )
         except Exception:
             predictive_multiplier = 2.776
         predictive_low = (
-            np.quantile(expected_draws, 0.025, axis=0)
-            - predictive_multiplier * errors
+            np.quantile(expected_draws, 0.025, axis=0) - predictive_multiplier * errors
         )
         predictive_high = (
-            np.quantile(expected_draws, 0.975, axis=0)
-            + predictive_multiplier * errors
+            np.quantile(expected_draws, 0.975, axis=0) + predictive_multiplier * errors
         )
         posterior_predictive[tracer.name] = {
             "standardized_rmse": float(
@@ -944,16 +913,10 @@ def infer_network_ages_bayesian(
         for node in nodes
     }
     diag["n_nodes_tracer_identifiable"] = int(
-        sum(
-            bool(value["tracer_identifiable"])
-            for value in local_diagnostics.values()
-        )
+        sum(bool(value["tracer_identifiable"]) for value in local_diagnostics.values())
     )
     diag["all_nodes_tracer_identifiable"] = bool(
-        all(
-            bool(value["tracer_identifiable"])
-            for value in local_diagnostics.values()
-        )
+        all(bool(value["tracer_identifiable"]) for value in local_diagnostics.values())
     )
 
     edge_order: Dict[str, Dict[str, float]] = {}
@@ -961,11 +924,7 @@ def infer_network_ages_bayesian(
     for u, v, edge_data in graph_string.edges(data=True):
         length_m = max(0.0, float(edge_data.get("length_m", 1.0)))
         margin = length_m / max(velocity_estimate, 1e-9)
-        differences = (
-            flat_ages[:, node_idx[v]]
-            - flat_ages[:, node_idx[u]]
-            - margin
-        )
+        differences = flat_ages[:, node_idx[v]] - flat_ages[:, node_idx[u]] - margin
         edge_order[f"{u}->{v}"] = {
             "p_downstream_older": float(np.mean(differences > 0.0)),
             "mean_age_margin_years": float(np.mean(differences)),

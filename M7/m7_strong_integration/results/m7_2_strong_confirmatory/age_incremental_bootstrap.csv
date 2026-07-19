@@ -1,0 +1,5 @@
+contrast,metric,mean_difference,ci95_low,ci95_high,resampling_unit,n_cases,n_bootstrap
+hydraulic_chemistry_age_minus_hydraulic_chemistry,f1,0.0,0.0,0.0,independent_MODFLOW_case,12,10000
+hydraulic_chemistry_age_minus_hydraulic_chemistry,pr_auc,-0.00170592508821059,-0.005574845905224474,7.316487472374394e-05,independent_MODFLOW_case,12,10000
+hydraulic_chemistry_age_minus_age_permuted_control,f1,0.019727874644095648,-0.022009094599595286,0.0708378840516125,independent_MODFLOW_case,12,10000
+hydraulic_chemistry_age_minus_age_permuted_control,pr_auc,0.035435774125470214,-0.015762774945712,0.0953509028888787,independent_MODFLOW_case,12,10000

@@ -18,8 +18,9 @@ The benchmark has three deliberately separate evidence sources:
    reaction-truth validation.
 
 See [docs/m7_2_protocol.md](docs/m7_2_protocol.md) for the estimands,
-guardrails, and convergence criteria. The generated result interpretation is
-written to [docs/m7_2_results.md](docs/m7_2_results.md) after the locked run.
+guardrails, and convergence criteria. The initial failure, fresh-seed
+amendment, and final interpretation are retained in
+[docs/m7_2_results.md](docs/m7_2_results.md).
 
 ## Replay
 
@@ -39,4 +40,3 @@ For a non-claim-bearing smoke run:
 The full run writes `results/m7_2_strong`. Each case retains blind
 observations, separate MODPATH/truth tables, simulator provenance, and
 diagnostics. Executable hashes and versions are recorded in every case.
-

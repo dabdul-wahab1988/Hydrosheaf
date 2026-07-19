@@ -6,7 +6,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = ROOT / "M7" / "m7_strong_integration" / "scripts"
 if str(SCRIPT_DIR) not in sys.path:
@@ -104,21 +103,15 @@ def test_confirmatory_age_gate_only_suppresses_incompatible_edges() -> None:
 
 
 def test_field_predictions_cannot_access_future_wet_batches() -> None:
-    workbook = (
-        ROOT
-        / "data"
-        / "NorthenGhana"
-        / "Aquifers_Dataset_Mendeley.xlsx"
-    )
+    workbook = ROOT / "data" / "NorthenGhana" / "Aquifers_Dataset_Mendeley.xlsx"
     wells = pd.read_excel(workbook, sheet_name="Wells_Nodes")
     hydro = pd.read_excel(workbook, sheet_name="Hydrochemistry_Seasonal")
     original = run_prequential_frames(wells, hydro).predictions
 
     altered_hydro = hydro.copy()
     dates = pd.to_datetime(altered_hydro["Sampling_Date"])
-    future = (
-        altered_hydro["Season"].astype(str).str.lower().eq("wet")
-        & (dates > pd.Timestamp("2025-08-10"))
+    future = altered_hydro["Season"].astype(str).str.lower().eq("wet") & (
+        dates > pd.Timestamp("2025-08-10")
     )
     altered_hydro.loc[future, list(ION_COLUMNS)] *= 1000.0
     altered = run_prequential_frames(wells, altered_hydro).predictions

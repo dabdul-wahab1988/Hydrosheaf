@@ -78,12 +78,8 @@ class TestTopologyPosterior(unittest.TestCase):
         self.cfg.topology_posterior_samples = 500
         self.cfg.topology_posterior_burnin = 100
 
-        result1 = run_topology_posterior(
-            universe, _simple_cost_fn, self.cfg, seed=123
-        )
-        result2 = run_topology_posterior(
-            universe, _simple_cost_fn, self.cfg, seed=123
-        )
+        result1 = run_topology_posterior(universe, _simple_cost_fn, self.cfg, seed=123)
+        result2 = run_topology_posterior(universe, _simple_cost_fn, self.cfg, seed=123)
         self.assertEqual(result1["edge_probabilities"], result2["edge_probabilities"])
         self.assertEqual(result1["map_edges"], result2["map_edges"])
 
@@ -96,12 +92,8 @@ class TestTopologyPosterior(unittest.TestCase):
         self.cfg.topology_posterior_samples = 500
         self.cfg.topology_posterior_burnin = 100
 
-        result1 = run_topology_posterior(
-            universe, _simple_cost_fn, self.cfg, seed=42
-        )
-        result2 = run_topology_posterior(
-            universe, _simple_cost_fn, self.cfg, seed=99
-        )
+        result1 = run_topology_posterior(universe, _simple_cost_fn, self.cfg, seed=42)
+        result2 = run_topology_posterior(universe, _simple_cost_fn, self.cfg, seed=99)
         # The chains may differ, but both should produce valid probabilities
         for prob in result1["edge_probabilities"].values():
             self.assertGreaterEqual(prob, 0.0)
@@ -118,9 +110,7 @@ class TestTopologyPosterior(unittest.TestCase):
         self.cfg.topology_posterior_samples = 200
         self.cfg.topology_posterior_burnin = 50
 
-        result = run_topology_posterior(
-            universe, _simple_cost_fn, self.cfg, seed=42
-        )
+        result = run_topology_posterior(universe, _simple_cost_fn, self.cfg, seed=42)
         self.assertIn("edge_probabilities", result)
         self.assertIn("edge_log_odds", result)
         self.assertIn("map_edges", result)
@@ -338,8 +328,7 @@ class TestTopologyPosterior(unittest.TestCase):
             seed=19,
         )
         starts = {
-            tuple(sorted(edge_ids))
-            for edge_ids in result["initial_edge_ids_by_chain"]
+            tuple(sorted(edge_ids)) for edge_ids in result["initial_edge_ids_by_chain"]
         }
         self.assertGreater(len(starts), 1)
 

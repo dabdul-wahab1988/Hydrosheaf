@@ -18,7 +18,6 @@ import flopy
 import numpy as np
 from scipy.ndimage import gaussian_filter
 
-
 ION_ORDER = [
     "Ca",
     "Mg",
@@ -266,15 +265,12 @@ def _tracer_observations(
     # These equations are deliberately not HydroSheaf's input-history lookup.
     tritium = (
         6.2 * np.exp(-age_years / 17.0)
-        + 0.50 * np.exp(-((age_years - 34.0) / 9.5) ** 2)
+        + 0.50 * np.exp(-(((age_years - 34.0) / 9.5) ** 2))
         + rng.normal(0.0, 0.10)
     )
-    argon39 = (
-        100.0
-        * np.exp(-np.log(2.0) * age_years / 269.0)
-        * (1.0 - 0.05 * (1.0 - np.exp(-age_years / 55.0)))
-        + rng.normal(0.0, 1.2)
-    )
+    argon39 = 100.0 * np.exp(-np.log(2.0) * age_years / 269.0) * (
+        1.0 - 0.05 * (1.0 - np.exp(-age_years / 55.0))
+    ) + rng.normal(0.0, 1.2)
     return {
         "tritium_TU": float(max(0.02, tritium)),
         "argon39_pmc": float(max(0.05, argon39)),
@@ -294,17 +290,11 @@ def generate_independent_aquifer(
     mf6_executable = Path(mf6_executable).resolve()
     mp7_executable = Path(mp7_executable).resolve()
     if not mf6_executable.exists() or not mp7_executable.exists():
-        raise FileNotFoundError(
-            "Both official mf6 and mp7 executables are required."
-        )
+        raise FileNotFoundError("Both official mf6 and mp7 executables are required.")
 
     rng = np.random.default_rng(int(seed))
-    gwf, heads, model_metadata = _build_flow_model(
-        int(seed), workspace, mf6_executable
-    )
-    pathlines = _run_pathlines(
-        int(seed), workspace, gwf, mp7_executable
-    )
+    gwf, heads, model_metadata = _build_flow_model(int(seed), workspace, mf6_executable)
+    pathlines = _run_pathlines(int(seed), workspace, gwf, mp7_executable)
     nrow = int(model_metadata["nrow"])
     ncol = int(model_metadata["ncol"])
     delr = float(model_metadata["delr_m"])
@@ -347,8 +337,7 @@ def generate_independent_aquifer(
         chemistry = base * rng.lognormal(0.0, 0.055, base.size)
         for milestone_index, column in enumerate(milestone_columns):
             records = path[
-                np.floor(np.maximum(path["x"], 0.0) / delr).astype(int)
-                >= column
+                np.floor(np.maximum(path["x"], 0.0) / delr).astype(int) >= column
             ]
             if records.size == 0:
                 raise RuntimeError(

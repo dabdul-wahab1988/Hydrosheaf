@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
 import json
 from pathlib import Path
 import shutil
 import sys
-from typing import Dict, Iterable, Mapping, Sequence
+from typing import Dict, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
@@ -22,7 +21,6 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parents[2]
@@ -39,7 +37,6 @@ from strong_inference import (  # noqa: E402
     StrongInferenceResult,
     run_strong_inference,
 )
-
 
 DEV_SEEDS = (2101, 2102, 2103, 2104, 2105, 2106)
 TEST_SEEDS = (
@@ -159,14 +156,9 @@ def _predict_fusion(
     scales = np.asarray(model["scales"], float)
     coefficients = np.asarray(model["coefficients"], float)
     linear = float(model["intercept"]) + ((x - means) / scales) @ coefficients
-    probability = 1.0 / (
-        1.0 + np.exp(-np.clip(linear, -40.0, 40.0))
-    )
+    probability = 1.0 / (1.0 + np.exp(-np.clip(linear, -40.0, 40.0)))
     if model.get("kind") == "age_compatibility_gate":
-        incompatible = (
-            frame["age_cost"].to_numpy(float)
-            > float(model["age_cost_max"])
-        )
+        incompatible = frame["age_cost"].to_numpy(float) > float(model["age_cost_max"])
         probability[incompatible] = np.minimum(
             probability[incompatible],
             float(model.get("incompatible_probability", 1.0e-6)),
@@ -247,9 +239,7 @@ def _paired_case_bootstrap(
         differences = {"f1": [], "pr_auc": []}
         for _ in range(int(n_bootstrap)):
             sampled = rng.choice(seeds, size=len(seeds), replace=True)
-            pieces = [
-                test_frame[test_frame["seed"] == seed] for seed in sampled
-            ]
+            pieces = [test_frame[test_frame["seed"] == seed] for seed in sampled]
             boot = pd.concat(pieces, ignore_index=True)
             truth = boot["is_true_edge"].to_numpy(int)
             full = _metrics(
@@ -309,25 +299,17 @@ def _topology_summary(
             else 0.0
         ),
         "n_edges_r_hat": result.posterior_diagnostics.get("n_edges_r_hat"),
-        "n_edges_ess_bulk": result.posterior_diagnostics.get(
-            "n_edges_ess_bulk"
-        ),
-        "n_edges_ess_tail": result.posterior_diagnostics.get(
-            "n_edges_ess_tail"
-        ),
+        "n_edges_ess_bulk": result.posterior_diagnostics.get("n_edges_ess_bulk"),
+        "n_edges_ess_tail": result.posterior_diagnostics.get("n_edges_ess_tail"),
         "edge_r_hat_max": max(edge_rhat) if edge_rhat else None,
         "edge_ess_min": min(edge_ess) if edge_ess else None,
         "acceptance_rate": result.posterior_diagnostics.get("acceptance_rate"),
         "converged": bool(
             result.posterior_diagnostics.get("n_edges_r_hat") is not None
             and float(result.posterior_diagnostics["n_edges_r_hat"]) <= 1.01
-            and float(
-                result.posterior_diagnostics.get("n_edges_ess_bulk", 0.0)
-            )
+            and float(result.posterior_diagnostics.get("n_edges_ess_bulk", 0.0))
             >= 400.0
-            and float(
-                result.posterior_diagnostics.get("n_edges_ess_tail", 0.0)
-            )
+            and float(result.posterior_diagnostics.get("n_edges_ess_tail", 0.0))
             >= 400.0
             and (max(edge_rhat) if edge_rhat else float("inf")) <= 1.01
             and (min(edge_ess) if edge_ess else 0.0) >= 400.0
@@ -423,12 +405,8 @@ def run_benchmark(
     protocol_stage: str = "initial_locked",
 ) -> Dict[str, object]:
     if age_evidence_mode not in {"logistic", "direction_gate"}:
-        raise ValueError(
-            "age_evidence_mode must be 'logistic' or 'direction_gate'."
-        )
-    age_travel_cost_weight = (
-        0.0 if age_evidence_mode == "direction_gate" else 0.1
-    )
+        raise ValueError("age_evidence_mode must be 'logistic' or 'direction_gate'.")
+    age_travel_cost_weight = 0.0 if age_evidence_mode == "direction_gate" else 0.1
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)
@@ -464,14 +442,10 @@ def run_benchmark(
             "kind": "age_compatibility_gate",
             "age_cost_max": DIRECTION_GATE_AGE_COST_MAX,
             "incompatible_probability": 1.0e-6,
-            "age_evidence": (
-                "one_sided_downstream_older_probability_with_uncertainty"
-            ),
+            "age_evidence": ("one_sided_downstream_older_probability_with_uncertainty"),
             "development_true_edge_retention": float(
                 np.mean(
-                    development.loc[
-                        development["is_true_edge"] == 1, "age_cost"
-                    ]
+                    development.loc[development["is_true_edge"] == 1, "age_cost"]
                     <= DIRECTION_GATE_AGE_COST_MAX
                 )
             ),
@@ -485,9 +459,7 @@ def run_benchmark(
         development, full_model
     )
     rng = np.random.default_rng(9991)
-    permuted_dev = _age_permuted_frame(
-        development, rng, age_evidence_mode
-    )
+    permuted_dev = _age_permuted_frame(development, rng, age_evidence_mode)
     development["probability_age_permuted_control"] = _predict_fusion(
         permuted_dev, full_model
     )
@@ -499,9 +471,7 @@ def run_benchmark(
         ),
         "hydraulic_chemistry_age": _select_threshold(
             truth_dev,
-            development[
-                "probability_hydraulic_chemistry_age"
-            ].to_numpy(float),
+            development["probability_hydraulic_chemistry_age"].to_numpy(float),
         ),
         "age_permuted_control": _select_threshold(
             truth_dev,
@@ -540,12 +510,8 @@ def run_benchmark(
         phreeqc_rows.append({"seed": seed, **result.phreeqc_diagnostics})
         _write_case_artifacts(output, case, result, "locked_test")
     test = pd.DataFrame(test_rows)
-    test["probability_hydraulic_chemistry"] = _predict_fusion(
-        test, baseline_model
-    )
-    test["probability_hydraulic_chemistry_age"] = _predict_fusion(
-        test, full_model
-    )
+    test["probability_hydraulic_chemistry"] = _predict_fusion(test, baseline_model)
+    test["probability_hydraulic_chemistry_age"] = _predict_fusion(test, full_model)
     rng = np.random.default_rng(9992)
     permuted_test = _age_permuted_frame(test, rng, age_evidence_mode)
     test["probability_age_permuted_control"] = _predict_fusion(
@@ -591,27 +557,24 @@ def run_benchmark(
         reaction_true["dominant_reaction_family_unconstrained"]
         == reaction_true["true_process_family"]
     )
-    reaction_summary = (
-        reaction_true.groupby("true_process", as_index=False)
-        .agg(
-            n=("edge_id", "size"),
-            constrained_family_accuracy=(
-                "constrained_family_correct",
-                "mean",
-            ),
-            unconstrained_family_accuracy=(
-                "unconstrained_family_correct",
-                "mean",
-            ),
-            phreeqc_material_change_fraction=(
-                "phreeqc_objective_change",
-                lambda values: float(np.mean(np.abs(values) > 1e-6)),
-            ),
-            thermodynamic_bound_hit_fraction=(
-                "thermodynamic_bound_hit_count",
-                lambda values: float(np.mean(np.asarray(values) > 0)),
-            ),
-        )
+    reaction_summary = reaction_true.groupby("true_process", as_index=False).agg(
+        n=("edge_id", "size"),
+        constrained_family_accuracy=(
+            "constrained_family_correct",
+            "mean",
+        ),
+        unconstrained_family_accuracy=(
+            "unconstrained_family_correct",
+            "mean",
+        ),
+        phreeqc_material_change_fraction=(
+            "phreeqc_objective_change",
+            lambda values: float(np.mean(np.abs(values) > 1e-6)),
+        ),
+        thermodynamic_bound_hit_fraction=(
+            "thermodynamic_bound_hit_count",
+            lambda values: float(np.mean(np.asarray(values) > 0)),
+        ),
     )
     reaction_overall = pd.DataFrame(
         [
@@ -625,14 +588,10 @@ def run_benchmark(
                     reaction_true["unconstrained_family_correct"].mean()
                 ),
                 "phreeqc_material_change_fraction": float(
-                    np.mean(
-                        np.abs(reaction_true["phreeqc_objective_change"]) > 1e-6
-                    )
+                    np.mean(np.abs(reaction_true["phreeqc_objective_change"]) > 1e-6)
                 ),
                 "thermodynamic_bound_hit_fraction": float(
-                    np.mean(
-                        reaction_true["thermodynamic_bound_hit_count"] > 0
-                    )
+                    np.mean(reaction_true["thermodynamic_bound_hit_count"] > 0)
                 ),
             }
         ]
@@ -642,14 +601,9 @@ def run_benchmark(
     )
 
     field = run_field_prequential(
-        REPO_ROOT
-        / "data"
-        / "NorthenGhana"
-        / "Aquifers_Dataset_Mendeley.xlsx"
+        REPO_ROOT / "data" / "NorthenGhana" / "Aquifers_Dataset_Mendeley.xlsx"
     )
-    field.predictions.to_csv(
-        output / "field_prequential_predictions.csv", index=False
-    )
+    field.predictions.to_csv(output / "field_prequential_predictions.csv", index=False)
     field.summary.to_csv(output / "field_prequential_summary.csv", index=False)
     (output / "field_prequential_audit.json").write_text(
         json.dumps(field.audit, indent=2, default=_json_default),
@@ -663,9 +617,7 @@ def run_benchmark(
     pd.DataFrame(topology_rows).to_csv(
         output / "topology_posterior_diagnostics.csv", index=False
     )
-    pd.DataFrame(age_rows).to_csv(
-        output / "bayesian_age_diagnostics.csv", index=False
-    )
+    pd.DataFrame(age_rows).to_csv(output / "bayesian_age_diagnostics.csv", index=False)
     pd.DataFrame(phreeqc_rows).to_csv(
         output / "phreeqc_constraint_audit.csv", index=False
     )
@@ -684,12 +636,8 @@ def run_benchmark(
         encoding="utf-8",
     )
 
-    full_metrics = method_summary.set_index("method").loc[
-        "hydraulic_chemistry_age"
-    ]
-    baseline_metrics = method_summary.set_index("method").loc[
-        "hydraulic_chemistry"
-    ]
+    full_metrics = method_summary.set_index("method").loc["hydraulic_chemistry_age"]
+    baseline_metrics = method_summary.set_index("method").loc["hydraulic_chemistry"]
     topology_frame = pd.DataFrame(topology_rows)
     age_frame = pd.DataFrame(age_rows)
     manifest: Dict[str, object] = {
@@ -717,16 +665,12 @@ def run_benchmark(
                 ]
             )
         ),
-        "age_incremental_f1": float(
-            full_metrics["f1"] - baseline_metrics["f1"]
-        ),
+        "age_incremental_f1": float(full_metrics["f1"] - baseline_metrics["f1"]),
         "age_incremental_pr_auc": float(
             full_metrics["pr_auc"] - baseline_metrics["pr_auc"]
         ),
         "all_age_cases_converged": bool(age_frame["converged"].all()),
-        "all_topology_cases_converged": bool(
-            topology_frame["converged"].all()
-        ),
+        "all_topology_cases_converged": bool(topology_frame["converged"].all()),
         "phreeqc_all_samples_successful": bool(
             all(row["success_fraction"] == 1.0 for row in phreeqc_rows)
         ),
@@ -780,20 +724,14 @@ def main() -> None:
     parser.add_argument("--age-draws", type=int, default=500)
     args = parser.parse_args()
     dev = DEV_SEEDS[:2] if args.quick else DEV_SEEDS
-    available_test = (
-        CONFIRMATORY_TEST_SEEDS if args.confirmatory else TEST_SEEDS
-    )
+    available_test = CONFIRMATORY_TEST_SEEDS if args.confirmatory else TEST_SEEDS
     test = available_test[:3] if args.quick else available_test
     output = args.output or (
         REPO_ROOT
         / "M7"
         / "m7_strong_integration"
         / "results"
-        / (
-            "m7_2_strong_confirmatory"
-            if args.confirmatory
-            else "m7_2_strong"
-        )
+        / ("m7_2_strong_confirmatory" if args.confirmatory else "m7_2_strong")
     )
     manifest = run_benchmark(
         output=output,
@@ -803,12 +741,8 @@ def main() -> None:
         dev_seeds=dev,
         test_seeds=test,
         age_draws=args.age_draws,
-        age_evidence_mode=(
-            "direction_gate" if args.confirmatory else "logistic"
-        ),
-        topology_updates_per_sample=(
-            32 if args.confirmatory else 16
-        ),
+        age_evidence_mode=("direction_gate" if args.confirmatory else "logistic"),
+        topology_updates_per_sample=(32 if args.confirmatory else 16),
         protocol_stage=(
             "fresh_seed_confirmatory_after_initial_age_contrast_failure"
             if args.confirmatory

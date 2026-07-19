@@ -1,0 +1,28 @@
+{
+  "n_complete_quantitative_pairs": 138,
+  "n_issue_batches": 20,
+  "first_issue_date": "2025-08-05",
+  "last_issue_date": "2025-08-24",
+  "future_wet_labels_used_at_issue": false,
+  "march_features_known_before_august": true,
+  "coordinates_spatially_masked": true,
+  "field_claim": "within-campaign one-step hydrochemistry hold-forward; not independent topology, age, or reaction-truth validation",
+  "ridge_alpha_preregistered": 10.0,
+  "minimum_ridge_samples": 16,
+  "paired_block_bootstrap": {
+    "graph_ridge_minus_persistence": {
+      "mean_paired_mae_difference_log1p": -0.16808617810996448,
+      "ci95_low": -0.1847337903313659,
+      "ci95_high": -0.15222543217769327,
+      "negative_favours_graph_ridge": true,
+      "resampling_unit": "well"
+    },
+    "graph_ridge_minus_expanding_mean_delta": {
+      "mean_paired_mae_difference_log1p": -0.005837072875454959,
+      "ci95_low": -0.012959518948003712,
+      "ci95_high": 0.0012001544294605547,
+      "negative_favours_graph_ridge": true,
+      "resampling_unit": "well"
+    }
+  }
+}

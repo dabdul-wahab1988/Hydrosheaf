@@ -1,0 +1,8 @@
+true_process,n,constrained_family_accuracy,unconstrained_family_accuracy,phreeqc_material_change_fraction,thermodynamic_bound_hit_fraction
+ALL,103,0.6019417475728155,0.5631067961165048,0.6601941747572816,1.0
+carbonate_precipitation,12,0.0,0.0,0.4166666666666667,1.0
+carbonate_weathering,24,0.0,0.0,0.75,1.0
+denitrification,19,1.0,0.8421052631578947,0.7894736842105263,1.0
+iron_reduction,12,0.75,0.75,0.08333333333333333,1.0
+silicate_weathering,24,0.9166666666666666,0.875,0.7083333333333334,1.0
+sulfate_reduction,12,1.0,1.0,1.0,1.0

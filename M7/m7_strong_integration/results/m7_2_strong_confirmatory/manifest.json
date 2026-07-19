@@ -1,0 +1,49 @@
+{
+  "benchmark": "M7.2 strong integration",
+  "protocol_stage": "fresh_seed_confirmatory_after_initial_age_contrast_failure",
+  "age_evidence_mode": "direction_gate",
+  "age_travel_cost_weight": 0.0,
+  "topology_updates_per_sample": 32,
+  "development_seeds": [
+    2101,
+    2102,
+    2103,
+    2104,
+    2105,
+    2106
+  ],
+  "locked_test_seeds": [
+    4101,
+    4102,
+    4103,
+    4104,
+    4105,
+    4106,
+    4107,
+    4108,
+    4109,
+    4110,
+    4111,
+    4112
+  ],
+  "n_development_cases": 6,
+  "n_locked_test_cases": 12,
+  "external_generator": "official MODFLOW 6 + MODPATH 7 + independent nonlinear chemistry",
+  "candidate_recall_test": 0.9537037037037037,
+  "age_incremental_f1": 0.0,
+  "age_incremental_pr_auc": -0.0016857791600721206,
+  "all_age_cases_converged": true,
+  "all_topology_cases_converged": true,
+  "phreeqc_all_samples_successful": true,
+  "phreeqc_materially_active_all_cases": true,
+  "reaction_truth_families_covered": [
+    "carbonate",
+    "silicate_exchange",
+    "sulfate_reduction",
+    "denitrification",
+    "iron_reduction"
+  ],
+  "field_prequential_claim": "within-campaign one-step hydrochemistry hold-forward; not independent topology, age, or reaction-truth validation",
+  "field_n_pairs": 138,
+  "claim_guardrail": "External simulators provide model-conditioned synthetic truth. Northern Ghana supplies within-campaign chemistry hold-forward, not field topology, age, or reaction truth."
+}

@@ -37,19 +37,23 @@ def _get_config_float(config: Any, name: str, default: float) -> float:
 def _get_config_int(config: Any, name: str, default: int) -> int:
     return int(_get_config_float(config, name, float(default)))
 
+
 # Null-model imports (lazy-loaded to avoid circular dependency)
 _null_models_imported = False
 _compute_null_penalty = None
+
 
 def _ensure_null_models():
     global _null_models_imported, _compute_null_penalty
     if not _null_models_imported:
         try:
             from hydrosheaf.null_models import compute_null_penalty as _cnp
+
             _compute_null_penalty = _cnp
         except ImportError:
             _compute_null_penalty = None
         _null_models_imported = True
+
 
 from ..graph.types import Edge
 from ..isotopes import extract_isotopes, isotope_penalty
@@ -70,6 +74,7 @@ from .isotope_metrics import (
 try:
     from hydrosheaf.nuclear.invert import infer_age_from_tracer
     from hydrosheaf.nuclear.nuclides import get_nuclide, TRITIUM
+
     _NUCLEAR_AVAILABLE = True
 except ImportError:
     _NUCLEAR_AVAILABLE = False
@@ -93,7 +98,6 @@ class NodeIsotopeInfo:
     age_identifiable: Optional[bool] = None
 
 
-
 @dataclass
 class EdgeSheafScore:
     edge: Edge
@@ -113,8 +117,13 @@ class EdgeSheafScore:
 
     @property
     def local_score(self) -> float:
-        return self.prior_penalty + self.iso_cost + self.cl_cost + self.age_cost + self.ot_cost
-
+        return (
+            self.prior_penalty
+            + self.iso_cost
+            + self.cl_cost
+            + self.age_cost
+            + self.ot_cost
+        )
 
 
 def _extract_temporal_history(
@@ -252,12 +261,9 @@ def _edge_age_cost(
     )
     sigma_without_travel = math.sqrt(sigma_u**2 + sigma_v**2)
     sigma_diff = math.sqrt(
-        sigma_without_travel**2
-        + max(1e-6, float(travel_sigma_years)) ** 2
+        sigma_without_travel**2 + max(1e-6, float(travel_sigma_years)) ** 2
     )
-    travel_z = (
-        diff - max(0.0, float(expected_travel_years))
-    ) / sigma_diff
+    travel_z = (diff - max(0.0, float(expected_travel_years))) / sigma_diff
     # Age contributes two distinct pieces of evidence.  The one-sided term is
     # the probability that downstream water is older after propagating dating
     # uncertainty; it discriminates direction even when a universal velocity
@@ -265,22 +271,14 @@ def _edge_age_cost(
     # independently specified velocity without allowing a misspecified single
     # velocity to dominate genuinely slow paths.
     direction_z = diff / sigma_without_travel
-    probability_downstream_older = 0.5 * (
-        1.0 + math.erf(direction_z / math.sqrt(2.0))
-    )
-    direction_cost = -math.log(
-        min(1.0, max(1e-12, probability_downstream_older))
-    )
-    cost = (
-        direction_cost
-        + max(0.0, float(travel_cost_weight)) * 0.5 * travel_z**2
-    )
+    probability_downstream_older = 0.5 * (1.0 + math.erf(direction_z / math.sqrt(2.0)))
+    direction_cost = -math.log(min(1.0, max(1e-12, probability_downstream_older)))
+    cost = direction_cost + max(0.0, float(travel_cost_weight)) * 0.5 * travel_z**2
     if diff < -1.645 * sigma_without_travel:
         flags.append("age_reversal")
     elif abs(travel_z) > 2.0:
         flags.append("age_travel_mismatch")
     return float(cost), flags
-
 
 
 def _edge_iso_cost(
@@ -311,32 +309,36 @@ def _edge_iso_cost(
     # Compute evaporation probability pi_evap based on physical proxies
     # Base pi_evap is derived from isotope stats (LMWL departure)
     pi_evap = 0.5 * (node_u.p_evap + node_v.p_evap)
-    
+
     # Physical Heuristic 1: Depth constraint
-    # Evaporation occurs at or near the surface. Groundwater at depth (>30m) 
-    # is unlikely to experience direct evaporative enrichment unless it was 
+    # Evaporation occurs at or near the surface. Groundwater at depth (>30m)
+    # is unlikely to experience direct evaporative enrichment unless it was
     # recharged recently through an open surface water body.
     shallow_depth = _get_config_float(config, "sheaf_shallow_depth_m", 30.0)
-    if node_v.depth_m is not None and shallow_depth > 0 and node_v.depth_m > shallow_depth:
+    if (
+        node_v.depth_m is not None
+        and shallow_depth > 0
+        and node_v.depth_m > shallow_depth
+    ):
         pi_evap *= shallow_depth / node_v.depth_m
-        
+
     # Physical Heuristic 2: Thermodynamic Directionality
-    # Evaporation always increases enrichment (more positive delta values) 
+    # Evaporation always increases enrichment (more positive delta values)
     # and increases the "Evaporation Index" (departure from LMWL).
-    # If the downstream sample is LESS enriched/deviated than upstream, 
+    # If the downstream sample is LESS enriched/deviated than upstream,
     # the process is likely mixing/dilution, not evaporation.
     if node_u.evap_index is not None and node_v.evap_index is not None:
         if abs(node_v.evap_index) <= abs(node_u.evap_index) + 1e-6:
             pi_evap *= 0.5
-            
+
     # Physical Heuristic 3: d-Excess Signature
     # Kinetic fractionation during evaporation uniquely decreases d-excess.
-    # If d-excess increases along a flow path, it strongly suggests a different 
+    # If d-excess increases along a flow path, it strongly suggests a different
     # water source (e.g. mountain-front recharge or different precip regime).
     if node_u.d_excess is not None and node_v.d_excess is not None:
         if node_v.d_excess > node_u.d_excess + 0.5:
             pi_evap *= 0.5
-            
+
     pi_evap = min(0.8, max(0.0, pi_evap))
 
     if pi_evap > 0.3:
@@ -362,7 +364,7 @@ def _build_node_info(
     config: Config,
 ) -> Dict[str, NodeIsotopeInfo]:
     import datetime
-    
+
     node_info: Dict[str, NodeIsotopeInfo] = {}
     for node_id, sample in sample_map.items():
         isotopes = extract_isotopes(
@@ -379,19 +381,23 @@ def _build_node_info(
 
         cl_val = parse_numeric(sample.get("Cl"), config.detection_limit_policy)
         depth_m = sample_depth_m(sample, config)
-        p_evap = compute_evaporation_probability(evap_index, d_excess, depth_m, stats, config)
+        p_evap = compute_evaporation_probability(
+            evap_index, d_excess, depth_m, stats, config
+        )
 
         # Nuclear age inference
         age_years = None
         age_sigma = None
-        
+
         # Check for pre-calculated age
         if "mean_age_years" in sample:
-             age_years = parse_numeric(sample["mean_age_years"], config.detection_limit_policy)
-             age_sigma = parse_numeric(
-                 sample.get("mean_age_std_years"),
-                 config.detection_limit_policy,
-             )
+            age_years = parse_numeric(
+                sample["mean_age_years"], config.detection_limit_policy
+            )
+            age_sigma = parse_numeric(
+                sample.get("mean_age_std_years"),
+                config.detection_limit_policy,
+            )
         age_identifiable = None
         if "tracer_identifiable" in sample:
             raw_identifiable = sample.get("tracer_identifiable")
@@ -403,19 +409,29 @@ def _build_node_info(
                 }
             elif raw_identifiable is not None:
                 age_identifiable = bool(raw_identifiable)
-        
+
         # If no pre-calculated age, try to infer from Tritium
-        if age_years is None and _NUCLEAR_AVAILABLE and infer_age_from_tracer is not None and get_nuclide is not None:
+        if (
+            age_years is None
+            and _NUCLEAR_AVAILABLE
+            and infer_age_from_tracer is not None
+            and get_nuclide is not None
+        ):
             t_keys = ["3H", "tritium", "H3", "H3_TU", "tritium_TU", "Tritium"]
             t_val = None
             for k in t_keys:
                 if k in sample:
                     t_val = parse_numeric(sample[k], config.detection_limit_policy)
-                    if t_val is not None: break
-            
+                    if t_val is not None:
+                        break
+
             if t_val is not None:
                 # Try to get date
-                date_val = sample.get("date") or sample.get("timestamp") or sample.get("sample_date")
+                date_val = (
+                    sample.get("date")
+                    or sample.get("timestamp")
+                    or sample.get("sample_date")
+                )
                 year_fraction = None
                 if date_val:
                     # Simple parser (assume YYYY-MM-DD or similar string, or year float)
@@ -427,12 +443,18 @@ def _build_node_info(
                             # Assume ISO format YYYY-MM-DD
                             d_str = str(date_val).strip()
                             if len(d_str) >= 4:
-                                dt = datetime.datetime.fromisoformat(d_str.replace("Z", "+00:00"))
-                                start = datetime.datetime(dt.year, 1, 1, tzinfo=dt.tzinfo)
-                                year_fraction = dt.year + (dt - start).total_seconds() / (365.25 * 86400)
+                                dt = datetime.datetime.fromisoformat(
+                                    d_str.replace("Z", "+00:00")
+                                )
+                                start = datetime.datetime(
+                                    dt.year, 1, 1, tzinfo=dt.tzinfo
+                                )
+                                year_fraction = dt.year + (
+                                    dt - start
+                                ).total_seconds() / (365.25 * 86400)
                     except Exception:
                         pass
-                
+
                 if year_fraction is not None:
                     # Infer
                     sigma_val = max(0.5, t_val * 0.1)
@@ -440,12 +462,16 @@ def _build_node_info(
                         nuclide = get_nuclide("3H") or TRITIUM
                         if nuclide:
                             res = infer_age_from_tracer(
-                                t_val, sigma_val, year_fraction, 
-                                nuclide=nuclide, 
-                                model="PFM"
+                                t_val,
+                                sigma_val,
+                                year_fraction,
+                                nuclide=nuclide,
+                                model="PFM",
                             )
                             age_years = res["tau_map_years"]
-                            age_sigma = (res["tau_ci_high_years"] - res["tau_ci_low_years"]) / 4.0
+                            age_sigma = (
+                                res["tau_ci_high_years"] - res["tau_ci_low_years"]
+                            ) / 4.0
                     except Exception:
                         pass
 
@@ -463,7 +489,6 @@ def _build_node_info(
             age_identifiable=age_identifiable,
         )
     return node_info
-
 
 
 def _build_node_vectors(
@@ -535,7 +560,7 @@ def _score_candidates(
             if cl_ratio is None:
                 flags.append("cl_missing")
                 cl_missing = True
-        
+
         age_cost = 0.0
         if getattr(config, "sheaf_age_enabled", True):
             attrs = edge.attrs or {}
@@ -544,9 +569,7 @@ def _score_candidates(
                 length_m = float(attrs["distance_km"]) * 1000.0
             velocity_m_year = max(
                 1e-6,
-                _get_config_float(
-                    config, "sheaf_age_velocity_m_year", 100.0
-                ),
+                _get_config_float(config, "sheaf_age_velocity_m_year", 100.0),
             )
             expected_travel = (
                 max(0.0, float(length_m)) / velocity_m_year
@@ -554,14 +577,9 @@ def _score_candidates(
                 else 0.0
             )
             travel_sigma = math.sqrt(
-                _get_config_float(
-                    config, "sheaf_age_process_sigma_years", 5.0
-                )
-                ** 2
+                _get_config_float(config, "sheaf_age_process_sigma_years", 5.0) ** 2
                 + (
-                    _get_config_float(
-                        config, "sheaf_age_travel_time_cv", 1.0
-                    )
+                    _get_config_float(config, "sheaf_age_travel_time_cv", 1.0)
                     * expected_travel
                 )
                 ** 2
@@ -591,7 +609,9 @@ def _score_candidates(
             sample_a = sample_map.get(edge.u, {})
             sample_b = sample_map.get(edge.v, {})
             try:
-                null_score, null_flags = compute_null_penalty(sample_a, sample_b, config)
+                null_score, null_flags = compute_null_penalty(
+                    sample_a, sample_b, config
+                )
                 # Downgrade chemistry/isotope support proportionally to null plausibility
                 # Higher null_score -> larger added cost
                 iso_cost += null_score * null_weight * weight_iso
@@ -614,12 +634,16 @@ def _score_candidates(
                 sample_u = sample_map.get(edge.u, {})
                 sample_v = sample_map.get(edge.v, {})
                 x_u, _ = vector_from_sample(
-                    sample_u, config.ion_order,
-                    config.missing_policy, config.detection_limit_policy,
+                    sample_u,
+                    config.ion_order,
+                    config.missing_policy,
+                    config.detection_limit_policy,
                 )
                 x_v, _ = vector_from_sample(
-                    sample_v, config.ion_order,
-                    config.missing_policy, config.detection_limit_policy,
+                    sample_v,
+                    config.ion_order,
+                    config.missing_policy,
+                    config.detection_limit_policy,
                 )
                 if x_u is not None and x_v is not None:
                     ot_result = compute_unbalanced_ot(
@@ -631,11 +655,21 @@ def _score_candidates(
                     ot_attrs = {
                         "ot_total_cost": raw_ot_total,
                         "ot_score_contribution": ot_cost,
-                        "ot_balanced_cost": float(ot_result.get("ot_balanced_cost", 0.0)),
-                        "ot_creation_mass": float(ot_result.get("ot_creation_mass", 0.0)),
-                        "ot_destruction_mass": float(ot_result.get("ot_destruction_mass", 0.0)),
-                        "ot_conservative_mismatch": float(ot_result.get("ot_conservative_mismatch", 0.0)),
-                        "ot_reaction_plausibility": float(ot_result.get("ot_reaction_plausibility", 0.0)),
+                        "ot_balanced_cost": float(
+                            ot_result.get("ot_balanced_cost", 0.0)
+                        ),
+                        "ot_creation_mass": float(
+                            ot_result.get("ot_creation_mass", 0.0)
+                        ),
+                        "ot_destruction_mass": float(
+                            ot_result.get("ot_destruction_mass", 0.0)
+                        ),
+                        "ot_conservative_mismatch": float(
+                            ot_result.get("ot_conservative_mismatch", 0.0)
+                        ),
+                        "ot_reaction_plausibility": float(
+                            ot_result.get("ot_reaction_plausibility", 0.0)
+                        ),
                     }
             except Exception:
                 logger.debug("OT computation failed for edge %s", edge.edge_id)
@@ -654,21 +688,20 @@ def _score_candidates(
                 # Build temporal histories from sample_map if available.
                 # Samples with the same site_id prefix or containing a date/timestamp
                 # key are grouped as time series.
-                upstream_history = _extract_temporal_history(
-                    edge.u, sample_map
-                )
-                downstream_history = _extract_temporal_history(
-                    edge.v, sample_map
-                )
+                upstream_history = _extract_temporal_history(edge.u, sample_map)
+                downstream_history = _extract_temporal_history(edge.v, sample_map)
 
                 causal_result = compute_causal_support(
-                    sample_u, sample_v,
+                    sample_u,
+                    sample_v,
                     upstream_history=upstream_history,
                     downstream_history=downstream_history,
                     config=config,
                 )
                 causal_support = float(causal_result.get("causal_support_score", 0.0))
-                causal_confound = float(causal_result.get("causal_confounded_score", 0.0))
+                causal_confound = float(
+                    causal_result.get("causal_confounded_score", 0.0)
+                )
                 causal_status = str(causal_result.get("causal_status", ""))
                 causal_weight_val = _get_config_float(config, "causal_weight", 0.25)
                 causal_attrs = causal_result
@@ -712,7 +745,6 @@ def _score_candidates(
     return scores
 
 
-
 def _select_by_score(
     scores: Mapping[str, EdgeSheafScore],
     candidate_groups: Mapping[str, List[str]],
@@ -737,7 +769,7 @@ def _select_by_score(
                 penalty = float(selection_penalties.get(edge_id, 0.0))
             total = score_obj.local_score + global_weight * residual + penalty
             scored.append((total, score_obj.edge, score_obj))
-        
+
         if not scored:
             continue
 
@@ -747,12 +779,12 @@ def _select_by_score(
         max_val = max(vals)
         exps = [math.exp(v - max_val) for v in vals]
         sum_exps = sum(exps)
-        
+
         weighted_edges: List[Tuple[float, float, Edge]] = []
         for (score, edge, score_obj), weight_factor in zip(scored, exps):
             # Normalized weight
             prob = weight_factor / sum_exps if sum_exps > 0 else 0.0
-            
+
             # Preserve the immutable hydraulic prior. The sheaf weight is a
             # data-derived solver weight and must not overwrite the prior used
             # by topology posterior sampling.
@@ -824,7 +856,9 @@ def refine_edges_with_sheaf(
             )
             if getattr(config, "head_plane_residual_enabled", False):
                 _head_map = extract_node_heads(sample_map, config)
-                _n_neighbors = _get_config_int(config, "head_plane_residual_neighbors", 8)
+                _n_neighbors = _get_config_int(
+                    config, "head_plane_residual_neighbors", 8
+                )
                 hodge_local_residuals = compute_local_head_plane_residuals(
                     _head_map, sample_map, n_neighbors=_n_neighbors
                 )
@@ -834,12 +868,7 @@ def refine_edges_with_sheaf(
                 exc_info=True,
             )
 
-    selected = _select_by_score(
-        scores, 
-        grouped, 
-        max_neighbors, 
-        soft_beta=soft_beta
-    )
+    selected = _select_by_score(scores, grouped, max_neighbors, soft_beta=soft_beta)
 
     global_weight = _get_config_float(config, "sheaf_weight_global", 1.0)
     max_iter = _get_config_int(config, "sheaf_max_iter", 3)
@@ -864,7 +893,7 @@ def refine_edges_with_sheaf(
         residuals: Dict[str, float] = {}
         if has_chemistry:
             edge_maps = build_edge_maps(
-                candidate_list, # Always use all candidates for building map potential
+                candidate_list,  # Always use all candidates for building map potential
                 node_estimates,
                 config,
                 prior_weight=_get_config_float(config, "sheaf_weight_head_prior", 1.0),
@@ -888,12 +917,14 @@ def refine_edges_with_sheaf(
             )
 
             current_energy = sum(
-                (node_estimates[nid][d] - (val[d] if val else 0.0))**2
+                (node_estimates[nid][d] - (val[d] if val else 0.0)) ** 2
                 for nid, val in node_vectors.items()
                 if val is not None
                 for d in range(len(val))
             )
-            logger.science(f"Iter {iter_idx+1}: Global Section Energy = {current_energy:.4f}")
+            logger.science(
+                f"Iter {iter_idx+1}: Global Section Energy = {current_energy:.4f}"
+            )
 
             edge_maps = build_edge_maps(
                 candidate_list,
@@ -924,15 +955,15 @@ def refine_edges_with_sheaf(
                 )
 
         updated = _select_by_score(
-            scores, 
-            grouped, 
-            max_neighbors, 
-            residuals, 
+            scores,
+            grouped,
+            max_neighbors,
+            residuals,
             global_weight,
             soft_beta=soft_beta,
             selection_penalties=head_penalties,
         )
-        
+
         selected = updated
 
     final_residuals: Dict[str, float] = {}
@@ -998,7 +1029,9 @@ def refine_edges_with_sheaf(
                 compute_leverage=True,
             )
         except Exception:
-            logger.warning("Sheaf cohomology diagnostics failed; continuing.", exc_info=True)
+            logger.warning(
+                "Sheaf cohomology diagnostics failed; continuing.", exc_info=True
+            )
 
     if use_hydraulic_hodge and selected:
         try:

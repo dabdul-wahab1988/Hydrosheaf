@@ -16,7 +16,6 @@ from typing import Dict, Iterable, Tuple
 import numpy as np
 import pandas as pd
 
-
 ION_COLUMNS = (
     "Ca_mg_L",
     "Mg_mg_L",
@@ -55,9 +54,7 @@ def _build_upstream_features(
         how="inner",
         validate="one_to_one",
     ).copy()
-    merged["head_proxy_m"] = (
-        merged["Elevation_m"] - merged["Static_Water_Level_m"]
-    )
+    merged["head_proxy_m"] = merged["Elevation_m"] - merged["Static_Water_Level_m"]
     coordinates = merged[["Latitude", "Longitude"]].to_numpy(float)
     heads = merged["head_proxy_m"].to_numpy(float)
     chemistry = np.log1p(merged[list(ION_COLUMNS)].to_numpy(float))
@@ -67,8 +64,7 @@ def _build_upstream_features(
         delta = coordinates - coordinates[target]
         distances = np.sqrt(np.sum(delta**2, axis=1))
         eligible = np.flatnonzero(
-            (heads > heads[target])
-            & (np.arange(len(merged)) != target)
+            (heads > heads[target]) & (np.arange(len(merged)) != target)
         )
         same_aquifer = eligible[
             merged.iloc[eligible]["Aquifer_Type"].to_numpy()
@@ -153,7 +149,11 @@ def _design_matrix(
         dtype=float,
     )
     features = pd.concat(
-        [merged[["Well_ID"]].reset_index(drop=True), numeric.reset_index(drop=True), categorical],
+        [
+            merged[["Well_ID"]].reset_index(drop=True),
+            numeric.reset_index(drop=True),
+            categorical,
+        ],
         axis=1,
     )
     matrix = features.drop(columns=["Well_ID"]).to_numpy(float)
@@ -215,10 +215,9 @@ def run_prequential_frames(
     hydro["Sampling_Date"] = _normalise_date(hydro["Sampling_Date"]).to_numpy()
     dry = hydro[hydro["Season"].astype(str).str.lower() == "dry"].copy()
     wet = hydro[hydro["Season"].astype(str).str.lower() == "wet"].copy()
-    quantitative = (
-        dry["Data_Class"].astype(str).str.contains("Quantitative", case=False)
-        & dry[list(ION_COLUMNS)].notna().all(axis=1)
-    )
+    quantitative = dry["Data_Class"].astype(str).str.contains(
+        "Quantitative", case=False
+    ) & dry[list(ION_COLUMNS)].notna().all(axis=1)
     dry = dry.loc[quantitative].copy()
     eligible_wells = set(dry["Well_ID"])
     wet = wet[
@@ -238,15 +237,10 @@ def run_prequential_frames(
         wells[wells["Well_ID"].isin(eligible_wells)].copy(),
         dry,
     )
-    row_index = {well_id: index for index, well_id in enumerate(ids["Well_ID"])}
     dry_by_id = dry.set_index("Well_ID")
     wet_by_id = wet.set_index("Well_ID")
-    dry_log = np.log1p(
-        dry_by_id.loc[ids["Well_ID"], list(ION_COLUMNS)].to_numpy(float)
-    )
-    wet_log = np.log1p(
-        wet_by_id.loc[ids["Well_ID"], list(ION_COLUMNS)].to_numpy(float)
-    )
+    dry_log = np.log1p(dry_by_id.loc[ids["Well_ID"], list(ION_COLUMNS)].to_numpy(float))
+    wet_log = np.log1p(wet_by_id.loc[ids["Well_ID"], list(ION_COLUMNS)].to_numpy(float))
     wet_dates = wet_by_id.loc[ids["Well_ID"], "Sampling_Date"].to_numpy()
 
     prediction_rows = []
@@ -256,9 +250,7 @@ def run_prequential_frames(
         test_indices = np.flatnonzero(wet_dates == issue_date)
         train_indices = np.flatnonzero(wet_dates < issue_date)
         if train_indices.size:
-            mean_delta = (wet_log[train_indices] - dry_log[train_indices]).mean(
-                axis=0
-            )
+            mean_delta = (wet_log[train_indices] - dry_log[train_indices]).mean(axis=0)
         else:
             mean_delta = np.zeros(len(ION_COLUMNS), dtype=float)
 
@@ -273,13 +265,9 @@ def run_prequential_frames(
                 x[test_indices],
                 ridge_alpha,
             )
-            predictions["hydrosheaf_graph_ridge"] = (
-                dry_log[test_indices] + ridge_delta
-            )
+            predictions["hydrosheaf_graph_ridge"] = dry_log[test_indices] + ridge_delta
         else:
-            predictions["hydrosheaf_graph_ridge"] = (
-                dry_log[test_indices] + mean_delta
-            )
+            predictions["hydrosheaf_graph_ridge"] = dry_log[test_indices] + mean_delta
 
         if past_prequential_residuals:
             residual_history = np.vstack(past_prequential_residuals)
@@ -322,27 +310,20 @@ def run_prequential_frames(
 
     predictions_frame = pd.DataFrame(prediction_rows)
     predictions_frame["covered90"] = (
-        (
-            predictions_frame["observed_log1p"]
-            >= predictions_frame["interval90_low_log1p"]
-        )
-        & (
-            predictions_frame["observed_log1p"]
-            <= predictions_frame["interval90_high_log1p"]
-        )
+        predictions_frame["observed_log1p"] >= predictions_frame["interval90_low_log1p"]
+    ) & (
+        predictions_frame["observed_log1p"]
+        <= predictions_frame["interval90_high_log1p"]
     )
-    summary = (
-        predictions_frame.groupby(["method", "ion"], as_index=False)
-        .agg(
-            n=("error_log1p", "size"),
-            mae_log1p=("error_log1p", lambda value: float(np.mean(np.abs(value)))),
-            rmse_log1p=(
-                "error_log1p",
-                lambda value: float(np.sqrt(np.mean(np.asarray(value) ** 2))),
-            ),
-            bias_log1p=("error_log1p", "mean"),
-            coverage90=("covered90", "mean"),
-        )
+    summary = predictions_frame.groupby(["method", "ion"], as_index=False).agg(
+        n=("error_log1p", "size"),
+        mae_log1p=("error_log1p", lambda value: float(np.mean(np.abs(value)))),
+        rmse_log1p=(
+            "error_log1p",
+            lambda value: float(np.sqrt(np.mean(np.asarray(value) ** 2))),
+        ),
+        bias_log1p=("error_log1p", "mean"),
+        coverage90=("covered90", "mean"),
     )
     overall = (
         predictions_frame.groupby("method", as_index=False)
@@ -372,9 +353,9 @@ def run_prequential_frames(
     rng = np.random.default_rng(2047)
     paired_bootstrap: Dict[str, Dict[str, float]] = {}
     for baseline in ("persistence", "expanding_mean_delta"):
-        difference = (
-            per_well["hydrosheaf_graph_ridge"] - per_well[baseline]
-        ).to_numpy(float)
+        difference = (per_well["hydrosheaf_graph_ridge"] - per_well[baseline]).to_numpy(
+            float
+        )
         draws = np.empty(5000, dtype=float)
         for draw in range(draws.size):
             indices = rng.integers(0, difference.size, difference.size)

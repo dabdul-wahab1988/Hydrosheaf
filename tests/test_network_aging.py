@@ -1,6 +1,7 @@
 """
 Tests for Network-Enhanced Bayesian Groundwater Dating.
 """
+
 import unittest
 import numpy as np
 import networkx as nx
@@ -15,33 +16,41 @@ from hydrosheaf.nuclear.input_history import (
 from hydrosheaf.nuclear.lpm import convolve_input
 from hydrosheaf.nuclear.nuclides import ARGON39
 
+
 class NetworkAgingTests(unittest.TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         # Setup synthetic data
         # Graph: A -> B -> C
         cls.graph = nx.DiGraph()
         cls.graph.add_edges_from([("A", "B"), ("B", "C")])
-        
+
         # True ages (years)
         # A is young recharge, B is older, C is fossil
         cls.true_ages = {"A": 5.0, "B": 30.0, "C": 150.0}
         cls.sample_date = 2023.0
-        
+
         # Input history (Global)
         cls.hist = build_default_tritium_input("global")
         lambda_y = np.log(2) / 12.32
-        
+
         # Generate synthetic observations
         cls.obs = {}
         cls.sigmas = {}
-        
+
         for n, age in cls.true_ages.items():
-            val = convolve_input(cls.sample_date, age, cls.hist.years, cls.hist.values, lambda_y, model_type="PFM")
+            val = convolve_input(
+                cls.sample_date,
+                age,
+                cls.hist.years,
+                cls.hist.values,
+                lambda_y,
+                model_type="PFM",
+            )
             cls.obs[n] = float(val)
-            cls.sigmas[n] = max(0.2, val * 0.1) # 10% error
-            
+            cls.sigmas[n] = max(0.2, val * 0.1)  # 10% error
+
         print(f"Synthetic Obs: {cls.obs}")
 
     def test_bayesian_network_inference(self):
@@ -49,6 +58,7 @@ class NetworkAgingTests(unittest.TestCase):
         # SMC does not depend on Numba and is robust to separated bomb-peak modes.
         try:
             import pymc
+
             _ = pymc
         except Exception as exc:
             self.skipTest(f"PyMC unavailable in this environment: {exc}")
@@ -63,22 +73,22 @@ class NetworkAgingTests(unittest.TestCase):
             n_chains=4,
             sampler="smc",
         )
-        
+
         # Check results structure
         self.assertIn("A", results)
         self.assertIn("B", results)
         self.assertIn("C", results)
-        
+
         mean_A = results["A"]["mean_age_years"]
         mean_B = results["B"]["mean_age_years"]
         mean_C = results["C"]["mean_age_years"]
-        
+
         print(f"Inferred Means: A={mean_A:.1f}, B={mean_B:.1f}, C={mean_C:.1f}")
-        
+
         # Check ordering: A < B < C
         # Note: B and C might be close if mixing is allowed, but generally A should be youngest
         self.assertLess(mean_A, mean_C)
-        
+
         # Check modern prob (relaxed for fast test environment with 50 samples)
         self.assertGreater(results["A"]["p_modern"], 0.5)
         diagnostics = results["_diagnostics"]
@@ -111,10 +121,7 @@ class NetworkAgingTests(unittest.TestCase):
             np.asarray([6.0, 6.0]),
         )
         lambda_3h = np.log(2.0) / 12.32
-        tritium = {
-            node: 6.0 * np.exp(-lambda_3h * age)
-            for node, age in ages.items()
-        }
+        tritium = {node: 6.0 * np.exp(-lambda_3h * age) for node, age in ages.items()}
         argon = {
             node: 100.0 * np.exp(-np.log(2.0) * age / 269.0)
             for node, age in ages.items()
@@ -157,6 +164,7 @@ class NetworkAgingTests(unittest.TestCase):
                 n_chains=2,
                 sampler="grid",
             )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -25,7 +25,6 @@ from hydrosheaf.sheaf.topology_refine import refine_edges_with_sheaf
 
 from independent_modflow_generator import ION_ORDER
 
-
 FUSION_FEATURES = (
     "hydraulic_logit",
     "negative_age_cost",
@@ -51,9 +50,7 @@ def strong_config(*, phreeqc_enabled: bool = False) -> Config:
     config = Config(
         ion_order=list(ION_ORDER),
         weights=[1.0] * len(ION_ORDER),
-        conservative_weights=[
-            1.0 if ion == "Cl" else 0.01 for ion in ION_ORDER
-        ],
+        conservative_weights=[1.0 if ion == "Cl" else 0.01 for ion in ION_ORDER],
         measured_ions=list(ION_ORDER),
         phreeqc_enabled=phreeqc_enabled,
         missing_policy="impute_zero",
@@ -157,12 +154,8 @@ def _fusion_probability(
     coefficients = np.asarray(fusion_model["coefficients"], float)
     vector = np.asarray([float(row[name]) for name in feature_names], float)
     standardized = (vector - means) / np.where(scales > 0.0, scales, 1.0)
-    linear = float(fusion_model["intercept"]) + float(
-        standardized @ coefficients
-    )
-    probability = 1.0 / (
-        1.0 + math.exp(-max(-40.0, min(40.0, linear)))
-    )
+    linear = float(fusion_model["intercept"]) + float(standardized @ coefficients)
+    probability = 1.0 / (1.0 + math.exp(-max(-40.0, min(40.0, linear))))
     if fusion_model.get("kind") == "age_compatibility_gate":
         threshold = float(fusion_model["age_cost_max"])
         if float(row["age_cost"]) > threshold:
@@ -243,27 +236,16 @@ def run_strong_inference(
             topology_updates_per_sample
         )
     if age_travel_cost_weight is not None:
-        base_config.sheaf_age_travel_cost_weight = float(
-            age_travel_cost_weight
-        )
+        base_config.sheaf_age_travel_cost_weight = float(age_travel_cost_weight)
     base_config.validate()
     candidates = infer_edges(rows, method="probabilistic", config=base_config)
     calls["infer_edges"] += 1
 
     independent_graph = nx.DiGraph()
     independent_graph.add_nodes_from(str(row["site_id"]) for row in rows)
-    tritium = {
-        str(row["site_id"]): float(row["tritium_TU"])
-        for row in rows
-    }
-    tritium_sigma = {
-        node: max(0.10, 0.12 * value)
-        for node, value in tritium.items()
-    }
-    argon = {
-        str(row["site_id"]): float(row["argon39_pmc"])
-        for row in rows
-    }
+    tritium = {str(row["site_id"]): float(row["tritium_TU"]) for row in rows}
+    tritium_sigma = {node: max(0.10, 0.12 * value) for node, value in tritium.items()}
+    argon = {str(row["site_id"]): float(row["argon39_pmc"]) for row in rows}
     argon_sigma = {node: 1.8 for node in argon}
     # The synthetic experiment treats the recharge-boundary tracer forcing as
     # known, just as a field inversion would use an independently measured
@@ -330,12 +312,8 @@ def run_strong_inference(
         phreeqc_results=phreeqc_results,
     )
     calls["fit_network_constrained"] += 1
-    unconstrained_by_id = {
-        result.edge_id: result for result in unconstrained_results
-    }
-    constrained_by_id = {
-        result.edge_id: result for result in constrained_results
-    }
+    unconstrained_by_id = {result.edge_id: result for result in unconstrained_results}
+    constrained_by_id = {result.edge_id: result for result in constrained_results}
 
     edge_features = []
     for edge in candidates:
@@ -359,9 +337,7 @@ def run_strong_inference(
         chemistry_objective = max(1e-12, float(constrained.objective_score))
         extent_map = {
             str(label): float(extent)
-            for label, extent in zip(
-                constrained.z_labels, constrained.z_extents
-            )
+            for label, extent in zip(constrained.z_labels, constrained.z_extents)
         }
         dominant_label = (
             max(extent_map, key=lambda label: abs(extent_map[label]))
@@ -370,9 +346,7 @@ def run_strong_inference(
         )
         unconstrained_extent_map = {
             str(label): float(extent)
-            for label, extent in zip(
-                unconstrained.z_labels, unconstrained.z_extents
-            )
+            for label, extent in zip(unconstrained.z_labels, unconstrained.z_extents)
         }
         unconstrained_dominant = (
             max(
@@ -396,13 +370,9 @@ def run_strong_inference(
             # incompatible candidates cannot determine the entire fusion
             # coefficient.  This monotone transform preserves the ranking.
             "negative_age_cost": -math.log1p(age_cost),
-            "chemistry_objective_unconstrained": float(
-                unconstrained.objective_score
-            ),
+            "chemistry_objective_unconstrained": float(unconstrained.objective_score),
             "chemistry_objective_constrained": chemistry_objective,
-            "negative_chemistry_log_objective": -math.log1p(
-                chemistry_objective
-            ),
+            "negative_chemistry_log_objective": -math.log1p(chemistry_objective),
             "phreeqc_objective_change": float(
                 constrained.objective_score - unconstrained.objective_score
             ),
@@ -423,9 +393,7 @@ def run_strong_inference(
             ),
         }
         if fusion_model is not None:
-            row["fusion_probability"] = _fusion_probability(
-                row, fusion_model
-            )
+            row["fusion_probability"] = _fusion_probability(row, fusion_model)
         edge_features.append(row)
 
     common_ids = sorted(set(unconstrained_by_id) & set(constrained_by_id))
@@ -444,10 +412,7 @@ def run_strong_inference(
         ),
         "success_fraction": float(
             np.mean(
-                [
-                    bool(value.get("phreeqc_ok"))
-                    for value in phreeqc_results.values()
-                ]
+                [bool(value.get("phreeqc_ok")) for value in phreeqc_results.values()]
             )
         ),
         "n_candidate_edge_fits": len(common_ids),
@@ -466,12 +431,8 @@ def run_strong_inference(
         "n_edges_with_material_objective_change": int(
             np.sum(np.abs(objective_changes) > 1e-6)
         ),
-        "mean_absolute_objective_change": float(
-            np.mean(np.abs(objective_changes))
-        ),
-        "max_absolute_objective_change": float(
-            np.max(np.abs(objective_changes))
-        ),
+        "mean_absolute_objective_change": float(np.mean(np.abs(objective_changes))),
+        "max_absolute_objective_change": float(np.max(np.abs(objective_changes))),
     }
 
     posterior_diagnostics: Dict[str, object] = {}

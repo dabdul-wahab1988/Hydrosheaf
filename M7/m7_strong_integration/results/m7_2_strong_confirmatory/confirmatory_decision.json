@@ -1,0 +1,26 @@
+{
+  "benchmark": "M7.2 strong integration",
+  "protocol_commit_before_locked_test": "3d886b9",
+  "decision": "failed_incremental_age_endpoint",
+  "decision_basis": {
+    "primary_metric": "case-block bootstrap difference in PR-AUC",
+    "age_minus_no_age_mean": -0.00170592508821059,
+    "ci95_low": -0.005574845905224474,
+    "ci95_high": 0.00007316487472374394,
+    "f1_mean_difference": 0.0,
+    "f1_ci95_low": 0.0,
+    "f1_ci95_high": 0.0,
+    "n_independent_test_cases": 12,
+    "n_bootstrap": 10000
+  },
+  "supporting_results": {
+    "candidate_contained_true_edge_retention": 0.9902912621359223,
+    "false_candidate_rejection": 0.2922374429223744,
+    "all_bayesian_age_cases_converged": true,
+    "all_topology_cases_converged": true,
+    "phreeqc_materially_active_all_cases": true
+  },
+  "interpretation": "Bayesian ages are accurate and reject some incompatible false candidates, but do not improve edge ranking beyond hydraulics and chemistry in this generator.",
+  "no_third_fresh_seed_analysis": true,
+  "claim_guardrail": "Do not claim positive incremental topology value from age."
+}

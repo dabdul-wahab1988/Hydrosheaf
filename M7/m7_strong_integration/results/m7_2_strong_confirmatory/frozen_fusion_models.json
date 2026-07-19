@@ -1,0 +1,56 @@
+{
+  "baseline": {
+    "feature_names": [
+      "hydraulic_logit",
+      "negative_chemistry_log_objective"
+    ],
+    "means": [
+      10.211463586299796,
+      -0.17570010315834952
+    ],
+    "scales": [
+      6.113844809063796,
+      0.043383957708075016
+    ],
+    "coefficients": [
+      1.8989327280054438,
+      4.033394910990321
+    ],
+    "intercept": -2.9616401003664463,
+    "training_split": "development_external_simulator_cases_only",
+    "class_weight": "balanced",
+    "regularization_C": 1.0
+  },
+  "full_with_age": {
+    "feature_names": [
+      "hydraulic_logit",
+      "negative_chemistry_log_objective"
+    ],
+    "means": [
+      10.211463586299796,
+      -0.17570010315834952
+    ],
+    "scales": [
+      6.113844809063796,
+      0.043383957708075016
+    ],
+    "coefficients": [
+      1.8989327280054438,
+      4.033394910990321
+    ],
+    "intercept": -2.9616401003664463,
+    "training_split": "development_external_simulator_cases_only",
+    "class_weight": "balanced",
+    "regularization_C": 1.0,
+    "kind": "age_compatibility_gate",
+    "age_cost_max": 0.05,
+    "incompatible_probability": 1e-06,
+    "age_evidence": "one_sided_downstream_older_probability_with_uncertainty",
+    "development_true_edge_retention": 1.0
+  },
+  "thresholds": {
+    "hydraulic_chemistry": 0.6874182433385685,
+    "hydraulic_chemistry_age": 0.6874182433385685,
+    "age_permuted_control": 0.6874182433385685
+  }
+}
