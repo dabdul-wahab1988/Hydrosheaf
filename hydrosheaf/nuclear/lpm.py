@@ -66,8 +66,24 @@ def convolve_input(
         if t_recharge < input_years[0]:
              import warnings
              warnings.warn(f"Recharge date ({t_recharge:.1f}) for PFM exceeds input history start ({input_years[0]:.1f}). Using input-history baseline ({float(input_values[0]):.3g}).")
-             
-        c_in = np.interp(t_recharge, input_years, input_values, left=float(input_values[0]))
+        # The upper bound was previously unguarded while the lower bound was both
+        # checked and given an explicit `left=`.  That asymmetry hid a serious
+        # defect: most GNIP/WISER station records end decades before the sample
+        # date, so np.interp silently clamped every post-record recharge year to
+        # the station's last observed value -- a bomb-era concentration for
+        # early-terminating records.  Warn symmetrically so a truncated input
+        # history can never again be consumed silently.
+        if t_recharge > input_years[-1]:
+             import warnings
+             warnings.warn(f"Recharge date ({t_recharge:.1f}) for PFM is after the input history ends ({input_years[-1]:.1f}). Clamping to the final value ({float(input_values[-1]):.3g}); extend the history to the sample year instead (hydrosheaf.nuclear.tracer_inputs.extend_history_to_present).")
+
+        c_in = np.interp(
+            t_recharge,
+            input_years,
+            input_values,
+            left=float(input_values[0]),
+            right=float(input_values[-1]),
+        )
         return float(c_in * np.exp(-decay_lambda_inv_year * tau_mean_years))
     
     # For distributed models (EM, DM, etc.), we need to integrate.

@@ -160,6 +160,41 @@ def make_table4() -> None:
     )
 
 
+def make_table4b_graph_replication() -> None:
+    """Cross-aquifer replication of the graph benchmark.
+
+    The primary graph benchmark runs on the national public-supply release
+    (1,272 nodes).  Adding the 74 coordinate-bearing MRVA alluvial wells gives a
+    structurally different aquifer -- contiguous alluvium, median well spacing
+    15.5 km against 40-95 km nationally, with nested piezometers -- and so tests
+    whether the graph conclusions hold across aquifer type rather than only on a
+    larger sample.
+
+    The Western Principal Aquifers release cannot appear here: it publishes no
+    well coordinates, so no graph family can be constructed from it.
+    """
+    primary = _read_csv(RESULT_DIR / "m3_real_usgs_graph_benchmark.csv")
+    repl = _read_csv(RESULT_DIR / "m3_graph_benchmark_national_plus_mrva.csv")
+    if primary.empty or repl.empty:
+        return
+    keys = ["graph_family", "prior_strength"]
+    cols = keys + ["n_nodes", "n_edges", "delta_rmse_graph_minus_single",
+                   "n_violations_before", "n_violations_after", "improved_vs_single"]
+    a = primary[[c for c in cols if c in primary.columns]].copy()
+    b = repl[[c for c in cols if c in repl.columns]].copy()
+    merged = a.merge(b, on=keys, suffixes=("_national", "_national_plus_mrva"))
+    merged["support_national"] = "national public-supply only"
+    merged["support_replication"] = "national public-supply + MRVA alluvial"
+    merged["replication_note"] = (
+        "Western Principal Aquifers is excluded: the release publishes no well "
+        "coordinates, so no graph family can be built from it."
+    )
+    merged.to_csv(
+        TABLE_DIR / "Manuscript_Table4b_Graph_Benchmark_Cross_Aquifer_Replication.csv",
+        index=False,
+    )
+
+
 def _scenario_metrics_filtered(df: pd.DataFrame, scenario_id: str, site_ids: set | None = None) -> dict[str, float]:
     """Compute core parity metrics for a specific scenario, optionally filtered by site_ids."""
     subset = df[df["scenario_id"] == scenario_id].copy() if "scenario_id" in df.columns else df.copy()
@@ -192,6 +227,60 @@ def _scenario_metrics_filtered(df: pd.DataFrame, scenario_id: str, site_ids: set
     }
 
 
+RELEASE_LABELS = {
+    "national_public_supply": "National public-supply (Jurgens et al., 2022a)",
+    "western_principal_aquifers": "Western Principal Aquifers (Faulkner & Jurgens, 2019)",
+    "mrva_alluvial": "MRVA alluvial (Gratzer et al., 2025a)",
+}
+
+# What each release can actually support. Reporting a scenario on a release that
+# cannot support it would be worse than omitting it.
+RELEASE_CAPABILITY = {
+    "national_public_supply": "coordinates + reported LPM: all scenarios",
+    "western_principal_aquifers": (
+        "no well coordinates published: parity and ablation scenarios only, "
+        "excluded from all graph families"
+    ),
+    "mrva_alluvial": (
+        "coordinates available; Table8_LPMs.csv unavailable from ScienceBase "
+        "(HTTP 404), so reported-LPM parity cannot be reproduced"
+    ),
+}
+
+
+def write_per_release_replication(design: pd.DataFrame, scenarios) -> None:
+    """Report each scenario separately per source release.
+
+    The three releases are treated as independent replications rather than as a
+    single pooled sample. Pooling would be misleading here: the Western release
+    contributes 290 rows that are all Central Valley, which would take that one
+    aquifer from 6% to 22% of the benchmark and move aggregate metrics for
+    reasons unrelated to method performance. Reporting side by side instead
+    tests whether a conclusion holds across aquifer types, which is a stronger
+    claim than a larger n.
+    """
+    if design.empty or "source_release" not in design.columns:
+        return
+    rows = []
+    for release, grp in design.groupby("source_release"):
+        for scenario_id, label in scenarios:
+            if scenario_id not in set(grp.get("scenario_id", pd.Series(dtype=object))):
+                continue
+            metrics = _scenario_metrics_filtered(grp, scenario_id)
+            if not metrics:
+                continue
+            rows.append({
+                "source_release": RELEASE_LABELS.get(release, release),
+                "release_capability": RELEASE_CAPABILITY.get(release, ""),
+                "mode": label,
+                **metrics,
+            })
+    if not rows:
+        return
+    out = pd.DataFrame(rows)
+    out.to_csv(TABLE_DIR / "Manuscript_Table7_Per_Release_Replication.csv", index=False)
+
+
 def _calibrated_metrics_filtered(df: pd.DataFrame, site_ids: set | None = None) -> dict[str, float]:
     """Compute core parity metrics for calibrated emulation, optionally filtered by site_ids."""
     subset = df.copy()
@@ -222,8 +311,8 @@ def _calibrated_metrics_filtered(df: pd.DataFrame, site_ids: set | None = None) 
 def make_table5_mode_comparison() -> None:
     """Report strict parity, selection, and calibrated-emulation metrics across three subsets:
     1. Full Available
-    2. High-N Common Support (N=655)
-    3. Design Common Support (N=43)
+    2. High-N Common Support (size derived from the scenario intersection)
+    3. Design Common Support (size derived from the scenario intersection)
     """
     design = _mode_results()
     calibrated = _read_csv(RESULT_DIR / "m3_usgs_calibrated_parity.csv")
@@ -236,6 +325,9 @@ def make_table5_mode_comparison() -> None:
         ("screened_dgm_gases", "Screened young-gas correction"),
         ("parity_reported_corrected", "Reported-model parity"),
     ]
+
+    # Independent-replication view: the three releases reported side by side.
+    write_per_release_replication(design, scenarios)  # no-op unless design carries source_release
 
     # Step 1: Compute valid site IDs for each scenario
     valid_sites = {}
@@ -268,9 +360,16 @@ def make_table5_mode_comparison() -> None:
     high_n_sets = [valid_sites[sid] for sid in high_n_scenarios if sid in valid_sites and valid_sites[sid]]
     high_n_intersection = set.intersection(*high_n_sets) if high_n_sets else set()
 
-    # 2b. Design intersection (N=43)
+    # 2b. Design intersection
     all_sets = [s for s in valid_sites.values() if s]
     design_intersection = set.intersection(*all_sets) if all_sets else set()
+
+    # Label the common-support subsets from the intersections actually computed.
+    # These were previously hard-coded (and had drifted: the label read N=43
+    # while the table carried 272 rows). Deriving them keeps the label correct
+    # whenever the underlying scenario coverage changes.
+    high_n_label = f"High-N Common Support (N={len(high_n_intersection)})"
+    design_label = f"Design Common Support (N={len(design_intersection)})"
 
     rows: list[dict] = []
 
@@ -285,27 +384,27 @@ def make_table5_mode_comparison() -> None:
         if metrics:
             rows.append({"subset": "Full Available", "mode": "USGS-calibrated benchmark emulation", **metrics})
 
-    # --- Subset 2: High-N Common Support (N=655) ---
+    # --- Subset 2: High-N Common Support ---
     for scenario_id, label in scenarios:
         if scenario_id in high_n_scenarios and not design.empty and scenario_id in set(design["scenario_id"].dropna()):
             metrics = _scenario_metrics_filtered(design, scenario_id, high_n_intersection)
             if metrics:
-                rows.append({"subset": "High-N Common Support (N=655)", "mode": label, **metrics})
+                rows.append({"subset": high_n_label, "mode": label, **metrics})
     if not calibrated.empty:
         metrics = _calibrated_metrics_filtered(calibrated, high_n_intersection)
         if metrics:
-            rows.append({"subset": "High-N Common Support (N=655)", "mode": "USGS-calibrated benchmark emulation", **metrics})
+            rows.append({"subset": high_n_label, "mode": "USGS-calibrated benchmark emulation", **metrics})
 
-    # --- Subset 3: Design Common Support (N=43) ---
+    # --- Subset 3: Design Common Support ---
     for scenario_id, label in scenarios:
         if not design.empty and scenario_id in set(design["scenario_id"].dropna()):
             metrics = _scenario_metrics_filtered(design, scenario_id, design_intersection)
             if metrics:
-                rows.append({"subset": "Design Common Support (N=43)", "mode": label, **metrics})
+                rows.append({"subset": design_label, "mode": label, **metrics})
     if not calibrated.empty:
         metrics = _calibrated_metrics_filtered(calibrated, design_intersection)
         if metrics:
-            rows.append({"subset": "Design Common Support (N=43)", "mode": "USGS-calibrated benchmark emulation", **metrics})
+            rows.append({"subset": design_label, "mode": "USGS-calibrated benchmark emulation", **metrics})
 
     if rows:
         pd.DataFrame(rows).to_csv(
@@ -426,7 +525,7 @@ def make_supp_tables() -> None:
             )
             .reset_index()
         )
-        age_class.to_csv(TABLE_DIR / "Manuscript_Supp_TableS1_Age_Class_Performance.csv", index=False)
+        age_class.to_csv(TABLE_DIR / "Manuscript_Supp_TableS2_Age_Class_Performance.csv", index=False)
 
         old = (
             design.groupby(["scenario_id", "old_groundwater_status"], dropna=False)
@@ -438,11 +537,11 @@ def make_supp_tables() -> None:
             )
             .reset_index()
         )
-        old.to_csv(TABLE_DIR / "Manuscript_Supp_TableS2_Old_Groundwater_Diagnostics.csv", index=False)
+        old.to_csv(TABLE_DIR / "Manuscript_Supp_TableS3_Old_Groundwater_Diagnostics.csv", index=False)
 
     audit = _read_csv(RESULT_DIR / "m3_gas_correction_audit_summary.csv")
     if not audit.empty:
-        audit.to_csv(TABLE_DIR / "Manuscript_Supp_TableS3_Gas_Correction_Audit.csv", index=False)
+        audit.to_csv(TABLE_DIR / "Manuscript_Supp_TableS4_Gas_Correction_Audit.csv", index=False)
 
 
 def main() -> int:
@@ -450,6 +549,7 @@ def main() -> int:
     make_table2()
     make_table3()
     make_table4()
+    make_table4b_graph_replication()
     make_table5_mode_comparison()
     make_table6_statistical_significance()
     make_supp_tables()

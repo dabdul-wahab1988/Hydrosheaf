@@ -334,7 +334,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     config = load_design_matrix(args.config)
-    df = usgs.load_usgs_national_dataset()
+    df = usgs.load_benchmark_dataset()
     max_rows = None if args.full else args.max_rows
     resolved_age_steps = resolve_age_steps(
         config,

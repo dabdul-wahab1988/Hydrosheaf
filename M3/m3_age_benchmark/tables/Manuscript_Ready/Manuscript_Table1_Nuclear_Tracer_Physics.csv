@@ -1,0 +1,7 @@
+Tracer,Decay or process scale,Target age range (yr),Unit,Benchmark role
+Tritium (3H),12.32,0-60,TU,bomb-pulse young-water tracer
+3H/3He,12.32 parent,0-50,TU-equivalent,closed-system ingrowth apparent age
+Carbon-14 (14C),5730,1000-30000,pmC,old-groundwater radiocarbon constraint
+Helium-4 (4He),accumulation,1000-100000,ccSTP/g,radiogenic accumulation screening constraint
+SF6,stable,0-50,pptv,atmospheric-equivalent gas tracer
+CFC-11/12/113,stable,0-60,pptv,atmospheric-equivalent gas tracers

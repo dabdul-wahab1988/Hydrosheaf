@@ -1,0 +1,30 @@
+{
+  "run_utc": "2026-07-27T13:04:48.850655+00:00",
+  "config": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\configs\\design_matrix.yaml",
+  "output": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_results.csv",
+  "summary": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_summary.csv",
+  "pairwise": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_pairwise_deltas.csv",
+  "qa": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_design_matrix_qa.md",
+  "primary_pointwise_output": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_usgs_benchmark_results.csv",
+  "primary_pointwise_scenario": "tracerlpm_strict_parity",
+  "max_rows": null,
+  "age_steps": 90,
+  "scenario_ids": [
+    "ablation_no_he4",
+    "ablation_raw_c14",
+    "ablation_raw_gases",
+    "hydrosheaf_selection_corrected",
+    "oldwater_c14_ensemble",
+    "oldwater_ensemble_he4_uncertainty",
+    "oldwater_he4_uncertainty",
+    "parity_reported_corrected",
+    "screened_dgm_gases",
+    "tracer_old_only",
+    "tracer_young_only",
+    "tracerlpm_parity_agefractions",
+    "tracerlpm_parity_hier_oldwater",
+    "tracerlpm_strict_parity"
+  ],
+  "n_output_rows": 23030,
+  "pairwise_baseline": "parity_reported_corrected"
+}

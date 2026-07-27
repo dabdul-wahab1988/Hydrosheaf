@@ -97,19 +97,30 @@ def build_default_tritium_input(region: str = "global") -> InputHistory:
     else:
         logger.info(f"Using Standard Northern Continental Tritium scaling (factor={scale}) for region '{region}'")
     
+    # Curve anchors.  The rise is parameterised so that it *reaches* the peak at
+    # 1963 rather than overshooting it: the previous form
+    # ``5 + 100 * exp((y - 1952) / 2)`` reached ~19,000 TU at 1962.5 and then
+    # dropped discontinuously to the nominal 3,000 TU peak, producing a
+    # non-physical spike 2-3x above any real Northern Hemisphere GNIP record.
+    background = 5.0        # pre-bomb background (TU)
+    peak = 3000.0           # approximate 1963 bomb-peak (TU)
+    modern = 10.0           # modern washout background (TU)
+    rise_start, peak_start, peak_end = 1952.0, 1963.0, 1964.0
+
     for y in years:
-        if y < 1952:
-            v = 5.0  # Pre-bomb background
-        elif 1952 <= y < 1963:
-            # Rise
-            v = 5.0 + 100.0 * np.exp((y - 1952) / 2.0)
-        elif 1963 <= y < 1964:
+        if y < rise_start:
+            v = background  # Pre-bomb background
+        elif rise_start <= y < peak_start:
+            # Log-linear rise from background to the peak; continuous at both ends.
+            frac = (y - rise_start) / (peak_start - rise_start)
+            v = background * (peak / background) ** frac
+        elif peak_start <= y < peak_end:
             # Peak
-            v = 3000.0  # approximate peak TU
+            v = peak
         else:
-            # Decay + washout
-            dt = y - 1964
-            v = 3000.0 * np.exp(-dt / 3.0) + 10.0 # decaying to modern background
+            # Decay + washout, continuous with the peak at peak_end.
+            dt = y - peak_end
+            v = (peak - modern) * np.exp(-dt / 3.0) + modern
         
         # Apply regional scaling
         # Note: Background (5-10 TU) is less affected by scaling than the peak, 

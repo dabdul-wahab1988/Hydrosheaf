@@ -384,6 +384,38 @@ def _has_screenable_gas_difference(row):
                     return True
     return False
 
+def load_benchmark_dataset(sources: str | None = None):
+    """Return the analysis table for the benchmark.
+
+    ``sources`` (or the ``M3_DATA_SOURCES`` environment variable) selects which
+    of the releases declared in Section 2.2 are used:
+
+    ``"national"`` - the national public-supply release only (historical default).
+    ``"all"``      - all three releases, harmonised and de-duplicated by
+                     :mod:`m3_data_sources`.
+
+    Rows carry ``source_release``, ``has_coordinates`` and ``has_reported_lpm``
+    so that scenarios which cannot run on a given release (graph families need
+    coordinates, which the Western release does not publish; strict TracerLPM
+    parity needs the reported LPM fields, which MRVA does not provide) are
+    reported on their true support rather than silently averaged together.
+    """
+    import os
+
+    national = load_usgs_national_dataset()
+    choice = (sources or os.environ.get("M3_DATA_SOURCES", "national")).lower()
+    if choice in ("national", "", "none"):
+        national = national.copy()
+        national["source_release"] = "national_public_supply"
+        national["has_coordinates"] = national["lat"].notna() & national["lon"].notna()
+        national["has_reported_lpm"] = True
+        return national
+
+    import m3_data_sources as _ds
+
+    return _ds.load_combined_dataset(national)
+
+
 def load_usgs_national_dataset():
     tracers_path = M2_USGS_DATA / "Table_3_Tracers.txt"
     ages_path = M2_USGS_DATA / "Table_2_Ages.txt"
@@ -675,6 +707,12 @@ def _fit_prepared_benchmark_row(
 
     res = {
         "site_id": row["site_id"],
+        # Provenance travels with every row so results can be reported per
+        # release, and so scenarios can be restricted to their true support
+        # (Western publishes no coordinates; MRVA has no reported-LPM table).
+        "source_release": row.get("source_release", "national_public_supply"),
+        "has_coordinates": row.get("has_coordinates", True),
+        "has_reported_lpm": row.get("has_reported_lpm", True),
         "StudyUnit": row.get("StudyUnit", row.get("StudyUnit_x", "")),
         "AqGroup": row.get("AqGroup", row.get("AqGroup_x", "")),
         "Depth_m": row.get("depth_m", row.get("Depth_m", np.nan)),

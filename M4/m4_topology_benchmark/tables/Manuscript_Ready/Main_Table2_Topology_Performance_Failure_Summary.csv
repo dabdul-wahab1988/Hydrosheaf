@@ -1,0 +1,16 @@
+scenario,evidence_level,validation_mode,independent_validation,precision,recall,f1,false_positives,false_negatives,scale_mismatch,interpretation
+Spatial only,0,independent_graph_inference,True,0.0,0.0,0.0,306,174,True,No topology recovery (control)
+Sink-aware baseline,0,informed_structural_baseline,False,0.382,1.0,0.552,282,0,False,"Informed structural floor — uses only the 3-receptor set, no hydraulic information; every inference scenario must be judged against this row"
+Head gradient,3,independent_graph_inference,True,0.487,0.845,0.618,155,27,False,Partial topology skill
+Hodge pruned,3,independent_graph_inference,True,0.487,0.845,0.618,155,27,False,Partial topology skill
+Proj. gradient,3,independent_graph_inference,True,0.487,0.845,0.618,155,27,False,Partial topology skill
+Head depth,4,independent_graph_inference,True,0.485,0.845,0.616,156,27,False,Partial topology skill
+Hydrostratigraphic,5,independent_graph_inference,True,0.482,0.845,0.614,158,27,False,Partial topology skill
+Negative: random,0,diagnostic_negative_control,False,0.006,0.006,0.006,173,173,False,No topology recovery (control)
+Negative: wrong direction,0,diagnostic_negative_control,False,0.0,0.0,0.0,174,174,True,No topology recovery (control)
+Negative: misrouted sink,0,diagnostic_negative_control,False,0.138,0.138,0.138,150,150,False,Wrong receptor attribution at constant graph size (well-posed replacement for the inapplicable shortcut control)
+Negative: shortcut,0,diagnostic_negative_control,False,0.0,0.0,0.0,0,174,False,"INAPPLICABLE — no edges could be constructed on this reference topology (sources and receptors are disjoint, so no two-hop path exists); not evidence of rejection. See 'Negative: misrouted sink'"
+Sparse node (sensitivity analysis — see Supp Table S9),S,sensitivity_analysis,False,—,—,0.445,—,—,False,Sensitivity diagnostic: mean F1 across 20 node-subsampling trials (10–100% nodes); not comparable with single-run scenario metrics
+Prior: override,6,prior_assisted,False,,,prior-assisted,,,False,Prior-assisted (NOT independent validation)
+Prior: merge,6,prior_assisted,False,,,prior-assisted,,,False,Prior-assisted (NOT independent validation)
+Prior: only,6,prior_assisted,False,,,prior-assisted,,,False,Prior-assisted (NOT independent validation)

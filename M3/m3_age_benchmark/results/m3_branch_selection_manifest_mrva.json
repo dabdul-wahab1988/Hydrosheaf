@@ -1,0 +1,11 @@
+{
+  "dataset": "mrva",
+  "run_utc": "2026-07-27T13:26:19.610801+00:00",
+  "n_sites": 63,
+  "n_ambiguous": 30,
+  "n_depth_edges": 30,
+  "n_random_edges": 30,
+  "seed": 42,
+  "ambiguity_separation_yr": 15.0,
+  "ordering_tolerance_yr": 2.0
+}

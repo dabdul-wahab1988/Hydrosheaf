@@ -203,3 +203,25 @@ M4/m4_topology_benchmark/public_archives/savage/output/
 .codex_work/
 graphify-out/
 *.stackdump
+
+# ---------------------------------------------------------------------------
+# M3 / M4 manuscript provenance (must override the blanket **/results/,
+# **/tables/ and *.csv rules above -- later patterns win).
+#
+# M3 and M4 are submitted manuscripts whose stated contribution is
+# reproducibility, yet the result artifacts backing every table and figure were
+# untracked.  That allowed silent drift: the M4 topology-posterior columns were
+# produced before the 2026-07-19 change to
+# hydrosheaf/inference/topology_posterior.py and no longer reproduced.
+# Directories must be re-included before their contents.
+# ---------------------------------------------------------------------------
+!M3/m3_age_benchmark/results/
+!M3/m3_age_benchmark/results/**
+!M3/m3_age_benchmark/tables/
+!M3/m3_age_benchmark/tables/**
+!M4/m4_topology_benchmark/results/
+!M4/m4_topology_benchmark/results/**
+!M4/m4_topology_benchmark/tables/
+!M4/m4_topology_benchmark/tables/**
+# Keep the bulky raw public-archive dumps out regardless.
+M4/m4_topology_benchmark/results/public_archives/

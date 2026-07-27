@@ -1,0 +1,33 @@
+{
+  "source": "Public MODPATH archive ingestion diagnostics and guarded projection outputs",
+  "archives": {
+    "tier_1_savage": {
+      "name": "USGS Savage Municipal Water-Supply Well MODFLOW-2005/MODPATH 5",
+      "doi": "10.5066/F7J102FK",
+      "url": "https://www.usgs.gov/data/modflow-2005-modpath-and-moc3d-used-groundwater-flow-simulation-pathlines-analysis-and-solute"
+    },
+    "tier_2_great_miami": {
+      "name": "Great Miami River Basin MODFLOW 6/MODPATH 7",
+      "doi": "10.5066/P9X4C9R6",
+      "url": "https://www.sciencebase.gov/catalog/item/60d0e65fd34e86b19a0a0ff0"
+    },
+    "tier_3_long_island": {
+      "name": "Long Island Nitrogen MODFLOW 6/MODPATH 7",
+      "doi": "10.5066/P97VFXZ4",
+      "url": "https://www.sciencebase.gov/catalog/item/609da029d34e6a607548b87d"
+    }
+  },
+  "m4_outputs": {
+    "archive_summary": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\external_modpath_archive_summary.csv",
+    "edge_agreement": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\external_modpath_edge_agreement.csv",
+    "pathline_particles": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\external_modpath_pathline_particles.csv",
+    "pathline_structure": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\external_modpath_pathline_structure.csv",
+    "capture_envelope_overlap": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\external_modpath_capture_envelope_overlap.csv",
+    "capture_envelope_summary": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\external_modpath_capture_envelope_summary.csv",
+    "travel_time_rank": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\external_modpath_travel_time_rank.csv",
+    "travel_time_rank_summary": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\external_modpath_travel_time_rank_summary.csv",
+    "harmonized_travel_time": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\external_modpath_harmonized_travel_time.csv",
+    "harmonized_travel_time_summary": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\external_modpath_harmonized_travel_time_summary.csv",
+    "bootstrap_ci": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\external_modpath_bootstrap_ci.csv"
+  }
+}

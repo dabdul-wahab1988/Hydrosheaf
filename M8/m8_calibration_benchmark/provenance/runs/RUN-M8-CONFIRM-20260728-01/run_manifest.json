@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "run_id": "RUN-M8-CONFIRM-20260728-01",
+  "status": "PASS",
+  "started_at_utc": "2026-07-27T17:23:26.752474+00:00",
+  "ended_at_utc": "2026-07-27T17:24:10.861702+00:00",
+  "config": {
+    "run_id": "RUN-M8-CONFIRM-20260728-01",
+    "replicates": 250,
+    "bootstrap_samples": 2000,
+    "seed": 2026072801,
+    "bootstrap_seed": 2026072802,
+    "truth": {
+      "dispersivity": 2.0,
+      "decay": 0.005
+    },
+    "noise_rel": 0.03,
+    "noise_abs_floor": 0.01,
+    "fd_steps": [
+      0.001,
+      0.0001,
+      1e-05
+    ]
+  },
+  "lock_sha256": "7b43b65eb3dd534707932266733e1b45440cd9cd645562ff082c501c7d91f7b1",
+  "environment": {
+    "python": "3.14.6 (tags/v3.14.6:c63aec6, Jun 10 2026, 10:26:10) [MSC v.1944 64 bit (AMD64)]",
+    "python_executable": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "numpy": "2.4.6",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "matplotlib": "3.10.9",
+    "git_commit": "3a628fcd99ee6b0fc2244ed5048f0156025ac7af"
+  },
+  "artifacts": [
+    {
+      "id": "TAB-M8-TRANSPORT",
+      "path": "manuscript/artifacts/m8_transport_parameter_summary.csv",
+      "bytes": 5841,
+      "sha256": "1250c179c648702d23f6665e386bb18474e4f0936b43e12c8633808189ba92c1"
+    },
+    {
+      "id": "TAB-M8-OED",
+      "path": "manuscript/artifacts/m8_transport_oed_summary.csv",
+      "bytes": 4055,
+      "sha256": "b0b579bc4325a9e57730781cf43ac236b66e4f811c76631779205738483a006d"
+    },
+    {
+      "id": "TAB-M8-KINETICS",
+      "path": "manuscript/artifacts/m8_kinetics_structural_summary.csv",
+      "bytes": 609,
+      "sha256": "45a776d3b7f7ac900edc1ad083cdbf0f6272dce7aef2e973fab804dd271b2ad7"
+    },
+    {
+      "id": "FIG-M8-CONFIRMATORY",
+      "path": "manuscript/artifacts/m8_confirmatory_figure.png",
+      "bytes": 444368,
+      "sha256": "18386e652907c2f2b7f88bac289cc49a67dd507255dc2b35ee98f84d5c633db7"
+    }
+  ],
+  "runtime_seconds": 44.048873999970965
+}

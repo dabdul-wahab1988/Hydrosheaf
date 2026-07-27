@@ -1,0 +1,22 @@
+{
+  "run_utc": "2026-05-18T21:09:35.892333+00:00",
+  "output": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_tracerlpm_parity_modes_full.csv",
+  "summary": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_tracerlpm_parity_modes_full_summary.csv",
+  "pairwise": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_tracerlpm_parity_modes_full_pairwise_deltas.csv",
+  "qa": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_tracerlpm_parity_modes_full_qa.md",
+  "primary_pointwise_output": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_usgs_benchmark_results.csv",
+  "primary_pointwise_scenario": "tracerlpm_strict_parity",
+  "scenario_ids": [
+    "parity_reported_corrected",
+    "tracerlpm_parity_agefractions",
+    "tracerlpm_parity_hier_oldwater",
+    "tracerlpm_strict_parity"
+  ],
+  "n_output_rows": 5088,
+  "source_files": [
+    "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_parity_reported_corrected_full.csv",
+    "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_tracerlpm_strict_parity_full.csv",
+    "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_tracerlpm_parity_hier_oldwater_full.csv",
+    "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_tracerlpm_parity_agefractions_full.csv"
+  ]
+}

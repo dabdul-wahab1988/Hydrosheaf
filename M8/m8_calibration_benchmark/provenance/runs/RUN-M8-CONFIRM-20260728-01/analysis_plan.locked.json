@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "locked_run_id": "RUN-M8-CONFIRM-20260728-01",
+  "artifacts": [
+    {
+      "id": "TAB-M8-TRANSPORT",
+      "kind": "table",
+      "path": "manuscript/artifacts/m8_transport_parameter_summary.csv",
+      "objective_ids": ["OBJ-M8-TRANSPORT"],
+      "generator": "generation_script.py",
+      "inputs": ["M8_CONFIRMATORY_PROTOCOL.md", "scripts/run_m8_confirmatory.py"],
+      "validation_checks": [
+        "Exactly 16 designs times 2 parameters are reported.",
+        "Each cell contains n=250 paired replicates and a finite median with a 95% bootstrap interval.",
+        "Parameter-specific coverage and calibration success are present."
+      ]
+    },
+    {
+      "id": "TAB-M8-OED",
+      "kind": "table",
+      "path": "manuscript/artifacts/m8_transport_oed_summary.csv",
+      "objective_ids": ["OBJ-M8-OED"],
+      "generator": "generation_script.py",
+      "inputs": ["M8_CONFIRMATORY_PROTOCOL.md", "scripts/run_m8_confirmatory.py"],
+      "validation_checks": [
+        "Local and distant starting regimes are separated.",
+        "Parameter-specific errors are reported for every selected strategy.",
+        "Paired comparisons use shared replicate identifiers and bootstrap intervals."
+      ]
+    },
+    {
+      "id": "TAB-M8-KINETICS",
+      "kind": "table",
+      "path": "manuscript/artifacts/m8_kinetics_structural_summary.csv",
+      "objective_ids": ["OBJ-M8-KINETICS"],
+      "generator": "generation_script.py",
+      "inputs": ["M8_CONFIRMATORY_PROTOCOL.md", "scripts/run_m8_confirmatory.py"],
+      "validation_checks": [
+        "Production PHREEQC calculations are finite and non-penalty outputs.",
+        "Data-only single- and multi-time designs report sensitivity collinearity and numerical rank.",
+        "The independent surface-area observation restores numerical rank two."
+      ]
+    },
+    {
+      "id": "FIG-M8-CONFIRMATORY",
+      "kind": "figure",
+      "path": "manuscript/artifacts/m8_confirmatory_figure.png",
+      "objective_ids": ["OBJ-M8-TRANSPORT", "OBJ-M8-OED", "OBJ-M8-KINETICS"],
+      "generator": "generation_script.py",
+      "inputs": ["M8_CONFIRMATORY_PROTOCOL.md", "scripts/run_m8_confirmatory.py"],
+      "validation_checks": [
+        "Balanced 2x2 layout with readable labels and units.",
+        "Panels distinguish predicted local information from realised recovery.",
+        "Kinetic structural evidence is labelled as a controlled synthetic result."
+      ]
+    }
+  ]
+}

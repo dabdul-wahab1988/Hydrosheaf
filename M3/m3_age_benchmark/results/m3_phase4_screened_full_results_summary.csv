@@ -1,0 +1,2 @@
+scenario_id,total_rows,metric_rows,finite_estimates,median_abs_log10_error,log10_rmse,within_factor_2,within_factor_10,calibrated_he4_rows
+screened_dgm_gases,1272,1272,1272,0.38273726584818935,1.0645661253332603,0.40959119496855345,0.6776729559748428,838

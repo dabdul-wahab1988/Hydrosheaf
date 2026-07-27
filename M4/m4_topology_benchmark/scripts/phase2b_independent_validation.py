@@ -14,12 +14,19 @@ Architecture notes
 ==================
 *What works*
 - The head-gradient baseline (elevation-as-head proxy, downhill only, 2-nearest
-  neighbours) recovers MODPATH topology at F1 ~0.618, well above the random
-  baseline (~0.003).  This is a real signal from a trivially simple prior.
-- Bayesian Hodge pruning (Scenario 2b) modestly improves precision over the
-  baseline by suppressing topologically inconsistent shortcuts, but does not
-  fundamentally change the performance envelope because the flat-z (elevation)
-  potential field is nearly harmonic (d*d = 0 by construction).
+  neighbours) recovers MODPATH topology at F1 ~0.618, well above the *uninformed*
+  random baseline (~0.006).  BUT the uninformed controls are not the right
+  comparison: the Savage reference is a fan-in graph (150 source cells -> 3
+  receptor cells), and a sink-aware baseline that connects every node to those 3
+  receptors -- using no hydraulic information at all -- already reaches F1 0.552.
+  Scenario 1b (`sink_aware_baseline`) reports this floor explicitly.  Hydraulic
+  directionality is worth ~0.066 F1 over it, not 0.618 over zero.
+- Bayesian Hodge pruning (Scenario 2b) and the projected-gradient prior
+  (Scenario 2d) are run at ``probability_threshold=0.0``, which retains every
+  candidate edge and discards the posterior.  That is why they report metrics
+  IDENTICAL to the unpruned head-gradient baseline -- this is a configuration
+  consequence, not a scientific finding.  `posterior_operating_curve()` reports
+  what the posterior actually buys when the threshold is non-zero.
 - The projected-gradient prior (Scenario 2d) replaces the discretised
   steepest-descent heuristic with a continuous head gradient computed from the
   full MODFLOW grid via finite differences.  This eliminates the artificial
@@ -55,7 +62,7 @@ import math
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
@@ -315,6 +322,76 @@ def infer_projected_gradient_edges(
     )
     return [(e.u, e.v) for e in selected_obj], posterior
 
+# Populated by run_independent_scenarios; written out by main().
+OPERATING_CURVES: List[pd.DataFrame] = []
+
+
+def posterior_operating_curve(
+    scenario: str,
+    posterior: Dict[str, Any],
+    ref_edges_raw: List[Tuple[str, str]],
+    candidate_universe: List[Tuple[str, str]],
+    edge_lengths: Dict[Tuple[str, str], float],
+    thresholds: Sequence[float] = tuple(round(0.05 * i, 2) for i in range(0, 20)),
+) -> pd.DataFrame:
+    """Sweep the posterior inclusion probability and report the P/R/F1 trade-off.
+
+    The benchmark's primary weakness is that the head-gradient graph produces
+    more false positives than true positives (FP 155 > TP 147).  The topology
+    posterior is already computed for the Hodge and projected-gradient
+    scenarios, but those scenarios are evaluated at
+    ``probability_threshold = 0.0`` -- i.e. every candidate edge is retained and
+    the posterior is discarded.  That is why they report metrics identical to the
+    unpruned head-gradient baseline.
+
+    This function reports what the posterior actually buys: the operating curve
+    obtained by retaining only edges whose posterior inclusion probability
+    exceeds a threshold.
+    """
+    probs: Dict[Tuple[str, str], float] = {}
+    for edge_id, prob in posterior.get("edge_probabilities", {}).items():
+        if "->" not in str(edge_id):
+            continue
+        u, v = str(edge_id).split("->", 1)
+        probs[(u, v)] = float(prob)
+
+    rows = []
+    for thr in thresholds:
+        kept = sorted(e for e, p in probs.items() if p > thr)
+        report = validate_independent_graph_against_modpath(
+            kept,
+            ref_edges_raw,
+            candidate_edges=candidate_universe,
+            edge_lengths=edge_lengths,
+        )
+        m = report["metrics"]
+        rows.append({
+            "scenario": scenario,
+            "probability_threshold": thr,
+            "n_inferred_edges": m["n_inferred_edges"],
+            "tp": m["tp"], "fp": m["fp"], "fn": m["fn"],
+            "precision": m["precision"],
+            "recall": m["recall"],
+            "f1": m["f1"],
+            "fp_exceeds_tp": bool(m["fp"] > m["tp"]),
+        })
+    df = pd.DataFrame(rows)
+    df["archive_id"] = "savage_milford_nh"
+    df["posterior_n_edges_mean"] = float(posterior.get("n_edges_mean", float("nan")))
+    df["allowed_claim"] = (
+        "Posterior thresholding trades recall for precision on an independent "
+        "head-proxy candidate graph; the threshold is a reported operating "
+        "choice, not a fitted parameter"
+    )
+    df["required_guardrail"] = (
+        "Thresholds were not selected against the MODPATH reference for the "
+        "headline result; the full curve is reported so the operating point is "
+        "auditable. Selecting the F1-maximising threshold on this curve is "
+        "reference-informed and must be labelled as such"
+    )
+    return df
+
+
 def run_independent_scenarios(
     samples: List[Dict[str, object]],
     ref_edges_raw: List[Tuple[str, str]],
@@ -365,6 +442,55 @@ def run_independent_scenarios(
         "required_guardrail": "Spatial-only graph uses no head, hydrostratigraphic, or MODPATH connectivity information",
     })
 
+    # ---- Scenario 1b: Sink-aware structural baseline (informed control) ----
+    # The MODPATH reference topology is a fan-in graph: 150 distinct source
+    # cells converge onto a small set of receptor (well) cells.  A control that
+    # knows only that receptor set -- and uses NO hydraulic information at all --
+    # already recovers the reference by construction.  This is the correct
+    # baseline against which hydraulic directionality must be judged; the
+    # uninformed controls (spatial-only, random, wrong-direction) cannot test it
+    # because none of them knows the receptor structure.
+    reference_sinks = sorted({v for _u, v in ref_edges_raw})
+    sink_edges = [
+        (u, v) for u in all_node_ids for v in reference_sinks if u != v
+    ]
+    edge_lengths.update(compute_edge_lengths(node_map, sink_edges))
+    report = validate_independent_graph_against_modpath(
+        sink_edges,
+        ref_edges_raw,
+        candidate_edges=candidate_universe,
+        edge_lengths=edge_lengths,
+    )
+    m = report["metrics"]
+    s = report["scale_mismatch"]
+    results.append({
+        "scenario": "sink_aware_baseline",
+        "validation_mode": "informed_structural_baseline",
+        "independent_validation": False,
+        "result_class": "informed_baseline",
+        "n_reference_edges": m["n_reference_edges"],
+        "n_inferred_edges": m["n_inferred_edges"],
+        "tp": m["tp"], "fp": m["fp"], "fn": m["fn"], "tn": m["tn"],
+        "precision": m["precision"], "recall": m["recall"], "f1": m["f1"],
+        "false_positive_rate": m["false_positive_rate"],
+        "false_negative_rate": m["false_negative_rate"],
+        "scale_mismatch": s["scale_mismatch"],
+        "median_reference_length": s["median_reference_length"],
+        "median_inferred_length": s["median_inferred_length"],
+        "n_reference_sinks": len(reference_sinks),
+        "control_applicable": True,
+        "allowed_claim": (
+            "Knowledge of the receptor (sink) set alone, with no hydraulic "
+            "information, establishes the structural performance floor for this "
+            "fan-in reference topology"
+        ),
+        "required_guardrail": (
+            "This is an informed structural baseline, not a Hydrosheaf inference. "
+            "Any inference scenario must be compared against this row, not only "
+            "against the uninformed spatial/random/wrong-direction controls"
+        ),
+    })
+
     # ---- Scenario 2: Head-gradient constrained (elevation proxy, downhill only) ----
     head_obj = infer_edges_from_coordinates(samples, max_neighbors=2, allow_uphill=False)
     head_edges = [(e.u, e.v) for e in head_obj]
@@ -396,7 +522,14 @@ def run_independent_scenarios(
     })
 
     # ---- Scenario 2b: Head-gradient + Bayesian Hodge posterior ----
+    OPERATING_CURVES.clear()
     hodge_edges, posterior = infer_bayesian_hodge_edges(samples)
+    OPERATING_CURVES.append(
+        posterior_operating_curve(
+            "head_gradient_bayesian_hodge", posterior,
+            ref_edges_raw, candidate_universe, edge_lengths,
+        )
+    )
     edge_lengths.update(compute_edge_lengths(node_map, hodge_edges))
     report = validate_independent_graph_against_modpath(
         hodge_edges,
@@ -430,6 +563,12 @@ def run_independent_scenarios(
     pg_result = infer_projected_gradient_edges(samples, node_df) if node_df is not None else None
     if pg_result is not None:
         pg_edges, pg_posterior = pg_result
+        OPERATING_CURVES.append(
+            posterior_operating_curve(
+                "real_head_projected_gradient", pg_posterior,
+                ref_edges_raw, candidate_universe, edge_lengths,
+            )
+        )
         edge_lengths.update(compute_edge_lengths(node_map, pg_edges))
         report = validate_independent_graph_against_modpath(
             pg_edges,
@@ -675,16 +814,27 @@ def run_independent_scenarios(
 
     # ---- Scenario 8: Negative shortcut (skip intermediate nodes) ----
     # Build a path-based shortcut: for each reference edge u->v, if v has an
-    # outgoing edge v->w, skip v and create u->w
+    # outgoing edge v->w, skip v and create u->w.
+    #
+    # NOTE: this control is only well-posed when the reference graph contains
+    # two-hop paths, i.e. when at least one node is both a source and a target.
+    # The Savage MODPATH reference is a fan-in graph (sources and receptors are
+    # disjoint), so no two-hop path exists and this control emits zero edges.
+    # A zero-edge control is INAPPLICABLE, not "failed" -- it must not be
+    # reported as evidence that shortcut topology was rejected.  Applicability
+    # is recorded explicitly in `control_applicable` below, and a well-posed
+    # replacement (negative_misrouted_sink) is run in Scenario 8b.
     ref_graph: Dict[str, List[str]] = {}
     for u, v in ref_edges_raw:
         ref_graph.setdefault(u, []).append(v)
+    ref_edge_set = set(ref_edges_raw)
     shortcuts = []
     for u, v in ref_edges_raw:
         for w in ref_graph.get(v, []):
-            if w != u and (u, w) not in ref_edges_raw:
+            if w != u and (u, w) not in ref_edge_set:
                 shortcuts.append((u, w))
-    shortcuts = list(set(shortcuts))[:len(ref_edges_raw)]  # Cap at same count
+    shortcuts = sorted(set(shortcuts))[:len(ref_edges_raw)]  # Cap at same count
+    shortcut_applicable = len(shortcuts) > 0
     report_sc = validate_independent_graph_against_modpath(
         shortcuts, ref_edges_raw,
         candidate_edges=candidate_universe,
@@ -706,9 +856,71 @@ def run_independent_scenarios(
         "scale_mismatch": s["scale_mismatch"],
         "median_reference_length": s["median_reference_length"],
         "median_inferred_length": s["median_inferred_length"],
-        "allowed_claim": "Shortcut edges test sensitivity to skipped intermediate nodes",
-        "required_guardrail": "Shortcut graph is a diagnostic negative control, not a Hydrosheaf inference",
+        "control_applicable": shortcut_applicable,
+        "allowed_claim": (
+            "Shortcut edges test sensitivity to skipped intermediate nodes"
+            if shortcut_applicable
+            else "NONE - control is inapplicable: the reference graph contains no "
+                 "two-hop paths (sources and receptors are disjoint), so the "
+                 "shortcut edge set is empty by construction. This row is NOT "
+                 "evidence that shortcut topology was rejected."
+        ),
+        "required_guardrail": (
+            "Shortcut graph is a diagnostic negative control, not a Hydrosheaf inference"
+            if shortcut_applicable
+            else "Do not report this row as a failed control. n_inferred_edges = 0 "
+                 "means the control could not be constructed on this reference "
+                 "topology; see negative_misrouted_sink for the well-posed substitute"
+        ),
     })
+
+    # ---- Scenario 8b: Negative misrouted-sink control (well-posed substitute) ----
+    # On a fan-in reference the meaningful "plausible but wrong" topology error
+    # is not a skipped intermediate node -- it is routing a source to the wrong
+    # receptor.  Each reference edge u->v is replaced by u->v', where v' is a
+    # different reference sink.  This produces a graph of the same size and the
+    # same fan-in shape as the reference, differing only in receptor assignment,
+    # and therefore isolates receptor attribution from graph density.
+    if len(reference_sinks) > 1:
+        misrouted = [
+            (u, reference_sinks[(reference_sinks.index(v) + 1) % len(reference_sinks)])
+            for u, v in ref_edges_raw
+        ]
+        misrouted = sorted(set(misrouted))
+        edge_lengths.update(compute_edge_lengths(node_map, misrouted))
+        report_mr = validate_independent_graph_against_modpath(
+            misrouted, ref_edges_raw,
+            candidate_edges=candidate_universe,
+            edge_lengths=edge_lengths,
+        )
+        m = report_mr["metrics"]
+        s = report_mr["scale_mismatch"]
+        results.append({
+            "scenario": "negative_misrouted_sink",
+            "validation_mode": "diagnostic_negative_control",
+            "independent_validation": False,
+            "result_class": "negative_control",
+            "n_reference_edges": m["n_reference_edges"],
+            "n_inferred_edges": m["n_inferred_edges"],
+            "tp": m["tp"], "fp": m["fp"], "fn": m["fn"], "tn": m["tn"],
+            "precision": m["precision"], "recall": m["recall"], "f1": m["f1"],
+            "false_positive_rate": m["false_positive_rate"],
+            "false_negative_rate": m["false_negative_rate"],
+            "scale_mismatch": s["scale_mismatch"],
+            "median_reference_length": s["median_reference_length"],
+            "median_inferred_length": s["median_inferred_length"],
+            "control_applicable": True,
+            "allowed_claim": (
+                "Reassigning each source to a different reference receptor tests "
+                "whether the benchmark penalises wrong receptor attribution at "
+                "constant graph size and fan-in shape"
+            ),
+            "required_guardrail": (
+                "Misrouted-sink graph is a diagnostic negative control, not a "
+                "Hydrosheaf inference. It replaces the inapplicable two-hop "
+                "shortcut control on fan-in reference topologies"
+            ),
+        })
 
     return pd.DataFrame(results)
 
@@ -922,6 +1134,21 @@ def main():
         tp_str = f"TP={int(row['tp'])}" if not pd.isna(row['tp']) else ""
         precision_str = f"Prec={row['precision']:.3f}" if not pd.isna(row['precision']) else ""
         print(f"  {row['scenario']:30s}  {f1_str:10s}  {tp_str:10s}  {precision_str:10s}")
+
+    # Save posterior operating curves (what thresholding the posterior buys)
+    if OPERATING_CURVES:
+        curves = pd.concat(OPERATING_CURVES, ignore_index=True)
+        curve_path = SAVAGE_RESULTS / "posterior_operating_curve.csv"
+        curves.to_csv(curve_path, index=False)
+        curves.to_csv(BENCHMARK_RESULTS / "posterior_operating_curve.csv", index=False)
+        print("\n  Posterior operating curve (threshold > 0 actually prunes):")
+        for scen, sub in curves.groupby("scenario"):
+            best = sub.loc[sub["f1"].idxmax()]
+            print(
+                f"    {scen:32s} best F1={best['f1']:.3f} at thr={best['probability_threshold']:.2f} "
+                f"(TP={int(best['tp'])} FP={int(best['fp'])} FN={int(best['fn'])} "
+                f"P={best['precision']:.3f} R={best['recall']:.3f})"
+            )
 
     # Save independent results
     indep_path = SAVAGE_RESULTS / "hydrosheaf_independent_edges.csv"

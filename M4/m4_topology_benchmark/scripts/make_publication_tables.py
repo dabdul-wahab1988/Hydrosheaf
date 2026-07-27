@@ -41,12 +41,30 @@ EVIDENCE_LADDER = {
     },
     "negative_shortcut": {
         "evidence_level": 0,
-        "graph_scenario": "Negative control (shortcut edges)",
-        "evidence_source": "Direct source-receptor shortcuts",
+        "graph_scenario": "Negative control (shortcut edges) — INAPPLICABLE on this reference",
+        "evidence_source": "Two-hop paths in the reference graph (none exist here)",
         "independent_validation": False,
-        "main_use": "Sensitivity to skipped intermediate nodes",
-        "allowed_claim": "Shortcut edges test sensitivity to skipped intermediate nodes.",
-        "required_guardrail": "Shortcut graph is a diagnostic negative control, not a Hydrosheaf inference.",
+        "main_use": "Would test sensitivity to skipped intermediate nodes",
+        "allowed_claim": "NONE. The Savage reference is a fan-in graph whose sources and receptors are disjoint, so no two-hop path exists and the shortcut edge set is empty. F1 = 0.000 with 0 inferred edges is an inapplicable control, not a rejected topology hypothesis.",
+        "required_guardrail": "Must not be reported as a failed or rejected control. Use negative_misrouted_sink, which is well-posed on fan-in reference topologies.",
+    },
+    "sink_aware_baseline": {
+        "evidence_level": 0,
+        "graph_scenario": "Sink-aware structural baseline (informed control)",
+        "evidence_source": "The 3-element reference receptor set only; no hydraulic, spatial or MODPATH connectivity information",
+        "independent_validation": False,
+        "main_use": "Establishes the informed performance floor for a fan-in reference topology",
+        "allowed_claim": "Knowledge of the receptor set alone recovers the reference topology at precision 0.382, recall 1.000, F1 0.552. Any inference scenario must be judged against this floor, not only against the uninformed spatial/random/wrong-direction controls.",
+        "required_guardrail": "This is a structural baseline, not a Hydrosheaf inference. It is informed by the reference receptor set and is therefore not an independent method; it bounds how much credit hydraulic directionality can claim.",
+    },
+    "negative_misrouted_sink": {
+        "evidence_level": 0,
+        "graph_scenario": "Negative control (misrouted receptor)",
+        "evidence_source": "Reference edges with each source reassigned to a different reference receptor",
+        "independent_validation": False,
+        "main_use": "Receptor-attribution sensitivity at constant graph size and fan-in shape",
+        "allowed_claim": "Reassigning sources to the wrong receptor collapses F1 to 0.138, showing that the benchmark penalises wrong receptor attribution and is not merely rewarding fan-in shape or graph size.",
+        "required_guardrail": "Misrouted-sink graph is a diagnostic negative control, not a Hydrosheaf inference. It replaces the two-hop shortcut control, which is inapplicable to fan-in reference topologies.",
     },
     "spatial_only": {
         "evidence_level": 0,
@@ -230,9 +248,11 @@ def make_main_table2_performance_summary() -> None:
     ind = perf.copy()
     # sparse_node is a sensitivity analysis — excluded from the scenario comparison rows.
     # spatial_only is a geometry-only control (level 0, F1 = 0.0).
-    scenario_ordered = ["spatial_only", "head_gradient", "head_gradient_bayesian_hodge",
+    scenario_ordered = ["spatial_only", "sink_aware_baseline",
+                        "head_gradient", "head_gradient_bayesian_hodge",
                         "real_head_projected_gradient", "head_depth", "hydrostratigraphic",
-                        "negative_random", "negative_wrong_direction", "negative_shortcut"]
+                        "negative_random", "negative_wrong_direction",
+                        "negative_misrouted_sink", "negative_shortcut"]
     ind["_order"] = ind["scenario"].map({k: i for i, k in enumerate(scenario_ordered)})
     ind = ind.sort_values("_order")
     ind = ind[ind["scenario"].isin(scenario_ordered)]
@@ -253,8 +273,29 @@ def make_main_table2_performance_summary() -> None:
             interpretation = "No topology recovery (control)"
 
         if scenario in ("negative_random", "negative_wrong_direction", "negative_shortcut",
-                        "spatial_only"):
+                        "negative_misrouted_sink", "spatial_only"):
             interpretation = "No topology recovery (control)"
+
+        # A control that emitted no edges is inapplicable to this reference
+        # topology, not a rejected hypothesis; say so instead of reporting a
+        # bare F1 = 0.000 that reads as a passed falsification test.
+        if str(row.get("control_applicable", "")).lower() == "false":
+            interpretation = (
+                "INAPPLICABLE — no edges could be constructed on this reference "
+                "topology (sources and receptors are disjoint, so no two-hop path "
+                "exists); not evidence of rejection. See 'Negative: misrouted sink'"
+            )
+        if scenario == "sink_aware_baseline":
+            interpretation = (
+                "Informed structural floor — uses only the 3-receptor set, no "
+                "hydraulic information; every inference scenario must be judged "
+                "against this row"
+            )
+        if scenario == "negative_misrouted_sink":
+            interpretation = (
+                "Wrong receptor attribution at constant graph size (well-posed "
+                "replacement for the inapplicable shortcut control)"
+            )
 
         rows.append({
             "scenario": _display_scenario(scenario),
@@ -323,6 +364,8 @@ def _display_scenario(value: str) -> str:
         "negative_random": "Negative: random",
         "negative_wrong_direction": "Negative: wrong direction",
         "negative_shortcut": "Negative: shortcut",
+        "sink_aware_baseline": "Sink-aware baseline",
+        "negative_misrouted_sink": "Negative: misrouted sink",
         "modpath_prior_override": "Prior: override",
         "modpath_prior_merge": "Prior: merge",
         "modpath_prior_only": "Prior: only",
@@ -461,6 +504,21 @@ def make_supp_table_s5_external_archive_validation() -> None:
     ]
     table = external[[c for c in columns if c in external.columns]].copy()
     table["evidence_scope"] = "Public MODPATH endpoint-pathline projection diagnostic; not independent Hydrosheaf validation."
+    # A tier whose archive was never ingested must not sit in a validation table
+    # looking like a processed result merely because it carries a live DOI.
+    # Flag processing status explicitly as the first column after the tier id.
+    processed = pd.to_numeric(
+        table.get("n_particles", pd.Series(0, index=table.index)), errors="coerce"
+    ).fillna(0) > 0
+    table["processing_status"] = np.where(
+        processed,
+        "PROCESSED",
+        "NOT PROCESSED - fallback stub; archive was not ingested and contributes "
+        "no validation evidence. Reported for scope transparency only.",
+    )
+    cols = list(table.columns)
+    cols.insert(1, cols.pop(cols.index("processing_status")))
+    table = table[cols]
     _round_numeric(table).to_csv(
         TABLE_DIR / "Supp_TableS5_External_MODPATH_Archive_Validation.csv", index=False
     )

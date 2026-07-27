@@ -1,0 +1,2 @@
+n_receptor_targets,particle_weighted_capture_envelope_iou,median_capture_envelope_iou,median_source_cell_jaccard,guardrail
+59,,0.9999637519258942,1.0,Point-cloud capture envelopes are plotted because no explicit capture-zone polygons/rasters were present in the prepared archive outputs.

@@ -1,0 +1,153 @@
+{
+  "run_utc": "2026-05-21T16:24:12.869046+00:00",
+  "max_rows": null,
+  "age_steps": 35,
+  "skip_selection": false,
+  "artifacts": [
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_results.csv",
+      "exists": true,
+      "bytes": 22721988
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_summary.csv",
+      "exists": true,
+      "bytes": 2090
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_pairwise_deltas.csv",
+      "exists": true,
+      "bytes": 1143
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_usgs_benchmark_results.csv",
+      "exists": true,
+      "bytes": 1660774
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_gas_correction_audit.csv",
+      "exists": true,
+      "bytes": 422959
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_real_usgs_graph_benchmark.csv",
+      "exists": true,
+      "bytes": 7451
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_real_usgs_graph_edges.csv",
+      "exists": true,
+      "bytes": 627128
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_design_matrix_qa.md",
+      "exists": true,
+      "bytes": 5458
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_gas_correction_audit.md",
+      "exists": true,
+      "bytes": 6009
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_graph_benchmark_qa.md",
+      "exists": true,
+      "bytes": 10816
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Supp_TableS1_Age_Class_Performance.csv",
+      "exists": true,
+      "bytes": 608
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Supp_TableS2_Old_Groundwater_Diagnostics.csv",
+      "exists": true,
+      "bytes": 469
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Supp_TableS3_Gas_Correction_Audit.csv",
+      "exists": true,
+      "bytes": 399
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table1_Nuclear_Tracer_Physics.csv",
+      "exists": true,
+      "bytes": 500
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table2_Design_Matrix_Performance.csv",
+      "exists": true,
+      "bytes": 1992
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table3_Paired_Ablation_Effects.csv",
+      "exists": true,
+      "bytes": 1121
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table4_Real_USGS_Graph_Benchmark.csv",
+      "exists": true,
+      "bytes": 4753
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table5_Mode_Comparison.csv",
+      "exists": true,
+      "bytes": 2796
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table6_Statistical_Significance.csv",
+      "exists": true,
+      "bytes": 886
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig1_Atmospheric_Histories.png",
+      "exists": true,
+      "bytes": 325861
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig2_Design_Matrix_Performance.png",
+      "exists": true,
+      "bytes": 461444
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig3_USGS_Benchmark_Parity.png",
+      "exists": true,
+      "bytes": 636509
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig4_Real_USGS_Graph_Benchmark.png",
+      "exists": true,
+      "bytes": 380639
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig5_Age_Class_Diagnostics.png",
+      "exists": true,
+      "bytes": 561180
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig6_Cross_Validation_Results.png",
+      "exists": true,
+      "bytes": 628957
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig7_Residual_Diagnostics.png",
+      "exists": true,
+      "bytes": 463933
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Suppl_Fig1_Gas_Correction_Audit.png",
+      "exists": true,
+      "bytes": 466911
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Suppl_Fig2_Graph_Edge_Properties.png",
+      "exists": true,
+      "bytes": 299085
+    },
+    {
+      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Suppl_Fig3_CFC_CV_Performance.png",
+      "exists": true,
+      "bytes": 183819
+    }
+  ]
+}

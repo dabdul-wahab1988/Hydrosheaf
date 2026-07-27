@@ -1,0 +1,5 @@
+test_or_metric,comparison,statistic,p_value,ci_lower,ci_upper,interpretation
+Paired Wilcoxon signed-rank test,Strict Parity vs Age-Fraction Constraints,162031.0,2.4009737246774183e-16,,,Significant difference in absolute error distributions (p < 0.05).
+Paired t-test,Strict Parity vs Age-Fraction Constraints,5.149819197358972,3.02790524913418e-07,,,Significant difference in mean absolute errors (p < 0.05).
+Bootstrap Difference in MAE (strict - agefractions),Strict Parity vs Age-Fraction Constraints,0.04317516508491269,,0.02167145653477129,0.07215627786195289,Positive difference indicates age-fraction constraints reduce median absolute error (MAE).
+Bootstrap Difference in RMSE (strict - agefractions),Strict Parity vs Age-Fraction Constraints,0.08183251297704616,,0.031063682913303997,0.13140152206076017,Positive difference indicates age-fraction constraints reduce RMSE.

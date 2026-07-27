@@ -1,0 +1,1 @@
+edge_id,source_node,target_node,endpoint_particle_count,pathline_particle_count,reverse_pathline_particle_count,classification,direction_agrees,source_receptor_overlap,travel_time_mean,travel_time_p10,travel_time_p90

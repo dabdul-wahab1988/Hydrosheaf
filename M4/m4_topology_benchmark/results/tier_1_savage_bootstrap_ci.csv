@@ -1,0 +1,11 @@
+metric,estimate,ci_low,ci_high,n,method
+edge_precision,1.0,1.0,1.0,174.0,archive aggregate; no resampling needed for deterministic all-edge summary
+edge_recall,1.0,1.0,1.0,174.0,archive aggregate; no resampling needed for deterministic all-edge summary
+edge_f1,1.0,1.0,1.0,174.0,archive aggregate; no resampling needed for deterministic all-edge summary
+direction_agreement_rate,1.0,1.0,1.0,174.0,archive aggregate; no resampling needed for deterministic all-edge summary
+mean_source_receptor_overlap,1.0,1.0,1.0,174.0,archive aggregate; no resampling needed for deterministic all-edge summary
+edge_source_receptor_overlap_mean_bootstrap,1.0,1.0,1.0,174.0,edge bootstrap
+particle_elapsed_time_median_bootstrap,293.33050000000003,283.88095,303.375125,3000.0,particle bootstrap
+particle_elapsed_time_p90_bootstrap,550.6551999999999,529.1004,557.732615,3000.0,particle bootstrap
+endpoint_projection_preservation_rate_bootstrap,1.0,1.0,1.0,3000.0,particle bootstrap
+compressed_path_cells_median_bootstrap,39.0,39.0,40.0,3000.0,particle bootstrap

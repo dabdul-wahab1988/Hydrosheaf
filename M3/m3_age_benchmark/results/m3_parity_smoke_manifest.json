@@ -1,0 +1,17 @@
+{
+  "run_utc": "2026-05-18T14:32:47.115314+00:00",
+  "config": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\configs\\design_matrix.yaml",
+  "output": "M3\\m3_age_benchmark\\results\\m3_parity_smoke.csv",
+  "summary": "M3\\m3_age_benchmark\\results\\m3_parity_smoke_summary.csv",
+  "pairwise": "M3\\m3_age_benchmark\\results\\m3_parity_smoke_pairwise_deltas.csv",
+  "qa": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_parity_smoke_qa.md",
+  "primary_pointwise_output": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_usgs_benchmark_results.csv",
+  "primary_pointwise_scenario": "parity_reported_corrected",
+  "max_rows": 80,
+  "age_steps": 90,
+  "scenario_ids": [
+    "parity_reported_corrected"
+  ],
+  "n_output_rows": 80,
+  "pairwise_baseline": "parity_reported_corrected"
+}

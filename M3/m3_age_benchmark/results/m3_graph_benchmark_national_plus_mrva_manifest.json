@@ -1,0 +1,8 @@
+{
+  "run_utc": "2026-07-27T13:05:44.897692+00:00",
+  "pointwise_results": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_phase4_screened_full_results.csv",
+  "scenario": "screened_dgm_gases",
+  "n_nodes": 1346,
+  "n_benchmark_rows": 28,
+  "n_edge_rows": 5474
+}

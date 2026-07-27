@@ -128,7 +128,7 @@ def load_pointwise_nodes(path: Path, scenario_id: str) -> pd.DataFrame:
         & pd.to_numeric(df_results["ref_age"], errors="coerce").notna()
         & pd.to_numeric(df_results["est_age_multi"], errors="coerce").notna()
     ].copy()
-    df_source = usgs.load_usgs_national_dataset()[
+    df_source = usgs.load_benchmark_dataset()[
         ["site_id", "StudyUnit", "lat", "lon", "depth_m"]
     ].copy()
     merged = pd.merge(df_results, df_source, on="site_id", how="left")

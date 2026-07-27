@@ -1,0 +1,11 @@
+{
+  "dataset": "national",
+  "run_utc": "2026-07-27T13:26:16.484007+00:00",
+  "n_sites": 415,
+  "n_ambiguous": 214,
+  "n_depth_edges": 82,
+  "n_random_edges": 82,
+  "seed": 42,
+  "ambiguity_separation_yr": 15.0,
+  "ordering_tolerance_yr": 2.0
+}

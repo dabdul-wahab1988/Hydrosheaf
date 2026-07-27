@@ -1,0 +1,4 @@
+scenario_id,paired_rows,median_delta_log10_error,mean_delta_log10_error,improved_fraction,gained_factor_2_rows,lost_factor_2_rows
+tracerlpm_parity_agefractions,1247,0.0,-0.05716958308081999,0.491579791499599,89,36
+tracerlpm_parity_hier_oldwater,1253,0.0,0.23355248363857273,0.12210694333599362,17,159
+tracerlpm_strict_parity,1254,0.0,-0.0015544408952002096,0.013556618819776715,6,2

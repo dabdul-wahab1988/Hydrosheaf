@@ -1,0 +1,9 @@
+component,version,role
+Python,3.14.6,analysis runtime
+hydrosheaf,0.5.1,validation API
+numpy,2.4.6,numeric summaries
+pandas,2.3.3,table generation
+matplotlib,3.10.9,figure generation
+scipy,1.17.1,"convex hull, statistics"
+networkx,3.6.1,graph support
+flopy,3.10.0,MODPATH readers

@@ -80,7 +80,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     print("Loading USGS data...")
-    df = usgs.load_usgs_national_dataset()
+    df = usgs.load_benchmark_dataset()
     if args.study_unit:
         df = df[df["StudyUnit"] == args.study_unit].copy()
     

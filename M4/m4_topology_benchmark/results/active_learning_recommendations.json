@@ -1,0 +1,17 @@
+{
+  "recommendations": [],
+  "summary": {
+    "n_recommendations": 0,
+    "n_edges_scored": 0,
+    "top_priority_score": 0.0,
+    "bootstrap_instability_detected": false,
+    "warning": "No variant data in benchmark report."
+  },
+  "inputs_used": {
+    "benchmark_report": true,
+    "validation_report": true,
+    "samples": true,
+    "candidate_edges": true,
+    "config": true
+  }
+}

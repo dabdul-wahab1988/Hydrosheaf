@@ -1,0 +1,4 @@
+scenario,precision,recall,f1,false_positive_rate,false_negative_rate,tp,fp,fn,n_reference_edges,n_inferred_edges,false_positive_rate_note,evidence_scope,required_guardrail
+2.6.1_spatial_only,0.0,0.0,0.0,,1.0,0.0,306.0,174.0,174.0,306.0,not estimated because a full candidate-edge universe was not defined,endpoint-derived MODPATH connectivity,"This is endpoint transition agreement, not pathline-shape or capture-zone validation."
+2.6.2_head_constrained,0.374,0.649,0.475,,0.351,113.0,189.0,61.0,174.0,302.0,not estimated because a full candidate-edge universe was not defined,endpoint-derived MODPATH connectivity,"This is endpoint transition agreement, not pathline-shape or capture-zone validation."
+2.6.3_hydrostratigraphic,0.385,1.0,0.556,,0.0,174.0,278.0,0.0,174.0,452.0,not estimated because a full candidate-edge universe was not defined,endpoint-derived MODPATH connectivity,"This is endpoint transition agreement, not pathline-shape or capture-zone validation."

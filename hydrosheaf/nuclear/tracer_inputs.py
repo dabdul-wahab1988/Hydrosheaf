@@ -50,6 +50,12 @@ def build_site_tracer_histories(context: SiteInputContext) -> dict[str, InputHis
                 context.longitude,
                 "Tritium",
             )
+            # Most WISER North America stations stop reporting decades before
+            # the benchmark sampling years; without an explicit continuation
+            # np.interp would clamp every later recharge year to the station's
+            # last observed (often bomb-era) value.  See
+            # extend_history_to_present().
+            tritium_history = extend_history_to_present(tritium_history, region)
             tritium_history = _compact_history(tritium_history)
         else:
             raise ValueError("nearest WISER lookup requires bundled data and coordinates")
@@ -110,6 +116,70 @@ def _localized_gas_history(tracer: str, context: SiteInputContext) -> InputHisto
     values = np.asarray(base.values, dtype=float) * scale
     sigma = np.maximum(np.asarray(base.sigma, dtype=float) * scale, np.abs(values) * 0.03)
     return InputHistory(years, values, sigma)
+
+
+def extend_history_to_present(
+    history: InputHistory,
+    region: str,
+    *,
+    present_year: float = 2026.0,
+    step_years: float = 0.5,
+) -> InputHistory:
+    """Continue a station record past its last observation.
+
+    ``InputHistory.interpolate`` delegates to :func:`numpy.interp`, which clamps
+    out-of-range targets to the nearest endpoint value.  For GNIP/WISER tritium
+    stations this is a serious defect: most North American stations stopped
+    reporting between 1965 and 1999, while the benchmark samples were collected
+    2004-2020.  Without a continuation, every recharge year after the record end
+    is assigned the station's *last observed* value -- for a station whose record
+    ends in 1965 that is a bomb-era 245 TU standing in for a modern background of
+    a few TU.  Any piston-flow fit with a near-zero mean age then predicts an
+    impossibly high tritium concentration.
+
+    The continuation follows the regional post-bomb decline curve, rescaled so
+    that it joins the station record continuously at the splice year.  This keeps
+    the extension consistent with the framework's own regional input model rather
+    than inventing a separate decay law, and it converges to the modern
+    background instead of freezing a bomb-era value.
+    """
+    years = np.asarray(history.years, dtype=float)
+    values = np.asarray(history.values, dtype=float)
+    sigma = np.asarray(history.sigma, dtype=float)
+    if years.size == 0:
+        return history
+
+    splice_year = float(years.max())
+    if splice_year >= present_year:
+        return history
+
+    reference = build_default_tritium_input(region)
+    ref_years = np.asarray(reference.years, dtype=float)
+    ref_values = np.asarray(reference.values, dtype=float)
+
+    ref_at_splice = float(np.interp(splice_year, ref_years, ref_values))
+    station_at_splice = float(values[np.argmax(years)])
+    # Rescale the regional curve onto the station level at the splice point.
+    # Guard against a degenerate reference value and against extreme rescaling
+    # driven by a single noisy final observation.
+    scale = station_at_splice / ref_at_splice if ref_at_splice > 0.0 else 1.0
+    scale = float(min(max(scale, 0.1), 10.0))
+
+    tail_years = np.arange(splice_year + step_years, present_year + step_years, step_years)
+    if tail_years.size == 0:
+        return history
+    tail_values = np.maximum(np.interp(tail_years, ref_years, ref_values) * scale, 0.0)
+    # Past the bomb peak the continuation must not rise above the level already
+    # reached at the splice point.
+    if splice_year >= 1964.0:
+        tail_values = np.minimum.accumulate(tail_values)
+    tail_sigma = np.maximum(np.abs(tail_values) * 0.25, 0.5)
+
+    return InputHistory(
+        np.concatenate([years, tail_years]),
+        np.concatenate([values, tail_values]),
+        np.concatenate([sigma, tail_sigma]),
+    )
 
 
 def _compact_history(history: InputHistory, *, step_years: float = 0.5, max_points: int = 220) -> InputHistory:

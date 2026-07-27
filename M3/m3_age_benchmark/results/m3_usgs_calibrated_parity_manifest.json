@@ -1,0 +1,9 @@
+{
+  "input": "M3\\m3_age_benchmark\\results\\m3_tracerlpm_strict_parity_full.csv",
+  "output": "M3\\m3_age_benchmark\\results\\m3_usgs_calibrated_parity.csv",
+  "summary": "M3\\m3_age_benchmark\\results\\m3_usgs_calibrated_parity_summary.csv",
+  "method": "ridge",
+  "mode": "USGS-calibrated benchmark emulation",
+  "n_rows": 1272,
+  "n_calibrated_rows": 1272
+}

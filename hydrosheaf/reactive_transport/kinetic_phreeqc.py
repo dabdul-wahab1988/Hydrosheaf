@@ -248,15 +248,10 @@ def run_phreeqc_kinetic(
             initial_solution.get("temperature", config.temp_default_c),
         )
 
-        input_str += build_solution_block(solution_dict, 1, config.temp_default_c)
-        input_str += "\n"
-
-        # Add kinetics
-        input_str += kinetics_block
-        input_str += "\n"
-
-        # Add SELECTED_OUTPUT
-        # In subprocess mode we must explicitly write to a known file.
+        # In subprocess mode we must explicitly write selected output to a
+        # known file. SELECTED_OUTPUT must be declared before the simulation it
+        # records; declaring it after an already terminated SOLUTION produces
+        # an empty IPhreeqc selected-output array without an error.
         selected_output_file = None
         if config.phreeqc_mode == "subprocess":
             selected_output_file = "selected_output.csv"
@@ -283,6 +278,19 @@ SELECTED_OUTPUT
     -si Calcite Dolomite Gypsum Halite Fluorite Albite Anorthite
     -step true
 """
+
+        # ``build_solution_block`` normally includes END. Remove that terminator
+        # so SOLUTION, RATES and KINETICS form one simulation, then terminate the
+        # complete calculation once at the end.
+        solution_lines = build_solution_block(
+            solution_dict, 1, config.temp_default_c
+        ).splitlines()
+        if solution_lines and solution_lines[-1].strip().upper() == "END":
+            solution_lines.pop()
+        input_str += "\n".join(solution_lines)
+        input_str += "\n"
+        input_str += kinetics_block
+        input_str += "\nEND\n"
 
         # Run PHREEQC
         if config.phreeqc_mode == "phreeqpython":
@@ -350,6 +358,10 @@ SELECTED_OUTPUT
                             result["si_series"][mineral] = df[si_col].tolist()
 
                     result["success"] = True
+                else:
+                    result["error_message"] = (
+                        "PHREEQC selected output contained no kinetic data rows"
+                    )
 
             except ImportError:
                 result["error_message"] = "phreeqpython not available"

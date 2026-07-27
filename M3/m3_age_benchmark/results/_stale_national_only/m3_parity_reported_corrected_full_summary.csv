@@ -1,0 +1,2 @@
+scenario_id,total_rows,metric_rows,finite_estimates,median_abs_log10_error,log10_rmse,within_factor_2,within_factor_10,calibrated_he4_rows,log10_r2
+parity_reported_corrected,1272,1249,1249,0.2211533219547048,0.8980195232300067,0.5684547638110489,0.8406725380304243,278,0.5306502032257103

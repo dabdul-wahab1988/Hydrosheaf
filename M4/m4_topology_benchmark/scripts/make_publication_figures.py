@@ -49,6 +49,8 @@ SCENARIO_LABELS = {
     "negative_shortcut": "Shortcut",
     "head_gradient_bayesian_hodge": "Hodge pruned",
     "real_head_projected_gradient": "Proj. gradient",
+    "sink_aware_baseline": "Sink-aware base.",
+    "negative_misrouted_sink": "Misrouted sink",
 }
 
 EVIDENCE_LEVELS = {
@@ -63,6 +65,9 @@ EVIDENCE_LEVELS = {
     "negative_shortcut": 0,
     "head_gradient_bayesian_hodge": 3,
     "real_head_projected_gradient": 3,
+    # Informed structural baseline: knows the receptor set, uses no hydraulics.
+    "sink_aware_baseline": 0,
+    "negative_misrouted_sink": 0,
 }
 
 EVIDENCE_LABELS = {
@@ -649,41 +654,58 @@ def make_figure2_performance() -> None:
     ind = perf.copy()
     # sparse_node is a sensitivity analysis (node-subsampling sweep), not a scenario —
     # it lives exclusively in panels c and d. spatial_only is a geometry-only control (level 0).
-    ordered = ["spatial_only", "head_gradient", "head_gradient_bayesian_hodge",
+    ordered = ["spatial_only", "sink_aware_baseline",
+               "head_gradient", "head_gradient_bayesian_hodge",
                "real_head_projected_gradient", "head_depth", "hydrostratigraphic",
-               "negative_random", "negative_wrong_direction", "negative_shortcut"]
+               "negative_random", "negative_wrong_direction",
+               "negative_misrouted_sink", "negative_shortcut"]
     ordered = [s for s in ordered if s in ind["scenario"].values]
     ind["_order"] = ind["scenario"].map({k: i for i, k in enumerate(ordered)})
     ind = ind[ind["scenario"].isin(ordered)].sort_values("_order")
 
     fig = plt.figure(figsize=(7.5, 6.2))
     # fig.suptitle removed per Q1 guidelines
-    fig.subplots_adjust(left=0.10, right=0.96, top=0.92, bottom=0.20, hspace=0.52, wspace=0.38)
+    fig.subplots_adjust(left=0.10, right=0.96, top=0.92, bottom=0.22, hspace=0.72, wspace=0.38)
     gs = fig.add_gridspec(2, 2)
 
-    # --- Panel a: Evidence level and F1 ---
+    # --- Panel a: Posterior operating curve ---
+    # Replaces the former "evidence level and F1" panel, which duplicated the F1
+    # series already shown in panel (b) and rendered five visually identical
+    # bars.  This panel reports what the topology posterior actually buys:
+    # precision stays flat (~0.48) at every threshold, so the false-positive
+    # burden is NOT recoverable by pruning.
     ax = fig.add_subplot(gs[0, 0])
     scenarios = ind["scenario"].tolist()
-    levels = [EVIDENCE_LEVELS.get(s, 0) for s in scenarios]
     f1_vals = pd.to_numeric(ind["f1"], errors="coerce").fillna(0).values
-    colors = [_evidence_color(lv) for lv in levels]
-    y_pos = np.arange(len(scenarios))
-    bars = ax.barh(y_pos, f1_vals, color=colors, height=0.55, edgecolor="white", linewidth=0.4)
-    ax.set_yticks(y_pos)
-    ax.set_yticklabels([_display_scenario(s) for s in scenarios])
-    ax.set_xlim(0, 1.0)
-    ax.set_xlabel("F1 score")
-    ax.invert_yaxis()
-    
-    # Legend: spatial_only is now L0 (geometry-only control); no L1-2 tier remains
-    legend_elements = [
-        Line2D([0], [0], color=LIGHT_GRAY, lw=3, label="L0: Controls (incl. spatial-only)"),
-        Line2D([0], [0], color=BLUE, lw=3, label="L3-5: Hydraulic evidence"),
-    ]
-    ax.legend(handles=legend_elements, frameon=False, loc="lower right", fontsize=5.5)
-    ax.set_title("Evidence level and F1")
-    ax.axvline(0.5, color=LIGHT_GRAY, linewidth=0.6, linestyle=(0, (3, 2)))
-    _add_gridlines(ax, x=True, y=False)
+    curve = _read_csv(RESULT_DIR / "posterior_operating_curve.csv")
+    if not curve.empty:
+        cur = curve[curve["scenario"] == "real_head_projected_gradient"].sort_values(
+            "probability_threshold"
+        )
+        if cur.empty:
+            cur = curve.sort_values("probability_threshold")
+        thr = pd.to_numeric(cur["probability_threshold"], errors="coerce")
+        for col, colr, lbl in [
+            ("precision", SKY, "Precision"),
+            ("recall", BLUE, "Recall"),
+            ("f1", GREEN, "F1"),
+        ]:
+            ax.plot(thr, pd.to_numeric(cur[col], errors="coerce"), color=colr,
+                    marker="o", markersize=2.6, linewidth=1.1, label=lbl)
+        ax.set_xlim(0, 1.0)
+        ax.set_ylim(0, 1.0)
+        ax.set_xlabel("Posterior inclusion threshold")
+        ax.set_ylabel("Score")
+        ax.set_title("Posterior thresholding does not\nrecover precision", fontsize=7.5)
+        ax.annotate(
+            "precision never exceeds 0.485",
+            xy=(0.55, 0.48), xytext=(0.42, 0.72), fontsize=5.8, color=GRAY,
+            arrowprops=dict(arrowstyle="->", color=GRAY, lw=0.6),
+        )
+        _add_gridlines(ax, x=True, y=True)
+    else:
+        ax.text(0.5, 0.5, "No operating curve", ha="center", va="center",
+                transform=ax.transAxes)
     _panel_label(ax, "a")
 
     # --- Panel b: Precision, Recall, F1 grouped bars (no counts) ---
@@ -697,6 +719,25 @@ def make_figure2_performance() -> None:
     ax.bar(x - w, prec, w, color=SKY, label="Precision", edgecolor="white", linewidth=0.4)
     ax.bar(x, rec, w, color=BLUE, label="Recall", edgecolor="white", linewidth=0.4)
     ax.bar(x + w, f1, w, color=GREEN, label="F1", edgecolor="white", linewidth=0.4)
+    # The sink-aware baseline is the informed performance floor for this fan-in
+    # reference topology; every inference scenario must clear it, not merely
+    # clear the uninformed spatial/random/wrong-direction controls.
+    if "sink_aware_baseline" in scenarios:
+        floor_f1 = float(f1_vals[scenarios.index("sink_aware_baseline")])
+        ax.axhline(floor_f1, color=VERMILLION, linewidth=0.9, linestyle=(0, (4, 2)))
+        ax.annotate(
+            f"sink-aware floor (F1 = {floor_f1:.3f})",
+            xy=(-0.4, floor_f1), xytext=(0, 3),
+            textcoords="offset points", fontsize=5.5, color=VERMILLION,
+            ha="left", va="bottom",
+        )
+    # A control that produced no edges is inapplicable, not failed — mark it so
+    # the reader does not read an empty bar group as a passed falsification test.
+    if "control_applicable" in ind.columns:
+        for i, (scen, applic) in enumerate(zip(scenarios, ind["control_applicable"])):
+            if str(applic).lower() == "false":
+                ax.annotate("n/a\n(0 edges)", xy=(i, 0.02), fontsize=5.0,
+                            color=VERMILLION, ha="center", va="bottom")
     ax.set_xticks(x)
     ax.set_xticklabels([_display_scenario(s) for s in scenarios], rotation=35, ha="right")
     ax.set_ylim(0, 1.0)  # Bound strictly to 1.0
@@ -717,11 +758,20 @@ def make_figure2_performance() -> None:
         ]:
             yc   = pd.to_numeric(sparse_c[mc], errors="coerce")
             yerrc = 1.96 * pd.to_numeric(sparse_c[sc], errors="coerce").fillna(0)
-            ax.errorbar(xc, yc, yerr=yerrc, marker="o", markersize=3.8,
+            # Precision/recall/F1 are bounded on [0, 1]; a symmetric normal
+            # interval runs outside that range at low node density.  Clip the
+            # drawn whiskers to the admissible range instead of rendering
+            # impossible values.
+            lo = np.clip(yc - yerrc, 0.0, 1.0)
+            hi = np.clip(yc + yerrc, 0.0, 1.0)
+            yerr_clipped = np.vstack([yc - lo, hi - yc])
+            ax.errorbar(xc, yc, yerr=yerr_clipped, marker="o", markersize=3.8,
                         linewidth=1.1, capsize=2.0, color=col, label=lbl)
         ax.set_xlim(0.05, 1.05)
         ax.set_ylim(0, 1.0)
-        ax.set_xlabel("Node fraction retained")
+        # labelpad keeps the axis title clear of the rotated n = ok/total
+        # annotations drawn below the axis (previously they overlapped).
+        ax.set_xlabel("Node fraction retained", labelpad=22)
         ax.set_ylabel("Score")
         ax.set_title("Node-sparsity sensitivity")
         ax.text(0.95, 0.05, "mean ± 95% CI", transform=ax.transAxes, fontsize=5.5,
@@ -733,11 +783,12 @@ def make_figure2_performance() -> None:
             for xi, ok, tot in zip(xc, n_ok_c, n_tot_c):
                 if pd.notna(ok) and pd.notna(tot):
                     ax.annotate(f"{int(ok)}/{int(tot)}", xy=(xi, ylo),
-                                xytext=(xi, ylo - 0.07*(yhi-ylo)),
+                                xytext=(xi, ylo - 0.17*(yhi-ylo)),
                                 fontsize=5.5, color=GRAY, ha="center", va="top",
-                                rotation=45, annotation_clip=False)
-            ax.text(0.02, -0.13, "n = successful/planned trials",
-                    transform=ax.transAxes, fontsize=5.5, color=GRAY, ha="left", va="top")
+                                rotation=0, annotation_clip=False)
+            ax.text(1.0, -0.20, "n = successful/planned trials",
+                    transform=ax.transAxes, fontsize=5.5, color=GRAY,
+                    ha="right", va="top")
         _add_gridlines(ax, x=True, y=True)
     else:
         ax.text(0.5, 0.5, "No sparsity data", ha="center", va="center", transform=ax.transAxes)
@@ -1094,13 +1145,37 @@ def make_figure4_external_archive() -> None:
     labels = [m[0] for m in metrics]
     values = [float(top_row.get(m[1], 0)) for m in metrics]
     colors = [m[2] for m in metrics]
-    # Set 0 to 1 for log scale
-    values = [max(1, v) for v in values]
-    ax.bar(labels, values, color=colors, width=0.55, edgecolor="white", linewidth=0.4)
+    # A log axis cannot render zero.  Previously zeros were silently clamped to
+    # 1, which made the perfect projection result (FP = 0, FN = 0) read as
+    # "FP = 1, FN = 1".  Instead: draw no bar for a zero count and annotate every
+    # bar with its true value, so zeros are unambiguous.
+    floor = 0.6  # below the first decade; bars start here, zeros get no bar
+    plotted = [v if v > 0 else floor for v in values]
+    bars = ax.bar(
+        labels,
+        [p if v > 0 else 0.0 for p, v in zip(plotted, values)],
+        bottom=floor,
+        color=colors,
+        width=0.55,
+        edgecolor="white",
+        linewidth=0.4,
+    )
     ax.set_yscale("log")
+    ax.set_ylim(floor, max(values) * 3)
     ax.set_ylabel("Count (log scale)")
     ax.set_title("Savage archive projection")
     ax.tick_params(axis="x", rotation=35)
+    for bar, value in zip(bars, values):
+        ax.annotate(
+            f"{int(value):,}" if value > 0 else "0",
+            xy=(bar.get_x() + bar.get_width() / 2, max(value, floor)),
+            xytext=(0, 3),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            fontweight="bold" if value == 0 else "normal",
+        )
     _add_gridlines(ax, x=False, y=True)
     _panel_label(ax, "a")
 

@@ -1,0 +1,2 @@
+scenario_id,total_rows,metric_rows,finite_estimates,median_abs_log10_error,log10_rmse,within_factor_2,within_factor_10,calibrated_he4_rows,log10_r2
+tracerlpm_strict_parity,80,79,79,0.15002484663155524,0.6541630927887799,0.759493670886076,0.9240506329113924,20,0.7981762660025895

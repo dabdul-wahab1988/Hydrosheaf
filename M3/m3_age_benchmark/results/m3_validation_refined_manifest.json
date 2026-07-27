@@ -1,0 +1,17 @@
+{
+  "run_utc": "2026-05-18T00:00:24.580069+00:00",
+  "config": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M3/m3_age_benchmark/configs/design_matrix.yaml",
+  "output": "M3/m3_age_benchmark/results/m3_validation_refined.csv",
+  "summary": "M3/m3_age_benchmark/results/m3_validation_refined_summary.csv",
+  "pairwise": "M3/m3_age_benchmark/results/m3_validation_refined_pairwise_deltas.csv",
+  "qa": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M3/m3_age_benchmark/docs/m3_validation_refined_qa.md",
+  "primary_pointwise_output": "/mnt/c/Users/DicksonAbdul-Wahab/Desktop/NeutroProject/Groundwater/Hydrosheaf/M3/m3_age_benchmark/results/m3_usgs_benchmark_results.csv",
+  "primary_pointwise_scenario": "screened_dgm_gases",
+  "max_rows": 1500,
+  "age_steps": 90,
+  "scenario_ids": [
+    "screened_dgm_gases"
+  ],
+  "n_output_rows": 1272,
+  "pairwise_baseline": "parity_reported_corrected"
+}

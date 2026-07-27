@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "run_id": "RUN-M8-CONFIRM-20260728-01",
+  "locked_at_utc": "2026-07-27T17:22:33.3504533Z",
+  "status": "LOCKED_BEFORE_CONFIRMATORY_EXECUTION",
+  "sha256": {
+    "M8_CONFIRMATORY_PROTOCOL.md": "1b1608ee239cc3b144a0aa74d6c863347969c2ee6a67f440e22bedbecf28f2fe",
+    "proposal.normalized.json": "e36e90e7048ca6ef1c95031f57e680047a54b72a7865cb88eb305371dfa4b70f",
+    "manuscript/analysis_plan.json": "e0bd6cd58c099b9ceb61515ef41b82704e34dfcb4964fd7bd38597ba84a76550",
+    "generation_script.py": "dba3d56a497633f17956cf8aa4ef822e4f506e75540c9a94bf9944ab2b29f3c8",
+    "scripts/run_m8_confirmatory.py": "ca4bb7bfafbabf452a50b3d8ffb348b96527b1cbc3daf2380b9a4a2e374dee6e"
+  },
+  "repo_sha256": {
+    "hydrosheaf/calibration/adapters.py": "81d5394803bd6862449112fbbfd0a90c9b3298c8c9d8b641405440445b8c07ea",
+    "hydrosheaf/calibration/definitions.py": "519f8ee6fefac6b3a0206bb491dc98239e4d0bcb9406492a7d29f689a6961da7",
+    "hydrosheaf/calibration/glm.py": "e15b956c0915cf6fcd9fcc4511e865a0782cb6cb5d32a8060161247d8eff4a92",
+    "hydrosheaf/transport/flopy_1d.py": "962a003d367ebfb9a453e23489217a844190f0da68f73aa35351ddfa9d7d0a8b",
+    "hydrosheaf/reactive_transport/kinetic_phreeqc.py": "69602755249df428c3cb31f1580ea6eb2e70761ece4eca51b48d99d342c43ca9",
+    "hydrosheaf/reactive_transport/rate_laws.py": "6c30ee747a67c63adf9f19ceb9030760bae419d0fa9f7616b31a73a1a5191d95",
+    "hydrosheaf/config.py": "2579393ae09259e31e02f049911f63d6801c5234daaacf10169c08a94ac38e25",
+    "uv.lock": "3b3052a91aff530893857ad653309e2a9f090f24dd813241be3528ac4204c6f5"
+  }
+}

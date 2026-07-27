@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "source_run_id": "RUN-M8-CONFIRM-20260728-01",
+  "created_at_utc": "2026-07-27T17:26:51.581203+00:00",
+  "amendment_class": "presentation_only",
+  "numerical_results_changed": false,
+  "producer": "scripts/make_m8_reviewed_artifacts.py",
+  "producer_sha256": "f85a3ead02d9797c007259e06f4825ae6de6afa1ae892e13f67053a75d256f1d",
+  "outputs": [
+    {
+      "path": "manuscript/artifacts/m8_transport_oed_summary_reviewed.csv",
+      "bytes": 3859,
+      "sha256": "d84b58f227d58745fde19627f50afc90a5d576a0c907894b247720faaafd2e6a"
+    },
+    {
+      "path": "manuscript/artifacts/m8_confirmatory_figure_reviewed.png",
+      "bytes": 442946,
+      "sha256": "37f147a7139088927e1b3b54e44049c784514945bb2788aff06a22fb34fe9f0d"
+    },
+    {
+      "path": "manuscript/artifacts/m8_confirmatory_figure_reviewed.pdf",
+      "bytes": 32050,
+      "sha256": "bf7dd603e91858cc617ceb4119388665f1484853b9c1abbe452b2ec870ee3e63"
+    }
+  ]
+}

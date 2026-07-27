@@ -1,0 +1,2 @@
+scenario_id,total_rows,metric_rows,finite_estimates,median_abs_log10_error,log10_rmse,within_factor_2,within_factor_10,calibrated_he4_rows,log10_r2
+tracerlpm_parity_hier_oldwater,1272,1253,1253,0.3625139610955763,1.1649321947571012,0.4565043894652833,0.7501995211492418,278,0.21490890189743517

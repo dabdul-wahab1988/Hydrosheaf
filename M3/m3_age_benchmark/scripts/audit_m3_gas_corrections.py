@@ -234,7 +234,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     design_results = pd.read_csv(args.design_results)
-    source_df = usgs.load_usgs_national_dataset()
+    source_df = usgs.load_benchmark_dataset()
     audit = build_gas_audit(design_results, source_df)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     audit.to_csv(args.output, index=False)

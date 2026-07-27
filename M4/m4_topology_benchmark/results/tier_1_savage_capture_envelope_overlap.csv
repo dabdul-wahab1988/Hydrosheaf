@@ -1,0 +1,4 @@
+target_node,n_particles,n_endpoint_source_cells,n_pathline_source_cells,source_cell_jaccard,endpoint_hull_area,pathline_hull_area,intersection_area,capture_envelope_iou,metric_scope,guardrail
+cell_15098,2037,110,110,1.0,425535.0,425535.0,425535.0,1.0,convex hull of particle release/start points by receptor cell,"This is a capture-envelope overlap from MODPATH point clouds, not a model-supplied capture-zone polygon or raster."
+cell_16745,575,37,37,1.0,225857.5,225857.5,225857.5,1.0,convex hull of particle release/start points by receptor cell,"This is a capture-envelope overlap from MODPATH point clouds, not a model-supplied capture-zone polygon or raster."
+cell_21316,388,27,27,1.0,127061.0,127061.0,127061.0,1.0,convex hull of particle release/start points by receptor cell,"This is a capture-envelope overlap from MODPATH point clouds, not a model-supplied capture-zone polygon or raster."

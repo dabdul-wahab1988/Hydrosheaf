@@ -1,0 +1,6 @@
+metric,estimate,ci_low,ci_high,n,method
+edge_precision,,,,0,fallback stub
+edge_recall,,,,0,fallback stub
+edge_f1,,,,0,fallback stub
+direction_agreement_rate,,,,0,fallback stub
+mean_source_receptor_overlap,,,,0,fallback stub

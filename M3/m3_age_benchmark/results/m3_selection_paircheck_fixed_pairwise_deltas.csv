@@ -1,0 +1,2 @@
+scenario_id,paired_rows,median_delta_log10_error,mean_delta_log10_error,improved_fraction,gained_factor_2_rows,lost_factor_2_rows
+hydrosheaf_selection_corrected,75,0.3713180766456716,0.532577982727867,0.14666666666666667,4,23

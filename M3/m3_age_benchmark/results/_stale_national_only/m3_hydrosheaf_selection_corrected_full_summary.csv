@@ -1,0 +1,2 @@
+scenario_id,total_rows,metric_rows,finite_estimates,median_abs_log10_error,log10_rmse,within_factor_2,within_factor_10,calibrated_he4_rows,log10_r2
+hydrosheaf_selection_corrected,1272,481,481,0.4407242341661157,0.9523166558580308,0.3846153846153846,0.7588357588357588,127,0.2719921973925574

@@ -223,10 +223,32 @@ def _intelligent_ticks(ax, axis="both", nbins=5, log=False):
 # ---------------------------------------------------------------------------
 # Figure 1: Atmospheric tracer input histories
 # ---------------------------------------------------------------------------
+def _benchmark_tritium_history():
+    """Return the tritium forcing the benchmark actually used.
+
+    Panel (a) previously plotted ``build_default_tritium_input()`` -- a stylised
+    synthetic curve -- while the caption claimed GNIP/WISER provenance and the
+    benchmark itself was forced with nearest-station WISER histories.  The panel
+    therefore showed readers a curve that was neither GNIP data nor the function
+    used in the analysis.  Plot a representative benchmark history instead, built
+    through the same code path as the run (nearest WISER station, continued to
+    the present so that post-record recharge years are not clamped to the
+    station's last observed value).
+    """
+    from hydrosheaf.nuclear.tracer_inputs import (
+        SiteInputContext,
+        build_site_tracer_histories,
+    )
+
+    # Representative continental US public-supply site (mid-latitude, interior).
+    ctx = SiteInputContext("representative", 2010.0, 40.0, -95.0)
+    return build_site_tracer_histories(ctx)["3H"]
+
+
 def plot_fig1_atmospheric_histories() -> None:
     fig, axes = plt.subplots(2, 2, figsize=(11, 9))
     histories = [
-        ("a  Tritium ($^3$H)", build_default_tritium_input(), "Tritium (TU)", "#c2410c"),
+        ("a  Tritium ($^3$H)", _benchmark_tritium_history(), "Tritium (TU)", "#c2410c"),
         ("b  Sulfur Hexafluoride (SF$_6$)", build_atmospheric_tracer_input("SF6"), "SF6 (pptv)", "#1d4ed8"),
         ("c  CFC-12", build_atmospheric_tracer_input("CFC12"), "CFC-12 (pptv)", "#15803d"),
     ]
@@ -255,7 +277,10 @@ def plot_fig1_atmospheric_histories() -> None:
         for (yr, _, ann_text, (ann_yr, _)) in annotations[idx]:
             yvals = np.array(hist.values)
             xvals = np.array(hist.years)
-            if yr in xvals:
+            # Station histories are irregularly sampled, so match the nearest
+            # available year rather than requiring an exact hit (an exact-match
+            # test silently dropped the annotation on real WISER records).
+            if xvals.size and np.min(np.abs(xvals - yr)) <= 2.0:
                 yi = float(yvals[np.argmin(np.abs(xvals - yr))])
                 ax.annotate(
                     ann_text,
@@ -604,35 +629,64 @@ def plot_fig6_cross_validation_results() -> None:
     x = np.arange(len(labels))
     width = 0.35
 
-    # Panel a: 3H and SF6 (dual y-axis)
+    # Panel a: young-tracer error change relative to the single-well baseline.
+    # Previously ³H (TU) and SF₆ (pptv) shared one panel on two y-axes with
+    # different baselines, so the bar heights were not comparable -- the figure
+    # note conceded as much.  Expressing both as percentage change from the
+    # single-well baseline puts them on one honest, dimensionless axis.
     ax0 = flat_axes[0]
-    ax0.bar(x - width / 2, rmse_data["3H"], width, label="³H (TU)", color="#c2410c", alpha=0.85, edgecolor="white", lw=0.5)
-    ax0_sf6 = ax0.twinx()
-    ax0_sf6.bar(x + width / 2, rmse_data["SF6"], width, label="SF₆ (pptv)", color="#1d4ed8", alpha=0.85, edgecolor="white", lw=0.5)
 
-    # Annotate the best ³H bar (depth-constrained, index 2)
-    best_3h = rmse_data["3H"][2]
-    baseline_3h = rmse_data["3H"][0]
-    pct_impr = 100 * (baseline_3h - best_3h) / baseline_3h if baseline_3h > 0 else 0
-    ax0.annotate(
-        f"−{pct_impr:.1f}%",
-        xy=(x[2] - width / 2, best_3h),
-        xytext=(x[2] - width / 2, best_3h + 0.5),
-        fontsize=9, color="#c2410c", fontweight="bold", ha="center",
-        arrowprops=dict(arrowstyle="->", color="#c2410c", lw=0.8),
-    )
+    def _pct_change(vals):
+        base = vals[0]
+        return [100.0 * (v - base) / base if base > 0 else np.nan for v in vals]
 
-    ax0.set_ylabel("³H RMSE (TU)", color="#c2410c", fontsize=12)
-    ax0_sf6.set_ylabel("SF₆ RMSE (pptv)", color="#1d4ed8", fontsize=12)
+    pct_3h = _pct_change(rmse_data["3H"])
+    pct_sf6 = _pct_change(rmse_data["SF6"])
+    ax0.bar(x - width / 2, pct_3h, width, label="³H", color="#c2410c",
+            alpha=0.85, edgecolor="white", lw=0.5)
+    ax0.bar(x + width / 2, pct_sf6, width, label="SF₆", color="#1d4ed8",
+            alpha=0.85, edgecolor="white", lw=0.5)
+    ax0.axhline(0, color="#374151", lw=1.0)
+
+    # Annotate BOTH the depth-constrained result and the randomised negative
+    # control.  The randomised control also lowers ³H RMSE, which is the
+    # decisive context for interpreting the depth-constrained gain; labelling
+    # only the supporting bar would misrepresent the comparison.
+    for idx, colour in ((2, "#c2410c"), (3, "#b91c1c")):
+        val = pct_3h[idx]
+        if not np.isfinite(val):
+            continue
+        ax0.annotate(
+            f"{val:+.1f}%",
+            xy=(x[idx] - width / 2, val),
+            xytext=(x[idx] - width / 2, val - 4.0),
+            fontsize=9.5, color=colour, fontweight="bold", ha="center", va="top",
+        )
+    # Describe what the controls actually did rather than asserting a fixed
+    # conclusion: the sign of the randomised-control effect is the whole point of
+    # the negative-control design and must be read from the data.
+    rand_val, cand_val = pct_3h[3], pct_3h[2]
+    if np.isfinite(rand_val) and np.isfinite(cand_val):
+        if rand_val < 0 and cand_val < 0:
+            note = "the randomised control also lowers ³H RMSE"
+        elif rand_val > 0 and cand_val > 0:
+            note = "candidate and randomised graphs both degrade ³H;\nthe control degrades far more"
+        else:
+            note = "candidate and randomised controls differ in sign"
+        ax0.text(
+            0.5, -0.34, note, transform=ax0.transAxes,
+            fontsize=9, color="#b91c1c", ha="center", va="top",
+        )
+
+    ax0.set_ylabel("Change in withheld-tracer RMSE\nvs single-well baseline (%)", fontsize=11)
     ax0.set_xticks(x)
     ax0.set_xticklabels(labels, rotation=20, ha="right", fontsize=10)
     ax0.set_title("(a) Young-tracer cross-validation error", loc="left", fontweight="bold")
+    ax0.legend(frameon=False, fontsize=10, loc="upper left")
     ax0.grid(True, ls=":", alpha=0.3)
     ax0.spines["top"].set_visible(False)
     ax0.spines["right"].set_visible(False)
-    ax0_sf6.spines["top"].set_visible(False)
-    ax0_sf6.spines["left"].set_visible(False)
-    _intelligent_ticks(ax0, axis="y", nbins=4)
+    _intelligent_ticks(ax0, axis="y", nbins=5)
 
     # Panel b: ¹⁴C RMSE
     ax1 = flat_axes[1]
@@ -682,8 +736,8 @@ def plot_fig6_cross_validation_results() -> None:
     # Annotate 1:1 line
     ax2.annotate(
         "1:1 perfect\nprediction",
-        xy=(10, 10),
-        xytext=(2, 30),
+        xy=(6, 6),
+        xytext=(0.6, 14),
         fontsize=9, color="#374151",
         arrowprops=dict(arrowstyle="->", color="#374151", lw=0.8),
     )
@@ -691,18 +745,46 @@ def plot_fig6_cross_validation_results() -> None:
     # Clarification of low-end cluster
     ax2.annotate(
         "Plotting floor &\ndetection limit (0.1 TU)",
-        xy=(0.11, 0.3),
-        xytext=(0.3, 0.13),
+        xy=(0.115, 0.25),
+        xytext=(0.45, 0.115),
         fontsize=8.5,
         color="#475569",
         arrowprops=dict(arrowstyle="->", color="#475569", lw=0.8),
     )
 
-    flat_axes[3].set_visible(False)
-    
-    # Caption note for dual-axes
-    fig.text(0.1, 0.02, "Note: Orange (³H) and blue (SF₆) bars in panel (a) use separate y-axes and should be compared only within each tracer.", fontsize=10, style="italic")
-    
+    # Panel d: is the ³H gain distributed, or tail-driven?
+    # RMSE is dominated by a small number of degenerate young-water fits.  Showing
+    # RMSE beside the median absolute error makes clear whether a graph prior
+    # improves typical predictions or only suppresses outliers.  Reporting RMSE
+    # alone would let a tail-only effect read as a general accuracy gain.
+    ax3 = flat_axes[3]
+    err_cols = ("err_single_abs", "err_phys_hyd_abs", "err_phys_dep_abs", "err_rand_abs")
+    med_3h = [float(df_3h[c].dropna().median()) if df_3h[c].notna().any() else np.nan
+              for c in err_cols]
+    pct_med = _pct_change(med_3h)
+    ax3.bar(x - width / 2, pct_3h, width, label="RMSE", color="#c2410c",
+            alpha=0.85, edgecolor="white", lw=0.5)
+    ax3.bar(x + width / 2, pct_med, width, label="Median absolute error",
+            color="#a16207", alpha=0.85, edgecolor="white", lw=0.5)
+    ax3.axhline(0, color="#374151", lw=1.0)
+    ax3.set_ylabel("Change vs single-well baseline (%)", fontsize=11)
+    ax3.set_xticks(x)
+    ax3.set_xticklabels(labels, rotation=20, ha="right", fontsize=10)
+    ax3.set_title("(d) ³H error structure: RMSE vs typical error", loc="left",
+                  fontweight="bold")
+    ax3.legend(frameon=False, fontsize=10, loc="upper left")
+    ax3.grid(True, ls=":", alpha=0.3)
+    ax3.spines["top"].set_visible(False)
+    ax3.spines["right"].set_visible(False)
+    _intelligent_ticks(ax3, axis="y", nbins=5)
+
+    fig.text(
+        0.1, 0.02,
+        "Panels (a) and (d) report change relative to the single-well baseline, so ³H and SF₆ are directly comparable. "
+        "Panel (d) separates RMSE (outlier-sensitive) from the median absolute error (typical case).",
+        fontsize=10, style="italic",
+    )
+
     plt.tight_layout(rect=[0, 0.05, 1, 1])
     _save(fig, "Manuscript_Fig6_Cross_Validation_Results.png")
 

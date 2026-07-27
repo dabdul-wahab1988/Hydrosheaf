@@ -1,0 +1,15 @@
+diagnostic,estimate,ci_low,ci_high,n,evidence_scope,guardrail
+compressed_path_cells_median,39.0,,,3000.0,full raw pathline sequence complexity,Compressed cell sequence is not a capture-zone polygon.
+endpoint_projection_preservation_rate,1.0,,,3000.0,particle-level start/end preservation,"Projection preserves source and receptor cells, not every intermediate cell."
+travel_time_spearman_rho,-0.604,,,174.0,edge-level travel-time rank diagnostic,Endpoint and pathline time columns are compared as rank-order evidence unless archive time units are harmonised.
+travel_time_kendall_tau,-0.424,,,174.0,edge-level travel-time rank diagnostic,Endpoint and pathline time columns are compared as rank-order evidence unless archive time units are harmonised.
+edge_precision,1.0,1.0,1.0,174.0,archive aggregate; no resampling needed for deterministic all-edge summary,Bootstrap interval describes the analysed archive only.
+edge_recall,1.0,1.0,1.0,174.0,archive aggregate; no resampling needed for deterministic all-edge summary,Bootstrap interval describes the analysed archive only.
+edge_f1,1.0,1.0,1.0,174.0,archive aggregate; no resampling needed for deterministic all-edge summary,Bootstrap interval describes the analysed archive only.
+direction_agreement_rate,1.0,1.0,1.0,174.0,archive aggregate; no resampling needed for deterministic all-edge summary,Bootstrap interval describes the analysed archive only.
+mean_source_receptor_overlap,1.0,1.0,1.0,174.0,archive aggregate; no resampling needed for deterministic all-edge summary,Bootstrap interval describes the analysed archive only.
+edge_source_receptor_overlap_mean_bootstrap,1.0,1.0,1.0,174.0,edge bootstrap,Bootstrap interval describes the analysed archive only.
+particle_elapsed_time_median_bootstrap,293.33,283.881,303.375,3000.0,particle bootstrap,Bootstrap interval describes the analysed archive only.
+particle_elapsed_time_p90_bootstrap,550.655,529.1,557.733,3000.0,particle bootstrap,Bootstrap interval describes the analysed archive only.
+endpoint_projection_preservation_rate_bootstrap,1.0,1.0,1.0,3000.0,particle bootstrap,Bootstrap interval describes the analysed archive only.
+compressed_path_cells_median_bootstrap,39.0,39.0,40.0,3000.0,particle bootstrap,Bootstrap interval describes the analysed archive only.

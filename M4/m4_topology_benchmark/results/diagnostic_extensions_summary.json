@@ -1,0 +1,44 @@
+{
+  "cohomology": {
+    "available": true,
+    "run": false,
+    "error": "'tuple' object has no attribute 'edge'"
+  },
+  "topology_posterior": {
+    "available": true,
+    "run": false,
+    "error": "'tuple' object has no attribute 'edge_id'"
+  },
+  "optimal_transport": {
+    "available": true,
+    "run": false,
+    "error": "float() argument must be a string or a real number, not 'dict'"
+  },
+  "causal_discovery": {
+    "available": true,
+    "run": true,
+    "n_edges_screened": 30,
+    "n_common_driver_flagged": 0,
+    "guardrail": "Causal discovery screens for shared-lithology/recharge confounds; not benchmark-validated in this M4 run."
+  },
+  "active_learning": {
+    "available": true,
+    "run": true,
+    "n_recommendations": 0,
+    "summary": {
+      "n_recommendations": 0,
+      "n_edges_scored": 0,
+      "top_priority_score": 0.0,
+      "bootstrap_instability_detected": false,
+      "warning": "No variant data in benchmark report."
+    },
+    "guardrail": "Active learning ranking suggests measurement priorities based on posterior entropy and validation error; not benchmark-validated in this M4 run."
+  },
+  "null_models": {
+    "available": true,
+    "run": true,
+    "n_edges_screened": 50,
+    "mean_null_score": 0.0,
+    "guardrail": "Null models estimate plausibility that similarity arose without direct flow; not benchmark-validated in this M4 run."
+  }
+}

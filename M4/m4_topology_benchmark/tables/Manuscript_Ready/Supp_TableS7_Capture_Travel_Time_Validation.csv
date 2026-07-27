@@ -1,0 +1,6 @@
+metric,estimate,n,evidence_scope,guardrail
+particle_weighted_source_start_envelope_iou,1.0,3,endpoint/pathline source-start point-cloud envelope,Point-cloud capture envelopes are plotted because no explicit capture-zone polygons/rasters were present in the prepared archive outputs.
+median_source_cell_jaccard,1.0,3,source-cell set overlap by receptor target,Point-cloud capture envelopes are plotted because no explicit capture-zone polygons/rasters were present in the prepared archive outputs.
+harmonized_travel_time_spearman_rho,0.963,174,endpoint total time vs MODPATH-derived Hydrosheaf edge weights,"This compares endpoint total-time particles with MODPATH-derived Hydrosheaf edge weights; it validates prior transfer, not independent travel-time prediction."
+harmonized_travel_time_kendall_tau,0.923,174,endpoint total time vs MODPATH-derived Hydrosheaf edge weights,"This compares endpoint total-time particles with MODPATH-derived Hydrosheaf edge weights; it validates prior transfer, not independent travel-time prediction."
+harmonized_travel_time_median_abs_log10_difference,0.01,174,scale agreement for endpoint total time and MODPATH-derived edge weights,"This compares endpoint total-time particles with MODPATH-derived Hydrosheaf edge weights; it validates prior transfer, not independent travel-time prediction."
