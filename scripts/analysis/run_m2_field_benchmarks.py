@@ -48,7 +48,7 @@ def configure_local_mixing_endmember(config, samples, label):
 
 def process_manu():
     print("Processing Manu (LowerAnayari)...")
-    df = pd.read_csv(ROOT / "data" / "LowerAnayari" / "manu.csv")
+    df = pd.read_csv(ROOT / "data" / "FieldData" / "LowerAnayari" / "manu.csv")
     samples = []
     ions = ['Ca', 'Mg', 'Na', 'K', 'HCO3', 'Cl', 'SO4', 'NO3', 'F']
 
@@ -101,7 +101,7 @@ def process_manu():
 
 def process_talensi():
     print("Processing Talensi...")
-    df = pd.read_csv(ROOT / "data" / "Talensi_MiningArea" / "talensi.csv")
+    df = pd.read_csv(ROOT / "data" / "FieldData" / "Talensi_MiningArea" / "talensi.csv")
     samples = []
     ions = ['Ca', 'Mg', 'Na', 'K', 'HCO3', 'Cl', 'SO4', 'NO3']
 

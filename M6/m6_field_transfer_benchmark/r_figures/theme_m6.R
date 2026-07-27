@@ -32,7 +32,6 @@ m6_palette <- c(
   talensi = "#C77C2B",
   manu = "#008C7A",
   ## edge sets
-  provided_graph = "#2166AC",
   chemistry_knn = "#008C7A",
   geographic_nearest = "#C77C2B",
   random_perturbed = "#B2182B"
@@ -87,13 +86,13 @@ m6_tag <- function(p, caption = NULL, collect = TRUE) {
                   legend.box.just = "center", legend.spacing.y = grid::unit(1, "pt")))
 }
 
-## Save a figure at 300 dpi in png/pdf/tif (Nature portfolio formats).
+## Save publication figures as editable vectors plus journal-ready rasters.
 m6_save <- function(plot, path_noext, width, height) {
   dir.create(dirname(path_noext), recursive = TRUE, showWarnings = FALSE)
   ggsave(paste0(path_noext, ".png"), plot, width = width, height = height,
-         units = "in", dpi = 300, bg = "white")
+         units = "in", dpi = 600, bg = "white")
   ggsave(paste0(path_noext, ".pdf"), plot, width = width, height = height,
-         units = "in", bg = "white")
+         units = "in", device = grDevices::cairo_pdf, bg = "white")
   ok <- try(ggsave(paste0(path_noext, ".tif"), plot, width = width, height = height,
                    units = "in", dpi = 300, bg = "white",
                    compression = "lzw"), silent = TRUE)

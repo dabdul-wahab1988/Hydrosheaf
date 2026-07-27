@@ -1,0 +1,94 @@
+{
+  "items": [
+    {
+      "comment_id": "M5-R001",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R003",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R004",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R009",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R011",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R012",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R013",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R015",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R016",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R017",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R018",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R019",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R021",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R028",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M5-R030",
+      "status": "PASS",
+      "evidence": "results/m5_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    }
+  ]
+}

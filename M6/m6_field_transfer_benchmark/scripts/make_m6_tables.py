@@ -15,9 +15,9 @@ TAB.mkdir(parents=True, exist_ok=True)
 FIELD_RESULTS = (
     m6.REPO_ROOT
     / "M7"
-    / "m7_strong_integration"
+    / "m7_nonuniqueness_benchmark"
     / "results"
-    / "m7_2_strong_confirmatory"
+    / "supporting_validation"
 )
 
 
@@ -99,7 +99,7 @@ def table2():
         "Sr_mgL",
         "SiO2_mgL",
         "Calcite_SI",
-        "Aquifer_Type",
+        "Region",
     ]
     piv = piv.reindex(order)
     piv = piv[["northern_ghana", "manu", "talensi"]].rename(
@@ -124,7 +124,7 @@ def table3():
         "tier1_isotopes": "Tier 1 (+isotopes)",
         "tier2_fluoride": "Tier 2 (+F)",
         "tier3_sr_sio2": "Tier 3 (+Sr/SiO2)",
-        "tier4_full_metadata": "Tier 4 (maximum M6 chemistry/metadata tier)",
+        "tier4_full_metadata": "Tier 4 (+SI, maximum M6 chemistry tier)",
     }
     tr["tier"] = tr["tier"].map(tlab)
     cols = [
@@ -200,11 +200,11 @@ def supp_tables():
         "Table S2. Charge-balance quality classes by dataset",
     )
 
-    # S3 aquifer/season summary
+    # S3 region/season summary
     _write(
         rd("m6_ng_aquifer_season_summary.csv").round(3),
         "tableS3_aquifer_summary",
-        "Table S3. Northern Ghana aquifer summary",
+        "Table S3. Northern Ghana region summary",
     )
 
     # S4 full tier ablation (per class counts)
@@ -290,6 +290,16 @@ def supp_tables():
     )
     _write(
         env, "tableS8_environment", "Table S8. Software and computational environment"
+    )
+
+    # S9 competing no-flow explanations
+    null_summary = rd("m6_null_sensitivity_summary.csv").copy()
+    numeric = null_summary.select_dtypes(include=[np.number]).columns
+    null_summary[numeric] = null_summary[numeric].round(3)
+    _write(
+        null_summary,
+        "tableS9_null_sensitivity",
+        "Table S9. Competing no-flow explanation sensitivity",
     )
 
 

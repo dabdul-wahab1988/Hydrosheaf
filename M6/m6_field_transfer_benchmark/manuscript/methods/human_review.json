@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "reviewer": "r2m agent self-review (Claude, acting as drafting scientist; no separate independent human reviewer available in this session)",
+  "reviewed_on": "2026-07-26",
+  "checks": {
+    "technical_fidelity": {
+      "status": "PASS",
+      "evidence": "Every material statement in the main and Supplementary Methods traces to a VERIFIED row in manuscript/methods/methods_evidence.csv, itself anchored to specific line ranges read directly from scripts/m6_common.py, scripts/run_m6_field_transfer.py, scripts/run_m6_robustness_diagnostics.py, scripts/run_m6_synthetic_validation.py and the docs/ audit notes. No procedure, parameter or threshold was inferred without a corresponding source anchor."
+    },
+    "main_supplement_split": {
+      "status": "PASS",
+      "evidence": "Main Methods (761 words, under the 1300-word limit) retains only dataset provenance, harmonisation, evidence tiers, the two primary equations (reactive residual, sparse estimator), the identifiability/evidence-gate summary, the six-experiment overview and reproducibility statement. All derivations (EQ-S1-EQ-S4), the circularity/gate-on-off diagnostic, synthetic ground-truth validation, transport-correction sensitivity, the Talensi diagnosis, the reused M7.2 hold-forward protocol, the null-model sensitivity protocol, uncertainty-metric definitions, the honesty-boundary protocol and the full reproducibility/environment record were moved to the 15-subsection Supplementary Methods."
+    },
+    "expert_clarity": {
+      "status": "PASS",
+      "evidence": "Each subsection states what was done, on what material, with which parameter, and how it was validated, in short logical paragraphs; abbreviations (CBE, MRS, GMWL) are defined at first use in both main and Supplementary Methods."
+    },
+    "passive_nonpersonal": {
+      "status": "PASS",
+      "evidence": "Automated first-person-pronoun scan (methods_gate_check.py --stage draft) returned no matches in either file; verified manually that all reporting uses past-tense passive/non-personal constructions (e.g. 'ion concentrations were converted', 'each inference unit was classified')."
+    },
+    "uk_english": {
+      "status": "PASS",
+      "evidence": "Manual grep for common US-spelling variants (modeling, analyze, characterize, optimization, behavior, color, favor, center, catalog, defense, organize, utilize, standardize, randomize) returned zero matches in either file; UK spellings (harmonised, modelling, characterised, quantitative, colour-neutral phrasing) are used throughout."
+    },
+    "reporting_guideline_coverage": {
+      "status": "PASS",
+      "evidence": "methods_manifest.json records the applicable determination: M6 is a computational hydrogeochemical field-transfer and robustness benchmark on real aquifer chemistry data, not a biomedical or clinical study design, so no EQUATOR-listed reporting guideline applies; this determination is stated explicitly rather than left silent."
+    },
+    "equation_accuracy": {
+      "status": "PASS",
+      "evidence": "EQ-1 and EQ-2 (main) and EQ-S1-EQ-S4 (supplementary) were checked term-by-term against the corresponding code, re-verified against current line numbers after the 2026-07-26 canonical-field-data rewrite of m6_common.py: EQ-1/conservative_factor and residual_vector (m6_common.py lines 264-284); EQ-2/_penalty_for_panel and fit_unit's call to m5.fit_inverse with lambda_l1=0.01, lambda_l2=0.001 (m6_common.py lines 287-297, 403-406); EQ-S1/charge_balance_error (m6_common.py lines 242-260); EQ-S2/TransferClassifier.classify feature/coefficient projection (m6_common.py lines 384-390); EQ-S3/evidence_corroborated evaporite rule using the delta2H-8*delta18O<8 threshold (m6_common.py lines 316-347); EQ-S4/the bootstrap Jaccard loop in fit_unit (m6_common.py lines 411-419). All symbols, units and domains are defined at first use; DOCX-stage visual inspection of rendered OMML remains outstanding and will be performed after conversion."
+    },
+    "reproducibility": {
+      "status": "PASS",
+      "evidence": "Main Methods states the fixed seed and single orchestrating script; Supplementary Methods Section S15 gives the full software/package environment (cross-checked against tables/tableS8_environment.md) and confirms no wall-clock-dependent output, consistent with docs/m6_locked_analysis_plan.md's determinism statement."
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "outline_path": "m5_inverse_reaction_benchmark/Outline.md",
+  "main_methods_path": "manuscript/sections/03-methods/section.md",
+  "supplementary_methods_path": "manuscript/supplementary/Supplementary-Methods.md",
+  "main_word_limit": 1550,
+  "word_count_policy": "Prose only; excludes headings, equations, and citations",
+  "citation_style": "APA 7",
+  "language": "UK English",
+  "tense_voice": "Past-tense, passive, non-personal",
+  "bibliography_path": "manuscript/LITERATURE.bib",
+  "csl_path": "manuscript/methods/apa.csl",
+  "evidence_ledger_path": "manuscript/methods/methods_evidence.csv",
+  "literature_search_path": "manuscript/methods/literature_search.json",
+  "human_review_path": "manuscript/methods/human_review.json",
+  "output_docx_path": "manuscript/Manuscript-Final.docx",
+  "supplementary_methods_required": true,
+  "supplementary_word_target": 4250,
+  "reporting_guidelines": [
+    {
+      "name": "None applicable (not a biomedical or clinical study design)",
+      "scope": "N/A",
+      "source": "N/A",
+      "applicability": "M5 is a computational geochemical inverse-modelling benchmark plus a chemistry-only field transfer demonstration; no EQUATOR-listed guideline applies to this study design."
+    }
+  ],
+  "required_artifact_refs": [],
+  "required_supplementary_sections": [
+    "S1. Derivation of the coordinate-descent update",
+    "S2. Bound handling and sign conventions",
+    "S3. Rank, null-space, singular-value, condition-number, mutual-coherence, and reaction-equivalence-class diagnostics",
+    "S4. Stability-selection and Mechanism Resolution Score algorithms",
+    "S5. Held-out-ion falsification and next-best-measurement algorithm",
+    "S6. PHREEQC synthetic-data generator and species extraction",
+    "S7. Northern Ghana preprocessing, unit conversion, and 2025 sampling-date verification",
+    "S8. Complete reproducibility protocol"
+  ],
+  "equations": [
+    {"id": "EQ-1", "destination": "main", "role": "primary", "purpose": "Defines the transport-corrected concentration residual", "evidence_id": "METH-01"},
+    {"id": "EQ-2", "destination": "main", "role": "primary", "purpose": "Defines the bounded penalised sparse-regression estimator", "evidence_id": "METH-02"},
+    {"id": "EQ-S1", "destination": "supplementary", "role": "derivation", "purpose": "Weighted-least-squares elastic-net objective in rescaled coordinates", "evidence_id": "METH-03"},
+    {"id": "EQ-S2", "destination": "supplementary", "role": "derivation", "purpose": "One-dimensional coordinate subproblem", "evidence_id": "METH-03"},
+    {"id": "EQ-S3", "destination": "supplementary", "role": "derivation", "purpose": "Closed-form soft-thresholding coordinate update", "evidence_id": "METH-03"}
+  ]
+}

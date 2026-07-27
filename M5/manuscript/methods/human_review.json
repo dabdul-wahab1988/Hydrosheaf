@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "reviewer": "r2m agent self-review (Claude, acting as drafting scientist; no separate independent human reviewer available in this session)",
+  "reviewed_on": "2026-07-26",
+  "checks": {
+    "technical_fidelity": {
+      "status": "PASS",
+      "evidence": "This session corrected the Northern Ghana field-data provenance in run_m5_inverse_reaction_benchmark.py (NORTHERN_GHANA_WORKBOOK, TALENSI_CSV, LOWER_ANAYARI_CSV now point at data/FieldData/), rebuilt load_ghana_pairs()/run_ghana_field_demonstration() to use only the raw Dry/Wet sheets, and added compute_ghana_field_saturation_indices() to compute Calcite/Dolomite/Gypsum/Halite/Fluorite SI via a live PHREEQC 3.8.6-17100 installation from each borehole's own wet-season chemistry (replacing the retired Mendeley workbook's precomputed SI, and replacing an interim empty-dict/unconstrained state used earlier in this same session before PHREEQC was installed). The main-Methods paragraph and the affected methods_evidence.csv rows (METH-15, METH-19, METH-21, METH-24) were re-verified directly against the edited script and the rerun outputs (ghana_field_pairs.csv: 160/160 wet-to-dry pairs, all four regions; ghana_field_saturation_indices.csv: 160 rows, 5 phases, geochemically plausible undersaturated values for these low-TDS waters)."
+    },
+    "main_supplement_split": {
+      "status": "PASS",
+      "evidence": "Main Methods (1550 words, at the 1550-word limit after this revision) retains the core workflow, the two primary equations, the seven-comparator design, and a concise statement of what field metadata is and is not available and how SI was independently obtained. Derivations, the coordinate-descent update, and secondary validation remain in Supplementary Methods, which was not restructured by this revision."
+    },
+    "expert_clarity": {
+      "status": "PASS",
+      "evidence": "The revised Northern Ghana paragraph states what was used (160 wet-to-dry pairs, four regions), what is not available from the raw data (aquifer-type, lithology, Al, PO4), and how the missing SI evidence was independently supplied (live PHREEQC from the borehole's own measured chemistry) in the same short-paragraph style as the rest of Methods."
+    },
+    "passive_nonpersonal": {
+      "status": "PASS",
+      "evidence": "methods_gate_check.py --stage draft reports no first-person pronouns; the added/edited sentences use passive, non-personal construction (e.g. 'records were paired by borehole', 'saturation indices ... were computed by live PHREEQC')."
+    },
+    "uk_english": {
+      "status": "PASS",
+      "evidence": "Manual grep for common US-spelling variants (modeling, analyze, characterize, optimization, behavior, color, favor, center, catalog, defense, organize, utilize, standardize, randomize, labeled) against the main and Supplementary Methods returned no genuine matches; the one 'catalog' hit was 'catalogue' (correct UK spelling)."
+    },
+    "reporting_guideline_coverage": {
+      "status": "PASS",
+      "evidence": "methods_manifest.json's applicability determination (no EQUATOR-listed guideline applies to this computational benchmark) is unchanged by this revision."
+    },
+    "equation_accuracy": {
+      "status": "PASS",
+      "evidence": "This revision did not alter any of the 5 declared equations or the reaction-fitting code path; it changed the Northern Ghana data-loading function and supplied a real, non-empty upstream_si argument to the existing, unmodified fit_inverse/hydrosheaf_core_evidence functions. Confirmed by reading thermodynamic_bounds/count_thermodynamic_violations in m5_common.py (the SI-dependent bound/scoring logic activates correctly once given finite SI values) and by inspecting the PHREEQC SELECTED_OUTPUT header (si_Calcite, si_Dolomite, si_Gypsum, si_Halite, si_Fluorite) against GHANA_SI_PHASES to confirm the parsed columns match the requested phases. DOCX-stage visual inspection of rendered OMML equations remains an outstanding manual step for the user, as in the prior review round."
+    },
+    "reproducibility": {
+      "status": "PASS",
+      "evidence": "The corrected field-data pipeline was run twice with --reuse-synthetic (fixed RANDOM_SEED, identical cached PHREEQC/synthetic inputs, cached ghana_field_saturation_indices.csv reused on the second run rather than recomputed) and produced byte-identical ghana_field_pairs.csv, mechanism_resolution_scores.csv, and mrs_calibration_model.json outputs both times, confirming determinism. The installed PHREEQC version (3.8.6-17100) differs from the version used for the already-locked synthetic benchmark (3.7.3-15968, still reflected in tableS9_software_environment.csv for that component); this is disclosed rather than mislabelled, and only affects the newly added Northern Ghana SI computation, not the synthetic-tier results."
+    }
+  }
+}

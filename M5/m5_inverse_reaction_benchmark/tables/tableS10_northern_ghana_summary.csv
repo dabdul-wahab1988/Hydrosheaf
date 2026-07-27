@@ -1,5 +1,5 @@
-Aquifer,Wet-dry pairs,Lithologies,Median MRS,Median held-out RMSE (mmol/L),Median support stability,Identifiable (%),Equivalence-class (%),Partially identifiable (%),Non-identifiable (%)
-Birimian fractured basement aquifer,38,3,78.06161907188337,0.1403974015684326,0.9714285714285712,0.0,0.0,100.0,0.0
-Granitoid fractured basement aquifer,20,3,77.26861111834674,0.15696750469874904,0.9577777777777778,0.0,0.0,100.0,0.0
-Middle Voltaian sedimentary aquifer,47,3,77.08709886308499,0.150667802652224,0.9666666666666668,0.0,0.0,100.0,0.0
-Regolith/alluvial shallow aquifer,33,3,78.17490929109738,0.1500831499260836,0.9714285714285712,0.0,0.0,100.0,0.0
+Region,Wet-dry pairs,Districts,Median MRS,Median held-out RMSE (mmol/L),Median support stability,Identifiable (%),Equivalence-class (%),Partially identifiable (%),Non-identifiable (%)
+North East Region,40,7,77.29174580823764,0.15804460372274426,0.9666666666666666,0.0,0.0,100.0,0.0
+Northern Region,40,8,78.20844604307197,0.15829658045656486,0.9714285714285712,0.0,0.0,100.0,0.0
+Upper East Region,40,8,77.53951532049655,0.1697714514101326,0.9666666666666667,0.0,0.0,100.0,0.0
+Upper West Region,40,8,77.53817058149818,0.1602392120109571,0.9714285714285712,0.0,0.0,100.0,0.0

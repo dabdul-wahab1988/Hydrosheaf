@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-07-06T01:17:18.903103+00:00",
+  "generated_at": "2026-07-27T01:01:18.554661+00:00",
   "random_seed": 20250615,
-  "phreeqc_version": "3.7.3-15968",
-  "phreeqc_executable": "C:\\Program Files\\USGS\\phreeqc-3.7.3-15968-x64\\bin\\Release\\phreeqc.exe",
-  "phreeqc_database": "C:\\Program Files\\USGS\\phreeqc-3.7.3-15968-x64\\database\\phreeqc.dat",
+  "phreeqc_version": "3.8.6-17100",
+  "phreeqc_executable": "C:\\Program Files\\USGS\\phreeqc-3.8.6-17100-x64\\bin\\Release\\phreeqc.exe",
+  "phreeqc_database": "C:\\Program Files\\USGS\\phreeqc-3.8.6-17100-x64\\database\\phreeqc.dat",
   "phreeqc_runtime_seconds": null,
   "phreeqc_inverse_runtime_seconds": null,
   "n_phreeqc_scenarios": 240,
   "n_benchmark_fits": 21600,
   "n_phreeqc_inverse_scenarios": 240,
-  "n_field_pairs": 138,
+  "n_field_pairs": 160,
   "archetypes": [
     "carbonate",
     "crystalline",
@@ -105,21 +105,21 @@
       "mean_phase_f1": 0.5605711186961188,
       "mean_class_f1": 0.6057810245310246,
       "mean_false_discovery_rate": 0.3828141534391534,
-      "mean_extent_rmse_mmolL": 0.0511147206618567,
+      "mean_extent_rmse_mmolL": 0.05111472066185671,
       "n_optional_diagnostics": 0.0
     },
     "enhanced": {
       "mean_phase_f1": 0.5804398841898842,
       "mean_class_f1": 0.6144663900913901,
       "mean_false_discovery_rate": 0.361374007936508,
-      "mean_extent_rmse_mmolL": 0.049857065586981886,
+      "mean_extent_rmse_mmolL": 0.04985706558698189,
       "n_optional_diagnostics": 10.0
     },
     "plus_lite": {
       "mean_phase_f1": 0.577388098013098,
       "mean_class_f1": 0.6097515447515448,
       "mean_false_discovery_rate": 0.3638045634920635,
-      "mean_extent_rmse_mmolL": 0.049507090010799705,
+      "mean_extent_rmse_mmolL": 0.04950709001079971,
       "n_optional_diagnostics": 3.0
     }
   },
@@ -152,43 +152,43 @@
   "external_field_evidence_lifted_resolution_summary": {
     "LowerAnayari": {
       "available_plus_lite": {
-        "mean_evidence_lifted_resolution_index": 0.12508465062130267,
-        "median_evidence_lifted_resolution_index": 0.0103459978162632,
-        "conditionally_preferred_or_resolved_fraction": 0.48299319727891155,
+        "mean_evidence_lifted_resolution_index": 0.16454675999374885,
+        "median_evidence_lifted_resolution_index": 0.0723261436121447,
+        "conditionally_preferred_or_resolved_fraction": 0.8027210884353742,
         "n_class_evaluations": 147
       },
       "core": {
-        "mean_evidence_lifted_resolution_index": 0.12508465062130267,
-        "median_evidence_lifted_resolution_index": 0.0103459978162632,
-        "conditionally_preferred_or_resolved_fraction": 0.48299319727891155,
+        "mean_evidence_lifted_resolution_index": 0.16454675999374888,
+        "median_evidence_lifted_resolution_index": 0.0723261436121447,
+        "conditionally_preferred_or_resolved_fraction": 0.8027210884353742,
         "n_class_evaluations": 147
       }
     },
     "NorthernGhana.xlsx": {
       "available_plus_lite": {
-        "mean_evidence_lifted_resolution_index": 0.11657843126755202,
+        "mean_evidence_lifted_resolution_index": 0.11757455369499124,
         "median_evidence_lifted_resolution_index": 0.0723261436121447,
-        "conditionally_preferred_or_resolved_fraction": 0.65,
+        "conditionally_preferred_or_resolved_fraction": 0.6666666666666666,
         "n_class_evaluations": 480
       },
       "core": {
-        "mean_evidence_lifted_resolution_index": 0.10000675430731253,
-        "median_evidence_lifted_resolution_index": 0.0723261436121447,
-        "conditionally_preferred_or_resolved_fraction": 0.525,
+        "mean_evidence_lifted_resolution_index": 0.13955884191237172,
+        "median_evidence_lifted_resolution_index": 0.0893119873794837,
+        "conditionally_preferred_or_resolved_fraction": 0.8458333333333333,
         "n_class_evaluations": 480
       }
     },
     "Talensi": {
       "available_plus_lite": {
-        "mean_evidence_lifted_resolution_index": 0.24931682663809948,
-        "median_evidence_lifted_resolution_index": 0.0723261436121447,
-        "conditionally_preferred_or_resolved_fraction": 0.5529411764705883,
+        "mean_evidence_lifted_resolution_index": 0.26728968354092586,
+        "median_evidence_lifted_resolution_index": 0.1466271811572113,
+        "conditionally_preferred_or_resolved_fraction": 0.7137254901960784,
         "n_class_evaluations": 255
       },
       "core": {
-        "mean_evidence_lifted_resolution_index": 0.24931682663809948,
-        "median_evidence_lifted_resolution_index": 0.0723261436121447,
-        "conditionally_preferred_or_resolved_fraction": 0.5529411764705883,
+        "mean_evidence_lifted_resolution_index": 0.26728968354092586,
+        "median_evidence_lifted_resolution_index": 0.1466271811572113,
+        "conditionally_preferred_or_resolved_fraction": 0.7137254901960784,
         "n_class_evaluations": 255
       }
     }
@@ -205,15 +205,15 @@
   "low_residual_wrong_phase_fraction": 0.55,
   "mixed_holdout_mrs_classification_accuracy": 0.4888888888888889,
   "field_resolution_class_counts": {
-    "partially_identifiable": 138
+    "partially_identifiable": 160
   },
-  "field_median_core_evidence_score": 0.6806249999999999,
-  "field_median_tds_consistency_score": 0.9414509199280336,
-  "field_pairs_with_plus_lite_tracers": 138,
+  "field_median_core_evidence_score": 0.6903125,
+  "field_median_tds_consistency_score": 0.9417093372947205,
+  "field_pairs_with_plus_lite_tracers": 160,
   "claim_guardrail": "Hydrosheaf is evaluated as an identifiability-aware sparse linear inverse reaction model with PHREEQC-generated truth and thermodynamic screening, not as a fully coupled nonlinear PHREEQC inverse solver.",
   "software": {
-    "python": "3.10.17",
-    "numpy": "2.2.6",
+    "python": "3.14.6",
+    "numpy": "2.4.6",
     "pandas": "2.3.3"
   }
 }

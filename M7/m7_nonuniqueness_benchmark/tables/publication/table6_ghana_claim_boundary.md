@@ -8,5 +8,7 @@
 | Screen intervals | Absent | Vertical connectivity non-identifiable |
 | Repeated head series | Absent | Dynamic head validation unavailable |
 | Coordinates | Masked | No site-scale connectivity truth |
-| Processed graph edges | Available | Sensitivity input, not truth |
+| Processed graph edges | Absent | Edge sets are self-generated, not supplied |
+| Intra-season sampling dates | Absent | Batch order is disclosed and arbitrary |
+| Independent aquifer-type classification | Absent | Stratified reporting uses region instead |
 | Independent reaction truth | Absent | Unique mechanisms unvalidated |

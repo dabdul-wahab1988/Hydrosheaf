@@ -979,7 +979,7 @@ Update:
 - `docs/INPUTS_REFERENCE.md` — document new config parameters
 - `M2/m2_benchmark/` — synthetic benchmark: generate MODPATH labels, train Bayesian edge model, compare vs. naive Bayes
 - `M4/m4_topology_benchmark/` — add evidence-ladder classification, test null-model filtering
-- `M6/m6_robustness_benchmark/` — add spectral analysis, test VOI ranking
+- `M6/m6_field_transfer_benchmark/` — add spectral analysis, test VOI ranking
 
 ---
 

@@ -31,7 +31,7 @@ def export_coords(data):
 def export_tier_ladder():
     rows = []
     caps = {"Tier 0": "majors", "Tier 1": "+ isotopes", "Tier 2": "+ fluoride",
-            "Tier 3": "+ Sr / SiO2", "Tier 4": "+ metadata / SI / edges"}
+            "Tier 3": "+ Sr / SiO2", "Tier 4": "+ saturation indices"}
     attain = {"northern_ghana": 4, "manu": 2, "talensi": 1}
     for i, (tier, desc) in enumerate(caps.items()):
         for ds, cap in attain.items():

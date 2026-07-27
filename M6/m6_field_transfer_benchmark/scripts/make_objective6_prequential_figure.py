@@ -1,4 +1,4 @@
-"""Create the Objective 6 field hold-forward figure from the locked M7.2 audit."""
+"""Create Q1 Figure 5 from the locked supporting field hold-forward audit."""
 
 from __future__ import annotations
 
@@ -12,7 +12,11 @@ import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SOURCE = (
-    REPO_ROOT / "M7" / "m7_strong_integration" / "results" / "m7_2_strong_confirmatory"
+    REPO_ROOT
+    / "M7"
+    / "m7_nonuniqueness_benchmark"
+    / "results"
+    / "supporting_validation"
 )
 OUT = REPO_ROOT / "M6" / "m6_field_transfer_benchmark" / "figures" / "r_publication"
 
@@ -94,7 +98,7 @@ def main() -> None:
             GREEN,
         ),
         (
-            "Graph − expanding mean Δ",
+            "Graph − mean Δ",
             bootstrap["graph_ridge_minus_expanding_mean_delta"],
             BLUE,
         ),
@@ -172,7 +176,7 @@ def main() -> None:
         hspace=0.55, wspace=0.55, left=0.15, right=0.99, top=0.93, bottom=0.14
     )
     OUT.mkdir(parents=True, exist_ok=True)
-    stem = OUT / "figure9_field_prequential"
+    stem = OUT / "figure5_field_prequential"
     fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
     fig.savefig(stem.with_suffix(".png"), bbox_inches="tight", dpi=600)
     fig.savefig(

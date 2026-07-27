@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0",
+  "outline_path": "Outline.md",
+  "main_methods_path": "manuscript/sections/02-methods/section.md",
+  "supplementary_methods_path": "manuscript/supplementary/Supplementary-Methods.md",
+  "main_word_limit": 1550,
+  "word_count_policy": "Prose only; excludes headings, equations, and citation markers.",
+  "citation_style": "APA 7",
+  "language": "UK English",
+  "tense_voice": "Past-tense, passive, non-personal",
+  "bibliography_path": "manuscript/LITERATURE.bib",
+  "csl_path": "manuscript/methods/apa.csl",
+  "evidence_ledger_path": "manuscript/methods/methods_evidence.csv",
+  "literature_search_path": "manuscript/methods/literature_search.json",
+  "human_review_path": "manuscript/methods/human_review.json",
+  "output_docx_path": "manuscript/Manuscript-Final.docx",
+  "supplementary_methods_required": true,
+  "reporting_guidelines": [
+    {
+      "name": "MODFLOW 6 / MODPATH 7 official simulation documentation",
+      "scope": "Groundwater flow and particle-tracking simulation reporting",
+      "source": "langevin2017modflow6; pollock2016modpath",
+      "applicability": "The independent synthetic-truth generator executes official MODFLOW 6 and MODPATH 7 binaries; simulation configuration and particle-tracking terminology follow this official documentation standard."
+    },
+    {
+      "name": "PHREEQC inverse/speciation modelling documentation",
+      "scope": "Thermodynamic speciation and reaction-direction constraint reporting",
+      "source": "parkhurst2013phreeqc",
+      "applicability": "Reaction-family scoring retains PHREEQC-derived thermodynamic direction bounds; constraint construction follows this official documentation standard."
+    }
+  ],
+  "required_artifact_refs": [
+    {"id": "FIG-1", "kind": "figure", "destination": "main"}
+  ],
+  "required_supplementary_sections": [
+    "Independent generator and blinding contract",
+    "Evidence-fusion model specification",
+    "Adverse control construction",
+    "Topology-conditioned age inference",
+    "Reaction-family bootstrap and thermodynamic constraints",
+    "Statistical metric definitions",
+    "Decision rules for complementarity, redundancy and negative transfer",
+    "Northern Ghana audit criteria"
+  ],
+  "equations": [
+    {
+      "id": "EQ-1",
+      "destination": "main",
+      "role": "primary",
+      "purpose": "Defines the standardized logistic evidence-fusion probability used for all topology-ranking evidence-panel comparisons.",
+      "evidence_id": "METH-4"
+    },
+    {
+      "id": "EQ-2",
+      "destination": "supplementary",
+      "role": "supporting",
+      "purpose": "Defines the local groundwater-age posterior combining a lognormal age prior with Student-t tracer discrepancy likelihoods.",
+      "evidence_id": "METH-22"
+    },
+    {
+      "id": "EQ-3",
+      "destination": "supplementary",
+      "role": "supporting",
+      "purpose": "Defines the importance-sampling topology potential, weight update and effective sample size used to condition age posteriors on an assumed flow topology.",
+      "evidence_id": "METH-21"
+    },
+    {
+      "id": "EQ-4",
+      "destination": "supplementary",
+      "role": "supporting",
+      "purpose": "Defines normalized edgewise Bernoulli entropy.",
+      "evidence_id": "METH-19"
+    },
+    {
+      "id": "EQ-5",
+      "destination": "supplementary",
+      "role": "supporting",
+      "purpose": "Defines the binned expected calibration error.",
+      "evidence_id": "METH-20"
+    },
+    {
+      "id": "EQ-6",
+      "destination": "supplementary",
+      "role": "supporting",
+      "purpose": "Defines reaction-family support entropy and effective supported families.",
+      "evidence_id": "METH-23"
+    }
+  ]
+}

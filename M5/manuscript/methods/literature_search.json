@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.0",
+  "searches": [
+    {
+      "source": "web-search",
+      "query": "PHREEQC inverse geochemical modeling mass balance mineral phases groundwater Parkhurst Appelo",
+      "searched_on": "2026-07-24",
+      "scope": "Identify the authoritative PHREEQC 3 documentation for inverse mole-balance modelling"
+    },
+    {
+      "source": "web-search",
+      "query": "Plummer Prestemon Parkhurst NETPATH geochemical mass balance modeling ground water flow paths",
+      "searched_on": "2026-07-24",
+      "scope": "Identify the authoritative NETPATH USGS report citation"
+    },
+    {
+      "source": "web-search",
+      "query": "Plummer Back 1980 mass balance approach American Journal of Science chemical evolution hydrologic systems",
+      "searched_on": "2026-07-24",
+      "scope": "Verify the founding mass-balance-approach citation for inverse hydrogeochemistry"
+    },
+    {
+      "source": "web-search",
+      "query": "equifinality non-uniqueness inverse geochemical modeling groundwater reaction paths",
+      "searched_on": "2026-07-24",
+      "scope": "Ground the non-identifiability argument in the environmental-modelling equifinality literature"
+    },
+    {
+      "source": "web-search",
+      "query": "Beven Freer 2001 equifinality GLUE uncertainty hydrological modelling",
+      "searched_on": "2026-07-24",
+      "scope": "Verify the GLUE/equifinality primary citation"
+    },
+    {
+      "source": "web-search",
+      "query": "sparse regression LASSO elastic net geochemical mass balance inverse modeling",
+      "searched_on": "2026-07-24",
+      "scope": "Verify the lasso and elastic-net methodological citations underlying the sparse reaction-extent estimator"
+    },
+    {
+      "source": "web-search",
+      "query": "stability selection regularization path model selection Meinshausen Buhlmann",
+      "searched_on": "2026-07-24",
+      "scope": "Verify the stability-selection citation underlying the bootstrap support-stability diagnostic"
+    },
+    {
+      "source": "web-search",
+      "query": "Christophersen Hooper 1992 multivariate analysis stream water end-member mixing Water Resources Research",
+      "searched_on": "2026-07-24",
+      "scope": "Verify the end-member mixing non-uniqueness citation"
+    },
+    {
+      "source": "web-search",
+      "query": "Neuman 2003 maximum likelihood Bayesian model averaging uncertain model predictions Stochastic Environmental Research",
+      "searched_on": "2026-07-24",
+      "scope": "Verify the Bayesian model-averaging citation for structural uncertainty"
+    },
+    {
+      "source": "web-search",
+      "query": "optimal groundwater monitoring network design value of information sampling",
+      "searched_on": "2026-07-24",
+      "scope": "Ground the next-best-measurement/monitoring-design rationale in the value-of-information literature"
+    },
+    {
+      "source": "web-search",
+      "query": "Sreekanth 2017 Design of optimal groundwater monitoring well network Water Resources Research volume pages",
+      "searched_on": "2026-07-24",
+      "scope": "Verify the monitoring-network design citation"
+    },
+    {
+      "source": "web-search",
+      "query": "Northern Ghana basement aquifer groundwater hydrochemistry crystalline rock weathering",
+      "searched_on": "2026-07-24",
+      "scope": "Identify regional hydrogeochemistry citations for the Northern Ghana field-transfer setting"
+    },
+    {
+      "source": "web-search",
+      "query": "Water quality analysis of groundwater in crystalline basement rocks Northern Ghana author Environmental Geology 2008",
+      "searched_on": "2026-07-24",
+      "scope": "Verify the Northern Ghana crystalline-basement hydrochemistry citation"
+    },
+    {
+      "source": "web-search",
+      "query": "Yidana Hydrogeology and groundwater resources of Ghana review hydrochemistry journal citation full",
+      "searched_on": "2026-07-24",
+      "scope": "Verify the regional Ghana hydrogeology review citation"
+    }
+  ],
+  "selected_sources": [
+    {
+      "citation_key": "parkhurst2013phreeqc",
+      "supports_method_ids": ["METH-07", "METH-10", "METH-18", "METH-24"],
+      "authority": "official documentation",
+      "reason": "Authoritative USGS technical manual for PHREEQC 3, including the INVERSE_MODELING keyword block used for the conventional PHREEQC inverse comparator, the live-PHREEQC scenario-generation and archival procedure, and the SOLUTION/SELECTED_OUTPUT saturation-index calculation used for the Northern Ghana field demonstration."
+    },
+    {
+      "citation_key": "tibshirani1996lasso",
+      "supports_method_ids": ["METH-02", "METH-03"],
+      "authority": "primary",
+      "reason": "Original method paper for the L1 (lasso) penalty used in the sparse reaction-extent estimator."
+    },
+    {
+      "citation_key": "zou2005elasticnet",
+      "supports_method_ids": ["METH-02", "METH-03"],
+      "authority": "primary",
+      "reason": "Original method paper for the elastic-net penalty combining L1 and L2 regularisation used in the estimator."
+    },
+    {
+      "citation_key": "meinshausen2010stability",
+      "supports_method_ids": ["METH-12", "METH-17"],
+      "authority": "primary",
+      "reason": "Original method paper for stability selection, underlying the bootstrap/penalty-grid support-stability diagnostic."
+    },
+    {
+      "citation_key": "sreekanth2017monitoring",
+      "supports_method_ids": ["METH-14"],
+      "authority": "primary",
+      "reason": "Primary study on value-of-information-based groundwater monitoring-network design, supporting the next-best-measurement evaluation design."
+    },
+    {
+      "citation_key": "anku2008ghana",
+      "supports_method_ids": ["METH-15"],
+      "authority": "primary",
+      "reason": "Primary regional hydrochemistry study of Northern Ghana crystalline-basement groundwater, supporting the field-setting description."
+    },
+    {
+      "citation_key": "banoengyakubo2011ghana",
+      "supports_method_ids": ["METH-15"],
+      "authority": "primary",
+      "reason": "Regional synthesis of Ghana hydrogeology and hydrochemistry, supporting the field-setting description."
+    }
+  ]
+}

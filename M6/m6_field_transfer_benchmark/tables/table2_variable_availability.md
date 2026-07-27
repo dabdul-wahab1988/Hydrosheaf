@@ -16,5 +16,5 @@
 | d2H | present | present | present |
 | Sr_mgL | present | absent | absent |
 | SiO2_mgL | present | absent | absent |
-| Calcite_SI | present | absent | absent |
-| Aquifer_Type | present | present | present |
+| Calcite_SI | present | present | present |
+| Region | present | absent | absent |

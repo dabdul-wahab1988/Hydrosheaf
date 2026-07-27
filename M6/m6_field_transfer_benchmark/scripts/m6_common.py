@@ -25,15 +25,25 @@ for p in (str(REPO_ROOT), str(M5_SCRIPTS)):
         sys.path.insert(0, p)
 
 import m5_common as m5  # noqa: E402  (fit_inverse, matrix_diagnostics, ...)
+from hydrosheaf.config import Config  # noqa: E402
+from hydrosheaf.phreeqc.runner import run_phreeqc as _hydrosheaf_run_phreeqc  # noqa: E402
 
 SEED = 1234
 BENCH_DIR = Path(__file__).resolve().parents[1]
 RESULTS_DIR = BENCH_DIR / "results"
 
+# Canonical field data only (data/FieldData/). The Northern Ghana raw
+# workbook has no independent aquifer-type, geology-group, lithology,
+# land-use, QC-class, prior-process-label, or graph-edge data: an earlier
+# revision of this module read those from a separate
+# "Aquifers_Dataset_Mendeley.xlsx" workbook that is not this project's own
+# field data (it is the derived product of a different, antecedent study;
+# see data/FieldData/NorthenGhana/SI.pdf and DECISIONS.md) and does not
+# exist in data/FieldData/, so it has been removed from this pipeline.
 DATA = {
-    "northern_ghana": REPO_ROOT / "data" / "NorthenGhana" / "Aquifers_Dataset_Mendeley.xlsx",
-    "talensi": REPO_ROOT / "data" / "Talensi_MiningArea" / "talensi.csv",
-    "manu": REPO_ROOT / "data" / "LowerAnayari" / "manu.csv",
+    "northern_ghana": REPO_ROOT / "data" / "FieldData" / "NorthenGhana" / "NorthernGhana.xlsx",
+    "talensi": REPO_ROOT / "data" / "FieldData" / "Talensi_MiningArea" / "talensi.csv",
+    "manu": REPO_ROOT / "data" / "FieldData" / "LowerAnayari" / "manu.csv",
 }
 
 # Reaction-basis ions (subset of M5 ION_ORDER used by the linear panel)
@@ -67,7 +77,12 @@ PROCESS_LABEL = {
 }
 
 SI_COL_TO_PHASE = {"Calcite_SI": "Calcite", "Dolomite_SI": "Dolomite",
-                   "Gypsum_SI": "Gypsum", "Halite_SI": "Halite"}
+                   "Gypsum_SI": "Gypsum", "Halite_SI": "Halite",
+                   "Fluorite_SI": "Fluorite"}
+# hydrosheaf.phreeqc.runner.run_phreeqc()'s output key for each phase above.
+_SI_RUNNER_KEY = {"Calcite_SI": "si_calcite", "Dolomite_SI": "si_dolomite",
+                  "Gypsum_SI": "si_gypsum", "Halite_SI": "si_halite",
+                  "Fluorite_SI": "si_fluorite"}
 
 
 # --- data harmonisation -------------------------------------------------------
@@ -75,16 +90,60 @@ def _to_mmol(series_mgL: pd.Series, ion: str) -> pd.Series:
     return pd.to_numeric(series_mgL, errors="coerce") / m5.MOLAR_MASS_G_MOL[ion]
 
 
+def _compute_si(out: pd.DataFrame, ph: pd.Series, temp_c: pd.Series) -> pd.DataFrame:
+    """Saturation indices for calcite/dolomite/gypsum/halite/fluorite,
+    computed independently via hydrosheaf's own phreeqpython-backed PHREEQC
+    runner from each sample's own major-ion panel (mmol/L), pH, and
+    temperature. Used for every dataset that measures pH, temperature and
+    major ions (Northern Ghana, Talensi, Lower Anayari) -- SI is not gated
+    behind Sr/SiO2 availability, since PHREEQC needs only pH/temperature/
+    major ions to compute it. Restricted to phases the panel can support:
+    no Al or PO4 is measured anywhere, so silicate and apatite saturation
+    states are not computable (same limitation as M5's field demonstration);
+    Talensi additionally measures no fluoride, so its fluorite SI reflects
+    F treated as absent rather than an independently measured near-zero
+    concentration and should be read with that caveat."""
+    def _num(idx: object, column: str) -> float | None:
+        value = out.at[idx, column]
+        return float(value) if pd.notna(value) else None
+
+    samples = []
+    for idx in out.index:
+        samples.append({
+            "sample_id": str(out.at[idx, "sample_id"]),
+            "pH": float(ph.iat[idx]) if pd.notna(ph.iat[idx]) else None,
+            "temp_c": float(temp_c.iat[idx]) if pd.notna(temp_c.iat[idx]) else None,
+            "Ca": _num(idx, "Ca"), "Mg": _num(idx, "Mg"),
+            "Na": _num(idx, "Na"), "K": _num(idx, "K"),
+            "Cl": _num(idx, "Cl"), "F": _num(idx, "F"),
+            "SO4": _num(idx, "SO4"), "NO3": _num(idx, "NO3"),
+            "HCO3": _num(idx, "HCO3"),
+        })
+    results = _hydrosheaf_run_phreeqc(samples, Config())
+    rows = []
+    for sample_id in out["sample_id"].astype(str):
+        entry = results.get(sample_id, {})
+        row = {"sample_id": sample_id}
+        for si_col, runner_key in _SI_RUNNER_KEY.items():
+            value = entry.get(runner_key)
+            row[si_col] = float(value) if isinstance(value, (int, float)) and value != -999.0 else np.nan
+        rows.append(row)
+    return pd.DataFrame(rows).set_index("sample_id")
+
+
 def load_northern_ghana() -> pd.DataFrame:
-    """320 seasonal samples with full metadata + SI (Tier 4 capable)."""
+    """320 seasonal samples (160 boreholes x wet/dry) from the raw canonical
+    workbook (data/FieldData/NorthenGhana/NorthernGhana.xlsx, Dry/Wet
+    sheets). No independent aquifer-type, geology-group, lithology,
+    land-use, QC-class, prior-process-label, or graph-edge data is
+    available for these boreholes; stratified reporting elsewhere in M6
+    uses Region/District instead."""
     f = DATA["northern_ghana"]
-    hs = pd.read_excel(f, sheet_name="Hydrochemistry_Seasonal")
-    wn = pd.read_excel(f, sheet_name="Wells_Nodes")[
-        ["Well_ID", "Aquifer_Type", "Geology_Group", "Lithology", "Land_Use",
-         "Latitude", "Longitude"]
-    ]
-    df = hs.merge(wn, on="Well_ID", how="left", suffixes=("", "_node"))
-    out = pd.DataFrame({"dataset": "northern_ghana", "sample_id": df["Sample_ID"],
+    dry = pd.read_excel(f, sheet_name="Dry").assign(Season="Dry")
+    wet = pd.read_excel(f, sheet_name="Wet").assign(Season="Wet")
+    df = pd.concat([wet, dry], ignore_index=True)
+    sample_id = df["Well_ID"].astype(str) + "_" + df["Season"].str.lower()
+    out = pd.DataFrame({"dataset": "northern_ghana", "sample_id": sample_id,
                         "site_id": df["Well_ID"], "season": df["Season"]})
     for ion in MAJOR_IONS + ["F"]:
         col = f"{ion}_mg_L"
@@ -95,22 +154,21 @@ def load_northern_ghana() -> pd.DataFrame:
     out["SiO2_mgL"] = pd.to_numeric(df.get("SiO2_mg_L"), errors="coerce")
     out["d18O"] = pd.to_numeric(df.get("d18O_permil"), errors="coerce")
     out["d2H"] = pd.to_numeric(df.get("d2H_permil"), errors="coerce")
+    si = _compute_si(out, df["pH"], df["Temperature_C"])
     for c in SI_COL_TO_PHASE:
-        out[c] = pd.to_numeric(df.get(c), errors="coerce")
-    out["Aquifer_Type"] = df["Aquifer_Type"]
-    out["Geology_Group"] = df.get("Geology_Group")
-    out["Lithology"] = df.get("Lithology")
+        out[c] = out["sample_id"].astype(str).map(si[c])
+    out["Region"] = df.get("Region")
+    out["District"] = df.get("District")
     out["Latitude"] = pd.to_numeric(df.get("Latitude"), errors="coerce")
     out["Longitude"] = pd.to_numeric(df.get("Longitude"), errors="coerce")
-    out["Data_Class"] = df.get("Data_Class")
-    out["CBE_provided"] = pd.to_numeric(df.get("Charge_Balance_Error_pct"), errors="coerce")
-    out["Dominant_Process_prior"] = df.get("Dominant_Process")
-    out["Facies"] = df.get("Hydrochemical_Facies")
     return out
 
 
 def load_talensi() -> pd.DataFrame:
-    """63 samples, majors + Fe + isotopes; no F/Sr/SiO2/season (Tier 1)."""
+    """63 samples, majors + Fe + isotopes + PHREEQC saturation indices; no
+    F/Sr/SiO2/season (Tier 1). Talensi measures no fluoride, so its fluorite
+    SI reflects F treated as absent, not as an independently measured
+    near-zero value (see _compute_si)."""
     df = pd.read_csv(DATA["talensi"])
     out = pd.DataFrame({"dataset": "talensi", "sample_id": df["Code"],
                         "site_id": df["Code"], "season": "unknown"})
@@ -125,18 +183,21 @@ def load_talensi() -> pd.DataFrame:
     out["SiO2_mgL"] = np.nan
     out["d18O"] = pd.to_numeric(df["d18O"], errors="coerce")
     out["d2H"] = pd.to_numeric(df["d2H"], errors="coerce")
+    si = _compute_si(out, df["pH"], df["Temp"])
     for c in SI_COL_TO_PHASE:
-        out[c] = np.nan
+        out[c] = out["sample_id"].astype(str).map(si[c])
     out["Aquifer_Type"] = "Birimian basement (mining area)"
     out["Latitude"] = pd.to_numeric(df["Latitude"], errors="coerce")
-    out["Longitude"] = pd.to_numeric(df["Longitude"], errors="coerce")
-    out["Data_Class"] = np.nan
-    out["Dominant_Process_prior"] = np.nan
+    # The source table records longitude as a positive magnitude in degrees
+    # west. Convert it to signed WGS84 longitude so Talensi plots in Ghana
+    # rather than east of the Greenwich meridian in Togo.
+    out["Longitude"] = -pd.to_numeric(df["Longitude"], errors="coerce").abs()
     return out
 
 
 def load_manu() -> pd.DataFrame:
-    """41 samples, majors + F + Fe + isotopes; no Sr/SiO2/season (Tier 2)."""
+    """41 samples, majors + F + Fe + isotopes + PHREEQC saturation indices;
+    no Sr/SiO2/season (Tier 2)."""
     df = pd.read_csv(DATA["manu"])
     out = pd.DataFrame({"dataset": "manu", "sample_id": df["Sample ID"],
                         "site_id": df["Sample ID"], "season": "unknown"})
@@ -150,19 +211,47 @@ def load_manu() -> pd.DataFrame:
     out["SiO2_mgL"] = np.nan
     out["d18O"] = pd.to_numeric(df["d18O"], errors="coerce")
     out["d2H"] = pd.to_numeric(df["d2H"], errors="coerce")
+    si = _compute_si(out, df["pH"], df["Temp"])
     for c in SI_COL_TO_PHASE:
-        out[c] = np.nan
+        out[c] = out["sample_id"].astype(str).map(si[c])
     out["Aquifer_Type"] = "Regolith/alluvial shallow (Lower Anayari)"
     out["Latitude"] = pd.to_numeric(df["Y coordinate"], errors="coerce")
     out["Longitude"] = pd.to_numeric(df["X coordinate"], errors="coerce")
-    out["Data_Class"] = np.nan
-    out["Dominant_Process_prior"] = np.nan
     return out
 
 
 def load_all() -> dict[str, pd.DataFrame]:
     return {"northern_ghana": load_northern_ghana(),
             "talensi": load_talensi(), "manu": load_manu()}
+
+
+def seasonal_well_pairs(
+    frame: pd.DataFrame,
+) -> dict[str, tuple[dict[str, object], dict[str, object]]]:
+    """Return the first wet/dry observation pair for each complete field well."""
+    complete = [
+        well
+        for well in frame["site_id"].unique()
+        if (
+            frame["site_id"].eq(well)
+            & frame["season"].eq("Wet")
+        ).any()
+        and (
+            frame["site_id"].eq(well)
+            & frame["season"].eq("Dry")
+        ).any()
+    ]
+    return {
+        str(well): (
+            frame[
+                frame["site_id"].eq(well) & frame["season"].eq("Wet")
+            ].iloc[0].to_dict(),
+            frame[
+                frame["site_id"].eq(well) & frame["season"].eq("Dry")
+            ].iloc[0].to_dict(),
+        )
+        for well in complete
+    }
 
 
 # --- quality control ----------------------------------------------------------

@@ -1,11 +1,31 @@
 # M6 — Q1 Nature-Portfolio Manuscript Outline
 
-Field transfer and robustness of Hydrosheaf under data scarcity across Ghanaian aquifers.
+Field transfer and robustness of Hydrosheaf under data scarcity across three Ghanaian
+groundwater datasets.
 
 Development status: drafted 9 July 2026. Grounded in the audited real datasets
 (`data/NorthenGhana/Aquifers_Dataset_Mendeley.xlsx`,
-`data/Talensi_MiningArea/talensi.csv`, `data/LowerAnayari/manu.csv`). Replaces the
-hard-coded `M6/m6_robustness_benchmark` scaffold.
+`data/Talensi_MiningArea/talensi.csv`, `data/LowerAnayari/manu.csv`). Replaces
+the former hard-coded robustness scaffold, whose reusable chemistry-stability
+results and scripts are now consolidated in this package.
+
+**Amendment (2026-07-26):** `Aquifers_Dataset_Mendeley.xlsx` is a different,
+antecedent study's own derived product (aquifer/geology/lithology metadata, workbook
+saturation indices, a provided graph-edge sheet, and inferred process/evolution labels
+for the same boreholes), not this project's field data, and has been removed entirely;
+Northern Ghana chemistry now comes only from the canonical raw workbook
+`data/FieldData/NorthenGhana/NorthernGhana.xlsx` (see `DECISIONS.md`). Consequently,
+throughout this outline: "Tier 4" means major ions + F + isotopes + Sr/SiO2 +
+Hydrosheaf-computed PHREEQC saturation indices only (no metadata/QC-class/edges lift);
+every "aquifer type"/"aquifer-stratified" reference is superseded by administrative
+region/district (no independent aquifer-type classification exists for these
+boreholes); "four edge sets" / the provided `Graph_Edges` sheet is superseded by three
+Hydrosheaf-generated edge sets (chemistry-kNN, geographic-nearest, random/perturbed);
+and any headline number computed against the removed Mendeley labels (e.g. a
+prior-label "concordance" figure) no longer applies — no such comparison is reported.
+The rest of this document is left in its original, as-drafted wording for audit
+purposes; current, correct numbers are in `manuscript/sections/04-results/section.md`
+and `docs/m6_results_summary.md`.
 
 ---
 
@@ -217,7 +237,7 @@ concordance; per-class identifiability shift; next-best-measurement. Uncertainty
 defined here, full spec in SI.
 
 ## 3.7 Reproducibility (110 words)
-One-command `run_m6_all.py`; environment lock; R figure scripts; deposited derived CSVs;
+One-command `run_m6_q1.py`; environment lock; R figure scripts; deposited derived CSVs;
 model-card limitations. Mirror M5 package layout.
 
 ---
@@ -243,12 +263,16 @@ Compare inferred process networks under the four edge sets (tests H3). Show whic
 conclusions are connectivity-invariant (point-sample reaction class) vs
 connectivity-sensitive (mixing/flowpath diagnostics).
 
-## 4.5 External transfer to Talensi and Lower Anayari (320 words) → **Figure 5**, **Table 4**
+## 4.5 External transfer to Talensi and Lower Anayari (260 words) → **Extended Data Figure 1**, **Table 4**
 Apply workflow at native Tier 1 / Tier 2. Report transfer success, uncertainty increase vs
 Northern Ghana at matched tier, and failure modes (e.g. F-dependent fluoride mobilisation
 unresolvable in Talensi).
 
-## 4.6 Limitation map and process-class identifiability (230 words) → **Figure 6**
+## 4.6 Within-campaign seasonal hold-forward (220 words) → **Figure 5**, **Table 5**
+Report one-step wet-season chemistry prediction against persistence and the
+expanding-mean baseline. Keep the claim truth-free and within-campaign.
+
+## 4.7 Limitation map and process-class identifiability (230 words) → **Figure 6**
 Synthesise all experiments into an identifiable / weakly identifiable / non-identifiable
 map per process class per dataset. Compare conservative evidence-gated reporting vs
 conventional single best-fit (tests H6).
@@ -330,33 +354,40 @@ Do not equate:
 - transfer success with mechanistic validation;
 - low charge-balance error with correct process attribution.
 
-# Data & Analysis Status — LOCKED (9 July 2026)
+# Data & Analysis Status — updated 2026-07-26 (canonical field data)
 The executable M6 package is built and run at `M6/m6_field_transfer_benchmark/`, mirroring
-`M5/m5_inverse_reaction_benchmark/`. Deterministic (seed 1234), 866 s.
+`M5/m5_inverse_reaction_benchmark/`. Deterministic (seed 1234).
 
 ## Implemented evidence
-- Three real Ghanaian datasets harmonised (320 Northern Ghana wet/dry + metadata/SI/edges;
-  63 Talensi; 41 Lower Anayari). Independent CBE reproduces the workbook Data_Class split
-  (294/19/7), validating harmonisation.
+- Three real Ghanaian datasets harmonised from `data/FieldData/` only (320 Northern Ghana
+  wet/dry samples; 63 Talensi; 41 Lower Anayari). Independent CBE gives 294
+  quantitative/19 screening/7 exploratory of 320 Northern Ghana samples; no external
+  quality-class field exists in the canonical raw data to check this against.
 - Reuses the frozen M5 inverse solver and the frozen M5 MRS calibration as the *transferred*
   identifiability classifier (never re-fit). Cl-conservative transport correction isolates
-  reactive residuals.
+  reactive residuals. Tier 4 saturation indices are computed directly via Hydrosheaf's own
+  `phreeqpython`-backed PHREEQC runner, not read from any source file.
 - Six experiments executed → 19 results CSVs; 4 main + 8 supplementary tables (CSV + MD);
-  6 main + 10 supplementary Nature-style figures (PNG/PDF/TIF, 300 dpi).
+  6 main + 3 Extended Data + 11 supplementary Nature-style figures (PNG/PDF/TIF, 300 dpi).
 
-## Principal locked results
+## Principal results
 - **E2:** all 160 Northern Ghana wells partially identifiable at Tier 4 (conservative,
-  reproduces M5 transfer); mean MRS ≈70–72; prior-label concordance 0.42 (labels ≠ truth).
-- **E3 (H1):** removing Sr/SiO₂ (Tier 3→2) sends 52% of wells to non-identifiable while mean
-  MRS stays ≈70 — fit quality masks identifiability loss. Sr/SiO₂ is the pivotal diagnostic.
-- **E4 (H3):** process-network composition shifts with edge choice (TVD ≤0.23) but per-edge
-  identifiability is edge-invariant (~99% partial).
+  reproduces M5 transfer); mean MRS 70.6-71.2 across the four administrative regions (no
+  independent aquifer-type classification exists for these boreholes). No prior-label
+  comparison is reported (Methods, `DECISIONS.md`).
+- **E3 (H1):** removing Sr/SiO₂ (Tier 3→2) sends 51.9% of wells to non-identifiable while mean
+  MRS stays ≈70.7 — fit quality masks identifiability loss. Sr/SiO₂ is the pivotal diagnostic.
+- **E4 (H3):** comparing three Hydrosheaf-generated edge sets, process-network composition
+  shifts with edge choice (TVD vs chemistry-kNN reference: 0.12 geographic-nearest, 0.05
+  random/perturbed) but per-edge identifiability is edge-invariant (99.3-100% partial).
 - **E5 (H4):** external transfer degrades — Talensi 36% non-identifiable, Lower Anayari 96.5%
   (silicate un-corroborable without Sr/SiO₂); Sr/SiO₂ = next-best measurement.
 - **E6 (H6):** silicate/carbonate non-identifiable in both external sets, resolvable in
-  Northern Ghana; conservative reporting admits 7.3 vs 5.8 best-fit reactions.
+  Northern Ghana; conservative reporting admits 7.1 vs 5.4 best-fit reactions.
 
 See `docs/m6_results_summary.md`, `docs/02_figures.md`, `docs/03_tables.md`,
-`docs/m6_data_readiness_audit.md`, `docs/m6_artifact_manifest.md`.
+`docs/m6_data_readiness_audit.md`, `docs/m6_artifact_manifest.md`, `DECISIONS.md`.
 
-Old `M6/m6_robustness_benchmark/` retained as reference scaffold only.
+The former separate robustness scaffold has been removed. Its reusable
+cross-milestone chemistry-stability results remain in `results/`, with their
+reproducibility scripts in `scripts/`; they are not part of the Q1 runner.

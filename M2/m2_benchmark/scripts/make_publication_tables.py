@@ -17,7 +17,7 @@ BENCHMARK_TABLE_DIR = BENCHMARK_ROOT / "tables"
 ROOT_TABLE_DIR = PROJECT_ROOT / "tables"
 EXTERNAL_DIR = BENCHMARK_ROOT / "external"
 M3_RESULT_DIR = PROJECT_ROOT / "M3" / "m3_age_benchmark" / "results"
-M6_RESULT_DIR = PROJECT_ROOT / "M6" / "m6_robustness_benchmark" / "results"
+M6_RESULT_DIR = PROJECT_ROOT / "M6" / "m6_field_transfer_benchmark" / "results"
 
 
 def _read_csv(path: Path) -> pd.DataFrame:
@@ -229,8 +229,8 @@ def write_hyperparameters() -> None:
 def write_pilot_metadata() -> None:
     rows = []
     specs = [
-        ("Talensi", PROJECT_ROOT / "data" / "Talensi_MiningArea" / "talensi.csv", "Code", "Latitude", "Longitude", "Crystalline basement", "Mining/Agri"),
-        ("Lower Anayari", PROJECT_ROOT / "data" / "LowerAnayari" / "manu.csv", "Sample ID", "Y coordinate", "X coordinate", "Alluvial/Basement", "Agriculture"),
+        ("Talensi", PROJECT_ROOT / "data" / "FieldData" / "Talensi_MiningArea" / "talensi.csv", "Code", "Latitude", "Longitude", "Crystalline basement", "Mining/Agri"),
+        ("Lower Anayari", PROJECT_ROOT / "data" / "FieldData" / "LowerAnayari" / "manu.csv", "Sample ID", "Y coordinate", "X coordinate", "Alluvial/Basement", "Agriculture"),
     ]
     for site, path, id_col, lat_col, lon_col, aquifer, influence in specs:
         df = _read_csv(path)
@@ -260,8 +260,8 @@ def write_pilot_metadata() -> None:
 def _field_lookup() -> dict[str, dict[str, float]]:
     lookup: dict[str, dict[str, float]] = {}
     sources = [
-        (PROJECT_ROOT / "data" / "LowerAnayari" / "manu.csv", "Sample ID", "X coordinate", "Y coordinate", "Elevation"),
-        (PROJECT_ROOT / "data" / "Talensi_MiningArea" / "talensi.csv", "Code", "Longitude", "Latitude", "Elevation"),
+        (PROJECT_ROOT / "data" / "FieldData" / "LowerAnayari" / "manu.csv", "Sample ID", "X coordinate", "Y coordinate", "Elevation"),
+        (PROJECT_ROOT / "data" / "FieldData" / "Talensi_MiningArea" / "talensi.csv", "Code", "Longitude", "Latitude", "Elevation"),
     ]
     for path, id_col, x_col, y_col, z_col in sources:
         df = _read_csv(path)

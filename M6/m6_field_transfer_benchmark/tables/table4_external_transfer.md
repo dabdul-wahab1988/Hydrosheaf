@@ -2,7 +2,7 @@
 
 | dataset | n_edges | mean_mrs | mean_stability | frac_partial | frac_non_identifiable |
 | --- | --- | --- | --- | --- | --- |
-| talensi (Tier1) | 129 | 69.395 | 0.974 | 0.643 | 0.357 |
-| manu (Tier2) | 85 | 70.46 | 0.932 | 0.035 | 0.965 |
-| N.Ghana ref (Tier1) | 120 | 71.129 | 0.965 | 0.733 | 0.267 |
-| N.Ghana ref (Tier2) | 120 | 73.036 | 0.962 | 0.725 | 0.275 |
+| talensi (Tier1) | 129 | 68.799 | 0.967 | 0.628 | 0.372 |
+| manu (Tier2) | 85 | 69.933 | 0.929 | 0.047 | 0.953 |
+| N.Ghana ref (Tier1) | 120 | 70.939 | 0.967 | 0.458 | 0.542 |
+| N.Ghana ref (Tier2) | 120 | 73.13 | 0.968 | 0.467 | 0.533 |

@@ -1,0 +1,1399 @@
+SOLUTION 1 Talensi_TGW1
+    units mg/L
+    temp 32.100000
+    pH 6.500000
+    Ca 4.890000
+    Mg 1.380000
+    Na 20.600000
+    K 2.120000
+    Cl 15.990000
+    S(6) 4.000000 as SO4
+    N(5) 20.500000 as NO3
+    Alkalinity 110.000000 as HCO3
+SELECTED_OUTPUT 1
+    -file external_field_si.sel
+    -reset false
+    -high_precision true
+    -simulation true
+    -saturation_indices Calcite Dolomite Gypsum Halite Fluorite
+END
+SOLUTION 2 Talensi_TGW2
+    units mg/L
+    temp 32.300000
+    pH 6.900000
+    Ca 14.680000
+    Mg 3.570000
+    Na 22.820000
+    K 8.420000
+    Cl 29.990000
+    S(6) 8.000000 as SO4
+    N(5) 9.190000 as NO3
+    Alkalinity 196.000000 as HCO3
+END
+SOLUTION 3 Talensi_TGW3
+    units mg/L
+    temp 28.500000
+    pH 6.700000
+    Ca 17.490000
+    Mg 4.670000
+    Na 34.940000
+    K 4.660000
+    Cl 27.980000
+    S(6) 9.000000 as SO4
+    N(5) 43.290000 as NO3
+    Alkalinity 102.000000 as HCO3
+END
+SOLUTION 4 Talensi_TGW4
+    units mg/L
+    temp 28.200000
+    pH 6.800000
+    Ca 16.870000
+    Mg 2.340000
+    Na 42.800000
+    K 9.890000
+    Cl 30.980000
+    S(6) 8.000000 as SO4
+    N(5) 61.180000 as NO3
+    Alkalinity 150.000000 as HCO3
+END
+SOLUTION 5 Talensi_TGW5
+    units mg/L
+    temp 28.700000
+    pH 6.700000
+    Ca 12.440000
+    Mg 7.010000
+    Na 20.410000
+    K 5.840000
+    Cl 17.990000
+    S(6) 5.000000 as SO4
+    N(5) 45.740000 as NO3
+    Alkalinity 82.000000 as HCO3
+END
+SOLUTION 6 Talensi_TGW6
+    units mg/L
+    temp 28.500000
+    pH 6.600000
+    Ca 7.640000
+    Mg 5.060000
+    Na 18.090000
+    K 1.620000
+    Cl 15.990000
+    S(6) 1.000000 as SO4
+    N(5) 43.870000 as NO3
+    Alkalinity 90.000000 as HCO3
+END
+SOLUTION 7 Talensi_TGW7
+    units mg/L
+    temp 29.500000
+    pH 6.500000
+    Ca 16.870000
+    Mg 3.790000
+    Na 40.220000
+    K 2.080000
+    Cl 37.980000
+    S(6) 12.000000 as SO4
+    N(5) 69.560000 as NO3
+    Alkalinity 106.000000 as HCO3
+END
+SOLUTION 8 Talensi_TGW8
+    units mg/L
+    temp 29.900000
+    pH 6.700000
+    Ca 20.080000
+    Mg 6.230000
+    Na 34.020000
+    K 3.080000
+    Cl 29.990000
+    S(6) 5.000000 as SO4
+    N(5) 40.940000 as NO3
+    Alkalinity 230.000000 as HCO3
+END
+SOLUTION 9 Talensi_TGW9
+    units mg/L
+    temp 31.000000
+    pH 7.200000
+    Ca 32.440000
+    Mg 15.670000
+    Na 25.850000
+    K 8.540000
+    Cl 21.990000
+    S(6) 4.000000 as SO4
+    N(5) 77.080000 as NO3
+    Alkalinity 330.000000 as HCO3
+END
+SOLUTION 10 Talensi_TGW10
+    units mg/L
+    temp 30.700000
+    pH 6.900000
+    Ca 27.720000
+    Mg 5.230000
+    Na 24.040000
+    K 1.860000
+    Cl 17.990000
+    S(6) 4.000000 as SO4
+    N(5) 72.130000 as NO3
+    Alkalinity 240.000000 as HCO3
+END
+SOLUTION 11 Talensi_TGW11
+    units mg/L
+    temp 28.600000
+    pH 6.900000
+    Ca 14.690000
+    Mg 8.990000
+    Na 21.820000
+    K 2.050000
+    Cl 17.990000
+    S(6) 5.000000 as SO4
+    N(5) 13.440000 as NO3
+    Alkalinity 204.000000 as HCO3
+END
+SOLUTION 12 Talensi_TGW12
+    units mg/L
+    temp 28.100000
+    pH 6.700000
+    Ca 13.290000
+    Mg 4.280000
+    Na 29.540000
+    K 1.040000
+    Cl 15.990000
+    S(6) 2.000000 as SO4
+    N(5) 54.810000 as NO3
+    Alkalinity 280.000000 as HCO3
+END
+SOLUTION 13 Talensi_TGW13
+    units mg/L
+    temp 30.100000
+    pH 6.800000
+    Ca 19.690000
+    Mg 8.650000
+    Na 17.400000
+    K 8.080000
+    Cl 33.980000
+    S(6) 15.000000 as SO4
+    N(5) 62.760000 as NO3
+    Alkalinity 156.000000 as HCO3
+END
+SOLUTION 14 Talensi_TGW14
+    units mg/L
+    temp 31.200000
+    pH 6.500000
+    Ca 20.120000
+    Mg 8.630000
+    Na 24.820000
+    K 7.540000
+    Cl 33.990000
+    S(6) 2.000000 as SO4
+    N(5) 27.400000 as NO3
+    Alkalinity 344.000000 as HCO3
+END
+SOLUTION 15 Talensi_TGW15
+    units mg/L
+    temp 32.300000
+    pH 6.600000
+    Ca 28.940000
+    Mg 7.870000
+    Na 28.640000
+    K 2.860000
+    Cl 17.990000
+    S(6) 1.000000 as SO4
+    N(5) 31.820000 as NO3
+    Alkalinity 370.000000 as HCO3
+END
+SOLUTION 16 Talensi_TGW16
+    units mg/L
+    temp 33.300000
+    pH 7.600000
+    Ca 35.270000
+    Mg 13.480000
+    Na 30.020000
+    K 6.020000
+    Cl 19.990000
+    S(6) 2.000000 as SO4
+    N(5) 27.400000 as NO3
+    Alkalinity 434.000000 as HCO3
+END
+SOLUTION 17 Talensi_TGW17
+    units mg/L
+    temp 33.100000
+    pH 7.400000
+    Ca 21.680000
+    Mg 15.520000
+    Na 22.280000
+    K 1.750000
+    Cl 25.990000
+    S(6) 2.000000 as SO4
+    N(5) 27.930000 as NO3
+    Alkalinity 174.000000 as HCO3
+END
+SOLUTION 18 Talensi_TGW18
+    units mg/L
+    temp 33.500000
+    pH 7.500000
+    Ca 7.690000
+    Mg 1.970000
+    Na 12.710000
+    K 1.130000
+    Cl 13.990000
+    S(6) 1.000000 as SO4
+    N(5) 14.140000 as NO3
+    Alkalinity 250.000000 as HCO3
+END
+SOLUTION 19 Talensi_TGW19
+    units mg/L
+    temp 32.200000
+    pH 6.800000
+    Ca 21.330000
+    Mg 7.980000
+    Na 25.530000
+    K 2.950000
+    Cl 39.990000
+    S(6) 4.000000 as SO4
+    N(5) 18.560000 as NO3
+    Alkalinity 332.000000 as HCO3
+END
+SOLUTION 20 Talensi_TGW20
+    units mg/L
+    temp 32.700000
+    pH 7.400000
+    Ca 31.430000
+    Mg 2.090000
+    Na 26.160000
+    K 6.800000
+    Cl 17.990000
+    S(6) 15.000000 as SO4
+    N(5) 9.550000 as NO3
+    Alkalinity 364.000000 as HCO3
+END
+SOLUTION 21 Talensi_TGW21
+    units mg/L
+    temp 32.100000
+    pH 7.500000
+    Ca 17.720000
+    Mg 5.010000
+    Na 36.320000
+    K 3.340000
+    Cl 29.990000
+    S(6) 2.000000 as SO4
+    N(5) 13.440000 as NO3
+    Alkalinity 260.000000 as HCO3
+END
+SOLUTION 22 Talensi_TGW22
+    units mg/L
+    temp 32.600000
+    pH 7.300000
+    Ca 10.460000
+    Mg 6.670000
+    Na 21.960000
+    K 1.410000
+    Cl 15.990000
+    S(6) 4.000000 as SO4
+    N(5) 53.570000 as NO3
+    Alkalinity 150.000000 as HCO3
+END
+SOLUTION 23 Talensi_TGW23
+    units mg/L
+    temp 31.200000
+    pH 7.100000
+    Ca 11.250000
+    Mg 3.240000
+    Na 18.570000
+    K 8.920000
+    Cl 17.990000
+    S(6) 4.000000 as SO4
+    N(5) 18.210000 as NO3
+    Alkalinity 164.000000 as HCO3
+END
+SOLUTION 24 Talensi_TGW24
+    units mg/L
+    temp 31.000000
+    pH 6.900000
+    Ca 5.650000
+    Mg 3.290000
+    Na 24.860000
+    K 2.540000
+    Cl 17.990000
+    S(6) 1.000000 as SO4
+    N(5) 11.850000 as NO3
+    Alkalinity 136.000000 as HCO3
+END
+SOLUTION 25 Talensi_TGW25
+    units mg/L
+    temp 31.100000
+    pH 6.600000
+    Ca 6.440000
+    Mg 1.840000
+    Na 12.020000
+    K 1.200000
+    Cl 9.990000
+    S(6) 3.000000 as SO4
+    N(5) 15.890000 as NO3
+    Alkalinity 122.000000 as HCO3
+END
+SOLUTION 26 Talensi_TGW26
+    units mg/L
+    temp 32.700000
+    pH 6.800000
+    Ca 12.650000
+    Mg 5.220000
+    Na 20.150000
+    K 1.170000
+    Cl 19.990000
+    S(6) 1.000000 as SO4
+    N(5) 34.480000 as NO3
+    Alkalinity 186.000000 as HCO3
+END
+SOLUTION 27 Talensi_TGW27
+    units mg/L
+    temp 31.900000
+    pH 6.600000
+    Ca 26.110000
+    Mg 13.289538
+    Na 27.920000
+    K 6.480000
+    Cl 49.980000
+    S(6) 1.000000 as SO4
+    N(5) 49.150000 as NO3
+    Alkalinity 228.000000 as HCO3
+END
+SOLUTION 28 Talensi_TGW28
+    units mg/L
+    temp 35.400000
+    pH 6.700000
+    Ca 21.300000
+    Mg 17.180000
+    Na 14.240000
+    K 3.130000
+    Cl 19.990000
+    S(6) 5.000000 as SO4
+    N(5) 71.070000 as NO3
+    Alkalinity 334.000000 as HCO3
+END
+SOLUTION 29 Talensi_TGW29
+    units mg/L
+    temp 33.200000
+    pH 7.800000
+    Ca 13.290000
+    Mg 9.890000
+    Na 24.980000
+    K 1.260000
+    Cl 29.990000
+    S(6) 2.000000 as SO4
+    N(5) 13.790000 as NO3
+    Alkalinity 182.000000 as HCO3
+END
+SOLUTION 30 Talensi_TGW30
+    units mg/L
+    temp 35.100000
+    pH 8.100000
+    Ca 9.690000
+    Mg 2.830000
+    Na 14.310000
+    K 1.720000
+    Cl 15.990000
+    S(6) 4.000000 as SO4
+    N(5) 20.170000 as NO3
+    Alkalinity 256.000000 as HCO3
+END
+SOLUTION 31 Talensi_TGW31
+    units mg/L
+    temp 34.400000
+    pH 10.600000
+    Ca 15.270000
+    Mg 10.390000
+    Na 10.730000
+    K 1.060000
+    Cl 25.990000
+    S(6) 3.000000 as SO4
+    N(5) 16.440000 as NO3
+    Alkalinity 206.000000 as HCO3
+END
+SOLUTION 32 Talensi_TGW32
+    units mg/L
+    temp 35.400000
+    pH 6.900000
+    Ca 10.250000
+    Mg 9.430000
+    Na 18.420000
+    K 1.460000
+    Cl 17.990000
+    S(6) 1.000000 as SO4
+    N(5) 26.870000 as NO3
+    Alkalinity 164.000000 as HCO3
+END
+SOLUTION 33 Talensi_TGW33
+    units mg/L
+    temp 33.300000
+    pH 6.800000
+    Ca 18.480000
+    Mg 8.830000
+    Na 16.660000
+    K 1.610000
+    Cl 23.990000
+    S(6) 9.000000 as SO4
+    N(5) 55.060000 as NO3
+    Alkalinity 254.000000 as HCO3
+END
+SOLUTION 34 Talensi_TGW34
+    units mg/L
+    temp 33.100000
+    pH 7.000000
+    Ca 12.910000
+    Mg 7.720000
+    Na 21.590000
+    K 1.440000
+    Cl 29.990000
+    S(6) 2.000000 as SO4
+    N(5) 10.960000 as NO3
+    Alkalinity 192.000000 as HCO3
+END
+SOLUTION 35 Talensi_TGW35
+    units mg/L
+    temp 34.600000
+    pH 7.000000
+    Ca 14.130000
+    Mg 5.360000
+    Na 12.570000
+    K 2.270000
+    Cl 15.990000
+    S(6) 6.000000 as SO4
+    N(5) 15.380000 as NO3
+    Alkalinity 290.000000 as HCO3
+END
+SOLUTION 36 Talensi_TGW36
+    units mg/L
+    temp 32.800000
+    pH 6.900000
+    Ca 30.920000
+    Mg 5.490000
+    Na 20.220000
+    K 1.700000
+    Cl 39.990000
+    S(6) 1.000000 as SO4
+    N(5) 7.770000 as NO3
+    Alkalinity 280.000000 as HCO3
+END
+SOLUTION 37 Talensi_TGW37
+    units mg/L
+    temp 33.600000
+    pH 7.000000
+    Ca 19.700000
+    Mg 11.620000
+    Na 15.400000
+    K 2.210000
+    Cl 23.990000
+    S(6) 2.000000 as SO4
+    N(5) 7.070000 as NO3
+    Alkalinity 274.000000 as HCO3
+END
+SOLUTION 38 Talensi_TGW38
+    units mg/L
+    temp 32.400000
+    pH 6.900000
+    Ca 31.680000
+    Mg 13.310000
+    Na 21.280000
+    K 7.490000
+    Cl 45.990000
+    S(6) 2.000000 as SO4
+    N(5) 8.480000 as NO3
+    Alkalinity 340.000000 as HCO3
+END
+SOLUTION 39 Talensi_TGW39
+    units mg/L
+    temp 30.200000
+    pH 6.600000
+    Ca 31.300000
+    Mg 14.260000
+    Na 23.620000
+    K 8.250000
+    Cl 43.990000
+    S(6) 7.000000 as SO4
+    N(5) 17.680000 as NO3
+    Alkalinity 310.000000 as HCO3
+END
+SOLUTION 40 Talensi_TGW40
+    units mg/L
+    temp 30.800000
+    pH 6.800000
+    Ca 48.560000
+    Mg 27.160000
+    Na 29.600000
+    K 5.540000
+    Cl 59.990000
+    S(6) 3.000000 as SO4
+    N(5) 10.250000 as NO3
+    Alkalinity 394.000000 as HCO3
+END
+SOLUTION 41 Talensi_TGW41
+    units mg/L
+    temp 31.300000
+    pH 6.600000
+    Ca 40.160000
+    Mg 29.580000
+    Na 30.880000
+    K 4.200000
+    Cl 79.990000
+    S(6) 10.000000 as SO4
+    N(5) 37.120000 as NO3
+    Alkalinity 422.000000 as HCO3
+END
+SOLUTION 42 Talensi_TGW42
+    units mg/L
+    temp 32.600000
+    pH 6.900000
+    Ca 12.870000
+    Mg 9.450000
+    Na 22.900000
+    K 2.330000
+    Cl 19.990000
+    S(6) 1.000000 as SO4
+    N(5) 13.430000 as NO3
+    Alkalinity 204.000000 as HCO3
+END
+SOLUTION 43 Talensi_TGW43
+    units mg/L
+    temp 33.700000
+    pH 6.800000
+    Ca 36.110000
+    Mg 16.690000
+    Na 24.880000
+    K 2.490000
+    Cl 27.990000
+    S(6) 1.000000 as SO4
+    N(5) 12.020000 as NO3
+    Alkalinity 312.000000 as HCO3
+END
+SOLUTION 44 Talensi_TGW44
+    units mg/L
+    temp 33.800000
+    pH 7.500000
+    Ca 25.080000
+    Mg 12.930000
+    Na 14.440000
+    K 1.120000
+    Cl 19.990000
+    S(6) 1.000000 as SO4
+    N(5) 13.440000 as NO3
+    Alkalinity 222.000000 as HCO3
+END
+SOLUTION 45 Talensi_TGW45
+    units mg/L
+    temp 33.300000
+    pH 7.400000
+    Ca 31.300000
+    Mg 5.240000
+    Na 25.250000
+    K 1.930000
+    Cl 19.990000
+    S(6) 7.000000 as SO4
+    N(5) 63.650000 as NO3
+    Alkalinity 270.000000 as HCO3
+END
+SOLUTION 46 Talensi_TGW46
+    units mg/L
+    temp 33.000000
+    pH 7.600000
+    Ca 12.990000
+    Mg 8.590000
+    Na 13.740000
+    K 1.150000
+    Cl 29.990000
+    S(6) 21.000000 as SO4
+    N(5) 17.680000 as NO3
+    Alkalinity 0.000000 as HCO3
+END
+SOLUTION 47 Talensi_TGW47
+    units mg/L
+    temp 33.200000
+    pH 7.700000
+    Ca 13.670000
+    Mg 4.820000
+    Na 15.380000
+    K 7.020000
+    Cl 19.990000
+    S(6) 5.000000 as SO4
+    N(5) 25.450000 as NO3
+    Alkalinity 120.000000 as HCO3
+END
+SOLUTION 48 Talensi_TGW48
+    units mg/L
+    temp 33.000000
+    pH 7.200000
+    Ca 5.840000
+    Mg 1.080000
+    Na 11.160000
+    K 0.490000
+    Cl 7.990000
+    S(6) 3.000000 as SO4
+    N(5) 13.160000 as NO3
+    Alkalinity 120.000000 as HCO3
+END
+SOLUTION 49 Talensi_TGW49
+    units mg/L
+    temp 31.700000
+    pH 7.300000
+    Ca 21.300000
+    Mg 10.400000
+    Na 17.300000
+    K 2.120000
+    Cl 31.990000
+    S(6) 3.000000 as SO4
+    N(5) 17.070000 as NO3
+    Alkalinity 0.000000 as HCO3
+END
+SOLUTION 50 Talensi_TGW50
+    units mg/L
+    temp 31.800000
+    pH 7.100000
+    Ca 46.110000
+    Mg 33.020000
+    Na 29.900000
+    K 2.930000
+    Cl 41.980000
+    S(6) 27.000000 as SO4
+    N(5) 126.410000 as NO3
+    Alkalinity 264.000000 as HCO3
+END
+SOLUTION 51 Talensi_TGW51
+    units mg/L
+    temp 31.400000
+    pH 7.000000
+    Ca 11.670000
+    Mg 8.630000
+    Na 20.580000
+    K 1.140000
+    Cl 21.990000
+    S(6) 4.000000 as SO4
+    N(5) 31.590000 as NO3
+    Alkalinity 138.000000 as HCO3
+END
+SOLUTION 52 Talensi_TGW52
+    units mg/L
+    temp 32.800000
+    pH 7.200000
+    Ca 20.460000
+    Mg 13.100000
+    Na 13.820000
+    K 1.240000
+    Cl 23.990000
+    S(6) 7.000000 as SO4
+    N(5) 21.030000 as NO3
+    Alkalinity 144.000000 as HCO3
+END
+SOLUTION 53 Talensi_THDW1
+    units mg/L
+    temp 28.600000
+    pH 7.100000
+    Ca 6.030000
+    Mg 2.330000
+    Na 12.120000
+    K 1.250000
+    Cl 13.990000
+    S(6) 2.000000 as SO4
+    N(5) 19.870000 as NO3
+    Alkalinity 62.000000 as HCO3
+END
+SOLUTION 54 Talensi_THDW2
+    units mg/L
+    temp 29.600000
+    pH 7.100000
+    Ca 15.650000
+    Mg 3.320000
+    Na 23.150000
+    K 1.440000
+    Cl 15.990000
+    S(6) 5.000000 as SO4
+    N(5) 30.060000 as NO3
+    Alkalinity 168.000000 as HCO3
+END
+SOLUTION 55 Talensi_THDW3
+    units mg/L
+    temp 28.900000
+    pH 6.720000
+    Ca 18.470000
+    Mg 7.470000
+    Na 34.190000
+    K 1.880000
+    Cl 23.990000
+    S(6) 9.000000 as SO4
+    N(5) 34.650000 as NO3
+    Alkalinity 124.000000 as HCO3
+END
+SOLUTION 56 Talensi_THDW4b
+    units mg/L
+    temp 30.900000
+    pH 7.000000
+    Ca 15.270000
+    Mg 2.820000
+    Na 30.250000
+    K 1.620000
+    Cl 19.990000
+    S(6) 9.000000 as SO4
+    N(5) 41.550000 as NO3
+    Alkalinity 186.000000 as HCO3
+END
+SOLUTION 57 Talensi_THDW5
+    units mg/L
+    temp 31.800000
+    pH 7.400000
+    Ca 19.690000
+    Mg 13.780000
+    Na 38.070000
+    K 2.200000
+    Cl 33.980000
+    S(6) 25.000000 as SO4
+    N(5) 53.040000 as NO3
+    Alkalinity 304.000000 as HCO3
+END
+SOLUTION 58 Talensi_THDW6
+    units mg/L
+    temp 33.200000
+    pH 6.700000
+    Ca 14.510000
+    Mg 9.180000
+    Na 25.420000
+    K 1.840000
+    Cl 21.990000
+    S(6) 13.000000 as SO4
+    N(5) 30.410000 as NO3
+    Alkalinity 268.000000 as HCO3
+END
+SOLUTION 59 Talensi_THDW7
+    units mg/L
+    temp 33.400000
+    pH 7.000000
+    Ca 10.060000
+    Mg 11.420000
+    Na 16.060000
+    K 2.280000
+    Cl 19.990000
+    S(6) 2.000000 as SO4
+    N(5) 17.680000 as NO3
+    Alkalinity 194.000000 as HCO3
+END
+SOLUTION 60 Talensi_THDW8
+    units mg/L
+    temp 35.300000
+    pH 7.100000
+    Ca 10.280000
+    Mg 2.140000
+    Na 12.280000
+    K 0.610000
+    Cl 17.990000
+    S(6) 6.000000 as SO4
+    N(5) 15.910000 as NO3
+    Alkalinity 314.000000 as HCO3
+END
+SOLUTION 61 Talensi_THDW9
+    units mg/L
+    temp 30.600000
+    pH 7.000000
+    Ca 20.920000
+    Mg 10.310000
+    Na 45.660000
+    K 1.430000
+    Cl 29.990000
+    S(6) 60.000000 as SO4
+    N(5) 16.620000 as NO3
+    Alkalinity 340.000000 as HCO3
+END
+SOLUTION 62 Talensi_THDW10
+    units mg/L
+    temp 32.000000
+    pH 7.100000
+    Ca 43.280000
+    Mg 12.060000
+    Na 29.850000
+    K 1.020000
+    Cl 13.990000
+    S(6) 6.000000 as SO4
+    N(5) 12.730000 as NO3
+    Alkalinity 280.000000 as HCO3
+END
+SOLUTION 63 Talensi_THDW11
+    units mg/L
+    temp 31.600000
+    pH 7.600000
+    Ca 6.030000
+    Mg 2.550000
+    Na 14.200000
+    K 1.960000
+    Cl 11.990000
+    S(6) 3.000000 as SO4
+    N(5) 16.090000 as NO3
+    Alkalinity 74.000000 as HCO3
+END
+SOLUTION 64 LowerAnayari_PUB1
+    units mg/L
+    temp 31.800000
+    pH 6.300000
+    Ca 27.200000
+    Mg 1.830000
+    Na 65.000000
+    K 7.700000
+    Cl 42.490000
+    S(6) 0.003000 as SO4
+    N(5) 4.640000 as NO3
+    Alkalinity 204.960000 as HCO3
+    F 0.278000
+END
+SOLUTION 65 LowerAnayari_PUB2
+    units mg/L
+    temp 31.200000
+    pH 6.600000
+    Ca 40.000000
+    Mg 1.290000
+    Na 59.900000
+    K 5.000000
+    Cl 12.021000
+    S(6) 4.056000 as SO4
+    N(5) 0.026000 as NO3
+    Alkalinity 258.640000 as HCO3
+    F 0.021000
+END
+SOLUTION 66 LowerAnayari_PAB3
+    units mg/L
+    temp 32.500000
+    pH 6.700000
+    Ca 59.200000
+    Mg 5.340000
+    Na 66.800000
+    K 18.100000
+    Cl 19.836000
+    S(6) 23.190000 as SO4
+    N(5) 20.644000 as NO3
+    Alkalinity 351.360000 as HCO3
+    F 0.002000
+END
+SOLUTION 67 LowerAnayari_PAB4
+    units mg/L
+    temp 33.900000
+    pH 6.900000
+    Ca 19.200000
+    Mg 5.970000
+    Na 46.400000
+    K 9.400000
+    Cl 10.074000
+    S(6) 8.697000 as SO4
+    N(5) 0.021000 as NO3
+    Alkalinity 200.080000 as HCO3
+    F 0.368000
+END
+SOLUTION 68 LowerAnayari_PAB5
+    units mg/L
+    temp 33.600000
+    pH 6.600000
+    Ca 32.000000
+    Mg 5.390000
+    Na 46.000000
+    K 9.100000
+    Cl 5.805000
+    S(6) 6.436000 as SO4
+    N(5) 24.253000 as NO3
+    Alkalinity 244.000000 as HCO3
+    F 0.002000
+END
+SOLUTION 69 LowerAnayari_BAB6
+    units mg/L
+    temp 34.500000
+    pH 6.400000
+    Ca 40.000000
+    Mg 2.350000
+    Na 60.800000
+    K 9.100000
+    Cl 6.996000
+    S(6) 5.316000 as SO4
+    N(5) 30.190000 as NO3
+    Alkalinity 287.920000 as HCO3
+    F 0.725000
+END
+SOLUTION 70 LowerAnayari_BOB8
+    units mg/L
+    temp 35.000000
+    pH 7.100000
+    Ca 32.000000
+    Mg 3.230000
+    Na 60.600000
+    K 7.000000
+    Cl 2.904000
+    S(6) 6.070000 as SO4
+    N(5) 3.979000 as NO3
+    Alkalinity 283.040000 as HCO3
+    F 0.398000
+END
+SOLUTION 71 LowerAnayari_BOW9
+    units mg/L
+    temp 31.400000
+    pH 6.800000
+    Ca 30.400000
+    Mg 1.360000
+    Na 41.700000
+    K 3.900000
+    Cl 9.848000
+    S(6) 10.409000 as SO4
+    N(5) 36.457000 as NO3
+    Alkalinity 165.920000 as HCO3
+    F 0.287000
+END
+SOLUTION 72 LowerAnayari_BOB10
+    units mg/L
+    temp 32.300000
+    pH 6.700000
+    Ca 40.000000
+    Mg 2.800000
+    Na 168.000000
+    K 12.100000
+    Cl 32.934000
+    S(6) 2.093000 as SO4
+    N(5) 0.012000 as NO3
+    Alkalinity 512.400000 as HCO3
+    F 0.035000
+END
+SOLUTION 73 LowerAnayari_NAB12
+    units mg/L
+    temp 31.300000
+    pH 6.800000
+    Ca 32.000000
+    Mg 2.760000
+    Na 57.500000
+    K 8.900000
+    Cl 6.268000
+    S(6) 3.910000 as SO4
+    N(5) 11.207000 as NO3
+    Alkalinity 263.520000 as HCO3
+    F 1.469000
+END
+SOLUTION 74 LowerAnayari_NAB13
+    units mg/L
+    temp 32.900000
+    pH 6.800000
+    Ca 38.400000
+    Mg 3.790000
+    Na 37.100000
+    K 7.400000
+    Cl 19.767000
+    S(6) 16.019000 as SO4
+    N(5) 27.640000 as NO3
+    Alkalinity 185.440000 as HCO3
+    F 2.174000
+END
+SOLUTION 75 LowerAnayari_NAB14
+    units mg/L
+    temp 31.300000
+    pH 6.700000
+    Ca 17.600000
+    Mg 0.950000
+    Na 18.700000
+    K 13.800000
+    Cl 16.128000
+    S(6) 0.063000 as SO4
+    N(5) 22.061000 as NO3
+    Alkalinity 92.720000 as HCO3
+    F 1.600000
+END
+SOLUTION 76 LowerAnayari_SAB16
+    units mg/L
+    temp 31.700000
+    pH 7.100000
+    Ca 35.200000
+    Mg 1.950000
+    Na 42.400000
+    K 8.500000
+    Cl 3.364000
+    S(6) 32.463000 as SO4
+    N(5) 26.009000 as NO3
+    Alkalinity 190.320000 as HCO3
+    F 0.586000
+END
+SOLUTION 77 LowerAnayari_PAW18
+    units mg/L
+    temp 30.300000
+    pH 6.700000
+    Ca 36.800000
+    Mg 3.490000
+    Na 82.100000
+    K 3.500000
+    Cl 25.179000
+    S(6) 6.750000 as SO4
+    N(5) 8.503000 as NO3
+    Alkalinity 278.160000 as HCO3
+    F 0.825000
+END
+SOLUTION 78 LowerAnayari_PAB19
+    units mg/L
+    temp 30.800000
+    pH 6.800000
+    Ca 40.800000
+    Mg 3.780000
+    Na 50.500000
+    K 8.700000
+    Cl 17.601000
+    S(6) 13.589000 as SO4
+    N(5) 27.861000 as NO3
+    Alkalinity 244.000000 as HCO3
+    F 0.241000
+END
+SOLUTION 79 LowerAnayari_BUB20
+    units mg/L
+    temp 31.500000
+    pH 6.700000
+    Ca 36.800000
+    Mg 0.990000
+    Na 36.900000
+    K 8.100000
+    Cl 16.291000
+    S(6) 5.370000 as SO4
+    N(5) 34.292000 as NO3
+    Alkalinity 180.560000 as HCO3
+    F 1.171000
+END
+SOLUTION 80 LowerAnayari_BUW21
+    units mg/L
+    temp 29.500000
+    pH 6.700000
+    Ca 44.000000
+    Mg 0.720000
+    Na 59.300000
+    K 17.100000
+    Cl 8.084000
+    S(6) 17.291000 as SO4
+    N(5) 19.268000 as NO3
+    Alkalinity 258.640000 as HCO3
+    F 0.045000
+END
+SOLUTION 81 LowerAnayari_BKB22
+    units mg/L
+    temp 32.400000
+    pH 6.800000
+    Ca 28.800000
+    Mg 1.680000
+    Na 50.400000
+    K 9.300000
+    Cl 12.790000
+    S(6) 3.063000 as SO4
+    N(5) 29.286000 as NO3
+    Alkalinity 214.720000 as HCO3
+    F 0.179000
+END
+SOLUTION 82 LowerAnayari_BKB23
+    units mg/L
+    temp 32.400000
+    pH 6.600000
+    Ca 35.200000
+    Mg 1.450000
+    Na 56.600000
+    K 9.900000
+    Cl 5.724000
+    S(6) 8.671000 as SO4
+    N(5) 10.395000 as NO3
+    Alkalinity 273.280000 as HCO3
+    F 2.069000
+END
+SOLUTION 83 LowerAnayari_NTB26
+    units mg/L
+    temp 32.000000
+    pH 7.100000
+    Ca 28.800000
+    Mg 1.590000
+    Na 48.500000
+    K 7.800000
+    Cl 30.164000
+    S(6) 2.189000 as SO4
+    N(5) 0.947000 as NO3
+    Alkalinity 190.320000 as HCO3
+    F 0.035000
+END
+SOLUTION 84 LowerAnayari_NTB27
+    units mg/L
+    temp 31.500000
+    pH 6.800000
+    Ca 35.200000
+    Mg 0.990000
+    Na 82.100000
+    K 6.000000
+    Cl 11.779000
+    S(6) 0.002000 as SO4
+    N(5) 0.004000 as NO3
+    Alkalinity 341.600000 as HCO3
+    F 0.001000
+END
+SOLUTION 85 LowerAnayari_NTB29
+    units mg/L
+    temp 33.100000
+    pH 6.700000
+    Ca 30.400000
+    Mg 1.800000
+    Na 65.100000
+    K 5.000000
+    Cl 36.049000
+    S(6) 2.179000 as SO4
+    N(5) 1.048000 as NO3
+    Alkalinity 234.240000 as HCO3
+    F 0.105000
+END
+SOLUTION 86 LowerAnayari_TBB30
+    units mg/L
+    temp 31.900000
+    pH 7.100000
+    Ca 28.800000
+    Mg 1.570000
+    Na 47.500000
+    K 7.000000
+    Cl 23.800000
+    S(6) 3.682000 as SO4
+    N(5) 1.047000 as NO3
+    Alkalinity 200.080000 as HCO3
+    F 0.213000
+END
+SOLUTION 87 LowerAnayari_TBB31
+    units mg/L
+    temp 32.200000
+    pH 7.300000
+    Ca 42.400000
+    Mg 2.420000
+    Na 58.100000
+    K 12.200000
+    Cl 37.918000
+    S(6) 1.989000 as SO4
+    N(5) 27.012000 as NO3
+    Alkalinity 219.600000 as HCO3
+    F 0.036000
+END
+SOLUTION 88 LowerAnayari_TBB32
+    units mg/L
+    temp 32.600000
+    pH 6.900000
+    Ca 17.600000
+    Mg 1.230000
+    Na 39.900000
+    K 6.100000
+    Cl 19.489000
+    S(6) 1.903000 as SO4
+    N(5) 2.011000 as NO3
+    Alkalinity 146.400000 as HCO3
+    F 0.172000
+END
+SOLUTION 89 LowerAnayari_MAB33
+    units mg/L
+    temp 32.600000
+    pH 7.300000
+    Ca 35.200000
+    Mg 1.980000
+    Na 61.900000
+    K 1.300000
+    Cl 5.478000
+    S(6) 2.230000 as SO4
+    N(5) 19.454000 as NO3
+    Alkalinity 273.280000 as HCO3
+    F 0.557000
+END
+SOLUTION 90 LowerAnayari_MAB34
+    units mg/L
+    temp 32.200000
+    pH 7.100000
+    Ca 30.400000
+    Mg 2.360000
+    Na 39.000000
+    K 2.800000
+    Cl 5.367000
+    S(6) 4.775000 as SO4
+    N(5) 12.624000 as NO3
+    Alkalinity 200.080000 as HCO3
+    F 0.185000
+END
+SOLUTION 91 LowerAnayari_MAB35
+    units mg/L
+    temp 32.300000
+    pH 7.400000
+    Ca 34.400000
+    Mg 3.810000
+    Na 47.800000
+    K 10.500000
+    Cl 21.046000
+    S(6) 1.635000 as SO4
+    N(5) 2.064000 as NO3
+    Alkalinity 244.000000 as HCO3
+    F 0.153000
+END
+SOLUTION 92 LowerAnayari_GOB36
+    units mg/L
+    temp 31.300000
+    pH 6.900000
+    Ca 42.400000
+    Mg 2.200000
+    Na 62.800000
+    K 9.100000
+    Cl 33.263000
+    S(6) 3.481000 as SO4
+    N(5) 0.031000 as NO3
+    Alkalinity 270.840000 as HCO3
+    F 0.544000
+END
+SOLUTION 93 LowerAnayari_GOB37
+    units mg/L
+    temp 30.400000
+    pH 7.200000
+    Ca 38.400000
+    Mg 2.230000
+    Na 73.000000
+    K 10.900000
+    Cl 8.212000
+    S(6) 9.310000 as SO4
+    N(5) 9.518000 as NO3
+    Alkalinity 331.840000 as HCO3
+    F 0.660000
+END
+SOLUTION 94 LowerAnayari_GOB38
+    units mg/L
+    temp 31.200000
+    pH 7.000000
+    Ca 32.800000
+    Mg 2.360000
+    Na 56.600000
+    K 9.000000
+    Cl 21.083000
+    S(6) 4.711000 as SO4
+    N(5) 2.263000 as NO3
+    Alkalinity 239.120000 as HCO3
+    F 0.000500
+END
+SOLUTION 95 LowerAnayari_PUW40
+    units mg/L
+    temp 29.700000
+    pH 7.000000
+    Ca 36.000000
+    Mg 0.880000
+    Na 42.900000
+    K 19.100000
+    Cl 43.048000
+    S(6) 3.928000 as SO4
+    N(5) 1.321000 as NO3
+    Alkalinity 156.160000 as HCO3
+    F 1.039000
+END
+SOLUTION 96 LowerAnayari_MWB42
+    units mg/L
+    temp 32.400000
+    pH 6.800000
+    Ca 52.800000
+    Mg 3.840000
+    Na 97.300000
+    K 13.100000
+    Cl 34.029000
+    S(6) 3.205000 as SO4
+    N(5) 0.549000 as NO3
+    Alkalinity 409.920000 as HCO3
+    F 1.294000
+END
+SOLUTION 97 LowerAnayari_MWB43
+    units mg/L
+    temp 32.100000
+    pH 6.900000
+    Ca 34.400000
+    Mg 3.820000
+    Na 62.600000
+    K 8.100000
+    Cl 15.357000
+    S(6) 6.488000 as SO4
+    N(5) 26.234000 as NO3
+    Alkalinity 268.400000 as HCO3
+    F 2.391000
+END
+SOLUTION 98 LowerAnayari_MTB44
+    units mg/L
+    temp 32.600000
+    pH 7.100000
+    Ca 35.200000
+    Mg 3.010000
+    Na 115.900000
+    K 10.300000
+    Cl 29.843000
+    S(6) 7.040000 as SO4
+    N(5) 6.943000 as NO3
+    Alkalinity 370.880000 as HCO3
+    F 0.110000
+END
+SOLUTION 99 LowerAnayari_MNB45
+    units mg/L
+    temp 32.400000
+    pH 6.900000
+    Ca 33.600000
+    Mg 3.400000
+    Na 65.900000
+    K 5.800000
+    Cl 9.077000
+    S(6) 2.130000 as SO4
+    N(5) 7.149000 as NO3
+    Alkalinity 278.160000 as HCO3
+    F 0.134000
+END
+SOLUTION 100 LowerAnayari_MNB46
+    units mg/L
+    temp 32.200000
+    pH 6.800000
+    Ca 43.200000
+    Mg 2.940000
+    Na 71.900000
+    K 6.800000
+    Cl 28.094000
+    S(6) 2.438000 as SO4
+    N(5) 2.049000 as NO3
+    Alkalinity 287.920000 as HCO3
+    F 0.182000
+END
+SOLUTION 101 LowerAnayari_MKB47
+    units mg/L
+    temp 32.100000
+    pH 6.800000
+    Ca 57.600000
+    Mg 1.950000
+    Na 63.800000
+    K 4.700000
+    Cl 14.741000
+    S(6) 1.390000 as SO4
+    N(5) 33.184000 as NO3
+    Alkalinity 336.720000 as HCO3
+    F 0.020000
+END
+SOLUTION 102 LowerAnayari_MKB48
+    units mg/L
+    temp 32.600000
+    pH 7.000000
+    Ca 38.400000
+    Mg 1.610000
+    Na 67.400000
+    K 10.600000
+    Cl 18.903000
+    S(6) 0.984000 as SO4
+    N(5) 31.940000 as NO3
+    Alkalinity 283.040000 as HCO3
+    F 0.172000
+END
+SOLUTION 103 LowerAnayari_MHB49
+    units mg/L
+    temp 32.600000
+    pH 7.100000
+    Ca 44.000000
+    Mg 3.940000
+    Na 119.200000
+    K 15.100000
+    Cl 0.639000
+    S(6) 0.379000 as SO4
+    N(5) 38.855000 as NO3
+    Alkalinity 488.000000 as HCO3
+    F 1.320000
+END
+SOLUTION 104 LowerAnayari_MSB50
+    units mg/L
+    temp 32.500000
+    pH 7.300000
+    Ca 21.600000
+    Mg 3.640000
+    Na 82.000000
+    K 10.600000
+    Cl 34.927000
+    S(6) 1.503000 as SO4
+    N(5) 0.389000 as NO3
+    Alkalinity 258.640000 as HCO3
+    F 0.138000
+END

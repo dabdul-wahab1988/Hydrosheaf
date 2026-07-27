@@ -689,18 +689,24 @@ def reaction_support_summary(
 
 
 def audit_ghana_workbook(workbook_path: Path) -> Dict[str, object]:
-    """Create a machine-readable scope audit for the released Ghana workbook."""
+    """Create a machine-readable scope audit for the canonical Ghana workbook
+    (data/FieldData/NorthenGhana/NorthernGhana.xlsx, Dry/Wet sheets).
+
+    An earlier revision audited a different, antecedent study's own derived
+    workbook (Wells_Nodes/Hydrochemistry_Seasonal/Graph_Edges/
+    Coordinate_Masking_Note sheets, including a fabricated per-record
+    Sampling_Date field with no equivalent in the real raw data); that
+    workbook has been removed (DECISIONS.md). This audit reads the two
+    canonical Dry/Wet sheets directly and reports what they do and do not
+    contain, including that no graph edges or per-record sampling dates
+    exist in the canonical source.
+    """
 
     workbook_path = Path(workbook_path)
-    wells = pd.read_excel(workbook_path, sheet_name="Wells_Nodes")
-    chemistry = pd.read_excel(workbook_path, sheet_name="Hydrochemistry_Seasonal")
-    graph = pd.read_excel(workbook_path, sheet_name="Graph_Edges")
-    masking = pd.read_excel(workbook_path, sheet_name="Coordinate_Masking_Note")
-    all_columns = {
-        str(column).strip().lower()
-        for frame in (wells, chemistry, graph)
-        for column in frame.columns
-    }
+    dry = pd.read_excel(workbook_path, sheet_name="Dry").assign(Season="Dry")
+    wet = pd.read_excel(workbook_path, sheet_name="Wet").assign(Season="Wet")
+    chemistry = pd.concat([dry, wet], ignore_index=True)
+    all_columns = {str(column).strip().lower() for column in chemistry.columns}
     age_tokens = ("tritium", "3h", "cfc", "sf6", "argon39", "39ar", "14c")
     age_columns = sorted(
         column
@@ -712,22 +718,26 @@ def audit_ghana_workbook(workbook_path: Path) -> Dict[str, object]:
         for column in all_columns
         if "screen" in column and ("top" in column or "bottom" in column)
     )
-    coordinate_note = " ".join(masking.astype(str).to_numpy().ravel()).lower()
-    dates = pd.to_datetime(chemistry["Sampling_Date"], errors="coerce")
+    # Static_Water_Level_m is a per-well attribute duplicated across both
+    # season rows, not two independent measurement occasions; count it once
+    # per well from the Dry sheet alone.
     per_well_static_count = (
-        wells.groupby("Well_ID")["Static_Water_Level_m"].count()
-        if "Static_Water_Level_m" in wells
+        dry.groupby("Well_ID")["Static_Water_Level_m"].count()
+        if "Static_Water_Level_m" in dry
         else pd.Series(dtype=float)
     )
     sha256 = hashlib.sha256(workbook_path.read_bytes()).hexdigest()
     return {
         "workbook": str(workbook_path.resolve()),
         "workbook_sha256": sha256,
-        "n_wells": int(wells["Well_ID"].nunique()),
+        "n_wells": int(chemistry["Well_ID"].nunique()),
         "n_hydrochemistry_rows": int(len(chemistry)),
         "n_seasons": int(chemistry["Season"].nunique()),
-        "first_sampling_date": str(dates.min().date()),
-        "last_sampling_date": str(dates.max().date()),
+        "sampling_date_field_available": False,
+        "sampling_granularity": (
+            "one dry-season and one wet-season observation per well; no "
+            "intra-season sampling-date field exists in the canonical source"
+        ),
         "major_chemistry_available": all(
             f"{ion.lower()}_mg_l" in all_columns
             for ion in ("Ca", "Mg", "Na", "K", "HCO3", "Cl", "SO4", "NO3")
@@ -751,14 +761,16 @@ def audit_ghana_workbook(workbook_path: Path) -> Dict[str, object]:
         "single_occasion_head_proxy_possible": (
             "elevation_m" in all_columns and "static_water_level_m" in all_columns
         ),
-        "coordinates_masked": "masked" in coordinate_note,
-        "masking_distance_statement": "approximately 1–3 km",
-        "processed_graph_edges_available": len(graph) > 0,
+        "coordinates_masked": True,
+        "masking_distance_statement": "approximately 1-3 km (SI.pdf)",
+        "processed_graph_edges_available": False,
         "independent_field_connectivity_truth_available": False,
         "independent_field_reaction_truth_available": False,
+        "independent_aquifer_type_classification_available": False,
         "supportable_interpretations": [
             "data readiness and measurement-value audit",
-            "within-campaign seasonal chemistry hold-forward",
+            "within-campaign seasonal chemistry hold-forward under a "
+            "disclosed arbitrary well-revelation order",
             "reaction-family plausibility and equivalence classes",
             "sensitivity to alternative assumed edge sets",
             "null explanations and non-identifiability classification",
@@ -769,6 +781,7 @@ def audit_ghana_workbook(workbook_path: Path) -> Dict[str, object]:
             "screen-resolved vertical connectivity",
             "unique field reaction mechanisms",
             "fully observed field digital twin",
+            "true chronological sampling sequence within a season",
         ],
         "objective_6": (
             "Apply the framework and its component diagnostics to Ghanaian "

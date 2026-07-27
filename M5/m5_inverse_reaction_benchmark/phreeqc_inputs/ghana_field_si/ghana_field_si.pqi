@@ -1,0 +1,2246 @@
+SOLUTION 1 NGW-001
+    units mg/L
+    temp 27.400000
+    pH 7.100000
+    Ca 31.550000
+    Mg 11.000000
+    Na 25.940000
+    K 3.420000
+    Cl 26.910000
+    S(6) 38.250000 as SO4
+    N(5) 14.310000 as NO3
+    F 0.610000
+    Alkalinity 114.450000 as HCO3
+SELECTED_OUTPUT 1
+    -file ghana_field_si.sel
+    -reset false
+    -high_precision true
+    -simulation true
+    -saturation_indices Calcite Dolomite Gypsum Halite Fluorite
+END
+SOLUTION 2 NGW-002
+    units mg/L
+    temp 28.700000
+    pH 7.280000
+    Ca 33.090000
+    Mg 8.700000
+    Na 27.800000
+    K 3.970000
+    Cl 33.580000
+    S(6) 32.530000 as SO4
+    N(5) 9.800000 as NO3
+    F 0.430000
+    Alkalinity 114.080000 as HCO3
+END
+SOLUTION 3 NGW-003
+    units mg/L
+    temp 28.400000
+    pH 7.290000
+    Ca 30.390000
+    Mg 9.120000
+    Na 38.620000
+    K 3.960000
+    Cl 23.380000
+    S(6) 37.500000 as SO4
+    N(5) 14.030000 as NO3
+    F 0.450000
+    Alkalinity 137.100000 as HCO3
+END
+SOLUTION 4 NGW-004
+    units mg/L
+    temp 28.300000
+    pH 7.060000
+    Ca 29.960000
+    Mg 12.070000
+    Na 31.180000
+    K 3.440000
+    Cl 39.590000
+    S(6) 30.890000 as SO4
+    N(5) 34.040000 as NO3
+    F 0.340000
+    Alkalinity 102.600000 as HCO3
+END
+SOLUTION 5 NGW-005
+    units mg/L
+    temp 28.300000
+    pH 7.000000
+    Ca 34.960000
+    Mg 8.070000
+    Na 35.750000
+    K 3.920000
+    Cl 40.620000
+    S(6) 36.020000 as SO4
+    N(5) 12.730000 as NO3
+    F 0.570000
+    Alkalinity 120.410000 as HCO3
+END
+SOLUTION 6 NGW-006
+    units mg/L
+    temp 29.700000
+    pH 7.530000
+    Ca 39.650000
+    Mg 8.350000
+    Na 37.670000
+    K 4.700000
+    Cl 38.520000
+    S(6) 41.490000 as SO4
+    N(5) 13.560000 as NO3
+    F 0.380000
+    Alkalinity 135.260000 as HCO3
+END
+SOLUTION 7 NGW-007
+    units mg/L
+    temp 27.800000
+    pH 6.660000
+    Ca 31.500000
+    Mg 11.270000
+    Na 30.950000
+    K 4.680000
+    Cl 31.650000
+    S(6) 29.360000 as SO4
+    N(5) 160.460000 as NO3
+    F 0.510000
+    Alkalinity 118.280000 as HCO3
+END
+SOLUTION 8 NGW-008
+    units mg/L
+    temp 29.300000
+    pH 7.360000
+    Ca 27.550000
+    Mg 9.880000
+    Na 38.230000
+    K 4.310000
+    Cl 29.380000
+    S(6) 34.840000 as SO4
+    N(5) 8.020000 as NO3
+    F 0.190000
+    Alkalinity 141.320000 as HCO3
+END
+SOLUTION 9 NGW-009
+    units mg/L
+    temp 27.400000
+    pH 6.900000
+    Ca 35.030000
+    Mg 12.060000
+    Na 29.210000
+    K 2.580000
+    Cl 33.200000
+    S(6) 35.390000 as SO4
+    N(5) 19.220000 as NO3
+    F 0.630000
+    Alkalinity 130.670000 as HCO3
+END
+SOLUTION 10 NGW-010
+    units mg/L
+    temp 29.300000
+    pH 7.650000
+    Ca 37.030000
+    Mg 10.860000
+    Na 40.270000
+    K 4.060000
+    Cl 34.540000
+    S(6) 42.680000 as SO4
+    N(5) 23.860000 as NO3
+    F 0.510000
+    Alkalinity 150.590000 as HCO3
+END
+SOLUTION 11 NGW-011
+    units mg/L
+    temp 28.000000
+    pH 7.190000
+    Ca 32.630000
+    Mg 13.590000
+    Na 38.580000
+    K 4.680000
+    Cl 44.350000
+    S(6) 35.570000 as SO4
+    N(5) 11.750000 as NO3
+    F 0.660000
+    Alkalinity 135.090000 as HCO3
+END
+SOLUTION 12 NGW-012
+    units mg/L
+    temp 27.400000
+    pH 7.100000
+    Ca 37.660000
+    Mg 13.020000
+    Na 36.120000
+    K 4.440000
+    Cl 47.360000
+    S(6) 33.030000 as SO4
+    N(5) 20.150000 as NO3
+    F 0.860000
+    Alkalinity 139.050000 as HCO3
+END
+SOLUTION 13 NGW-013
+    units mg/L
+    temp 28.900000
+    pH 7.500000
+    Ca 40.910000
+    Mg 13.960000
+    Na 34.420000
+    K 4.190000
+    Cl 57.710000
+    S(6) 35.750000 as SO4
+    N(5) 22.850000 as NO3
+    F 0.610000
+    Alkalinity 128.940000 as HCO3
+END
+SOLUTION 14 NGW-014
+    units mg/L
+    temp 29.000000
+    pH 7.110000
+    Ca 29.600000
+    Mg 12.610000
+    Na 32.470000
+    K 3.450000
+    Cl 30.660000
+    S(6) 39.780000 as SO4
+    N(5) 92.430000 as NO3
+    F 0.260000
+    Alkalinity 113.740000 as HCO3
+END
+SOLUTION 15 NGW-015
+    units mg/L
+    temp 29.200000
+    pH 7.430000
+    Ca 30.520000
+    Mg 15.890000
+    Na 33.240000
+    K 4.890000
+    Cl 40.430000
+    S(6) 32.400000 as SO4
+    N(5) 44.060000 as NO3
+    F 0.630000
+    Alkalinity 120.830000 as HCO3
+END
+SOLUTION 16 NGW-016
+    units mg/L
+    temp 28.600000
+    pH 7.190000
+    Ca 28.980000
+    Mg 11.970000
+    Na 26.230000
+    K 4.190000
+    Cl 27.660000
+    S(6) 32.750000 as SO4
+    N(5) 42.350000 as NO3
+    F 0.420000
+    Alkalinity 114.050000 as HCO3
+END
+SOLUTION 17 NGW-017
+    units mg/L
+    temp 28.600000
+    pH 6.970000
+    Ca 34.510000
+    Mg 12.170000
+    Na 45.050000
+    K 4.340000
+    Cl 41.920000
+    S(6) 36.520000 as SO4
+    N(5) 54.960000 as NO3
+    F 0.490000
+    Alkalinity 130.190000 as HCO3
+END
+SOLUTION 18 NGW-018
+    units mg/L
+    temp 29.000000
+    pH 7.560000
+    Ca 29.460000
+    Mg 13.740000
+    Na 26.620000
+    K 3.820000
+    Cl 42.720000
+    S(6) 30.380000 as SO4
+    N(5) 9.150000 as NO3
+    F 0.440000
+    Alkalinity 110.680000 as HCO3
+END
+SOLUTION 19 NGW-019
+    units mg/L
+    temp 28.200000
+    pH 6.860000
+    Ca 33.590000
+    Mg 9.440000
+    Na 31.870000
+    K 3.970000
+    Cl 38.780000
+    S(6) 28.570000 as SO4
+    N(5) 18.830000 as NO3
+    F 0.620000
+    Alkalinity 125.960000 as HCO3
+END
+SOLUTION 20 NGW-020
+    units mg/L
+    temp 27.900000
+    pH 7.160000
+    Ca 40.330000
+    Mg 11.880000
+    Na 40.380000
+    K 4.140000
+    Cl 37.220000
+    S(6) 57.440000 as SO4
+    N(5) 13.680000 as NO3
+    F 0.420000
+    Alkalinity 135.280000 as HCO3
+END
+SOLUTION 21 NGW-021
+    units mg/L
+    temp 28.300000
+    pH 7.360000
+    Ca 38.030000
+    Mg 16.310000
+    Na 35.450000
+    K 4.600000
+    Cl 34.490000
+    S(6) 40.380000 as SO4
+    N(5) 10.160000 as NO3
+    F 0.770000
+    Alkalinity 174.820000 as HCO3
+END
+SOLUTION 22 NGW-022
+    units mg/L
+    temp 28.600000
+    pH 7.120000
+    Ca 35.250000
+    Mg 11.880000
+    Na 34.560000
+    K 4.330000
+    Cl 34.260000
+    S(6) 38.630000 as SO4
+    N(5) 32.070000 as NO3
+    F 0.570000
+    Alkalinity 133.370000 as HCO3
+END
+SOLUTION 23 NGW-023
+    units mg/L
+    temp 29.000000
+    pH 7.000000
+    Ca 34.290000
+    Mg 10.550000
+    Na 23.690000
+    K 4.120000
+    Cl 32.250000
+    S(6) 31.450000 as SO4
+    N(5) 27.870000 as NO3
+    F 0.460000
+    Alkalinity 105.720000 as HCO3
+END
+SOLUTION 24 NGW-024
+    units mg/L
+    temp 28.100000
+    pH 7.080000
+    Ca 24.540000
+    Mg 11.250000
+    Na 33.620000
+    K 3.840000
+    Cl 38.780000
+    S(6) 23.740000 as SO4
+    N(5) 39.350000 as NO3
+    F 0.450000
+    Alkalinity 107.010000 as HCO3
+END
+SOLUTION 25 NGW-025
+    units mg/L
+    temp 28.800000
+    pH 7.140000
+    Ca 28.140000
+    Mg 12.380000
+    Na 40.280000
+    K 4.630000
+    Cl 35.580000
+    S(6) 34.730000 as SO4
+    N(5) 32.010000 as NO3
+    F 0.630000
+    Alkalinity 133.710000 as HCO3
+END
+SOLUTION 26 NGW-026
+    units mg/L
+    temp 27.900000
+    pH 6.840000
+    Ca 34.450000
+    Mg 8.850000
+    Na 25.730000
+    K 4.300000
+    Cl 37.210000
+    S(6) 29.540000 as SO4
+    N(5) 34.070000 as NO3
+    F 0.630000
+    Alkalinity 104.270000 as HCO3
+END
+SOLUTION 27 NGW-027
+    units mg/L
+    temp 29.300000
+    pH 6.890000
+    Ca 39.220000
+    Mg 14.770000
+    Na 40.070000
+    K 5.440000
+    Cl 51.480000
+    S(6) 49.450000 as SO4
+    N(5) 12.590000 as NO3
+    F 0.400000
+    Alkalinity 150.170000 as HCO3
+END
+SOLUTION 28 NGW-028
+    units mg/L
+    temp 29.400000
+    pH 7.080000
+    Ca 29.050000
+    Mg 11.350000
+    Na 49.840000
+    K 4.900000
+    Cl 46.900000
+    S(6) 34.000000 as SO4
+    N(5) 34.180000 as NO3
+    F 0.390000
+    Alkalinity 137.370000 as HCO3
+END
+SOLUTION 29 NGW-029
+    units mg/L
+    temp 28.400000
+    pH 6.660000
+    Ca 31.190000
+    Mg 10.630000
+    Na 33.910000
+    K 3.930000
+    Cl 44.110000
+    S(6) 33.010000 as SO4
+    N(5) 11.160000 as NO3
+    F 0.500000
+    Alkalinity 115.320000 as HCO3
+END
+SOLUTION 30 NGW-030
+    units mg/L
+    temp 28.700000
+    pH 7.080000
+    Ca 38.070000
+    Mg 12.340000
+    Na 29.770000
+    K 4.290000
+    Cl 45.730000
+    S(6) 41.930000 as SO4
+    N(5) 10.430000 as NO3
+    F 0.740000
+    Alkalinity 127.100000 as HCO3
+END
+SOLUTION 31 NGW-031
+    units mg/L
+    temp 27.800000
+    pH 7.510000
+    Ca 29.120000
+    Mg 13.820000
+    Na 42.930000
+    K 5.480000
+    Cl 37.100000
+    S(6) 43.700000 as SO4
+    N(5) 70.100000 as NO3
+    F 0.300000
+    Alkalinity 129.170000 as HCO3
+END
+SOLUTION 32 NGW-032
+    units mg/L
+    temp 28.400000
+    pH 7.090000
+    Ca 33.340000
+    Mg 11.280000
+    Na 39.800000
+    K 3.430000
+    Cl 32.640000
+    S(6) 36.720000 as SO4
+    N(5) 23.460000 as NO3
+    F 0.670000
+    Alkalinity 142.090000 as HCO3
+END
+SOLUTION 33 NGW-033
+    units mg/L
+    temp 29.400000
+    pH 7.190000
+    Ca 33.760000
+    Mg 8.370000
+    Na 15.490000
+    K 3.540000
+    Cl 20.430000
+    S(6) 27.690000 as SO4
+    N(5) 11.910000 as NO3
+    F 0.480000
+    Alkalinity 113.580000 as HCO3
+END
+SOLUTION 34 NGW-034
+    units mg/L
+    temp 29.500000
+    pH 6.680000
+    Ca 31.510000
+    Mg 10.130000
+    Na 43.500000
+    K 4.190000
+    Cl 32.270000
+    S(6) 42.020000 as SO4
+    N(5) 49.500000 as NO3
+    F 0.490000
+    Alkalinity 129.800000 as HCO3
+END
+SOLUTION 35 NGW-035
+    units mg/L
+    temp 28.500000
+    pH 6.960000
+    Ca 27.600000
+    Mg 11.250000
+    Na 45.200000
+    K 3.140000
+    Cl 36.440000
+    S(6) 38.400000 as SO4
+    N(5) 21.240000 as NO3
+    F 0.310000
+    Alkalinity 118.460000 as HCO3
+END
+SOLUTION 36 NGW-036
+    units mg/L
+    temp 29.300000
+    pH 7.540000
+    Ca 41.930000
+    Mg 10.960000
+    Na 43.730000
+    K 4.270000
+    Cl 41.470000
+    S(6) 54.640000 as SO4
+    N(5) 10.960000 as NO3
+    F 1.250000
+    Alkalinity 143.490000 as HCO3
+END
+SOLUTION 37 NGW-037
+    units mg/L
+    temp 28.400000
+    pH 7.090000
+    Ca 41.430000
+    Mg 12.400000
+    Na 38.110000
+    K 5.760000
+    Cl 42.900000
+    S(6) 30.890000 as SO4
+    N(5) 33.220000 as NO3
+    F 0.660000
+    Alkalinity 174.490000 as HCO3
+END
+SOLUTION 38 NGW-038
+    units mg/L
+    temp 28.900000
+    pH 7.050000
+    Ca 35.270000
+    Mg 12.630000
+    Na 27.880000
+    K 4.350000
+    Cl 43.790000
+    S(6) 25.820000 as SO4
+    N(5) 12.880000 as NO3
+    F 0.580000
+    Alkalinity 118.340000 as HCO3
+END
+SOLUTION 39 NGW-039
+    units mg/L
+    temp 29.500000
+    pH 6.710000
+    Ca 25.840000
+    Mg 13.760000
+    Na 31.170000
+    K 3.830000
+    Cl 53.550000
+    S(6) 24.390000 as SO4
+    N(5) 18.380000 as NO3
+    F 0.400000
+    Alkalinity 106.760000 as HCO3
+END
+SOLUTION 40 NGW-040
+    units mg/L
+    temp 28.700000
+    pH 7.090000
+    Ca 32.880000
+    Mg 10.440000
+    Na 21.490000
+    K 4.410000
+    Cl 36.770000
+    S(6) 28.360000 as SO4
+    N(5) 7.300000 as NO3
+    F 0.520000
+    Alkalinity 115.250000 as HCO3
+END
+SOLUTION 41 NGW-041
+    units mg/L
+    temp 27.900000
+    pH 6.790000
+    Ca 31.990000
+    Mg 10.600000
+    Na 29.240000
+    K 5.110000
+    Cl 41.490000
+    S(6) 28.870000 as SO4
+    N(5) 3.480000 as NO3
+    F 0.180000
+    Alkalinity 112.170000 as HCO3
+END
+SOLUTION 42 NGW-042
+    units mg/L
+    temp 28.300000
+    pH 7.080000
+    Ca 25.560000
+    Mg 9.910000
+    Na 33.650000
+    K 3.650000
+    Cl 29.650000
+    S(6) 28.990000 as SO4
+    N(5) 26.310000 as NO3
+    F 0.390000
+    Alkalinity 104.260000 as HCO3
+END
+SOLUTION 43 NGW-043
+    units mg/L
+    temp 29.400000
+    pH 6.700000
+    Ca 30.920000
+    Mg 11.460000
+    Na 33.710000
+    K 4.900000
+    Cl 39.180000
+    S(6) 30.490000 as SO4
+    N(5) 15.920000 as NO3
+    F 0.290000
+    Alkalinity 131.750000 as HCO3
+END
+SOLUTION 44 NGW-044
+    units mg/L
+    temp 28.000000
+    pH 7.030000
+    Ca 34.120000
+    Mg 13.620000
+    Na 30.190000
+    K 3.040000
+    Cl 39.670000
+    S(6) 31.320000 as SO4
+    N(5) 102.190000 as NO3
+    F 0.550000
+    Alkalinity 111.680000 as HCO3
+END
+SOLUTION 45 NGW-045
+    units mg/L
+    temp 28.300000
+    pH 7.120000
+    Ca 28.000000
+    Mg 14.040000
+    Na 33.520000
+    K 3.640000
+    Cl 43.390000
+    S(6) 27.300000 as SO4
+    N(5) 55.490000 as NO3
+    F 0.360000
+    Alkalinity 116.760000 as HCO3
+END
+SOLUTION 46 NGW-046
+    units mg/L
+    temp 27.900000
+    pH 6.680000
+    Ca 34.920000
+    Mg 10.550000
+    Na 35.650000
+    K 3.880000
+    Cl 46.230000
+    S(6) 30.520000 as SO4
+    N(5) 23.010000 as NO3
+    F 0.130000
+    Alkalinity 132.590000 as HCO3
+END
+SOLUTION 47 NGW-047
+    units mg/L
+    temp 28.000000
+    pH 7.370000
+    Ca 28.740000
+    Mg 11.740000
+    Na 35.440000
+    K 3.930000
+    Cl 34.150000
+    S(6) 34.200000 as SO4
+    N(5) 19.020000 as NO3
+    F 0.490000
+    Alkalinity 123.910000 as HCO3
+END
+SOLUTION 48 NGW-048
+    units mg/L
+    temp 27.700000
+    pH 7.320000
+    Ca 32.890000
+    Mg 10.720000
+    Na 38.530000
+    K 3.460000
+    Cl 53.060000
+    S(6) 33.240000 as SO4
+    N(5) 18.470000 as NO3
+    F 0.370000
+    Alkalinity 108.130000 as HCO3
+END
+SOLUTION 49 NGW-049
+    units mg/L
+    temp 28.800000
+    pH 6.820000
+    Ca 39.890000
+    Mg 15.030000
+    Na 28.430000
+    K 3.070000
+    Cl 39.650000
+    S(6) 36.740000 as SO4
+    N(5) 23.900000 as NO3
+    F 0.380000
+    Alkalinity 139.680000 as HCO3
+END
+SOLUTION 50 NGW-050
+    units mg/L
+    temp 28.300000
+    pH 7.790000
+    Ca 34.370000
+    Mg 14.750000
+    Na 43.550000
+    K 4.130000
+    Cl 44.870000
+    S(6) 47.460000 as SO4
+    N(5) 64.940000 as NO3
+    F 0.680000
+    Alkalinity 134.210000 as HCO3
+END
+SOLUTION 51 NGW-051
+    units mg/L
+    temp 28.900000
+    pH 6.730000
+    Ca 37.780000
+    Mg 12.470000
+    Na 28.550000
+    K 4.340000
+    Cl 48.080000
+    S(6) 37.360000 as SO4
+    N(5) 20.220000 as NO3
+    F 0.460000
+    Alkalinity 112.340000 as HCO3
+END
+SOLUTION 52 NGW-052
+    units mg/L
+    temp 28.900000
+    pH 6.960000
+    Ca 28.300000
+    Mg 12.660000
+    Na 28.600000
+    K 4.400000
+    Cl 41.170000
+    S(6) 28.620000 as SO4
+    N(5) 7.850000 as NO3
+    F 0.610000
+    Alkalinity 125.690000 as HCO3
+END
+SOLUTION 53 NGW-053
+    units mg/L
+    temp 27.400000
+    pH 6.910000
+    Ca 31.730000
+    Mg 11.710000
+    Na 35.340000
+    K 3.580000
+    Cl 36.020000
+    S(6) 24.020000 as SO4
+    N(5) 21.870000 as NO3
+    F 0.420000
+    Alkalinity 151.310000 as HCO3
+END
+SOLUTION 54 NGW-054
+    units mg/L
+    temp 28.300000
+    pH 7.230000
+    Ca 31.140000
+    Mg 10.870000
+    Na 40.470000
+    K 4.100000
+    Cl 45.850000
+    S(6) 35.390000 as SO4
+    N(5) 14.990000 as NO3
+    F 0.450000
+    Alkalinity 118.660000 as HCO3
+END
+SOLUTION 55 NGW-055
+    units mg/L
+    temp 30.100000
+    pH 7.370000
+    Ca 31.340000
+    Mg 8.660000
+    Na 49.900000
+    K 2.840000
+    Cl 44.490000
+    S(6) 43.200000 as SO4
+    N(5) 17.420000 as NO3
+    F 0.540000
+    Alkalinity 131.000000 as HCO3
+END
+SOLUTION 56 NGW-056
+    units mg/L
+    temp 28.200000
+    pH 6.830000
+    Ca 31.060000
+    Mg 12.370000
+    Na 34.170000
+    K 3.490000
+    Cl 40.220000
+    S(6) 42.580000 as SO4
+    N(5) 18.020000 as NO3
+    F 0.380000
+    Alkalinity 122.040000 as HCO3
+END
+SOLUTION 57 NGW-057
+    units mg/L
+    temp 28.100000
+    pH 7.290000
+    Ca 39.570000
+    Mg 13.310000
+    Na 28.010000
+    K 4.570000
+    Cl 43.260000
+    S(6) 41.900000 as SO4
+    N(5) 12.690000 as NO3
+    F 0.370000
+    Alkalinity 136.030000 as HCO3
+END
+SOLUTION 58 NGW-058
+    units mg/L
+    temp 29.200000
+    pH 6.750000
+    Ca 30.740000
+    Mg 11.500000
+    Na 30.910000
+    K 4.060000
+    Cl 39.340000
+    S(6) 31.170000 as SO4
+    N(5) 31.310000 as NO3
+    F 0.610000
+    Alkalinity 99.050000 as HCO3
+END
+SOLUTION 59 NGW-059
+    units mg/L
+    temp 27.800000
+    pH 7.270000
+    Ca 36.650000
+    Mg 16.550000
+    Na 38.160000
+    K 4.290000
+    Cl 37.320000
+    S(6) 44.270000 as SO4
+    N(5) 114.030000 as NO3
+    F 0.350000
+    Alkalinity 148.740000 as HCO3
+END
+SOLUTION 60 NGW-060
+    units mg/L
+    temp 29.600000
+    pH 7.470000
+    Ca 33.780000
+    Mg 12.090000
+    Na 24.570000
+    K 4.540000
+    Cl 28.870000
+    S(6) 32.820000 as SO4
+    N(5) 81.410000 as NO3
+    F 0.500000
+    Alkalinity 103.870000 as HCO3
+END
+SOLUTION 61 NGW-061
+    units mg/L
+    temp 28.900000
+    pH 7.280000
+    Ca 29.000000
+    Mg 11.380000
+    Na 38.800000
+    K 3.370000
+    Cl 44.420000
+    S(6) 39.250000 as SO4
+    N(5) 43.340000 as NO3
+    F 0.460000
+    Alkalinity 128.220000 as HCO3
+END
+SOLUTION 62 NGW-062
+    units mg/L
+    temp 29.900000
+    pH 6.990000
+    Ca 33.190000
+    Mg 11.100000
+    Na 38.630000
+    K 5.200000
+    Cl 54.830000
+    S(6) 40.240000 as SO4
+    N(5) 0.570000 as NO3
+    F 0.400000
+    Alkalinity 113.330000 as HCO3
+END
+SOLUTION 63 NGW-063
+    units mg/L
+    temp 28.500000
+    pH 7.820000
+    Ca 29.680000
+    Mg 13.140000
+    Na 40.270000
+    K 4.140000
+    Cl 37.770000
+    S(6) 41.950000 as SO4
+    N(5) 10.920000 as NO3
+    F 0.790000
+    Alkalinity 123.680000 as HCO3
+END
+SOLUTION 64 NGW-064
+    units mg/L
+    temp 28.800000
+    pH 6.590000
+    Ca 31.740000
+    Mg 12.320000
+    Na 40.380000
+    K 4.070000
+    Cl 46.120000
+    S(6) 25.730000 as SO4
+    N(5) 7.570000 as NO3
+    F 0.410000
+    Alkalinity 144.970000 as HCO3
+END
+SOLUTION 65 NGW-065
+    units mg/L
+    temp 28.700000
+    pH 6.860000
+    Ca 30.540000
+    Mg 7.970000
+    Na 42.770000
+    K 4.670000
+    Cl 41.370000
+    S(6) 34.250000 as SO4
+    N(5) 12.340000 as NO3
+    F 0.330000
+    Alkalinity 136.080000 as HCO3
+END
+SOLUTION 66 NGW-066
+    units mg/L
+    temp 29.200000
+    pH 7.190000
+    Ca 38.240000
+    Mg 10.670000
+    Na 31.110000
+    K 4.600000
+    Cl 58.470000
+    S(6) 29.080000 as SO4
+    N(5) 5.510000 as NO3
+    F 0.450000
+    Alkalinity 113.590000 as HCO3
+END
+SOLUTION 67 NGW-067
+    units mg/L
+    temp 29.600000
+    pH 6.830000
+    Ca 33.160000
+    Mg 10.870000
+    Na 44.860000
+    K 3.470000
+    Cl 38.060000
+    S(6) 37.070000 as SO4
+    N(5) 19.770000 as NO3
+    F 0.370000
+    Alkalinity 144.620000 as HCO3
+END
+SOLUTION 68 NGW-068
+    units mg/L
+    temp 29.000000
+    pH 7.130000
+    Ca 26.050000
+    Mg 12.110000
+    Na 40.410000
+    K 5.330000
+    Cl 48.280000
+    S(6) 35.740000 as SO4
+    N(5) 20.210000 as NO3
+    F 0.520000
+    Alkalinity 112.100000 as HCO3
+END
+SOLUTION 69 NGW-069
+    units mg/L
+    temp 28.800000
+    pH 7.890000
+    Ca 33.180000
+    Mg 11.160000
+    Na 35.600000
+    K 3.800000
+    Cl 38.470000
+    S(6) 41.170000 as SO4
+    N(5) 10.920000 as NO3
+    F 0.620000
+    Alkalinity 131.940000 as HCO3
+END
+SOLUTION 70 NGW-070
+    units mg/L
+    temp 28.500000
+    pH 6.930000
+    Ca 36.650000
+    Mg 8.280000
+    Na 20.060000
+    K 4.250000
+    Cl 32.250000
+    S(6) 27.720000 as SO4
+    N(5) 14.900000 as NO3
+    F 0.700000
+    Alkalinity 102.230000 as HCO3
+END
+SOLUTION 71 NGW-071
+    units mg/L
+    temp 28.300000
+    pH 6.830000
+    Ca 30.150000
+    Mg 10.630000
+    Na 34.430000
+    K 5.770000
+    Cl 41.430000
+    S(6) 29.520000 as SO4
+    N(5) 19.980000 as NO3
+    F 0.300000
+    Alkalinity 124.380000 as HCO3
+END
+SOLUTION 72 NGW-072
+    units mg/L
+    temp 28.500000
+    pH 6.980000
+    Ca 32.960000
+    Mg 12.560000
+    Na 46.240000
+    K 3.870000
+    Cl 41.110000
+    S(6) 42.560000 as SO4
+    N(5) 43.490000 as NO3
+    F 0.610000
+    Alkalinity 133.910000 as HCO3
+END
+SOLUTION 73 NGW-073
+    units mg/L
+    temp 27.400000
+    pH 7.210000
+    Ca 28.260000
+    Mg 12.930000
+    Na 38.630000
+    K 5.460000
+    Cl 39.100000
+    S(6) 35.510000 as SO4
+    N(5) 17.860000 as NO3
+    F 0.630000
+    Alkalinity 114.770000 as HCO3
+END
+SOLUTION 74 NGW-074
+    units mg/L
+    temp 28.500000
+    pH 7.110000
+    Ca 27.140000
+    Mg 11.960000
+    Na 36.410000
+    K 3.190000
+    Cl 36.030000
+    S(6) 43.580000 as SO4
+    N(5) 6.670000 as NO3
+    F 0.270000
+    Alkalinity 126.720000 as HCO3
+END
+SOLUTION 75 NGW-075
+    units mg/L
+    temp 28.900000
+    pH 6.910000
+    Ca 27.670000
+    Mg 14.610000
+    Na 40.530000
+    K 3.760000
+    Cl 43.220000
+    S(6) 26.830000 as SO4
+    N(5) 27.760000 as NO3
+    F 0.370000
+    Alkalinity 138.730000 as HCO3
+END
+SOLUTION 76 NGW-076
+    units mg/L
+    temp 30.200000
+    pH 7.080000
+    Ca 29.340000
+    Mg 11.670000
+    Na 46.530000
+    K 3.290000
+    Cl 45.610000
+    S(6) 37.540000 as SO4
+    N(5) 10.260000 as NO3
+    F 0.520000
+    Alkalinity 144.170000 as HCO3
+END
+SOLUTION 77 NGW-077
+    units mg/L
+    temp 27.100000
+    pH 7.010000
+    Ca 37.800000
+    Mg 12.580000
+    Na 37.800000
+    K 2.990000
+    Cl 42.250000
+    S(6) 39.320000 as SO4
+    N(5) 20.970000 as NO3
+    F 0.370000
+    Alkalinity 130.760000 as HCO3
+END
+SOLUTION 78 NGW-078
+    units mg/L
+    temp 30.200000
+    pH 7.100000
+    Ca 40.320000
+    Mg 12.120000
+    Na 52.270000
+    K 3.380000
+    Cl 49.110000
+    S(6) 48.870000 as SO4
+    N(5) 24.020000 as NO3
+    F 0.430000
+    Alkalinity 158.210000 as HCO3
+END
+SOLUTION 79 NGW-079
+    units mg/L
+    temp 29.400000
+    pH 7.020000
+    Ca 35.060000
+    Mg 6.790000
+    Na 36.390000
+    K 4.240000
+    Cl 44.730000
+    S(6) 27.760000 as SO4
+    N(5) 11.740000 as NO3
+    F 0.530000
+    Alkalinity 122.300000 as HCO3
+END
+SOLUTION 80 NGW-080
+    units mg/L
+    temp 28.400000
+    pH 7.010000
+    Ca 36.340000
+    Mg 15.770000
+    Na 42.760000
+    K 3.830000
+    Cl 54.090000
+    S(6) 37.400000 as SO4
+    N(5) 43.300000 as NO3
+    F 0.600000
+    Alkalinity 133.410000 as HCO3
+END
+SOLUTION 81 NGW-081
+    units mg/L
+    temp 30.000000
+    pH 7.210000
+    Ca 35.070000
+    Mg 14.690000
+    Na 35.680000
+    K 3.970000
+    Cl 49.990000
+    S(6) 28.040000 as SO4
+    N(5) 29.420000 as NO3
+    F 1.160000
+    Alkalinity 155.730000 as HCO3
+END
+SOLUTION 82 NGW-082
+    units mg/L
+    temp 29.100000
+    pH 7.430000
+    Ca 31.020000
+    Mg 10.750000
+    Na 35.280000
+    K 4.440000
+    Cl 49.730000
+    S(6) 21.340000 as SO4
+    N(5) 18.480000 as NO3
+    F 2.060000
+    Alkalinity 107.640000 as HCO3
+END
+SOLUTION 83 NGW-083
+    units mg/L
+    temp 29.500000
+    pH 7.050000
+    Ca 25.690000
+    Mg 8.300000
+    Na 42.920000
+    K 4.270000
+    Cl 45.240000
+    S(6) 28.980000 as SO4
+    N(5) 17.340000 as NO3
+    F 1.420000
+    Alkalinity 103.390000 as HCO3
+END
+SOLUTION 84 NGW-084
+    units mg/L
+    temp 28.900000
+    pH 7.190000
+    Ca 38.670000
+    Mg 13.130000
+    Na 46.990000
+    K 5.260000
+    Cl 52.210000
+    S(6) 29.880000 as SO4
+    N(5) 44.480000 as NO3
+    F 1.250000
+    Alkalinity 148.250000 as HCO3
+END
+SOLUTION 85 NGW-085
+    units mg/L
+    temp 28.100000
+    pH 7.440000
+    Ca 34.520000
+    Mg 9.680000
+    Na 43.860000
+    K 4.150000
+    Cl 46.230000
+    S(6) 24.140000 as SO4
+    N(5) 26.080000 as NO3
+    F 1.090000
+    Alkalinity 129.130000 as HCO3
+END
+SOLUTION 86 NGW-086
+    units mg/L
+    temp 29.400000
+    pH 7.290000
+    Ca 33.930000
+    Mg 8.520000
+    Na 39.430000
+    K 3.590000
+    Cl 42.570000
+    S(6) 32.930000 as SO4
+    N(5) 25.190000 as NO3
+    F 1.720000
+    Alkalinity 104.350000 as HCO3
+END
+SOLUTION 87 NGW-087
+    units mg/L
+    temp 29.100000
+    pH 7.210000
+    Ca 36.790000
+    Mg 12.830000
+    Na 35.050000
+    K 4.830000
+    Cl 48.510000
+    S(6) 24.780000 as SO4
+    N(5) 93.240000 as NO3
+    F 1.030000
+    Alkalinity 117.710000 as HCO3
+END
+SOLUTION 88 NGW-088
+    units mg/L
+    temp 29.700000
+    pH 7.140000
+    Ca 36.340000
+    Mg 13.860000
+    Na 42.060000
+    K 5.170000
+    Cl 54.110000
+    S(6) 38.010000 as SO4
+    N(5) 21.130000 as NO3
+    F 1.770000
+    Alkalinity 133.180000 as HCO3
+END
+SOLUTION 89 NGW-089
+    units mg/L
+    temp 29.800000
+    pH 6.940000
+    Ca 39.980000
+    Mg 11.550000
+    Na 43.480000
+    K 4.720000
+    Cl 60.100000
+    S(6) 32.070000 as SO4
+    N(5) 23.490000 as NO3
+    F 1.120000
+    Alkalinity 131.850000 as HCO3
+END
+SOLUTION 90 NGW-090
+    units mg/L
+    temp 29.200000
+    pH 7.350000
+    Ca 32.550000
+    Mg 12.050000
+    Na 40.280000
+    K 3.690000
+    Cl 44.490000
+    S(6) 25.360000 as SO4
+    N(5) 49.950000 as NO3
+    F 1.330000
+    Alkalinity 123.420000 as HCO3
+END
+SOLUTION 91 NGW-091
+    units mg/L
+    temp 29.100000
+    pH 7.260000
+    Ca 34.270000
+    Mg 13.650000
+    Na 46.540000
+    K 4.270000
+    Cl 57.950000
+    S(6) 35.960000 as SO4
+    N(5) 51.030000 as NO3
+    F 3.010000
+    Alkalinity 137.830000 as HCO3
+END
+SOLUTION 92 NGW-092
+    units mg/L
+    temp 30.700000
+    pH 7.100000
+    Ca 34.450000
+    Mg 14.310000
+    Na 38.520000
+    K 4.300000
+    Cl 60.350000
+    S(6) 37.960000 as SO4
+    N(5) 15.930000 as NO3
+    F 1.480000
+    Alkalinity 119.230000 as HCO3
+END
+SOLUTION 93 NGW-093
+    units mg/L
+    temp 29.700000
+    pH 7.350000
+    Ca 37.010000
+    Mg 11.470000
+    Na 40.380000
+    K 4.360000
+    Cl 56.580000
+    S(6) 45.350000 as SO4
+    N(5) 21.070000 as NO3
+    F 1.550000
+    Alkalinity 125.160000 as HCO3
+END
+SOLUTION 94 NGW-094
+    units mg/L
+    temp 28.000000
+    pH 6.920000
+    Ca 26.980000
+    Mg 8.930000
+    Na 40.950000
+    K 4.770000
+    Cl 43.900000
+    S(6) 31.710000 as SO4
+    N(5) 8.950000 as NO3
+    F 0.730000
+    Alkalinity 119.230000 as HCO3
+END
+SOLUTION 95 NGW-095
+    units mg/L
+    temp 29.500000
+    pH 6.920000
+    Ca 35.450000
+    Mg 13.700000
+    Na 36.200000
+    K 3.830000
+    Cl 44.210000
+    S(6) 39.170000 as SO4
+    N(5) 22.180000 as NO3
+    F 0.920000
+    Alkalinity 131.600000 as HCO3
+END
+SOLUTION 96 NGW-096
+    units mg/L
+    temp 28.100000
+    pH 7.540000
+    Ca 37.400000
+    Mg 13.230000
+    Na 43.860000
+    K 3.810000
+    Cl 48.210000
+    S(6) 39.940000 as SO4
+    N(5) 20.300000 as NO3
+    F 1.360000
+    Alkalinity 158.980000 as HCO3
+END
+SOLUTION 97 NGW-097
+    units mg/L
+    temp 28.800000
+    pH 7.180000
+    Ca 31.120000
+    Mg 16.070000
+    Na 45.710000
+    K 4.750000
+    Cl 51.990000
+    S(6) 37.350000 as SO4
+    N(5) 22.330000 as NO3
+    F 1.800000
+    Alkalinity 149.590000 as HCO3
+END
+SOLUTION 98 NGW-098
+    units mg/L
+    temp 28.500000
+    pH 7.590000
+    Ca 36.870000
+    Mg 12.970000
+    Na 38.560000
+    K 4.660000
+    Cl 59.610000
+    S(6) 29.310000 as SO4
+    N(5) 11.630000 as NO3
+    F 1.710000
+    Alkalinity 133.480000 as HCO3
+END
+SOLUTION 99 NGW-099
+    units mg/L
+    temp 28.800000
+    pH 7.160000
+    Ca 34.620000
+    Mg 8.950000
+    Na 41.240000
+    K 5.070000
+    Cl 49.410000
+    S(6) 33.800000 as SO4
+    N(5) 17.000000 as NO3
+    F 0.870000
+    Alkalinity 134.230000 as HCO3
+END
+SOLUTION 100 NGW-100
+    units mg/L
+    temp 29.400000
+    pH 7.200000
+    Ca 38.910000
+    Mg 13.820000
+    Na 30.010000
+    K 3.890000
+    Cl 44.280000
+    S(6) 29.580000 as SO4
+    N(5) 51.740000 as NO3
+    F 0.830000
+    Alkalinity 118.180000 as HCO3
+END
+SOLUTION 101 NGW-101
+    units mg/L
+    temp 28.600000
+    pH 7.050000
+    Ca 34.390000
+    Mg 13.500000
+    Na 39.360000
+    K 5.060000
+    Cl 40.650000
+    S(6) 31.920000 as SO4
+    N(5) 43.050000 as NO3
+    F 1.160000
+    Alkalinity 114.810000 as HCO3
+END
+SOLUTION 102 NGW-102
+    units mg/L
+    temp 29.500000
+    pH 7.140000
+    Ca 41.360000
+    Mg 12.860000
+    Na 36.650000
+    K 4.600000
+    Cl 47.490000
+    S(6) 32.200000 as SO4
+    N(5) 46.910000 as NO3
+    F 0.970000
+    Alkalinity 125.540000 as HCO3
+END
+SOLUTION 103 NGW-103
+    units mg/L
+    temp 27.900000
+    pH 7.080000
+    Ca 30.690000
+    Mg 10.150000
+    Na 40.390000
+    K 4.570000
+    Cl 54.430000
+    S(6) 37.190000 as SO4
+    N(5) 7.030000 as NO3
+    F 0.920000
+    Alkalinity 120.840000 as HCO3
+END
+SOLUTION 104 NGW-104
+    units mg/L
+    temp 27.000000
+    pH 6.950000
+    Ca 29.250000
+    Mg 12.970000
+    Na 21.750000
+    K 3.870000
+    Cl 35.410000
+    S(6) 20.170000 as SO4
+    N(5) 27.950000 as NO3
+    F 0.620000
+    Alkalinity 90.550000 as HCO3
+END
+SOLUTION 105 NGW-105
+    units mg/L
+    temp 29.100000
+    pH 7.270000
+    Ca 25.680000
+    Mg 10.250000
+    Na 42.590000
+    K 3.860000
+    Cl 40.600000
+    S(6) 24.460000 as SO4
+    N(5) 44.510000 as NO3
+    F 1.360000
+    Alkalinity 114.780000 as HCO3
+END
+SOLUTION 106 NGW-106
+    units mg/L
+    temp 29.700000
+    pH 7.050000
+    Ca 32.400000
+    Mg 10.390000
+    Na 42.700000
+    K 4.270000
+    Cl 59.840000
+    S(6) 26.870000 as SO4
+    N(5) 21.070000 as NO3
+    F 2.580000
+    Alkalinity 119.200000 as HCO3
+END
+SOLUTION 107 NGW-107
+    units mg/L
+    temp 29.400000
+    pH 7.290000
+    Ca 37.610000
+    Mg 13.700000
+    Na 36.300000
+    K 4.840000
+    Cl 64.090000
+    S(6) 36.150000 as SO4
+    N(5) 12.830000 as NO3
+    F 1.300000
+    Alkalinity 120.300000 as HCO3
+END
+SOLUTION 108 NGW-108
+    units mg/L
+    temp 29.500000
+    pH 7.300000
+    Ca 34.410000
+    Mg 13.420000
+    Na 45.180000
+    K 4.780000
+    Cl 53.300000
+    S(6) 32.990000 as SO4
+    N(5) 41.630000 as NO3
+    F 3.290000
+    Alkalinity 133.120000 as HCO3
+END
+SOLUTION 109 NGW-109
+    units mg/L
+    temp 28.400000
+    pH 7.600000
+    Ca 29.050000
+    Mg 15.420000
+    Na 36.350000
+    K 3.820000
+    Cl 45.410000
+    S(6) 35.910000 as SO4
+    N(5) 8.970000 as NO3
+    F 0.920000
+    Alkalinity 128.250000 as HCO3
+END
+SOLUTION 110 NGW-110
+    units mg/L
+    temp 28.700000
+    pH 7.190000
+    Ca 25.740000
+    Mg 13.480000
+    Na 29.120000
+    K 3.280000
+    Cl 36.870000
+    S(6) 29.160000 as SO4
+    N(5) 20.100000 as NO3
+    F 0.990000
+    Alkalinity 111.990000 as HCO3
+END
+SOLUTION 111 NGW-111
+    units mg/L
+    temp 29.700000
+    pH 6.860000
+    Ca 37.270000
+    Mg 10.710000
+    Na 42.280000
+    K 4.750000
+    Cl 55.100000
+    S(6) 37.260000 as SO4
+    N(5) 21.370000 as NO3
+    F 0.520000
+    Alkalinity 128.200000 as HCO3
+END
+SOLUTION 112 NGW-112
+    units mg/L
+    temp 29.200000
+    pH 7.380000
+    Ca 38.360000
+    Mg 14.160000
+    Na 42.200000
+    K 3.580000
+    Cl 58.430000
+    S(6) 27.010000 as SO4
+    N(5) 97.460000 as NO3
+    F 0.920000
+    Alkalinity 127.890000 as HCO3
+END
+SOLUTION 113 NGW-113
+    units mg/L
+    temp 30.000000
+    pH 6.980000
+    Ca 40.180000
+    Mg 10.930000
+    Na 39.250000
+    K 4.630000
+    Cl 60.440000
+    S(6) 40.470000 as SO4
+    N(5) 15.020000 as NO3
+    F 1.030000
+    Alkalinity 123.060000 as HCO3
+END
+SOLUTION 114 NGW-114
+    units mg/L
+    temp 29.300000
+    pH 7.310000
+    Ca 27.640000
+    Mg 11.890000
+    Na 21.080000
+    K 4.340000
+    Cl 34.400000
+    S(6) 23.000000 as SO4
+    N(5) 13.840000 as NO3
+    F 1.530000
+    Alkalinity 99.640000 as HCO3
+END
+SOLUTION 115 NGW-115
+    units mg/L
+    temp 28.800000
+    pH 7.380000
+    Ca 28.410000
+    Mg 11.820000
+    Na 31.380000
+    K 2.730000
+    Cl 44.270000
+    S(6) 26.490000 as SO4
+    N(5) 45.850000 as NO3
+    F 2.060000
+    Alkalinity 110.480000 as HCO3
+END
+SOLUTION 116 NGW-116
+    units mg/L
+    temp 29.600000
+    pH 7.210000
+    Ca 30.910000
+    Mg 12.310000
+    Na 29.900000
+    K 3.750000
+    Cl 33.020000
+    S(6) 25.510000 as SO4
+    N(5) 32.370000 as NO3
+    F 1.270000
+    Alkalinity 113.880000 as HCO3
+END
+SOLUTION 117 NGW-117
+    units mg/L
+    temp 29.500000
+    pH 7.160000
+    Ca 37.620000
+    Mg 9.950000
+    Na 40.980000
+    K 4.270000
+    Cl 42.390000
+    S(6) 29.200000 as SO4
+    N(5) 26.600000 as NO3
+    F 1.600000
+    Alkalinity 143.500000 as HCO3
+END
+SOLUTION 118 NGW-118
+    units mg/L
+    temp 30.100000
+    pH 7.780000
+    Ca 29.570000
+    Mg 11.820000
+    Na 41.970000
+    K 5.190000
+    Cl 44.320000
+    S(6) 36.590000 as SO4
+    N(5) 23.780000 as NO3
+    F 1.860000
+    Alkalinity 121.090000 as HCO3
+END
+SOLUTION 119 NGW-119
+    units mg/L
+    temp 29.100000
+    pH 7.480000
+    Ca 27.030000
+    Mg 11.030000
+    Na 38.580000
+    K 4.420000
+    Cl 47.510000
+    S(6) 18.480000 as SO4
+    N(5) 6.230000 as NO3
+    F 1.300000
+    Alkalinity 122.280000 as HCO3
+END
+SOLUTION 120 NGW-120
+    units mg/L
+    temp 29.300000
+    pH 7.260000
+    Ca 27.700000
+    Mg 12.370000
+    Na 32.640000
+    K 3.780000
+    Cl 36.360000
+    S(6) 25.260000 as SO4
+    N(5) 11.170000 as NO3
+    F 0.950000
+    Alkalinity 124.350000 as HCO3
+END
+SOLUTION 121 NGW-121
+    units mg/L
+    temp 29.200000
+    pH 6.960000
+    Ca 31.670000
+    Mg 14.410000
+    Na 34.080000
+    K 3.700000
+    Cl 45.580000
+    S(6) 37.200000 as SO4
+    N(5) 7.900000 as NO3
+    F 0.500000
+    Alkalinity 133.380000 as HCO3
+END
+SOLUTION 122 NGW-122
+    units mg/L
+    temp 29.200000
+    pH 7.140000
+    Ca 29.530000
+    Mg 14.330000
+    Na 37.570000
+    K 4.300000
+    Cl 48.900000
+    S(6) 36.340000 as SO4
+    N(5) 8.040000 as NO3
+    F 0.040000
+    Alkalinity 140.250000 as HCO3
+END
+SOLUTION 123 NGW-123
+    units mg/L
+    temp 29.700000
+    pH 7.240000
+    Ca 37.320000
+    Mg 11.260000
+    Na 37.290000
+    K 3.910000
+    Cl 46.320000
+    S(6) 23.500000 as SO4
+    N(5) 96.310000 as NO3
+    F 0.600000
+    Alkalinity 133.000000 as HCO3
+END
+SOLUTION 124 NGW-124
+    units mg/L
+    temp 28.800000
+    pH 6.780000
+    Ca 31.060000
+    Mg 11.680000
+    Na 30.930000
+    K 3.620000
+    Cl 37.930000
+    S(6) 29.670000 as SO4
+    N(5) 54.130000 as NO3
+    F 0.410000
+    Alkalinity 109.930000 as HCO3
+END
+SOLUTION 125 NGW-125
+    units mg/L
+    temp 28.900000
+    pH 7.080000
+    Ca 31.470000
+    Mg 9.950000
+    Na 34.440000
+    K 3.100000
+    Cl 45.170000
+    S(6) 19.320000 as SO4
+    N(5) 19.380000 as NO3
+    F 0.780000
+    Alkalinity 113.550000 as HCO3
+END
+SOLUTION 126 NGW-126
+    units mg/L
+    temp 28.400000
+    pH 6.850000
+    Ca 31.370000
+    Mg 14.740000
+    Na 31.050000
+    K 5.600000
+    Cl 56.680000
+    S(6) 24.930000 as SO4
+    N(5) 16.810000 as NO3
+    F 0.730000
+    Alkalinity 128.060000 as HCO3
+END
+SOLUTION 127 NGW-127
+    units mg/L
+    temp 29.100000
+    pH 7.410000
+    Ca 35.470000
+    Mg 13.980000
+    Na 28.300000
+    K 3.350000
+    Cl 42.680000
+    S(6) 21.020000 as SO4
+    N(5) 22.290000 as NO3
+    F 0.300000
+    Alkalinity 122.130000 as HCO3
+END
+SOLUTION 128 NGW-128
+    units mg/L
+    temp 29.200000
+    pH 6.710000
+    Ca 31.500000
+    Mg 9.130000
+    Na 33.710000
+    K 2.560000
+    Cl 32.930000
+    S(6) 29.940000 as SO4
+    N(5) 86.280000 as NO3
+    F 0.210000
+    Alkalinity 95.200000 as HCO3
+END
+SOLUTION 129 NGW-129
+    units mg/L
+    temp 28.700000
+    pH 6.950000
+    Ca 30.620000
+    Mg 10.920000
+    Na 37.870000
+    K 4.600000
+    Cl 47.640000
+    S(6) 31.880000 as SO4
+    N(5) 27.540000 as NO3
+    F 0.840000
+    Alkalinity 118.290000 as HCO3
+END
+SOLUTION 130 NGW-130
+    units mg/L
+    temp 29.300000
+    pH 7.270000
+    Ca 37.870000
+    Mg 14.280000
+    Na 33.660000
+    K 5.030000
+    Cl 44.620000
+    S(6) 34.030000 as SO4
+    N(5) 61.580000 as NO3
+    F 0.850000
+    Alkalinity 128.720000 as HCO3
+END
+SOLUTION 131 NGW-131
+    units mg/L
+    temp 28.900000
+    pH 6.580000
+    Ca 30.500000
+    Mg 10.840000
+    Na 32.000000
+    K 2.900000
+    Cl 39.370000
+    S(6) 27.690000 as SO4
+    N(5) 22.460000 as NO3
+    F 0.430000
+    Alkalinity 118.540000 as HCO3
+END
+SOLUTION 132 NGW-132
+    units mg/L
+    temp 29.500000
+    pH 7.080000
+    Ca 32.020000
+    Mg 10.400000
+    Na 48.990000
+    K 4.730000
+    Cl 56.360000
+    S(6) 30.390000 as SO4
+    N(5) 83.890000 as NO3
+    F 0.650000
+    Alkalinity 122.060000 as HCO3
+END
+SOLUTION 133 NGW-133
+    units mg/L
+    temp 28.900000
+    pH 7.410000
+    Ca 28.620000
+    Mg 14.920000
+    Na 37.340000
+    K 4.250000
+    Cl 36.240000
+    S(6) 40.330000 as SO4
+    N(5) 16.730000 as NO3
+    F 0.470000
+    Alkalinity 127.850000 as HCO3
+END
+SOLUTION 134 NGW-134
+    units mg/L
+    temp 28.300000
+    pH 7.160000
+    Ca 36.280000
+    Mg 13.100000
+    Na 36.640000
+    K 3.980000
+    Cl 38.090000
+    S(6) 42.440000 as SO4
+    N(5) 17.730000 as NO3
+    F 0.230000
+    Alkalinity 133.950000 as HCO3
+END
+SOLUTION 135 NGW-135
+    units mg/L
+    temp 28.300000
+    pH 6.950000
+    Ca 29.290000
+    Mg 14.880000
+    Na 29.200000
+    K 5.260000
+    Cl 35.440000
+    S(6) 21.760000 as SO4
+    N(5) 56.740000 as NO3
+    F 0.760000
+    Alkalinity 125.870000 as HCO3
+END
+SOLUTION 136 NGW-136
+    units mg/L
+    temp 29.700000
+    pH 7.020000
+    Ca 36.150000
+    Mg 8.810000
+    Na 37.090000
+    K 3.950000
+    Cl 53.150000
+    S(6) 24.790000 as SO4
+    N(5) 10.710000 as NO3
+    F 0.280000
+    Alkalinity 114.700000 as HCO3
+END
+SOLUTION 137 NGW-137
+    units mg/L
+    temp 29.100000
+    pH 6.660000
+    Ca 27.530000
+    Mg 11.910000
+    Na 35.150000
+    K 4.830000
+    Cl 33.470000
+    S(6) 32.580000 as SO4
+    N(5) 14.380000 as NO3
+    F 0.220000
+    Alkalinity 130.810000 as HCO3
+END
+SOLUTION 138 NGW-138
+    units mg/L
+    temp 28.300000
+    pH 6.760000
+    Ca 33.710000
+    Mg 13.180000
+    Na 42.660000
+    K 4.250000
+    Cl 58.780000
+    S(6) 30.790000 as SO4
+    N(5) 0.670000 as NO3
+    F 0.330000
+    Alkalinity 148.470000 as HCO3
+END
+SOLUTION 139 NGW-139
+    units mg/L
+    temp 27.200000
+    pH 6.790000
+    Ca 25.590000
+    Mg 8.430000
+    Na 25.830000
+    K 4.680000
+    Cl 31.890000
+    S(6) 25.650000 as SO4
+    N(5) 33.360000 as NO3
+    F 0.360000
+    Alkalinity 81.590000 as HCO3
+END
+SOLUTION 140 NGW-140
+    units mg/L
+    temp 28.900000
+    pH 6.990000
+    Ca 27.140000
+    Mg 12.050000
+    Na 27.490000
+    K 4.750000
+    Cl 45.380000
+    S(6) 27.420000 as SO4
+    N(5) 16.040000 as NO3
+    F 0.410000
+    Alkalinity 92.490000 as HCO3
+END
+SOLUTION 141 NGW-141
+    units mg/L
+    temp 30.000000
+    pH 6.970000
+    Ca 38.520000
+    Mg 13.700000
+    Na 40.730000
+    K 3.350000
+    Cl 50.030000
+    S(6) 42.170000 as SO4
+    N(5) 24.090000 as NO3
+    F 0.610000
+    Alkalinity 127.760000 as HCO3
+END
+SOLUTION 142 NGW-142
+    units mg/L
+    temp 28.000000
+    pH 6.650000
+    Ca 37.190000
+    Mg 15.240000
+    Na 42.550000
+    K 5.770000
+    Cl 48.770000
+    S(6) 47.650000 as SO4
+    N(5) 51.440000 as NO3
+    F 0.320000
+    Alkalinity 140.300000 as HCO3
+END
+SOLUTION 143 NGW-143
+    units mg/L
+    temp 29.800000
+    pH 7.150000
+    Ca 31.530000
+    Mg 15.010000
+    Na 38.030000
+    K 4.590000
+    Cl 55.520000
+    S(6) 32.750000 as SO4
+    N(5) 31.070000 as NO3
+    F 0.430000
+    Alkalinity 110.950000 as HCO3
+END
+SOLUTION 144 NGW-144
+    units mg/L
+    temp 29.200000
+    pH 6.930000
+    Ca 26.840000
+    Mg 11.890000
+    Na 28.950000
+    K 4.030000
+    Cl 40.630000
+    S(6) 21.030000 as SO4
+    N(5) 23.350000 as NO3
+    F 0.860000
+    Alkalinity 91.240000 as HCO3
+END
+SOLUTION 145 NGW-145
+    units mg/L
+    temp 28.200000
+    pH 6.950000
+    Ca 34.320000
+    Mg 11.500000
+    Na 47.780000
+    K 4.110000
+    Cl 49.610000
+    S(6) 50.190000 as SO4
+    N(5) 24.940000 as NO3
+    F 0.040000
+    Alkalinity 127.650000 as HCO3
+END
+SOLUTION 146 NGW-146
+    units mg/L
+    temp 27.600000
+    pH 7.230000
+    Ca 27.170000
+    Mg 8.840000
+    Na 40.950000
+    K 3.960000
+    Cl 39.850000
+    S(6) 31.210000 as SO4
+    N(5) 47.220000 as NO3
+    F 0.190000
+    Alkalinity 104.780000 as HCO3
+END
+SOLUTION 147 NGW-147
+    units mg/L
+    temp 28.700000
+    pH 6.990000
+    Ca 35.360000
+    Mg 9.580000
+    Na 46.100000
+    K 4.370000
+    Cl 45.530000
+    S(6) 42.740000 as SO4
+    N(5) 11.780000 as NO3
+    F 0.600000
+    Alkalinity 137.480000 as HCO3
+END
+SOLUTION 148 NGW-148
+    units mg/L
+    temp 28.900000
+    pH 6.660000
+    Ca 32.150000
+    Mg 9.950000
+    Na 33.060000
+    K 4.930000
+    Cl 37.910000
+    S(6) 32.620000 as SO4
+    N(5) 54.740000 as NO3
+    F 0.750000
+    Alkalinity 103.990000 as HCO3
+END
+SOLUTION 149 NGW-149
+    units mg/L
+    temp 28.300000
+    pH 7.280000
+    Ca 33.390000
+    Mg 13.330000
+    Na 33.590000
+    K 3.760000
+    Cl 49.300000
+    S(6) 24.170000 as SO4
+    N(5) 26.770000 as NO3
+    F 0.960000
+    Alkalinity 136.020000 as HCO3
+END
+SOLUTION 150 NGW-150
+    units mg/L
+    temp 29.700000
+    pH 7.260000
+    Ca 32.300000
+    Mg 9.050000
+    Na 25.130000
+    K 4.250000
+    Cl 38.010000
+    S(6) 18.530000 as SO4
+    N(5) 19.510000 as NO3
+    F 0.420000
+    Alkalinity 109.540000 as HCO3
+END
+SOLUTION 151 NGW-151
+    units mg/L
+    temp 30.200000
+    pH 6.910000
+    Ca 37.690000
+    Mg 14.950000
+    Na 34.510000
+    K 5.040000
+    Cl 62.470000
+    S(6) 35.940000 as SO4
+    N(5) 6.000000 as NO3
+    F 0.750000
+    Alkalinity 123.530000 as HCO3
+END
+SOLUTION 152 NGW-152
+    units mg/L
+    temp 27.800000
+    pH 7.210000
+    Ca 33.760000
+    Mg 12.900000
+    Na 42.350000
+    K 4.330000
+    Cl 43.490000
+    S(6) 38.990000 as SO4
+    N(5) 10.080000 as NO3
+    F 0.580000
+    Alkalinity 136.710000 as HCO3
+END
+SOLUTION 153 NGW-153
+    units mg/L
+    temp 28.900000
+    pH 6.690000
+    Ca 36.900000
+    Mg 12.670000
+    Na 29.000000
+    K 4.780000
+    Cl 41.140000
+    S(6) 30.920000 as SO4
+    N(5) 26.140000 as NO3
+    F 0.580000
+    Alkalinity 125.330000 as HCO3
+END
+SOLUTION 154 NGW-154
+    units mg/L
+    temp 28.600000
+    pH 7.180000
+    Ca 31.810000
+    Mg 15.740000
+    Na 39.510000
+    K 3.920000
+    Cl 57.670000
+    S(6) 28.800000 as SO4
+    N(5) 21.170000 as NO3
+    F 0.460000
+    Alkalinity 140.910000 as HCO3
+END
+SOLUTION 155 NGW-155
+    units mg/L
+    temp 28.300000
+    pH 6.950000
+    Ca 35.630000
+    Mg 11.280000
+    Na 25.250000
+    K 3.850000
+    Cl 38.030000
+    S(6) 27.720000 as SO4
+    N(5) 27.590000 as NO3
+    F 0.530000
+    Alkalinity 114.510000 as HCO3
+END
+SOLUTION 156 NGW-156
+    units mg/L
+    temp 28.900000
+    pH 7.270000
+    Ca 34.450000
+    Mg 13.340000
+    Na 38.420000
+    K 4.830000
+    Cl 53.530000
+    S(6) 23.470000 as SO4
+    N(5) 24.620000 as NO3
+    F 1.120000
+    Alkalinity 138.750000 as HCO3
+END
+SOLUTION 157 NGW-157
+    units mg/L
+    temp 29.100000
+    pH 6.590000
+    Ca 29.690000
+    Mg 10.400000
+    Na 35.560000
+    K 3.260000
+    Cl 35.130000
+    S(6) 26.350000 as SO4
+    N(5) 53.140000 as NO3
+    F 0.280000
+    Alkalinity 99.170000 as HCO3
+END
+SOLUTION 158 NGW-158
+    units mg/L
+    temp 28.100000
+    pH 6.970000
+    Ca 35.560000
+    Mg 10.080000
+    Na 37.710000
+    K 4.740000
+    Cl 61.190000
+    S(6) 27.190000 as SO4
+    N(5) 16.940000 as NO3
+    F 0.470000
+    Alkalinity 102.210000 as HCO3
+END
+SOLUTION 159 NGW-159
+    units mg/L
+    temp 29.200000
+    pH 7.260000
+    Ca 26.970000
+    Mg 10.590000
+    Na 35.740000
+    K 4.220000
+    Cl 40.900000
+    S(6) 25.340000 as SO4
+    N(5) 33.440000 as NO3
+    F 0.640000
+    Alkalinity 103.430000 as HCO3
+END
+SOLUTION 160 NGW-160
+    units mg/L
+    temp 29.000000
+    pH 6.770000
+    Ca 30.330000
+    Mg 11.020000
+    Na 32.250000
+    K 4.220000
+    Cl 37.920000
+    S(6) 29.930000 as SO4
+    N(5) 35.550000 as NO3
+    F 0.420000
+    Alkalinity 105.520000 as HCO3
+END

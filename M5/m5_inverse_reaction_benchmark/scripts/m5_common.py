@@ -467,10 +467,13 @@ def find_phreeqc() -> tuple[Path, Path]:
         os.environ.get("PHREEQC_EXE"),
         r"C:\Program Files\USGS\phreeqc-3.7.3-15968-x64\bin\Release\phreeqc.exe",
         r"C:\Program Files\USGS\phreeqc-3.7.3-15968-x64\bin\ClrRelease\phreeqc.exe",
+        r"C:\Program Files\USGS\phreeqc-3.8.6-17100-x64\bin\Release\phreeqc.exe",
+        r"C:\Program Files\USGS\phreeqc-3.8.6-17100-x64\bin\ClrRelease\phreeqc.exe",
     ]
     database_candidates = [
         os.environ.get("PHREEQC_DATABASE"),
         r"C:\Program Files\USGS\phreeqc-3.7.3-15968-x64\database\phreeqc.dat",
+        r"C:\Program Files\USGS\phreeqc-3.8.6-17100-x64\database\phreeqc.dat",
     ]
     executable = next(
         (Path(value) for value in executable_candidates if value and Path(value).is_file()),

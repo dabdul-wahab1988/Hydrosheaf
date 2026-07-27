@@ -19,7 +19,9 @@ from matplotlib.ticker import MaxNLocator
 
 BENCHMARK_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-M6_BENCHMARK_ROOT = Path(__file__).resolve().parents[3] / "M6" / "m6_robustness_benchmark"
+M6_BENCHMARK_ROOT = (
+    Path(__file__).resolve().parents[3] / "M6" / "m6_field_transfer_benchmark"
+)
 # Direct output to Manuscript folder
 FIGURE_DIR = BENCHMARK_ROOT / "figures" / "Manuscript_Ready"
 RESULT_DIR = BENCHMARK_ROOT / "results"
@@ -574,8 +576,8 @@ def plot_manuscript_fig4_ghana_network() -> None:
 
     field = pd.read_csv(path)
 
-    manu_df = pd.read_csv(BENCHMARK_ROOT.parents[1] / "data" / "LowerAnayari" / "manu.csv")
-    talensi_df = pd.read_csv(BENCHMARK_ROOT.parents[1] / "data" / "Talensi_MiningArea" / "talensi.csv")
+    manu_df = pd.read_csv(BENCHMARK_ROOT.parents[1] / "data" / "FieldData" / "LowerAnayari" / "manu.csv")
+    talensi_df = pd.read_csv(BENCHMARK_ROOT.parents[1] / "data" / "FieldData" / "Talensi_MiningArea" / "talensi.csv")
 
     manu_pos = {str(row["Sample ID"]): (float(row["X coordinate"]), float(row["Y coordinate"])) for _, row in manu_df.iterrows() if pd.notna(row["X coordinate"])}
     manu_elev = {str(row["Sample ID"]): float(row["Elevation"]) for _, row in manu_df.iterrows() if pd.notna(row["Elevation"])}

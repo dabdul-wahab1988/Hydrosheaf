@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import m6_reactions as rx
+import synthetic_reaction_truth_model as rx
 
 RESULTS = Path(__file__).resolve().parents[1] / "results"
 RESULTS.mkdir(parents=True, exist_ok=True)

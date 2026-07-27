@@ -14,7 +14,7 @@ from typing import Sequence
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 import numpy as np
 import pandas as pd
 
@@ -25,7 +25,11 @@ FIGURES = BENCHMARK / "figures" / "publication"
 TABLES = BENCHMARK / "tables" / "publication"
 M6_RESULTS = REPO_ROOT / "M6" / "m6_field_transfer_benchmark" / "results"
 FIELD_RESULTS = (
-    REPO_ROOT / "M7" / "m7_strong_integration" / "results" / "m7_2_strong_confirmatory"
+    REPO_ROOT
+    / "M7"
+    / "m7_nonuniqueness_benchmark"
+    / "results"
+    / "supporting_validation"
 )
 
 WIDTH_TWO_COLUMN = 7.08
@@ -154,7 +158,7 @@ def figure1_design() -> None:
     fig, axes = plt.subplots(
         2,
         1,
-        figsize=(WIDTH_TWO_COLUMN, 4.35),
+        figsize=(WIDTH_TWO_COLUMN, 3.85),
         gridspec_kw={"height_ratios": [1.05, 1.0]},
     )
     for ax in axes:
@@ -303,7 +307,7 @@ def figure1_design() -> None:
         fontsize=6.5,
         color=GRAY,
     )
-    fig.subplots_adjust(hspace=0.28, left=0.06, right=0.99, top=0.95, bottom=0.05)
+    fig.subplots_adjust(hspace=0.18, left=0.06, right=0.99, top=0.95, bottom=0.05)
     save_figure(fig, "figure1_benchmark_and_claim_design")
 
 
@@ -313,8 +317,8 @@ def figure2_evidence_integration() -> None:
     native = summary[summary["condition"] == "native"].set_index("panel")
     panel_order = ["H", "A", "C", "HA", "HC", "AC", "HAC"]
 
-    fig, axes = plt.subplots(1, 3, figsize=(WIDTH_TWO_COLUMN, 2.55))
-    ax = axes[0]
+    fig, axes = plt.subplots(2, 2, figsize=(WIDTH_TWO_COLUMN, 4.85))
+    ax = axes[0, 0]
     colors = [GRAY, GRAY, GREEN, SKY, BLUE, BLUE, ORANGE]
     values = native.loc[panel_order, "pr_auc"]
     bars = ax.bar(panel_order, values, color=colors, width=0.72)
@@ -342,7 +346,7 @@ def figure2_evidence_integration() -> None:
         "native_incremental_age",
     ]
     selected = selected.set_index("contrast").loc[order].reset_index()
-    ax = axes[1]
+    ax = axes[0, 1]
     forest(
         ax,
         selected,
@@ -366,57 +370,44 @@ def figure2_evidence_integration() -> None:
         "Joint misspecification",
     ]
     colors = [ORANGE, PURPLE, BLUE, RED]
-    points = []
-    for contrast, label, color in zip(adverse_order, labels, colors):
-        group = contrasts[contrasts["contrast"] == contrast].set_index("metric")
-        points.append(
-            {
-                "label": label,
-                "color": color,
-                "entropy": float(group.loc["mean_edge_entropy", "mean_difference"]),
-                "pr_auc": float(group.loc["pr_auc", "mean_difference"]),
-            }
-        )
-    points_frame = pd.DataFrame(points)
-    ax = axes[2]
-    ax.add_patch(
-        Rectangle(
-            (-0.09, -0.17),
-            0.09,
-            0.17,
-            color=mpl.colors.to_rgba(RED, 0.07),
-            zorder=0,
-        )
+    def stress_rows(metric: str) -> pd.DataFrame:
+        rows = []
+        for contrast in adverse_order:
+            rows.append(
+                contrasts[
+                    (contrasts["contrast"] == contrast)
+                    & (contrasts["metric"] == metric)
+                ].iloc[0]
+            )
+        return pd.DataFrame(rows)
+
+    ax = axes[1, 0]
+    forest(
+        ax,
+        stress_rows("mean_edge_entropy"),
+        labels=labels,
+        colors=colors,
+        xlabel="Change in edge entropy\n(negative = more certain)",
     )
-    ax.axhline(0, color=GRAY, lw=0.7, ls="--")
-    ax.axvline(0, color=GRAY, lw=0.7, ls="--")
-    for _, row in points_frame.iterrows():
-        ax.scatter(row["entropy"], row["pr_auc"], s=28, color=row["color"], zorder=3)
-        is_native = row["label"] == "Native age"
-        ax.annotate(
-            row["label"],
-            (row["entropy"], row["pr_auc"]),
-            xytext=(-3, 3) if is_native else (3, 3),
-            textcoords="offset points",
-            fontsize=5.8,
-            ha="right" if is_native else "left",
-        )
-    ax.text(
-        -0.087,
-        -0.155,
-        "false confidence",
-        color=RED,
-        fontsize=6.2,
-        va="bottom",
+    ax.axvspan(ax.get_xlim()[0], 0, color=mpl.colors.to_rgba(ORANGE, 0.07), zorder=0)
+    ax.set_title("Certainty shift")
+    panel_label(ax, "c")
+
+    ax = axes[1, 1]
+    forest(
+        ax,
+        stress_rows("pr_auc"),
+        labels=labels,
+        colors=colors,
+        xlabel="Change in PR-AUC\n(negative = degraded ranking)",
     )
-    ax.set_xlim(-0.09, 0.006)
-    ax.set_ylim(-0.16, 0.025)
-    ax.set_xlabel("Change in edge entropy\n(negative = more certain)")
-    ax.set_ylabel("Change in PR-AUC")
-    ax.set_title("Misspecification stress test")
-    ax.grid()
-    panel_label(ax, "c", x=-0.18, y=1.16)
-    fig.subplots_adjust(wspace=0.55, left=0.07, right=0.99, top=0.87, bottom=0.24)
+    ax.axvspan(ax.get_xlim()[0], 0, color=mpl.colors.to_rgba(RED, 0.07), zorder=0)
+    ax.set_yticklabels([])
+    ax.set_title("Discrimination shift")
+    panel_label(ax, "d")
+    fig.subplots_adjust(
+        hspace=0.58, wspace=0.42, left=0.17, right=0.99, top=0.94, bottom=0.11
+    )
     save_figure(fig, "figure2_evidence_integration")
 
 
@@ -429,9 +420,9 @@ def figure3_topology_age() -> None:
         ("informative", "reversed_minus_correct"),
     ]
     labels = [
-        "Correct − none, ³H+³⁹Ar",
-        "Correct − none, ³H only",
-        "Reversed − correct, ³H+³⁹Ar",
+        "Correct − none\n³H + ³⁹Ar",
+        "Correct − none\n³H only",
+        "Reversed − correct\n³H + ³⁹Ar",
     ]
 
     def select_metric(metric: str) -> pd.DataFrame:
@@ -446,7 +437,7 @@ def figure3_topology_age() -> None:
             )
         return pd.DataFrame(rows)
 
-    fig, axes = plt.subplots(2, 2, figsize=(WIDTH_TWO_COLUMN, 4.75))
+    fig, axes = plt.subplots(2, 2, figsize=(WIDTH_TWO_COLUMN, 4.95))
     ax = axes[0, 0]
     forest(
         ax,
@@ -456,7 +447,7 @@ def figure3_topology_age() -> None:
         xlabel="Change in age MAE (years)",
     )
     ax.set_title("Accuracy")
-    panel_label(ax, "a")
+    panel_label(ax, "a", x=0.0)
 
     ax = axes[0, 1]
     forest(
@@ -467,6 +458,7 @@ def figure3_topology_age() -> None:
         xlabel="Change in 95% interval width (years)",
     )
     ax.set_title("Posterior precision")
+    ax.set_yticklabels([])
     panel_label(ax, "b")
 
     ax = axes[1, 0]
@@ -536,9 +528,10 @@ def figure3_topology_age() -> None:
         ha="right",
     )
     ax.set_title("Calibration")
+    ax.set_yticklabels([])
     panel_label(ax, "d")
     fig.subplots_adjust(
-        hspace=0.52, wspace=0.55, left=0.16, right=0.99, top=0.92, bottom=0.12
+        hspace=0.52, wspace=0.32, left=0.15, right=0.99, top=0.93, bottom=0.12
     )
     save_figure(fig, "figure3_topology_conditions_age")
 
@@ -569,17 +562,38 @@ def figure4_reactions() -> None:
     y = np.arange(len(order))
     height = 0.34
 
-    fig, axes = plt.subplots(1, 3, figsize=(WIDTH_TWO_COLUMN, 3.05), sharey=True)
+    fig, axes = plt.subplots(
+        2, 2, figsize=(WIDTH_TWO_COLUMN, 4.85), sharey=True
+    )
     metrics = [
-        ("modal_family_accuracy", "Modal-family accuracy", (0, 1.05)),
-        ("mean_true_family_probability", "Probability on true family", (0, 1.05)),
+        (
+            "modal_family_accuracy",
+            "Modal-family recovery",
+            "Accuracy",
+            (0, 1.05),
+        ),
+        (
+            "mean_true_family_probability",
+            "Probability assigned to truth",
+            "Probability",
+            (0, 1.05),
+        ),
+        (
+            "mean_family_support_entropy",
+            "Support entropy",
+            "Entropy (nats)",
+            (0, 0.58),
+        ),
         (
             "mean_effective_supported_families",
+            "Effective support size",
             "Effective supported families",
             (0.9, 1.85),
         ),
     ]
-    for index, (ax, (metric, title, limits)) in enumerate(zip(axes, metrics)):
+    for index, (ax, (metric, title, xlabel, limits)) in enumerate(
+        zip(axes.flat, metrics)
+    ):
         ax.barh(y + height / 2, core[metric], height, color=GRAY, label="Core")
         ax.barh(
             y - height / 2,
@@ -589,35 +603,39 @@ def figure4_reactions() -> None:
             label="Enhanced",
         )
         ax.set_xlim(*limits)
-        ax.set_xlabel(title)
+        ax.set_title(title)
+        ax.set_xlabel(xlabel)
         ax.grid(axis="x")
         panel_label(ax, chr(ord("a") + index))
-        if index == 0:
+        if index in (0, 2):
             ax.set_yticks(y, labels)
-            ax.invert_yaxis()
+            ax.tick_params(axis="y", labelleft=True)
         else:
-            ax.tick_params(axis="y", length=0)
-    axes[0].legend(frameon=False, loc="lower right")
-    axes[1].text(
+            ax.tick_params(axis="y", length=0, labelleft=False)
+    axes[0, 0].invert_yaxis()
+    axes[0, 0].legend(frameon=False, loc="upper right", ncol=2)
+    axes[0, 0].text(
         0.03,
-        0.93,
+        0.87,
         "Carbonate:\n0/36 recovered",
-        transform=axes[1].transAxes,
+        transform=axes[0, 0].transAxes,
         color=RED,
-        fontsize=6.8,
+        fontsize=6.4,
         fontweight="bold",
         va="top",
     )
-    axes[2].text(
+    axes[1, 0].text(
         0.03,
         0.93,
         "Low entropy can be\nconfidently wrong",
-        transform=axes[2].transAxes,
+        transform=axes[1, 0].transAxes,
         color=RED,
         fontsize=6.5,
         va="top",
     )
-    fig.subplots_adjust(wspace=0.36, left=0.25, right=0.99, top=0.95, bottom=0.18)
+    fig.subplots_adjust(
+        hspace=0.48, wspace=0.30, left=0.25, right=0.99, top=0.94, bottom=0.11
+    )
     save_figure(fig, "figure4_reaction_nonuniqueness")
 
 
@@ -658,35 +676,25 @@ def figure5_ghana_boundary() -> None:
         ("Validated field digital twin", False),
     ]
 
-    fig = plt.figure(figsize=(WIDTH_TWO_COLUMN, 3.25))
-    grid = fig.add_gridspec(
-        2,
-        3,
-        width_ratios=[1.0, 1.0, 0.86],
-        height_ratios=[1.0, 1.0],
-    )
-    axes = [
-        fig.add_subplot(grid[:, 0]),
-        fig.add_subplot(grid[:, 1]),
-        fig.add_subplot(grid[0, 2]),
-        fig.add_subplot(grid[1, 2]),
-    ]
+    fig, axes_grid = plt.subplots(2, 2, figsize=(WIDTH_TWO_COLUMN, 5.0))
+    axes = list(axes_grid.flat)
     for panel, (ax, rows, title) in enumerate(
         [
             (axes[0], availability, "Observed evidence"),
             (axes[1], claims, "Defensible field claims"),
         ]
     ):
-        names = [name for name, _ in rows][::-1]
-        values = [value for _, value in rows][::-1]
+        rows = rows[::-1]
+        names = [name for name, _ in rows]
+        values = [value for _, value in rows]
         y = np.arange(len(rows))
         colors = [GREEN if value else RED for value in values]
         ax.barh(
             y, np.ones(len(rows)), color=[mpl.colors.to_rgba(c, 0.12) for c in colors]
         )
-        for yi, value, color in zip(y, values, colors):
+        for yi, name, value, color in zip(y, names, values, colors):
             ax.text(
-                0.08,
+                0.06,
                 yi,
                 "✓" if value else "—",
                 color=color,
@@ -695,7 +703,16 @@ def figure5_ghana_boundary() -> None:
                 fontsize=9,
                 fontweight="bold",
             )
-        ax.set_yticks(y, names)
+            ax.text(
+                0.14,
+                yi,
+                name,
+                color=BLACK,
+                va="center",
+                ha="left",
+                fontsize=6.4,
+            )
+        ax.set_yticks([])
         ax.set_xlim(0, 1)
         ax.set_xticks([])
         ax.set_title(title)
@@ -734,8 +751,8 @@ def figure5_ghana_boundary() -> None:
         color=RED,
         fontsize=5.8,
     )
-    ax.set_title("Evidence-tier limitation", fontsize=7.3)
-    panel_label(ax, "c", x=-0.18)
+    ax.set_title("Evidence-tier limitation")
+    panel_label(ax, "c")
 
     ax = axes[3]
     overall = field_summary[field_summary["ion"] == "ALL"].set_index("method")
@@ -758,25 +775,25 @@ def figure5_ghana_boundary() -> None:
         )
     ax.set_ylabel("MAE")
     ax.set_ylim(0, 0.39)
-    ax.tick_params(axis="x", labelsize=5.5, rotation=15)
+    ax.tick_params(axis="x", rotation=10)
     ax.grid(axis="y")
-    ax.set_title("Seasonal hold-forward", fontsize=7.3)
-    panel_label(ax, "d", x=-0.18)
+    ax.set_title("Seasonal hold-forward")
+    panel_label(ax, "d")
     contrast = field_audit["paired_block_bootstrap"][
         "graph_ridge_minus_expanding_mean_delta"
     ]
     ax.text(
-        1.5,
-        0.30,
+        1.6,
+        0.31,
         "Graph vs mean Δ:\n"
         f"{contrast['mean_paired_mae_difference_log1p']:+.3f} "
         f"[{contrast['ci95_low']:+.3f}, {contrast['ci95_high']:+.3f}]",
-        fontsize=5.2,
+        fontsize=6.0,
         va="center",
         ha="center",
     )
     fig.subplots_adjust(
-        hspace=0.72, wspace=0.68, left=0.23, right=0.99, top=0.91, bottom=0.14
+        hspace=0.48, wspace=0.34, left=0.08, right=0.99, top=0.94, bottom=0.10
     )
     save_figure(fig, "figure5_ghana_supportability_boundary")
 
@@ -969,7 +986,9 @@ def build_tables() -> None:
             ("Screen intervals", "Absent", "Vertical connectivity non-identifiable"),
             ("Repeated head series", "Absent", "Dynamic head validation unavailable"),
             ("Coordinates", "Masked", "No site-scale connectivity truth"),
-            ("Processed graph edges", "Available", "Sensitivity input, not truth"),
+            ("Processed graph edges", "Absent", "Edge sets are self-generated, not supplied"),
+            ("Intra-season sampling dates", "Absent", "Batch order is disclosed and arbitrary"),
+            ("Independent aquifer-type classification", "Absent", "Stratified reporting uses region instead"),
             ("Independent reaction truth", "Absent", "Unique mechanisms unvalidated"),
         ],
         columns=["Evidence", "Status", "Defensible use"],
@@ -1050,8 +1069,12 @@ def verify_outputs() -> None:
             path = FIGURES / f"{stem}{suffix}"
             if not path.exists() or path.stat().st_size == 0:
                 raise RuntimeError(f"Missing publication figure: {path}")
-    if len(list(TABLES.glob("table*.csv"))) != 11:
-        raise RuntimeError("Expected 11 publication CSV tables.")
+    # 11 tables (table1-6, tableS1-5) are produced by this script; table7
+    # (summary decision table) and tableS6 (multiplicity-correction check,
+    # from multiplicity_check.py) are added separately and are expected to
+    # already be present alongside these 11 rather than regenerated here.
+    if len(list(TABLES.glob("table*.csv"))) != 13:
+        raise RuntimeError("Expected 13 publication CSV tables (11 own + table7 + tableS6).")
 
 
 def main() -> None:

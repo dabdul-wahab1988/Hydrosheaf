@@ -101,11 +101,15 @@ reaction_names <- c(
   k_feldspar = "K-feldspar",
   pyrite_oxidation = "Pyrite oxidation"
 )
-aquifer_names <- c(
-  "Middle Voltaian sedimentary aquifer" = "Middle Voltaian",
-  "Birimian fractured basement aquifer" = "Birimian basement",
-  "Regolith/alluvial shallow aquifer" = "Regolith/alluvial",
-  "Granitoid fractured basement aquifer" = "Granitoid basement"
+# The canonical raw field workbook carries Region/District but no independent
+# aquifer-type, geology-group, or lithology classification for these wells
+# (see NORTHERN_GHANA_WORKBOOK in run_m5_inverse_reaction_benchmark.py), so
+# panels are faceted by Region rather than aquifer type.
+region_names <- c(
+  "Northern Region" = "Northern",
+  "North East Region" = "North East",
+  "Upper East Region" = "Upper East",
+  "Upper West Region" = "Upper West"
 )
 
 recode_named <- function(x, map, levels = NULL) {
@@ -187,8 +191,8 @@ clean_reaction <- function(x) {
   recode_named(x, reaction_names)
 }
 
-clean_aquifer <- function(x) {
-  recode_named(x, aquifer_names)
+clean_region <- function(x) {
+  recode_named(x, region_names)
 }
 
 clean_class_label <- function(x) {
@@ -667,7 +671,7 @@ figure5_phreeqc_thermo <- function() {
 
 figure6_field_transfer <- function() {
   ghana <- tbl_db("ghana_field_pairs") |>
-    mutate(aquifer_label = clean_aquifer(aquifer))
+    mutate(region_label = clean_region(region))
   external <- tbl_db("external_field_evidence_lifted_resolution") |>
     mutate(
       tier = clean_tier(data_tier),
@@ -711,17 +715,17 @@ figure6_field_transfer <- function() {
 
   p6d <- ggplot(
     ghana,
-    aes(tds_delta_consistency_score, mean_hydrosheaf_core_evidence_score, colour = aquifer_label)
+    aes(tds_delta_consistency_score, mean_hydrosheaf_core_evidence_score, colour = region_label)
   ) +
     geom_point(alpha = 0.72, size = 1.25) +
     scale_x_continuous(limits = c(0, 1)) +
     scale_y_continuous(limits = c(0, 1)) +
     scale_colour_manual(
       values = c(
-        "Middle Voltaian" = "#40BFC1",
-        "Birimian basement" = "#F8766D",
-        "Regolith/alluvial" = "#7CAE00",
-        "Granitoid basement" = "#C77CFF"
+        "Northern" = "#40BFC1",
+        "North East" = "#F8766D",
+        "Upper East" = "#7CAE00",
+        "Upper West" = "#C77CFF"
       )
     ) +
     guides(colour = guide_legend(ncol = 1, byrow = TRUE, override.aes = list(size = 1.9))) +
@@ -729,7 +733,7 @@ figure6_field_transfer <- function() {
       title = "Plausibility, not reaction truth",
       x = "TDS consistency score",
       y = "Mean core evidence score",
-      colour = "Aquifer"
+      colour = "Region"
     ) +
     theme_m5() +
     theme(

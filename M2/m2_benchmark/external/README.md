@@ -12,7 +12,7 @@ This directory is reserved for the M2 external validation tiers required by
 - `phreeqc/`: live PHREEQC forward validation using PHREEQC v3 examples and
   databases, DOI `10.3133/tm6A43`.
 - `northern_ghana/`: field-hydrochemistry and data-limited workflow
-  demonstration using `data/NorthenGhana/NorthernGhana.xlsx`.
+  demonstration using `data/FieldData/NorthenGhana/NorthernGhana.xlsx`.
 - `pilot/`: superseded local pilot workspace retained for provenance only; do
   not use `manu.xlsx` for current M2 evidence.
 

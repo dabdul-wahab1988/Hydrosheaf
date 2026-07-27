@@ -548,21 +548,25 @@ def figure6_ghana_field() -> None:
     pairs = pd.read_csv(RESULTS_DIR / "ghana_field_pairs.csv")
     heldout = pd.read_csv(RESULTS_DIR / "ghana_field_heldout_ions.csv")
     classes = pd.read_csv(RESULTS_DIR / "ghana_field_class_support.csv")
-    aquifer_short = {
-        "Birimian fractured basement aquifer": "Birimian basement",
-        "Granitoid fractured basement aquifer": "Granitoid basement",
-        "Middle Voltaian sedimentary aquifer": "Middle Voltaian",
-        "Regolith/alluvial shallow aquifer": "Regolith/alluvial",
+    # The raw field workbook (data/FieldData/NorthenGhana/NorthernGhana.xlsx)
+    # carries Region/District but no independent aquifer-type, geology-group,
+    # or lithology classification for these wells (see run_m5's
+    # NORTHERN_GHANA_WORKBOOK comment), so panels are faceted by Region.
+    region_short = {
+        "Northern Region": "Northern",
+        "North East Region": "North East",
+        "Upper East Region": "Upper East",
+        "Upper West Region": "Upper West",
     }
-    pairs["aquifer_short"] = pairs["aquifer"].map(aquifer_short)
-    heldout["aquifer_short"] = heldout["aquifer"].map(aquifer_short)
-    classes["aquifer_short"] = classes["aquifer"].map(aquifer_short)
+    pairs["region_short"] = pairs["region"].map(region_short)
+    heldout["region_short"] = heldout["region"].map(region_short)
+    classes["region_short"] = classes["region"].map(region_short)
     class_defs = pd.read_csv(RESULTS_DIR / "equivalence_classes.csv")
     class_names = dict(zip(class_defs["class_id"], class_defs["members"]))
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
     sns.boxplot(
         data=pairs,
-        x="aquifer_short",
+        x="region_short",
         y="mechanism_resolution_score",
         color="#93c5fd",
         fliersize=2,
@@ -573,16 +577,16 @@ def figure6_ghana_field() -> None:
     axes[0, 0].set_ylabel("Calibrated MRS")
     panel_label(axes[0, 0], "a")
 
-    aquifer_errors = (
-        heldout.groupby(["aquifer_short", "heldout_ion"])["absolute_error_mmolL"]
+    region_errors = (
+        heldout.groupby(["region_short", "heldout_ion"])["absolute_error_mmolL"]
         .median()
         .reset_index()
     )
     sns.barplot(
-        data=aquifer_errors,
+        data=region_errors,
         x="heldout_ion",
         y="absolute_error_mmolL",
-        hue="aquifer_short",
+        hue="region_short",
         ax=axes[0, 1],
     )
     axes[0, 1].set_yscale("log")
@@ -602,7 +606,7 @@ def figure6_ghana_field() -> None:
         classes[classes["equivalence_class"].isin(top_classes)]
         .pivot_table(
             index="equivalence_class",
-            columns="aquifer_short",
+            columns="region_short",
             values="selected",
             aggfunc="mean",
         )
@@ -631,7 +635,7 @@ def figure6_ghana_field() -> None:
     axes[1, 1].text(
         0.98,
         0.04,
-        "138 quantitative wet-dry pairs\n4 aquifer classes; 12 lithologies\nchemistry-only transfer",
+        f"{len(pairs)} wet-dry pairs\n4 regions (Northern Ghana)\nchemistry-only transfer",
         transform=axes[1, 1].transAxes,
         ha="right",
         va="bottom",
@@ -823,7 +827,7 @@ def supplementary_figures() -> None:
     fig, axes = plt.subplots(2, 2, figsize=(10, 7))
     sns.histplot(field["solver_rmse_mmolL"], bins=25, color="#0f766e", ax=axes[0, 0])
     sns.histplot(field["mean_heldout_rmse_mmolL"], bins=25, color="#d97706", ax=axes[0, 1])
-    sns.countplot(data=field, x="aquifer", color="#93c5fd", ax=axes[1, 0])
+    sns.countplot(data=field, x="region", color="#93c5fd", ax=axes[1, 0])
     sns.boxplot(data=field_heldout, x="heldout_ion", y="absolute_error_mmolL", color="#c4b5fd", fliersize=1, ax=axes[1, 1])
     axes[1, 0].tick_params(axis="x", rotation=25)
     axes[1, 1].set_yscale("log")
@@ -837,7 +841,7 @@ def supplementary_figures() -> None:
         .nlargest(10)
         .index
     )
-    heat = field_classes[field_classes.equivalence_class.isin(selected_classes)].pivot_table(index="equivalence_class", columns="aquifer", values="selected", aggfunc="mean").loc[selected_classes]
+    heat = field_classes[field_classes.equivalence_class.isin(selected_classes)].pivot_table(index="equivalence_class", columns="region", values="selected", aggfunc="mean").loc[selected_classes]
     fig, ax = plt.subplots(figsize=(9, 6))
     sns.heatmap(heat, annot=True, fmt=".2f", cmap="mako", vmin=0, vmax=1, ax=ax)
     ax.set_xlabel("")
@@ -907,7 +911,7 @@ def supplementary_figures() -> None:
         support = (
             field_evidence.pivot_table(
                 index="reaction",
-                columns="aquifer",
+                columns="region",
                 values="selected",
                 aggfunc="mean",
             )

@@ -6,19 +6,22 @@ Style: Nature portfolio, 300 dpi, PNG/PDF/TIF.
 
 ## Figure 1 — Dataset and evidence-tier design
 - **Objective:** RQ1 (readiness). **Source:** `m6_map_coordinates.csv`,
-  `m6_tier_ladder.csv`, `m6_variable_availability.csv`, and the public-domain
-  Natural Earth 1:110m Ghana outline.
+  `m6_tier_ladder.csv`, `m6_variable_availability.csv`, and the unsimplified
+  2021 geoBoundaries GHA ADM1 Shapefile (16 regions).
 - **Caption:** Three Ghanaian groundwater datasets and their evidence tiers. (a) Sample
-  locations by dataset. (b) Evidence-tier attainment (Tier 0 majors → Tier 4 full metadata).
-  (c) Variable-availability heatmap.
+  locations by dataset. (b) Evidence-tier attainment (Tier 0 majors → Tier 4 + saturation
+  indices). (c) Variable-availability heatmap.
 - **Technical:** (a) supplied masked coordinates plotted on a sourced Ghana
-  outline, with no site-scale spatial interpretation; (b) 3×5 tile grid of tier
-  attainment; (c) fraction-present of 16 variables across three datasets.
+  outline and regional boundaries, with no site-scale spatial interpretation;
+  Talensi positive degrees-west longitudes are converted to signed WGS84 and
+  out-of-bound Northern Ghana masks are constrained 5 km inside the national
+  boundary for display only; (b) 3×5 tile grid of tier attainment; (c)
+  fraction-present of 16 variables across three datasets.
 - **Scientific:** Establishes that only Northern Ghana reaches Tier 4; Lower Anayari caps at
   Tier 2 (no Sr/SiO₂) and Talensi at Tier 1 (no F/Sr/SiO₂), fixing the evidence ceiling for
-  every downstream inference. Tier 4 is the maximum M6 chemistry/metadata tier; it does not
-  imply that environmental age tracers, screen intervals, repeated heads or independent flow
-  truth are available.
+  every downstream inference. Tier 4 is the maximum M6 chemistry tier only; it does not
+  imply that environmental age tracers, screen intervals, repeated heads, independent flow
+  truth, or any aquifer/geology/lithology metadata are available.
 - **Figure style compliance:** in-panel tags a–c, ≤6 major ticks, white background, 300 dpi.
 
 ## Figure 2 — Hydrosheaf field-transfer workflow
@@ -32,14 +35,16 @@ Style: Nature portfolio, 300 dpi, PNG/PDF/TIF.
   diagnostics are computed. M6 is a chemistry/metadata transfer and stress test, not a
   validation of residence time, exact directed topology or a field digital twin.
 
-## Figure 3 — Northern Ghana seasonal/aquifer stability
+## Figure 3 — Northern Ghana seasonal/region stability
 - **Objective:** RQ2. **Source:** `m6_ng_class_support.csv`, `m6_ng_family_by_aquifer.csv`, `m6_ng_field_pairs.csv`.
-- **Caption:** (a) Identifiability class by aquifer; (b) dominant Cl-corrected seasonal
-  process by aquifer; (c) Mechanism Resolution Score by aquifer.
-- **Technical:** stacked proportion bars (a, b) and boxplots (c) over 160 wells, 4 aquifers.
-- **Scientific:** All aquifers report uniformly partially identifiable at full information —
-  Hydrosheaf does not over-resolve — while dominant process and MRS vary modestly by aquifer,
-  with silicate weathering prevailing across basement and sedimentary settings.
+- **Caption:** (a) Identifiability class by region; (b) dominant Cl-corrected seasonal
+  process by region; (c) Mechanism Resolution Score by region.
+- **Technical:** stacked proportion bars (a, b) and boxplots (c) over 160 wells, 4
+  administrative regions (no independent aquifer-type classification exists for these
+  boreholes).
+- **Scientific:** All regions report uniformly partially identifiable at full information —
+  Hydrosheaf does not over-resolve — while dominant process and MRS vary modestly by region,
+  with silicate weathering prevailing across all four regions.
 
 ## Figure 4 — Robustness loss under diagnostic ablation
 - **Objective:** RQ3 / H1. **Source:** `m6_tier_ablation.csv`, `m6_tier_ablation_transitions.csv`.
@@ -50,15 +55,19 @@ Style: Nature portfolio, 300 dpi, PNG/PDF/TIF.
   non-identifiable while mean MRS stays ≈70, demonstrating that numerical fit quality masks
   the loss of mechanistic resolution.
 
-## Figure 5 — External sparse transfer
-- **Objective:** RQ5 / H4. **Source:** `m6_external_transfer.csv`, `m6_external_summary.csv`.
-- **Caption:** (a) Mean MRS, external vs matched-tier Northern Ghana reference;
-  (b) identifiability distribution; (c) dominant process, per external dataset.
-- **Technical:** horizontal bars and stacked proportion bars over 129 (Talensi) and 85
-  (Lower Anayari) chemistry-kNN edges plus 240 matched-tier reference edges.
-- **Scientific:** External transfer sharply increases non-identifiability — 96.5% for Lower
-  Anayari, whose silicate-dominant waters cannot be resolved without Sr/SiO₂ — quantifying the
-  cost of missing diagnostics and identifying the next-best measurement.
+## Figure 5 — Within-campaign seasonal hold-forward performance
+- **Objective:** revised Objective 6. **Source:** the locked supporting-validation
+  `field_prequential_summary.csv`, `field_prequential_predictions.csv` and
+  `field_prequential_audit.json`.
+- **Caption:** One-step seasonal hold-forward performance for persistence,
+  expanding-mean and graph-ridge predictors, including paired well-block
+  contrasts, ion-level errors and empirical interval coverage.
+- **Technical:** four panels report overall MAE, paired bootstrap differences,
+  ion-level descriptive errors and 90% predictive-interval coverage.
+- **Scientific:** Graph ridge improves on persistence, but its incremental
+  advantage over the expanding-mean baseline is small and its paired interval
+  crosses zero. This is truth-free within-campaign chemistry prediction, not
+  independent-basin validation of residence time, topology or reactions.
 
 ## Figure 6 — Limitation map
 - **Objective:** RQ6 / H6. **Source:** `m6_limitation_map.csv`, `m6_conservative_vs_bestfit.csv`.
@@ -72,20 +81,18 @@ Style: Nature portfolio, 300 dpi, PNG/PDF/TIF.
   consistently admits more alternatives than a single best fit and therefore avoids
   over-commitment.
 
-## Extended-data and diagnostic figures
+## Extended Data figures
 
-- **Figure 7 — Synthetic validation.** Positive-control recovery checks for the transferred
+- **Extended Data Figure 1 — External sparse transfer.** Mean MRS,
+  identifiability and dominant-process distributions for Talensi and Lower
+  Anayari against matched-tier Northern Ghana references. It quantifies the
+  cost of missing diagnostics without treating prior labels as field truth.
+- **Extended Data Figure 2 — Synthetic validation.** Positive-control recovery checks for the transferred
   component diagnostics. It supports implementation validity but is not independent field
   truth.
-- **Figure 8 — Circularity sensitivity.** Sensitivity of field interpretation to inputs that
+- **Extended Data Figure 3 — Circularity sensitivity.** Sensitivity of field interpretation to inputs that
   can enter both candidate construction and scoring. It is retained as an explicit
   anti-circularity diagnostic.
-- **Figure 9 — Field prequential performance.** One-step seasonal hold-forward MAE, paired
-  well-block bootstrap contrasts, ion-level descriptive differences and predictive-interval
-  coverage. Graph ridge improves on persistence, but its incremental advantage over the
-  expanding-mean baseline is small and its 95% paired interval crosses zero. This is
-  within-campaign chemistry prediction with masked coordinates, not independent-basin
-  validation.
 
 ## Supplementary figures
 All supplementary figures use the same Nature-style theme (enlarged fonts, collected/
@@ -96,13 +103,20 @@ adds value.
   (c) major-ion composition, (d) mineralisation (TDS) by dataset.
 - **S2** Charge balance — 2 panels: (a) CBE distribution (±5/±10% guides), (b) quality-class
   composition by dataset.
-- **S3** Seasonal signal — 2 panels: (a) dry/wet evapoconcentration factor by aquifer,
-  (b) reactive residual after transport correction by aquifer.
+- **S3** Seasonal signal — 2 panels: (a) dry/wet evapoconcentration factor by region,
+  (b) reactive residual after transport correction by region (no independent aquifer-type
+  classification exists for these boreholes).
 - **S4** Alternative edge networks — 2 panels: (a) inferred process-network composition per
-  edge set, (b) divergence (TVD) and stability versus the provided graph.
+  edge set, (b) divergence (TVD) and stability versus the chemistry-kNN reference set (three
+  Hydrosheaf-generated edge sets compared; an earlier revision also compared against a
+  fourth, imported "provided graph" edge set, since removed — `DECISIONS.md`).
 - **S5** Dominant-process composition across evidence tiers (single heatmap).
 - **S6** Diagnostic distributions — 2 panels: (a) bootstrap support stability, (b) MRS.
 - **S7** Reactive residual versus conservative evapoconcentration (single, coloured by process).
 - **S8** MRS versus support stability (single, coloured by process).
 - **S9** External-dataset transfer detail — faceted by dataset (Talensi, Lower Anayari).
 - **S10** Identifiability composition per process family and dataset — faceted by dataset.
+- **S11** Competing no-flow explanation sensitivity — fractions of evaluated
+  edges exceeding the 0.5 and 0.8 HydroSheaf screening thresholds by dataset
+  and candidate-edge construction. These are sensitivity flags, not calibrated
+  field probabilities.

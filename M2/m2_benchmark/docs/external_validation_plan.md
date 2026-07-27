@@ -148,8 +148,8 @@ Minimum metrics:
 
 Selected dataset:
 
-- `data/NorthenGhana/NorthernGhana.xlsx`, with optional supplementary methods
-  in `data/NorthenGhana/SI.pdf`.
+- `data/FieldData/NorthenGhana/NorthernGhana.xlsx`, with optional supplementary methods
+  in `data/FieldData/NorthenGhana/SI.pdf`.
 
 Hydrosheaf task:
 

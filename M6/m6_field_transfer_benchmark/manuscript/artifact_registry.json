@@ -1,0 +1,335 @@
+{
+  "schema_version": "1.0",
+  "artifacts": [
+    {
+      "id": "FIG-1",
+      "kind": "figure",
+      "path": "figures/r_publication/figure1_dataset_tier_design.png",
+      "objective_ids": ["RQ1"],
+      "caption": "Three Ghanaian groundwater datasets and their evidence tiers. (a) Sample locations by dataset. (b) Evidence-tier attainment (Tier 0 majors to Tier 4 majors plus saturation indices). (c) Variable-availability heatmap.",
+      "technical_description": "Panel a plots supplied, spatially masked coordinates on a sourced Ghana national and regional outline (2021 geoBoundaries ADM1, EPSG:32630); Talensi's positive-degrees-west longitudes are converted to signed WGS84 and out-of-boundary Northern Ghana masks are constrained to a 5 km interior buffer for display only. Panel b is a 3x5 tile grid of tier attainment per dataset. Panel c shows fraction-present of 16 variables across the three datasets. Rendered in R (sf/ggspatial), 300 dpi, Nature-portfolio style.",
+      "interpretation": "Establishes that only Northern Ghana reaches the maximum M6 chemistry tier (Tier 4); Lower Anayari caps at Tier 2 (no strontium/silica) and Talensi at Tier 1 (no fluoride/strontium/silica), fixing the evidence ceiling for every downstream inference. Tier 4 denotes the maximum M6 chemistry tier only, not a complete independently observed age-head-screen field record. The map is a country-scale sampling locator, not a source for recovering exact well positions or local flow paths.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-2",
+      "kind": "figure",
+      "path": "figures/r_publication/figure2_workflow.png",
+      "objective_ids": ["RQ1", "RQ2", "RQ3", "RQ4", "RQ5", "RQ6"],
+      "caption": "Transfer of the frozen M5 inverse model and Mechanism Resolution Score calibration onto three Ghana datasets through harmonisation, charge-balance screening, evidence tiers, candidate edges, transferred inference, evidence gates, robustness diagnostics and a limitation map.",
+      "technical_description": "Node-arrow flow diagram; colour blocks group the frozen upstream (M5), data, inference and diagnostic stages of the pipeline described in the Methods and Supplementary Methods.",
+      "interpretation": "Makes explicit which components are frozen and transferred unchanged and which field diagnostics are newly computed on Ghanaian data. Frames M6 as a chemistry/metadata transfer and stress test, not a validation of residence time, exact directed topology, or a field digital twin.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-3",
+      "kind": "figure",
+      "path": "figures/r_publication/figure3_ng_stability.png",
+      "objective_ids": ["RQ2"],
+      "caption": "Northern Ghana wet/dry process-inference stability by region. (a) Identifiability class by region. (b) Dominant Cl-corrected seasonal process by region. (c) Mechanism Resolution Score by region; boxes show the interquartile range with the median line, whiskers extend to 1.5x the interquartile range, and points beyond are plotted individually.",
+      "technical_description": "Stacked-proportion bars (a, b) and boxplots (c) over 160 wells across four administrative regions (no independent aquifer-type classification exists for these boreholes), computed from the within-well wet-to-dry Tier-4 inference.",
+      "interpretation": "All four regions report uniformly partially identifiable at full information, showing that the workflow does not over-resolve; dominant process and Mechanism Resolution Score vary only modestly by region, with silicate weathering prevailing throughout.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-4",
+      "kind": "figure",
+      "path": "figures/r_publication/figure4_tier_ablation.png",
+      "objective_ids": ["RQ3"],
+      "caption": "Robustness loss under missing diagnostics. (a) Identifiability distribution versus evidence tier. (b) Fraction non-identifiable and mean Mechanism Resolution Score versus tier. (c) Process-label flips versus Tier 4.",
+      "technical_description": "Proportion bars, a dual-axis line plot, and a bar of family-change fraction, computed by re-running all 160 Northern Ghana well pairs at each of the five evidence tiers.",
+      "interpretation": "The pivotal result of the study: removing strontium/silica (Tier 3 to Tier 2) sends 52% of wells to non-identifiable while mean Mechanism Resolution Score stays close to 70, demonstrating that numerical fit quality masks the loss of mechanistic resolution.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-5",
+      "kind": "figure",
+      "path": "figures/r_publication/figure5_field_prequential.png",
+      "objective_ids": ["RQ2"],
+      "caption": "One-step seasonal hold-forward performance for persistence, expanding-mean and graph-ridge predictors, including paired well-block contrasts, ion-level errors and empirical interval coverage.",
+      "technical_description": "Four panels report overall mean absolute error, paired bootstrap differences, ion-level descriptive errors and 90% predictive-interval coverage, reused unmodified from the M7.2 supporting field validation.",
+      "interpretation": "Graph ridge improves materially on persistence, but its incremental advantage over the expanding-mean baseline is small and its paired interval crosses zero. This is truth-free, within-campaign chemistry prediction, not independent-basin validation of residence time, topology or reactions.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-6",
+      "kind": "figure",
+      "path": "figures/r_publication/figure6_limitation_map.png",
+      "objective_ids": ["RQ6"],
+      "caption": "Limitation map. (a) Process-class identifiability by dataset. (b) Conservative class-level versus single best-fit reaction commitment.",
+      "technical_description": "An identifiability-scored heatmap (process by dataset) and a jittered best-fit-versus-conservative scatter with a 1:1 reference line, synthesising the tier-ablation, edge-uncertainty and external-transfer experiments.",
+      "interpretation": "Silicate- and carbonate-related process classes are non-identifiable in both external datasets but more constrained in Northern Ghana at the class/equivalence level; this is not evidence of unique reaction-family recovery. Conservative reporting consistently admits more alternatives than a single best fit and therefore avoids over-commitment.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-ED1",
+      "kind": "figure",
+      "path": "figures/extended_data/figureED1_external_transfer.png",
+      "objective_ids": ["RQ5"],
+      "caption": "External sparse transfer. Mean Mechanism Resolution Score, identifiability and dominant-process distributions for Talensi and Lower Anayari against matched-tier Northern Ghana references.",
+      "technical_description": "Grouped bar/proportion panels comparing Talensi (Tier 1) and Lower Anayari (Tier 2) against Northern Ghana references re-run at the same matched tiers.",
+      "interpretation": "Quantifies the cost of missing diagnostics without treating prior labels as field truth, using saturation indices computed independently for both external datasets (not gated behind Sr/SiO2 availability); identifies strontium/silica as the specific missing measurement driving Lower Anayari's near-total non-identifiability, while Talensi's non-identifiable rate is lower than its matched Northern Ghana reference, driven by process composition rather than evidence tier.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-ED2",
+      "kind": "figure",
+      "path": "figures/extended_data/figureED2_synthetic_validation.png",
+      "objective_ids": ["RQ3", "RQ6"],
+      "caption": "Synthetic validation. Ground-truth reaction recovery by archetype and evidence panel for 360 forward-simulated wells with known reactions and extents.",
+      "technical_description": "Faceted panels reporting phase-, class- and family-level F1, dominant-family accuracy and true identifiability-class spread across three evidence panels (majors; +fluoride; +strontium/silica).",
+      "interpretation": "Supports implementation validity and the direction of the tier-ablation result against known truth; it is not independent field truth for the Ghanaian datasets themselves.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-ED3",
+      "kind": "figure",
+      "path": "figures/extended_data/figureED3_circularity_sensitivity.png",
+      "objective_ids": ["RQ3"],
+      "caption": "Circularity sensitivity. (a) Field non-identifiable fraction with the evidence-lift gate on versus off, with 95% bootstrap confidence intervals, alongside gate-independent structural diagnostics. (b) Transport-correction sensitivity.",
+      "technical_description": "Ribbon/line plot of gated versus ungated non-identifiable fraction by tier with bootstrap confidence intervals (B=400), plus a structural-rank/coherence panel and a transport-treatment agreement panel.",
+      "interpretation": "Shows that the evidence-lift gate, not the underlying classifier, produces the non-identifiable calls on field data (ungated fraction is 0% at every tier), while the gate's direction is independently validated by rising structural rank and falling silicate coherence as strontium/silica are added; retained as an explicit anti-circularity diagnostic.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S1",
+      "kind": "figure",
+      "path": "figures/r_publication/supplementary/figureS1_hydrochem_context.png",
+      "objective_ids": ["RQ1"],
+      "caption": "Hydrochemical context. (a) Gibbs cation ratio. (b) Gibbs anion ratio. (c) Major-ion composition. (d) Mineralisation (TDS) by dataset.",
+      "technical_description": "2x2 panel figure computed from harmonised major-ion concentrations for all three datasets.",
+      "interpretation": "Places the three datasets within established Gibbs water-rock-interaction classification; supports, but does not substitute for, the class-level reaction inference reported in the main text.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S2",
+      "kind": "figure",
+      "path": "figures/r_publication/supplementary/figureS2_charge_balance.png",
+      "objective_ids": ["RQ1"],
+      "caption": "Charge balance. (a) Charge-balance-error distribution with +-5%/+-10% guides. (b) Quality-class composition by dataset.",
+      "technical_description": "Two-panel figure computed from the independently recomputed charge-balance error for all three datasets.",
+      "interpretation": "Visualises the quantitative/screening/exploratory split underlying Table 1 and identifies Talensi's charge-balance limitation.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S3",
+      "kind": "figure",
+      "path": "figures/r_publication/supplementary/figureS3_seasonal_change.png",
+      "objective_ids": ["RQ2"],
+      "caption": "Seasonal signal. (a) Dry/wet evapoconcentration factor by region. (b) Reactive residual after transport correction by region.",
+      "technical_description": "Two-panel figure computed from the Cl-conservative transport correction applied to the 160 Northern Ghana well pairs.",
+      "interpretation": "Shows the magnitude of the seasonal transport signal that is removed before reaction inference, by administrative region (no independent aquifer-type classification exists for these boreholes).",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S4",
+      "kind": "figure",
+      "path": "figures/r_publication/supplementary/figureS4_edge_networks.png",
+      "objective_ids": ["RQ4"],
+      "caption": "Alternative edge networks. (a) Inferred process-network composition per edge set. (b) Divergence (total variation distance) and stability versus the chemistry-kNN reference set.",
+      "technical_description": "Two-panel figure comparing three Hydrosheaf-generated edge sets (chemistry-kNN, geographic-nearest, random/perturbed) against each other; an earlier revision also compared against a fourth, imported 'provided graph' edge set, since removed (DECISIONS.md).",
+      "interpretation": "Shows that network-level process attribution is sensitive to the assumed connectivity even though point-level identifiability is not (Figure 4c, Extended Data context).",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S5",
+      "kind": "figure",
+      "path": "figures/r_publication/supplementary/figureS5_tier_family_heatmap.png",
+      "objective_ids": ["RQ3"],
+      "caption": "Dominant-process composition across evidence tiers.",
+      "technical_description": "Single heatmap of dominant reaction family versus evidence tier for the 160 Northern Ghana wells.",
+      "interpretation": "Provides the full family-composition detail underlying the constant 35.6% family-flip fraction reported in the Results.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S6",
+      "kind": "figure",
+      "path": "figures/r_publication/supplementary/figureS6_diagnostic_distributions.png",
+      "objective_ids": ["RQ2", "RQ3"],
+      "caption": "Diagnostic distributions. (a) Bootstrap support stability. (b) Mechanism Resolution Score.",
+      "technical_description": "Two-panel distributional figure across all Northern Ghana wells and tiers.",
+      "interpretation": "Documents that support stability and Mechanism Resolution Score remained high and narrow even where identifiability class collapsed under tier ablation.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S7",
+      "kind": "figure",
+      "path": "figures/r_publication/supplementary/figureS7_reactive_vs_evapo.png",
+      "objective_ids": ["RQ2"],
+      "caption": "Reactive residual versus conservative evapoconcentration, coloured by dominant process.",
+      "technical_description": "Single scatter figure relating the fitted reactive residual magnitude to the estimated evapoconcentration factor.",
+      "interpretation": "Shows that reactive and conservative (transport) signals are separable across the dominant process classes recovered.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S8",
+      "kind": "figure",
+      "path": "figures/r_publication/supplementary/figureS8_mrs_diagnostic.png",
+      "objective_ids": ["RQ2", "RQ3"],
+      "caption": "Mechanism Resolution Score versus support stability, coloured by dominant process.",
+      "technical_description": "Single scatter figure relating the two principal reliability diagnostics across all Northern Ghana wells.",
+      "interpretation": "Illustrates that Mechanism Resolution Score and support stability are correlated but not redundant diagnostics.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S9",
+      "kind": "figure",
+      "path": "figures/r_publication/supplementary/figureS9_external_detail.png",
+      "objective_ids": ["RQ5"],
+      "caption": "External-dataset transfer detail, faceted by dataset (Talensi, Lower Anayari).",
+      "technical_description": "Per-edge diagnostic detail figure underlying Table 4 and Extended Data Figure 1.",
+      "interpretation": "Provides edge-level detail supporting the external-transfer summary statistics reported in the main text.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S10",
+      "kind": "figure",
+      "path": "figures/r_publication/supplementary/figureS10_limitation_detail.png",
+      "objective_ids": ["RQ6"],
+      "caption": "Identifiability composition per process family and dataset, faceted by dataset.",
+      "technical_description": "Detailed faceted heatmap underlying the summary limitation map in Figure 6a.",
+      "interpretation": "Provides the full per-family, per-dataset breakdown supporting the main-text limitation map.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S11",
+      "kind": "figure",
+      "path": "figures/r_publication/supplementary/figureS11_null_sensitivity.png",
+      "objective_ids": ["RQ4"],
+      "caption": "Competing no-flow explanation sensitivity: fractions of evaluated edges exceeding the 0.5 and 0.8 HydroSheaf screening thresholds by dataset and candidate-edge construction.",
+      "technical_description": "Bar-chart figure summarising the null-model sensitivity screen described in Supplementary Methods Section S12.",
+      "interpretation": "These are sensitivity flags, not calibrated field probabilities; high flag rates further restrict interpretation of inferred edges as physical flow paths.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-1",
+      "kind": "table",
+      "path": "tables/table1_dataset_readiness.csv",
+      "objective_ids": ["RQ1"],
+      "caption": "Dataset readiness and claim strength: per dataset, sample/site count, seasonality, native evidence tier, quantitative/screening/exploratory charge-balance counts, median absolute charge-balance error, and the defensible claim strength.",
+      "technical_description": "Computed from the independent charge-balance audit applied identically to all three harmonised datasets.",
+      "interpretation": "Fixes the evidence-quality ceiling and the defensible claim for each dataset before any reaction inference is reported.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-2",
+      "kind": "table",
+      "path": "tables/table2_variable_availability.csv",
+      "objective_ids": ["RQ1"],
+      "caption": "Variable availability by dataset: present/partial/absent status of 16 diagnostic variables across the three datasets.",
+      "technical_description": "Computed as the fraction of non-missing values per variable per dataset from the harmonised data.",
+      "interpretation": "Shows the specific fluoride/strontium/silica/metadata gaps that cap the two external datasets at Tier 1 and Tier 2 respectively.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-3",
+      "kind": "table",
+      "path": "tables/table3_tier_ablation.csv",
+      "objective_ids": ["RQ3"],
+      "caption": "Northern Ghana Hydrosheaf outputs under full versus reduced information: identifiability, class/family flips, Mechanism Resolution Score and stability across Tiers 0-4, using within-well seasonal wet-to-dry residuals as the inference unit throughout (not directly comparable tier-for-tier to Table 4, which uses edge residuals).",
+      "technical_description": "Computed by re-running all 160 Northern Ghana well pairs at each of five evidence tiers with the frozen transferred classifier and evidence-lift gate.",
+      "interpretation": "The principal quantitative result of the study: identifiability collapses sharply between Tier 3 and Tier 2 while mean Mechanism Resolution Score changes only marginally across all five tiers. The frac_family_changed_vs_tier4 column is constant (0.356) across Tiers 0-3, showing that family-label flips do not scale with the severity of tier reduction the way the non-identifiable fraction does.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-4",
+      "kind": "table",
+      "path": "tables/table4_external_transfer.csv",
+      "objective_ids": ["RQ5"],
+      "caption": "External transfer performance and uncertainty summary for Talensi and Lower Anayari against matched-tier Northern Ghana references, all computed from chemistry-kNN edge residuals (not directly comparable tier-for-tier to Table 3, which uses within-well seasonal-pair residuals). These candidate edges are screening constructions rather than observed flow paths, and competing no-flow explanations remain viable.",
+      "technical_description": "Computed from chemistry-kNN edges evaluated at each external dataset's native tier and from Northern Ghana edges re-run at the same matched tiers, all with saturation indices computed independently for every dataset (Methods) and available as a lifter throughout.",
+      "interpretation": "Shows that non-identifiability on external transfer does not track evidence tier alone: Talensi is materially lower than its matched Northern Ghana reference (37.2% vs 54.2%), consistent with its edges rarely being carbonate-dominant so saturation-index corroboration was rarely the limiting evidence, while Lower Anayari remains far higher than its reference (95.3% vs 53.3%) because its edges are overwhelmingly silicate-dominant, a family saturation indices do not corroborate.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-5",
+      "kind": "table",
+      "path": "tables/table5_field_prequential.csv",
+      "objective_ids": ["RQ2"],
+      "caption": "Northern Ghana within-campaign seasonal hold-forward: overall mean absolute error, root-mean-square error, bias and empirical 90% coverage for persistence, expanding-mean-delta and Hydrosheaf graph-ridge predictors. n = 1540 ion-level records (140 well pairs x 11 ions), not 1540 independent wells.",
+      "technical_description": "Reused unmodified from the M7.2 supporting field-prequential validation; log1p-scale error metrics over 1540 ion-level records from 140 complete quantitative well pairs revealed in 20 fixed, disclosed arbitrary batches (no real sampling-date sequence exists in the canonical data).",
+      "interpretation": "Supports chemistry-prediction diagnostics only; does not validate residence time or field topology.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S2",
+      "kind": "table",
+      "path": "tables/tableS2_qc_missingness.csv",
+      "objective_ids": ["RQ1"],
+      "caption": "Charge-balance quality classes by dataset.",
+      "technical_description": "Full per-dataset counts underlying the quantitative/screening/exploratory summary in Table 1.",
+      "interpretation": "Confirms Talensi's charge-balance limitation quantitatively at full resolution.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S3",
+      "kind": "table",
+      "path": "tables/tableS3_aquifer_summary.csv",
+      "objective_ids": ["RQ2"],
+      "caption": "Northern Ghana region summary: wells, mean Mechanism Resolution Score, mean stability, fraction partially identifiable, and top dominant family, by administrative region (no independent aquifer-type classification exists for these boreholes; an earlier revision also reported a fraction-concordant-with-prior-labels column derived from a retired antecedent-study workbook, since removed).",
+      "technical_description": "Aggregated from the 160-well Tier-4 seasonal transfer experiment.",
+      "interpretation": "Provides the per-region detail underlying the seasonal/region-stratified transfer results reported in the main text.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S4",
+      "kind": "table",
+      "path": "tables/tableS4_tier_ablation_full.csv",
+      "objective_ids": ["RQ3"],
+      "caption": "Full tier-ablation identifiability counts (non-identifiable versus partially identifiable) at every evidence tier.",
+      "technical_description": "Raw well counts underlying the fractional results reported in Table 3.",
+      "interpretation": "Gives the complete count-level detail behind the pivotal tier-ablation result.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S5",
+      "kind": "table",
+      "path": "tables/tableS5_edge_sensitivity.csv",
+      "objective_ids": ["RQ4"],
+      "caption": "Edge-set sensitivity summary: edges, total variation distance versus the chemistry-kNN reference set, mean Mechanism Resolution Score, mean stability, and fraction partially identifiable, for all three Hydrosheaf-generated edge sets.",
+      "technical_description": "Computed from the edge-uncertainty experiment across the chemistry-kNN, geographic-nearest and random/perturbed edge sets; an earlier revision also compared against a fourth, imported 'provided graph' edge set, since removed (DECISIONS.md).",
+      "interpretation": "Supports the Results claim that network composition is edge-set-sensitive while point-level identifiability is edge-invariant.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S6",
+      "kind": "table",
+      "path": "tables/tableS6_external_outputs.csv",
+      "objective_ids": ["RQ5"],
+      "caption": "External-dataset transfer outputs per evaluated edge for Talensi and Lower Anayari.",
+      "technical_description": "Full per-edge output table underlying the external-transfer summary in Table 4.",
+      "interpretation": "Allows inspection of individual edge-level identifiability calls behind the aggregate external-transfer statistics.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S7",
+      "kind": "table",
+      "path": "tables/tableS7_uncertainty_definitions.csv",
+      "objective_ids": ["RQ1", "RQ2", "RQ3", "RQ4", "RQ5"],
+      "caption": "Uncertainty-metric definitions used throughout the study.",
+      "technical_description": "Reference table of the six principal uncertainty and reliability metrics and their definitions.",
+      "interpretation": "Provides a single reference point for interpreting the uncertainty metrics reported in every experiment.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S8",
+      "kind": "table",
+      "path": "tables/tableS8_environment.csv",
+      "objective_ids": ["RQ1"],
+      "caption": "Software and computational environment.",
+      "technical_description": "Records the Python, numpy and pandas versions, the frozen inverse solver and Mechanism Resolution Score calibration, and the fixed random seed.",
+      "interpretation": "Supports full reproducibility of every reported result.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S9",
+      "kind": "table",
+      "path": "tables/tableS9_null_sensitivity.csv",
+      "objective_ids": ["RQ4"],
+      "caption": "Competing no-flow explanation sensitivity by dataset and candidate-edge construction.",
+      "technical_description": "Mean and median null scores, and fractions exceeding the 0.5 and 0.8 screening thresholds, for each dataset/edge-set combination.",
+      "interpretation": "Screening flags for competing non-flow explanations of edge similarity; not calibrated field probabilities.",
+      "validation_status": "PASS"
+    }
+  ]
+}

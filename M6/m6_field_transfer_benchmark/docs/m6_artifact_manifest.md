@@ -1,31 +1,39 @@
 # M6 Artifact Manifest
 
-Inventory of the M6 field-transfer benchmark package (auto-generated).
+Authoritative inventory of the M6 field-transfer benchmark package.
 
 ## docs/
 - 02_figures.md
 - 03_tables.md
 - m6_artifact_manifest.md
 - m6_data_readiness_audit.md
+- m6_chemistry_robustness_scope.md
 - m6_locked_analysis_plan.md
+- m6_null_model_sensitivity.md
 - m6_results_summary.md
-- m6_reviewer_response.md
+- m6_robustness_diagnostics.md
 - manuscript_asset_plan.md
+- objective6_data_limited_synthesis.md
+- q1_submission_manifest.md
 
 ## data/
-- ghana_adm0_natural_earth_110m.geojson
+- ghana_geoboundaries_2021/SOURCE.md
+- ghana_geoboundaries_2021/ghana_adm0_2021.{shp,shx,dbf,prj}
+- ghana_geoboundaries_2021/ghana_adm1_2021.{shp,shx,dbf,prj}
 
 ## scripts/
 - export_m6_figure_data.py
 - m6_common.py
-- m6_reactions.py
-- make_m6_dataset_figure.py
 - make_m6_tables.py
 - make_objective6_prequential_figure.py
-- run_m6_all.py
 - run_m6_field_transfer.py
-- run_m6_reviewer_response.py
+- run_m6_chemistry_robustness.py
+- run_m6_chemistry_stress_tests.py
+- run_m6_null_sensitivity.py
+- run_m6_q1.py
+- run_m6_robustness_diagnostics.py
 - run_m6_synthetic_validation.py
+- synthetic_reaction_truth_model.py
 
 ## r_figures/
 - plot_m6_publication_figures.R
@@ -46,12 +54,18 @@ Inventory of the M6 field-transfer benchmark package (auto-generated).
 - m6_field_gate_structural.csv
 - m6_hydrochem_context.csv
 - m6_limitation_map.csv
+- m6_loo_structural_uncertainty.csv
 - m6_map_coordinates.csv
 - m6_mrs_discrimination.csv
 - m6_ng_aquifer_season_summary.csv
 - m6_ng_class_support.csv
 - m6_ng_family_by_aquifer.csv
 - m6_ng_field_pairs.csv
+- m6_null_edge_scores.csv
+- m6_null_model_run.json
+- m6_null_sensitivity_summary.csv
+- m6_phase_stability_index.csv
+- m6_regularization_path.csv
 - m6_synthetic_class_distribution.csv
 - m6_synthetic_class_spread.csv
 - m6_synthetic_recovery_by_tier.csv
@@ -91,6 +105,8 @@ Inventory of the M6 field-transfer benchmark package (auto-generated).
 - tableS7_uncertainty_definitions.md
 - tableS8_environment.csv
 - tableS8_environment.md
+- tableS9_null_sensitivity.csv
+- tableS9_null_sensitivity.md
 
 ## figures/r_publication/
 - figure1_dataset_tier_design.pdf
@@ -105,27 +121,32 @@ Inventory of the M6 field-transfer benchmark package (auto-generated).
 - figure4_tier_ablation.pdf
 - figure4_tier_ablation.png
 - figure4_tier_ablation.tif
-- figure5_external_transfer.pdf
-- figure5_external_transfer.png
-- figure5_external_transfer.tif
+- figure5_field_prequential.pdf
+- figure5_field_prequential.png
+- figure5_field_prequential.tif
 - figure6_limitation_map.pdf
 - figure6_limitation_map.png
 - figure6_limitation_map.tif
-- figure7_synthetic_validation.pdf
-- figure7_synthetic_validation.png
-- figure7_synthetic_validation.tif
-- figure8_circularity_sensitivity.pdf
-- figure8_circularity_sensitivity.png
-- figure8_circularity_sensitivity.tif
-- figure9_field_prequential.pdf
-- figure9_field_prequential.png
-- figure9_field_prequential.tif
 - supplementary
+
+## figures/extended_data/
+- figureED1_external_transfer.pdf
+- figureED1_external_transfer.png
+- figureED1_external_transfer.tif
+- figureED2_synthetic_validation.pdf
+- figureED2_synthetic_validation.png
+- figureED2_synthetic_validation.tif
+- figureED3_circularity_sensitivity.pdf
+- figureED3_circularity_sensitivity.png
+- figureED3_circularity_sensitivity.tif
 
 ## figures/r_publication/supplementary/
 - figureS10_limitation_detail.pdf
 - figureS10_limitation_detail.png
 - figureS10_limitation_detail.tif
+- figureS11_null_sensitivity.pdf
+- figureS11_null_sensitivity.png
+- figureS11_null_sensitivity.tif
 - figureS1_hydrochem_context.pdf
 - figureS1_hydrochem_context.png
 - figureS1_hydrochem_context.tif

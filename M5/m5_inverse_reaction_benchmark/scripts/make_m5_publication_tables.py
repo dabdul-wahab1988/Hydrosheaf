@@ -229,23 +229,27 @@ def supplementary_tables() -> None:
         (RESULTS_DIR / "analysis_summary.json").read_text(encoding="utf-8")
     )
     environment = [
-        {"Item": "Python", "Value": summary["software"]["python"]},
-        {"Item": "NumPy", "Value": summary["software"]["numpy"]},
-        {"Item": "pandas", "Value": summary["software"]["pandas"]},
-        {"Item": "PHREEQC", "Value": summary["phreeqc_version"]},
-        {"Item": "PHREEQC executable", "Value": summary["phreeqc_executable"]},
-        {"Item": "PHREEQC database", "Value": summary["phreeqc_database"]},
-        {"Item": "Random seed", "Value": summary["random_seed"]},
+        {"Scope": "Locked synthetic benchmark", "Item": "Python", "Value": "3.10.17"},
+        {"Scope": "Locked synthetic benchmark", "Item": "NumPy", "Value": "2.2.6"},
+        {"Scope": "Locked synthetic benchmark", "Item": "pandas", "Value": "2.3.3"},
+        {"Scope": "Locked synthetic benchmark", "Item": "PHREEQC", "Value": "3.7.3-15968"},
+        {"Scope": "Field saturation-index extension", "Item": "Python", "Value": summary["software"]["python"]},
+        {"Scope": "Field saturation-index extension", "Item": "NumPy", "Value": summary["software"]["numpy"]},
+        {"Scope": "Field saturation-index extension", "Item": "pandas", "Value": summary["software"]["pandas"]},
+        {"Scope": "Field saturation-index extension", "Item": "PHREEQC", "Value": summary["phreeqc_version"]},
+        {"Scope": "Field saturation-index extension", "Item": "PHREEQC executable", "Value": summary["phreeqc_executable"]},
+        {"Scope": "Field saturation-index extension", "Item": "PHREEQC database", "Value": summary["phreeqc_database"]},
+        {"Scope": "All deterministic analyses", "Item": "Random seed", "Value": summary["random_seed"]},
         {
-            "Item": "Selected lambda_l1",
+            "Scope": "Locked synthetic benchmark", "Item": "Selected lambda_l1",
             "Value": summary["selected_hyperparameters"]["lambda_l1"],
         },
         {
-            "Item": "Selected lambda_l2",
+            "Scope": "Locked synthetic benchmark", "Item": "Selected lambda_l2",
             "Value": summary["selected_hyperparameters"]["lambda_l2"],
         },
         {
-            "Item": "Selected support threshold (mmol/L)",
+            "Scope": "Locked synthetic benchmark", "Item": "Selected support threshold (mmol/L)",
             "Value": summary["selected_hyperparameters"].get(
                 "support_threshold_mmolL", ""
             ),
@@ -255,12 +259,12 @@ def supplementary_tables() -> None:
 
     field = pd.read_csv(RESULTS_DIR / "ghana_field_pairs.csv")
     field_rows = []
-    for aquifer, group in field.groupby("aquifer"):
+    for region, group in field.groupby("region"):
         field_rows.append(
             {
-                "Aquifer": aquifer,
+                "Region": region,
                 "Wet-dry pairs": len(group),
-                "Lithologies": group["lithology"].nunique(),
+                "Districts": group["district"].nunique(),
                 "Median MRS": group["mechanism_resolution_score"].median(),
                 "Median held-out RMSE (mmol/L)": group[
                     "mean_heldout_rmse_mmolL"
@@ -336,7 +340,7 @@ def supplementary_tables() -> None:
     if field_evidence_path.exists():
         field_evidence = pd.read_csv(field_evidence_path)
         field_evidence_summary = (
-            field_evidence.groupby(["aquifer", "reaction", "family"])
+            field_evidence.groupby(["region", "reaction", "family"])
             .agg(
                 support_frequency=("selected", "mean"),
                 mean_evidence_score=(
@@ -347,7 +351,7 @@ def supplementary_tables() -> None:
                 n=("well_id", "count"),
             )
             .reset_index()
-            .sort_values(["aquifer", "support_frequency"], ascending=[True, False])
+            .sort_values(["region", "support_frequency"], ascending=[True, False])
         )
         write(
             field_evidence_summary,

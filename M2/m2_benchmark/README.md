@@ -68,7 +68,7 @@ validation tiers:
 - live PHREEQC forward validation from PHREEQC v3 examples/databases, DOI
   `10.3133/tm6A43`;
 - a data-limited field-hydrochemistry demonstration using the corrected
-  Northern Ghana workbook at `data/NorthenGhana/NorthernGhana.xlsx`.
+  Northern Ghana workbook at `data/FieldData/NorthenGhana/NorthernGhana.xlsx`.
 
 These are summarized in `tables/table4_validation_design_and_results.csv` and
 `docs/m2_results_summary.md`. Retain the guardrails in those files when writing

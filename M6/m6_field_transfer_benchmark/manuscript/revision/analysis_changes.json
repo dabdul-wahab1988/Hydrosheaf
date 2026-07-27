@@ -1,0 +1,100 @@
+{
+  "items": [
+    {
+      "comment_id": "M6-R001",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R002",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R003",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R004",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R008",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R009",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R010",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R012",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R014",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R015",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R016",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R021",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R024",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R026",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R030",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M6-R031",
+      "status": "PASS",
+      "evidence": "results/m6_review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    }
+  ]
+}

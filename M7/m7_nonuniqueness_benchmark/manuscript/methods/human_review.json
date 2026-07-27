@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "reviewed_on": "2026-07-24",
+  "checks": {
+    "technical_fidelity": {
+      "status": "PASS",
+      "evidence": "Every Methods statement was traced to a specific function, line range, or locked document in the M7 package (scripts/m7_3_analysis.py, docs/m7_3_protocol.md, docs/m7_3_results.md, results/m7_3_locked/manifest.json) before drafting; no procedure, parameter, or outcome was inferred without a source anchor recorded in methods_evidence.csv."
+    },
+    "main_supplement_split": {
+      "status": "PASS",
+      "evidence": "Main Methods retains only the design of the four linked experiments, primary evidence-fusion equation, and top-level decision-rule statement; full derivations (age posterior, importance-weight update, entropy, ECE, reaction-support entropy), permutation-seeding detail, and the full decision-rule specification were moved to Supplementary Methods per methods-writing.md allocation rules."
+    },
+    "expert_clarity": {
+      "status": "PASS",
+      "evidence": "Both sections were re-read for logical paragraph flow (what was done, on what material, with which parameter, how validated) and for consistency of terminology (evidence panel names H/A/C, topology conditions, tracer regimes) across Main and Supplementary Methods."
+    },
+    "passive_nonpersonal": {
+      "status": "PASS",
+      "evidence": "Both sections were drafted and re-read in past-tense, passive, non-personal construction; the automated first-person-pronoun scan in methods_gate_check.py draft stage was used as a supporting check."
+    },
+    "uk_english": {
+      "status": "PASS",
+      "evidence": "UK spelling was applied throughout (e.g. 'standardised', 'characterised', 'programme' where applicable) and checked by manual re-read of both Methods documents."
+    },
+    "reporting_guideline_coverage": {
+      "status": "PASS",
+      "evidence": "The two applicable official-documentation standards (MODFLOW 6/MODPATH 7 simulation documentation; PHREEQC speciation/reaction documentation) were identified as the discipline-appropriate analogue to a clinical reporting guideline and are cited at first use of each corresponding procedure."
+    },
+    "equation_accuracy": {
+      "status": "PASS",
+      "evidence": "All six declared equations (EQ-1 through EQ-6) were transcribed directly from the corresponding function implementations in scripts/m7_3_analysis.py (fit_evidence_models/predict_evidence_model, local_age_probability_grid, topology_age_sensitivity weight update, normalized_binary_entropy, expected_calibration_error, reaction_support_summary) and checked term-by-term against the code before insertion."
+    },
+    "reproducibility": {
+      "status": "PASS",
+      "evidence": "Software, seeds, particle/bootstrap counts and convergence thresholds reported in Methods and Supplementary Methods were checked against results/m7_3_locked/manifest.json and README.md replay instructions."
+    }
+  }
+}

@@ -1014,11 +1014,11 @@ def write_main_tables(
             ],
             [
                 "Data-limited pilot scenario",
-                "Corrected Northern Ghana aquifer workbook",
+                "Lower Anayari (Manu) and Talensi field pilot datasets",
                 "end-to-end generated-edge and reaction outputs under sparse field inputs",
                 field_metric,
                 "workflow remains interpretable when optional tracers, source graph edges, or PHREEQC inputs are absent",
-                "data/NorthenGhana/NorthernGhana.xlsx; public DOI/source URL not embedded in workbook",
+                "data/FieldData/LowerAnayari/manu.csv; data/FieldData/Talensi_MiningArea/talensi.csv",
                 field_status,
             ],
         ],
@@ -1099,7 +1099,7 @@ def write_main_tables(
             [
                 "Corrected Northern Ghana aquifer workbook",
                 "160 boreholes, 320 dry/wet hydrochemical records, isotope fields, Sr, SiO2, coordinates, depth, static water level, and distance covariates; no supplied graph-edge or saturation-index sheet",
-                "data/NorthenGhana/NorthernGhana.xlsx plus optional data/NorthenGhana/SI.pdf",
+                "data/FieldData/NorthenGhana/NorthernGhana.xlsx plus optional data/FieldData/NorthenGhana/SI.pdf",
                 "field hydrochemistry and generated sparse graph-edge demonstration",
                 "source DOI/URL to confirm if manuscript requires public citation",
                 "public source citation to be supplied in manuscript if available",

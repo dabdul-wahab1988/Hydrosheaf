@@ -19,9 +19,11 @@
   it does not validate residence time or field topology.
 
 ## Supplementary tables
-- **S2** charge-balance quality classes by dataset. **S3** Northern Ghana aquifer summary.
+- **S2** charge-balance quality classes by dataset. **S3** Northern Ghana region summary
+  (no independent aquifer-type classification exists for these boreholes).
   **S4** full tier-ablation identifiability counts. **S5** edge-set sensitivity summary.
   **S6** per-edge external outputs. **S7** uncertainty-metric definitions. **S8** software and
-  computational environment.
+  computational environment. **S9** competing no-flow explanation sensitivity by dataset
+  and candidate-edge construction.
 
 All tables are emitted as CSV and Markdown by `scripts/make_m6_tables.py`.

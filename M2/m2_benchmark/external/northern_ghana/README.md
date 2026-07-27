@@ -1,8 +1,8 @@
 # Northern Ghana Field-Hydrochemistry Validation
 
 This workspace stores E4c outputs generated from
-`data/NorthenGhana/NorthernGhana.xlsx` and optional
-`data/NorthenGhana/SI.pdf` provenance material.
+`data/FieldData/NorthenGhana/NorthernGhana.xlsx` and optional
+`data/FieldData/NorthenGhana/SI.pdf` provenance material.
 
 The tier replaces the earlier local `manu.xlsx` pilot. Use it only as
 field-hydrochemistry and data-limited workflow evidence. The corrected workbook

@@ -1,0 +1,343 @@
+[
+  {
+    "id": "M5-R001",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "1. **[Critical]** The manuscript has no title. `Manuscript-Final.md` opens with `# Manuscript` as its only top-level heading before the abstract text begins (line 1), and this is not an artifact of Markdown-to-Word conversion: the compiled `Manuscript-Final.docx`'s own document properties carry an empty `<dc:title></dc:title>` field, and the rendered document body's first heading is the literal word \"Manuscript.\" No reviewer or editor can process a submission without a title, and a title is not a formatting afterthought here, it is the primary discoverability and framing device for a paper making a specific, falsifiable methodological claim. Write an actual descriptive title that names the contribution (for example, something conveying \"identifiability-aware sparse inverse reaction inference\" and the Northern Ghana transfer test) and set it as both the document heading and the DOCX title metadata.",
+    "category": "Critical",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R002",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "2. **[Major]** There is no \"Abstract\" heading. Every other section of the manuscript (Introduction, Methods, Results, Discussion, Conclusion) has a proper heading, but the abstract paragraph runs directly under the placeholder title heading with no label distinguishing it as an abstract. A reader opening the DOCX sees an unlabeled paragraph before \"Introduction.\" Add an explicit \"# Abstract\" heading above the existing abstract paragraph.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R003",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "3. **[Minor]** The abstract is a single dense block carrying more than ten numeric values (240 scenarios, 21,600 fits, 160 pairs, 55%, 0.563, 0.609, 0.361, 0.465, 72%, 185.8, 48.9%) inside sentences that are themselves heavily nested. The opening sentence of the aim statement is illustrative: \"The aim was to develop and validate, within Hydrosheaf, a groundwater-process framework, an identifiability-aware sparse inversion approach integrating reaction-equivalence classes, a Mechanism Resolution Score, held-out-ion falsification, and next-best-measurement selection, in a controlled benchmark and a chemistry-only field transfer\" (lines 5-10). This is one sentence of roughly 55 words containing eight commas and two stacked appositives (\"a groundwater-process framework\" restating \"Hydrosheaf,\" then \"an identifiability-aware sparse inversion approach\" restating the framework again) before the reader reaches what was actually done. Split this into two sentences: one naming the framework, one listing what it integrates and where it was tested.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R004",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "4. **[Minor]** \"improving on a legacy baseline (0.465)\" (line 17) is not identifiable from the abstract alone. \"Legacy\" is never defined anywhere in the abstract, and the word appears in the entire manuscript exactly twice: once here and once in Results (line 439, \"the legacy thermodynamic elastic-net model's 0.465\"). A reader who stops at the abstract, which is the majority of a paper's audience, cannot tell what method 0.465 belongs to. Name the comparator explicitly: \"improving on a thermodynamic elastic-net comparator (false-discovery rate 0.465).\"",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R005",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "5. **[Minor]** The abstract states the field application without once flagging, even in a subordinate clause, that it is explicitly non-validating. The Methods \"Significance\" paragraph and the Discussion are careful to state this repeatedly (\"the Northern Ghana component demonstrates chemistry-only transfer under realistic data sparsity and does not itself validate reaction mechanism,\" lines 156-158), but the abstract's closing sentence (\"The significance is that the approach prevents overinterpretation of non-identifiable pathways, replacing single best-fit narratives with a measurable resolution hierarchy,\" lines 22-24) does not carry any trace of that caveat. Given how much interpretive weight the rest of the manuscript places on this distinction, the abstract should not be the one place where it is silently dropped. Add a short qualifying clause noting that the field component is a transfer demonstration, not independent validation.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R006",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "1. **[Major]** The manuscript's clearest empirical result, that anorthite dissolution and calcite dissolution are exactly indistinguishable under an 11-ion panel because \"both reactions were written to load identically onto calcium and bicarbonate\" (lines 479-483), is presented as though newly exposed by the null-space diagnostic. It is not a new observation in geochemistry. Congruent silicate weathering of plagioclase to kaolinite and calcite dissolution both release calcium and bicarbonate in a 1:2 molar ratio, which is precisely why the field has spent several decades building independent tracers, most prominently 87Sr/86Sr, to separate carbonate from silicate weathering sources when major-ion stoichiometry alone cannot (see, for example, the body of work reviewed in strontium-isotope weathering-discrimination studies going back to the 1990s). The Introduction cites Christophersen and Hooper (1992) for the general equifinality point in end-member mixing but does not connect the anorthite/calcite finding to this specific, well-established literature, which means the manuscript's most quotable result reads as more novel than it is and misses an opportunity to point readers toward the actual solution the field already uses (Sr or other isotope tracers) rather than only naming an entropy-based evidence index. Add a paragraph in the Introduction or Discussion citing the silicate-versus-carbonate weathering discrimination literature and explicitly stating that Sr-isotope or similar independent tracers are the established remedy for exactly this ambiguity, which the ELRI enhanced-tier diagnostics in this study only partially reproduce.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R007",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "2. **[Major]** The literature review does not engage with any 2023-2025 work. Every citation on inverse hydrogeochemical or mixing methodology (Christophersen and Hooper 1992, Plummer and Back 1980, Plummer et al. 1994, Beven and Freer 2001, Beven 2006, Neuman 2003, Tibshirani 1996, Zou and Hastie 2005, Meinshausen and B\u00fchlmann 2010) predates 2020, and the one genuinely recent citation, Moracchini et al. (2025) on graph-based contaminant transport, is explicitly framed as adjacent rather than on-topic (\"developed independently for transport-scenario screening rather than for chemistry,\" lines 69-71). A search for recent inverse geochemical modelling work turns up active 2023-2025 publications combining multivariate statistics with inverse geochemical modelling in shallow groundwater, and a growing body of physics-informed neural network work applied to reactive transport and inverse hydrogeochemical problems, none of which is mentioned. Given the field-transfer component uses Northern Ghana data collected in 2025, this also means no post-2011 regional geochemistry literature on Ghanaian basement aquifers is cited even though nearly fifteen years have passed. Add at least two to three citations from 2022-2025 covering either machine-learning approaches to inverse geochemical or reactive-transport inference, or updated regional Ghana groundwater geochemistry, and state explicitly how this study's approach differs from them.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R008",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "3. **[Minor]** \"which are developed and validated in companion work\" (line 172) is an unsupported, uncited claim. If this refers to other Hydrosheaf modules in this same project (topology and residence-time layers), either cite them if they exist as separate manuscripts, or state explicitly that they are unpublished or in preparation. As written, a reviewer cannot check this claim at all, and a claim a reviewer cannot check should not appear in a Significance paragraph.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R009",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "4. **[Minor]** Hydrosheaf is introduced as \"a graph- and sheaf-based framework in which candidate flow connectivity, residence time, and reaction pathway are separately evidenced layers attached to a shared directed edge\" (lines 49-52), but nothing in this manuscript's Methods or Supplementary Methods uses any sheaf-theoretic construction: there is no presheaf, stalk, restriction map, section, or gluing condition anywhere in the reaction-inference formulation, which is a bounded elastic-net regression. A reader encountering \"sheaf\" in the framing sentence and then a purely statistical regression pipeline for the next twenty pages cannot tell whether \"sheaf\" denotes a formal mathematical structure used elsewhere in the broader project or is being used loosely as a synonym for \"layered.\" Either add one sentence clarifying that the sheaf-theoretic structure lives in a separate, cited component of the framework and is not used by this chemistry layer, or drop the term from this paper's framing.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R010",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "5. **[Minor]** The \"Novelty\" paragraph lists five innovations but does not distinguish, even briefly, which are new applications of existing statistical machinery (rank/null-space diagnostics, elastic net, stability selection) versus genuinely new constructs (the Mechanism Resolution Score, the evidence-lifted resolution index). Doing this explicitly here, rather than leaving it implicit until Discussion's \"Advance over existing inverse hydrogeochemical practice\" section, would let a reader calibrate expectations up front rather than discovering the honest framing only in Discussion.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R011",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "1. **[Major]** The Mechanism Resolution Score's headline transfer statistic is benchmarked against the wrong baseline. The manuscript reports \"48.9% four-class classification accuracy on the untouched mixed archetype... materially better than the 25% expected under random four-class assignment\" (lines 506-509, repeated in the Abstract and Conclusion). I recomputed the true-class distribution directly from `results/mechanism_resolution_scores.csv` on the exact 900-row held-out evaluation set used to generate this statistic (archetype == \"mixed\"): non_identifiable 334 rows (37.1%), partially_identifiable 338 rows (37.6%), identifiable 206 rows (22.9%), equivalence_class 22 rows (2.4%). A trivial \"always predict partially_identifiable\" rule would score 37.6% on this exact evaluation set, not 25%. I independently recomputed the reported accuracy from the same file's `resolution_class_correct` column (440/900 = 48.89%), confirming the 48.9% figure itself is genuine and traceable, so this is not a fabrication concern. But comparing it only to a uniform-random baseline overstates the realised skill: the margin over a naive majority-class rule is roughly 11.3 percentage points, not the roughly 24-point margin implied by comparing to 25%. This matters because the MRS is one of the five headline innovations claimed in the Introduction, and the manuscript already hedges \"48.9% is a moderate, not a strong, transfer result\" (lines 511-512), which is the right instinct but is undercut by anchoring the comparison to the easier baseline throughout. Report the majority-class baseline (37.6%) alongside the uniform-random baseline in Methods (Supplementary Methods S4), Results, and Discussion, and revise the \"materially better than... random\" language to state the margin over both baselines.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R012",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "2. **[Major]** Bounded least squares, the only unregularised comparator, converged in only 35.4% of fits (Table 1), yet its reported phase F1 (0.435) and false-discovery rate (0.697) are computed by \"retaining and flagging\" non-convergent fits rather than reporting them separately (lines 419-423, \"Non-convergent fits were retained and flagged rather than discarded, so all reported recovery statistics reflect the full factorial design\"). This is defensible as a design choice for avoiding convergence-filtered survivorship bias, but it also means bounded least squares' comparator statistics conflate \"the optimiser did not converge\" with \"the optimiser converged and selected the wrong reaction,\" and these are different failure modes with different implications for the paper's central message about sparsity versus thermodynamic guarding. Since the point of this comparator is to isolate the effect of sparsity regularisation, and 64.6% of its fits never reached the solver's own stopping criterion, the headline comparison between bounded least squares and the guarded model is partly a comparison between a poorly-converging optimiser and a well-converging one, not purely between an unregularised and a regularised objective. Report phase F1 and false-discovery rate for bounded least squares separately for converged and non-converged subsets, or at minimum note in the main text how much of the reported gap narrows when restricted to converged fits only.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R013",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "3. **[Major]** Two of the five headline innovations, held-out-ion falsification and next-best-measurement selection, are supported in the main text only by references to Supplementary Figures S8 and S9, with no inline effect size, confidence interval, or quantitative comparator value anywhere in the \"Missing ions and minimum analytical information\" subsection (lines 516-531). I checked both cited figures directly. Supplementary Figure S8 (`figureS8_r_core_evidence_gates.png`, titled \"Hydrosheaf-Core evidence gates\") shows median penalty scale against mean evidence score by reaction family, not ion-ablation results. Supplementary Figure S9 (`figureS9_r_data_tier_evidence.png`, titled \"Data-tier reaction evidence\") shows a reaction-by-tier evidence heatmap that closely duplicates main-text Figure 4 panel d, not a comparison of next-best-measurement selection against fixed and random panels. The figure that actually shows the next-best-measurement ranking exists, but it is numbered S5 (`figureS5_r_measurement_value.png`, titled \"Next-best sparse measurement ranking\"), not S9. As currently cited, a reader following the manuscript's own citations cannot verify either of these two claims. Audit every Supplementary Figure cross-reference against the actual file content before resubmission (I found this exact mismatch by opening the cited image files directly, which any careful reviewer will also do), correct the S8 and S9 references, and add at least one quantitative value (a realised versus expected value comparison, or an ablation-induced F1 drop) inline in the main text rather than relegating the only evidence for two named contributions entirely to an uninspectable cross-reference.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R014",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "4. **[Major]** The manuscript's own machine-readable software-environment record is internally inconsistent. `methods_evidence.csv` (row METH-20, status \"VERIFIED\") states \"Software versions recorded include Python 3.10.17 NumPy 2.2.6 pandas 2.3.3 and PHREEQC 3.7.3-15968,\" while the actual current `tables/tableS9_software_environment.csv` records Python 3.14.6, NumPy 2.4.6, and PHREEQC 3.8.6-17100. These describe different runs: per the project's own `DECISIONS.md`, the 240-scenario synthetic benchmark underlying every Table 1 statistic was generated under PHREEQC 3.7.3-15968, while the newly added Northern Ghana, Talensi, and Lower Anayari saturation-index computation used PHREEQC 3.8.6-17100, and this was a disclosed, deliberate choice (an elevation failure prevented reinstalling the exact original version). None of this appears in the manuscript text itself or in the single environment row of Table S9, which a reader would reasonably take as describing one consistent environment for the whole study. This is not a fabrication concern (the discrepancy is fully explained in the project's internal change log), but it is a real traceability gap in the manuscript as submitted: the evidence ledger that is supposed to authoritatively map every reported number to its generating environment does not agree with itself. Add a second row (or a note) to Table S9 distinguishing the synthetic-benchmark environment from the field-transfer saturation-index environment, and reconcile `methods_evidence.csv` with the table it claims to have verified against.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R015",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "5. **[Minor]** The regularisation grid itself, the actual range of \u03bb1 and \u03bb2 values scanned before the one-standard-error rule selected \u03bb1 = 0.0198, \u03bb2 = 0.005 (`analysis_summary.json`), is never listed in the main text or Supplementary Methods S4, which describes the selection rule but not the grid it was applied to. Report the grid bounds and spacing so another researcher could reproduce the selection step, not only its result.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R016",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "6. **[Minor]** No justification is given for why 60 replicates per archetype (240 scenarios total) was judged sufficient to estimate the reported confidence intervals at their observed widths, and no power or precision analysis accompanies the design. For a factorial benchmark this is a reasonable design choice rather than a fatal gap, but a one-sentence justification (for example, referencing the achieved CI half-widths in Table 1 as evidence the sample size was adequate) would strengthen the Methods.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R017",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "1. **[Major]** Table 1 and its caption are spliced directly into the middle of a sentence, and the resulting text loses a word. The Results text reads: \"...yielding 21,600 factorial inverse fits across seven compared methods, three analytical-noise levels, and five ion panels **Table 1.** Comparative performance of seven inverse methods at 3% analytical noise...\" followed by the full data table, followed by the sentence fragment \"...between the PHREEQC-simulated endpoint chemistry and the concentration change implied by the sampled stoichiometry and extents was high\" (Manuscript-Final.md lines 393-411; confirmed present identically in the compiled `Manuscript-Final.docx` via direct pandoc extraction, so this is not a Markdown-only rendering artefact). The clause before the table should read \"...five ion panels (Table 1). Agreement between the PHREEQC-simulated endpoint chemistry...\" but the word \"Agreement\" has been consumed by the table's caption text, leaving a grammatically broken sentence and a table that interrupts prose mid-clause rather than being referenced parenthetically. The same pattern (a bracketed alt-text caption embedded inline, immediately followed by a duplicate captioned figure, both inside running prose rather than set off as a float) recurs at every one of the six main figures (lines 411, 431, 449, 534, 563, 600). This is a document-assembly defect from how figures and tables are inserted into the prose template, not a scientific error, but it actively corrupts sentence meaning at the single most load-bearing sentence in the Results (the validation of the PHREEQC generator itself) and would draw an immediate, unfavourable first impression from any journal reviewer. Move every table and figure out of the running paragraph into a properly floated position referenced only by a parenthetical \"(Table 1)\" or \"(Figure 2)\" in the prose, and proofread the surrounding sentences for words lost in the splice.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R018",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "2. **[Major]** The claim that thermodynamic screening \"left 72% of constrained fits below an equivalence-class F1 of 0.80\" (line 566, repeated in Discussion line 674) is not accompanied by a confidence interval or a specification of which noise level, panel, or archetype subset the 72% is computed over, unlike essentially every other headline statistic in this manuscript, which is otherwise scrupulous about reporting 95% confidence intervals (Table 1). Given the paper's own standard of practice elsewhere, this bare percentage stands out as an exception. State the subset it is computed over and report an interval or the underlying n.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R019",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "3. **[Major]** The Discussion's \"Advance over existing inverse hydrogeochemical practice\" section states that the framework's components are \"pre-existing statistical tools... combined into a reaction-inference identifiability layer\" (lines 708-710), which is an honest and appropriate framing, but the same section's conceptual-advance claim, \"a shift from exact-phase selection to hierarchical reporting across four resolution classes... each backed by an explicit diagnostic rather than an implicit confidence claim\" (lines 720-724), is not tested against any competing reporting convention beyond the conventional PHREEQC first-minimal-model baseline built by the same authors for this study. No comparison is made, even qualitatively, to how other groups have already begun reporting reaction non-uniqueness (for instance, reporting a full feasible-model set from PHREEQC inverse modelling and letting the reader inspect it, which is closer to what this manuscript's own PHREEQC baseline shows is already possible with existing software). The \"conceptual advance\" claim would be stronger, and more honestly scoped, if it acknowledged that reporting multiple feasible models is not itself new (PHREEQC has supported this since its inverse-modelling module existed) and located the actual novelty more precisely in the equivalence-class construction and the calibrated resolution score, which this study does show are new relative to raw model enumeration.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R020",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "4. **[Minor]** The wet/dry seasonal-difference claim (\"no wet/dry pattern large enough to justify a seasonal reaction-pathway narrative,\" lines 622-624) is reported without any quantitative comparison (a test statistic, an effect size, or even a descriptive difference in stability scores between seasons) anywhere in the main text; the reader is asked to accept a negative finding on the authors' word alone. Report the actual season-stratified support-stability or held-out-error values, even briefly, so the \"no pattern\" conclusion is auditable rather than asserted.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R021",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "5. **[Minor]** The Limitations section is honest and appropriately thorough (equilibrium-only screening, fixed thermodynamic database, absent age tracers), but it never revisits the MRS baseline-framing issue raised above, even though the MRS's \"moderate, not... strong\" self-assessment (line 512) is exactly the kind of statement the Limitations section exists to expand on with the specific number (the majority-class baseline) rather than leaving it as a qualitative hedge.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R022",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "1. **[Major]** As documented under Results and Discussion issue 1 above, Table 1 and all six main figures are embedded inline within running paragraphs rather than floated and referenced parenthetically, and this is not cosmetic: it breaks at least one sentence's grammar (the \"Agreement between...\" clause) and, in the DOCX, would place a large data table and six large images in the middle of body-text paragraphs rather than as distinct visual elements. This must be fixed before submission; no journal's production system will accept table/figure insertion of this kind.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R023",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "2. **[Major]** I directly verified two of six main figures (Figure 3 and Figure 6) against their described content by opening the rendered PNGs; both accurately represent the text (Figure 3's stoichiometric loading heatmap does show anorthite and calcite loading identically and only onto Ca and HCO3, and Figure 6 panel d does show the tight, region-independent evidence-score/TDS-consistency clustering the text describes). I also opened eight of the eleven supplementary figures. Two of these, cited in the main text as Supplementary Figures S8 and S9, do not show what the main text says they show (see Methodology issue 3 above); this is as much a Tables and Figures defect as a Methods one, since the reader's only path to verifying the ion-ablation and next-best-measurement claims is through these specific cross-references.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R024",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "3. **[Minor]** No compiled \"Supplementary Figures and Tables\" document exists anywhere in `M5/manuscript/supplementary/`, which contains only `Supplementary-Methods.md`. The underlying image files (eleven supplementary figures, seventeen supplementary tables) exist as raw PNG/PDF/TIF and CSV files in the project's `figures/` and `tables/` directories, and they are of good quality where I inspected them, but none of them carry a caption, a figure number tied to manuscript prose, or a validation entry in `artifact_registry.json` (which documents only the six main figures and one main table). A reviewer cannot open one document and check \"Supplementary Figure S9\" against its caption; they must reconstruct the correspondence from filenames alone, which is exactly how the S8/S9 mis-citation above went undetected. Assemble a captioned Supplementary Figures and Tables document analogous to the existing Supplementary Methods document before submission.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R025",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "4. **[Minor]** Table 1's own caption states the conventional PHREEQC inverse row \"aggregates across the strict 5% and relaxed 20% uncertainty settings rather than a single noise level, unlike the other six rows\" (Manuscript-Final.md line 394, artifact_registry.json TAB-1 caption). This is disclosed, which is good practice, but it means Table 1 mixes two genuinely different sampling designs in one comparison table without a visual marker (a footnote symbol, a shaded cell) distinguishing the aggregated row from the six noise-matched rows above it. A reader skimming the table rather than the caption text could easily miss this and directly compare the PHREEQC row's F1 to the guarded model's F1 as though both were computed under matched conditions. Add a table footnote marker directly on the affected row, not only prose in the caption.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R026",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "1. **[Minor]** Two BibTeX entries lowercase the word \"Ghana\" in the rendered reference list because the proper noun is not brace-protected. `anku2008ghana` renders as \"Water quality analysis of groundwater in crystalline basement rocks, northern ghana\" and `banoengyakubo2011ghana` renders as \"Hydrogeology and groundwater resources of ghana: A review of the hydrogeology and hydrochemistry of ghana\" in the compiled DOCX bibliography (verified directly from the converted document text), because APA's sentence-case CSL style lowercases every word not explicitly protected with braces, and these two entries protect nothing. Every other title in `LITERATURE.bib` that contains a proper noun or acronym needing protection (NETPATH, PHREEQC, GLUE, HydroMix, GraphFlow) does use braces correctly, which makes the two Ghana entries a clear oversight rather than a stylistic choice. Wrap `{Ghana}` in both entries' title fields.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R027",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "2. **[Minor]** As already raised in Introduction issue 3, \"companion work\" (line 172) is asserted with no citation and no reference-list entry. If this is to remain in the manuscript, it needs either a citation or explicit \"in preparation\" / \"unpublished\" framing.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R028",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "3. **[Minor]** All five spot-checked citations (Christophersen and Hooper 1992, Beven and Freer 2001, Meinshausen and B\u00fchlmann 2010, Moracchini et al. 2025, Sreekanth et al. 2017) were confirmed to exist and to be accurately represented; see the Citation Integrity Check below for details. No fabrication or misrepresentation concern was found. The reference list's weakness is currency and topical fit, not accuracy: the Sreekanth et al. (2017) citation, used to support \"monitoring-network design that explicitly values the marginal information content of additional measurements\" (lines 74-77) and again for the next-best-measurement framing (lines 746-751), is a paper about spatial groundwater well-network placement using stochastic modelling and reduced-rank spatial prediction, not about which chemical analytes or tracers to add to an existing well's panel. The analogy to this study's ion-selection problem is defensible but is a genuine extension across two different kinds of \"monitoring design\" (where to drill versus what to measure), and the manuscript should say so explicitly rather than letting the citation imply a closer match than exists. A citation to the optimal-tracer or optimal-sampling-design literature specific to geochemical fingerprinting would be a more precise match and should be added alongside, not instead of, Sreekanth et al.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R029",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "1. **[Major]** The mid-paragraph table and figure insertion described under Results and Tables/Figures is, from a pure readability standpoint, the single biggest problem in the manuscript. It occurs at every one of the six main figures and the one main table, meaning roughly a third of the Results section's paragraph breaks are actually broken by an embedded object rather than a deliberate authorial choice, and at least one of those breaks costs the sentence its subject. An editor reading this manuscript cold would very likely stop at the first occurrence (the Table 1 splice, within the first paragraph of Results) and send it back for reformatting before reading further.",
+    "category": "Major",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R030",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "2. **[Minor]** Sentence length is frequently extreme, and this compounds the effect above by making it harder to notice where a sentence has been broken by an inserted object versus where it is simply long by design. One representative example from Discussion: \"The moderate transfer accuracy of the Mechanism Resolution Score (48.9% on the untouched mixed archetype, against a 25% random baseline) is best read alongside, not instead of, the underlying null-space diagnostics: the score compresses six diagnostics into a single ordinal prediction for convenience, but the raw rank, coherence, and stability diagnostics that feed it remain individually inspectable whenever the compressed score alone is insufficient for a specific interpretive decision, so a single moderate accuracy number, reported without the diagnostics behind it, would understate what the framework actually delivers\" (lines 693-702). This is a single sentence of roughly 95 words carrying a parenthetical, a colon-introduced clause, and a \"so\"-clause. Breaking sentences like this into two or three shorter ones at the natural clause boundaries (after \"diagnostics:\" and again after \"decision,\") would not lose any content and would make the argument considerably easier to follow on a first read.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  },
+  {
+    "id": "M5-R031",
+    "reviewer": "Independent pre-submission reviewer",
+    "comment": "3. **[Minor]** The missing title and missing Abstract heading (Section 1 above) are as much an editorial defect as a content one: a manuscript's front matter is normally the first thing a copyeditor checks, and its absence here would be flagged immediately in any production workflow.",
+    "category": "Minor",
+    "requested_action": "Address the finding in full while preserving the manuscript's evidence boundary.",
+    "target_files": [
+      "manuscript/sections",
+      "manuscript/Manuscript-Final-Revised.md"
+    ]
+  }
+]

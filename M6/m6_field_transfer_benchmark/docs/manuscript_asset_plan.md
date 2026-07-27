@@ -8,16 +8,15 @@
 2. **Field-transfer workflow:** existing Figure 2.
 3. **Northern Ghana reaction-class stability:** existing Figure 3.
 4. **Diagnostic ablation:** existing Figure 4, the principal M6 result.
-5. **Within-campaign seasonal hold-forward:** new Figure 9. Graph ridge is
+5. **Within-campaign seasonal hold-forward:** Figure 5. Graph ridge is
    superior to persistence but not distinguishable from the expanding
    mean-delta baseline.
 6. **Limitation map:** existing Figure 6, showing conservative equivalence-class
    reporting and external-data non-identifiability.
 
-Existing Figure 5 (external transfer) is suitable as Extended Data or may
-replace Figure 3 if the target journal prioritizes generalization. Existing
-Figures 7 and 8 should remain Extended Data because they answer validation and
-circularity objections rather than advancing the main field narrative.
+Extended Data Figure 1 reports external transfer. Extended Data Figures 2 and
+3 answer validation and circularity objections rather than advancing the main
+field narrative.
 
 ## Main tables
 
@@ -34,12 +33,14 @@ tier.
 ## Reproduction
 
 ```powershell
-.venv\Scripts\python.exe M6\m6_field_transfer_benchmark\scripts\make_m6_dataset_figure.py
-.venv\Scripts\python.exe M6\m6_field_transfer_benchmark\scripts\make_m6_tables.py
-.venv\Scripts\python.exe M6\m6_field_transfer_benchmark\scripts\make_objective6_prequential_figure.py
+.venv\Scripts\python.exe M6\m6_field_transfer_benchmark\scripts\run_m6_q1.py
 ```
 
-The Python Figure 1 replaces the blank coordinate field with a sourced Ghana
-outline and makes the coordinate mask explicit. The existing R figure suite
-remains authoritative for M6 Figures 2–8. Python Figure 9 uses the same
-two-column dimensions, accessible palette and vector/raster export conventions.
+The R Figure 1 uses `sf` and `ggspatial` with the unsimplified 2021
+geoBoundaries ADM1 Shapefile (16 Ghana regions) and an aligned national outline
+derived from those polygons. Geometry and masked well coordinates are
+transformed to WGS84 / UTM zone 30N (EPSG:32630); the map includes a CRS-aware
+scale bar and true-north arrow and makes the coordinate mask explicit. The R
+suite is authoritative for Figures 1–4 and 6, all three Extended Data figures
+and Supplementary Figures S1–S11. Python Figure 5 uses the same two-column
+dimensions, accessible palette and vector/raster export conventions.

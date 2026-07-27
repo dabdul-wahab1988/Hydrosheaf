@@ -2,6 +2,24 @@
 
 Audit date: 15 June 2026
 
+> **Update (2026-07-26): the "richer workbook" (`Aquifers_Dataset_Mendeley.xlsx`)
+> has been retired from the M5 pipeline.** It was found to be a derived
+> product of a different, antecedent study ("Graph-inverted Ghanaian aquifers
+> under aridification"; see `data/FieldData/NorthenGhana/SI.pdf`) that
+> classified these same boreholes and pre-computed its own connectivity
+> graph, not part of this project's own field data, and it is not present in
+> `data/FieldData/`. All references below to the "richer workbook", its
+> 294-record quantitative subset, aquifer/geology/lithology metadata, and its
+> 397 graph edges describe a source that M5 no longer reads. M5 now uses
+> only the raw `data/FieldData/NorthenGhana/NorthernGhana.xlsx` Dry/Wet
+> sheets (all 160 boreholes, 320 records, no aquifer-type/lithology/SI
+> metadata, no per-record sampling-date column). The accompanying
+> `data/FieldData/NorthenGhana/SI.pdf` (Supplementary Method 1 and
+> Supplementary Table 19) documents the sampling design for these same 160
+> boreholes: a dry-season campaign of 5-24 March 2025 and a wet-season
+> campaign of 5-24 August 2025, one record per borehole per season. See
+> `M5/m5_inverse_reaction_benchmark/DECISIONS.md`.
+
 ## Executive decision
 
 The repository contains enough data and code to build a strong

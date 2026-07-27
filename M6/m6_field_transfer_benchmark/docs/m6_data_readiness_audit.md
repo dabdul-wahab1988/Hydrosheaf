@@ -1,23 +1,26 @@
 # M6 Data-Readiness Audit
 
-Independent audit of the three real Ghanaian datasets used in M6. Charge-balance error
-(CBE) is recomputed from harmonised mmol/L ions (not taken from the source files);
-Northern Ghana's independent CBE reproduces the workbook's own `Data_Class` split
-(294 quantitative / 19 screening / 7 exploratory), validating the harmonisation.
+Independent audit of the three real Ghanaian datasets used in M6, sourced strictly
+from `data/FieldData/` (`NorthenGhana/NorthernGhana.xlsx`, `Talensi_MiningArea/talensi.csv`,
+`LowerAnayari/manu.csv`; see `DECISIONS.md`). Charge-balance error (CBE) is recomputed
+from harmonised mmol/L ions (not taken from any source file); no external quality-class
+field exists in the canonical raw data to check this classification against.
 
 ## Summary
 
 | Dataset | n samples | n sites | Seasonal | Native tier | Quantitative (|CBE|≤5%) | Screening (5–10%) | Exploratory (>10%) | Median |CBE| |
 |---|---:|---:|:--:|---|---:|---:|---:|---:|
-| Northern Ghana (Mendeley) | 320 | 160 | yes (wet/dry, Mar & Aug 2025) | Tier 4 | 294 | 19 | 7 | 1.5% |
+| Northern Ghana (canonical) | 320 | 160 | yes (wet/dry, Mar & Aug 2025) | Tier 4 | 294 | 19 | 7 | 1.5% |
 | Lower Anayari (manu) | 41 | 41 | no | Tier 2 | 36 | 5 | 0 | 3.1% |
 | Talensi (mining area) | 63 | 63 | no | Tier 1 | 0 | 5 | 58 | 29.9% |
 
 ## Interpretation
 
-- **Northern Ghana** is the only dataset at the maximum M6 chemistry/metadata
-  tier: it carries major ions, F, Sr, SiO₂, δ18O, δ2H, saturation indices,
-  aquifer/geology/lithology metadata, QC classes and candidate graph edges. It
+- **Northern Ghana** is the only dataset at the maximum M6 chemistry evidence
+  tier: it carries major ions, F, Sr, SiO₂, δ18O, δ2H and Hydrosheaf-computed
+  PHREEQC saturation indices. No independent aquifer-type, geology, lithology,
+  land-use, QC-class or graph-edge data exists for these boreholes; stratified
+  reporting elsewhere in M6 uses administrative region/district instead. It
   supports the M6 reaction-component diagnostic workflow, not a fully observed
   age–head–screen integration.
 - **Lower Anayari** is a clean Tier-2 external set (majors + F + isotopes; no Sr/SiO₂,
@@ -39,6 +42,9 @@ Northern Ghana's independent CBE reproduces the workbook's own `Data_Class` spli
 
 ## Honesty boundary
 
-No dataset provides independent reaction, flow-path or age truth. The Mendeley inferred
-labels (`Dominant_Process`, `Aquifer_Evolution_Label`, `Graph_Edges`) are used only as
-concordance references. M6 reports transferability and robustness, not field validation.
+No dataset provides independent reaction, flow-path or age truth. An earlier revision of
+this workflow additionally read a different, antecedent study's own inferred labels for
+the Northern Ghana boreholes (`Dominant_Process`, `Aquifer_Evolution_Label`, `Graph_Edges`,
+from `Aquifers_Dataset_Mendeley.xlsx`); those fields, and the workbook that supplied them,
+have been removed from this study entirely rather than retained as a concordance reference
+(`DECISIONS.md`). M6 reports transferability and robustness, not field validation.

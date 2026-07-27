@@ -1,12 +1,15 @@
-## M6 supplementary figures (S1–S10), Nature style — enlarged fonts, collected
+## M6 supplementary figures (S1–S11), Nature style — enlarged fonts, collected
 ## legends, and multi-panel composition where it adds value.
+HERE <- tryCatch(dirname(normalizePath(sub("--file=", "",
+        grep("--file=", commandArgs(FALSE), value = TRUE)))), error = function(e) getwd())
+if (length(HERE) == 0 || is.na(HERE)) HERE <- getwd()
+LOCAL_LIB <- normalizePath(file.path(HERE, "..", "..", "..", ".r-lib"),
+                           mustWork = FALSE)
+if (dir.exists(LOCAL_LIB)) .libPaths(c(LOCAL_LIB, .libPaths()))
 suppressPackageStartupMessages({
   library(ggplot2); library(dplyr); library(tidyr); library(readr)
   library(patchwork); library(forcats); library(stringr); library(scales)
 })
-HERE <- tryCatch(dirname(normalizePath(sub("--file=", "",
-        grep("--file=", commandArgs(FALSE), value = TRUE)))), error = function(e) getwd())
-if (length(HERE) == 0 || is.na(HERE)) HERE <- getwd()
 source(file.path(HERE, "theme_m6.R"))
 BENCH <- normalizePath(file.path(HERE, ".."))
 RES <- file.path(BENCH, "results")
@@ -21,12 +24,15 @@ dslab <- function(x) factor(recode(x, talensi="Talensi", manu="Lower Anayari",
 proc_labels <- c(silicate="Silicate", carbonate="Carbonate", evaporite="Evapoconc.",
                  ion_exchange="Cation exch.", anthropogenic="Nitrate", redox="Redox",
                  trace_mineral="Fluoride", none="Unresolved")
-AQ <- c("Middle Voltaian sedimentary aquifer"="Voltaian sed.",
-        "Birimian fractured basement aquifer"="Birimian bsmt.",
-        "Granitoid fractured basement aquifer"="Granitoid bsmt.",
-        "Regolith/alluvial shallow aquifer"="Regolith/alluv.")
-AQCOL <- c("Voltaian sed."="#3B6EA8","Birimian bsmt."="#008C7A",
-           "Granitoid bsmt."="#C77C2B","Regolith/alluv."="#8C6BB1")
+# No independent aquifer-type/geology-group/lithology classification exists
+# for the raw Northern Ghana boreholes (see DECISIONS.md); stratified
+# reporting uses administrative region instead.
+AQ <- c("Northern Region"="Northern",
+        "North East Region"="North East",
+        "Upper East Region"="Upper East",
+        "Upper West Region"="Upper West")
+AQCOL <- c("Northern"="#3B6EA8","North East"="#008C7A",
+           "Upper East"="#C77C2B","Upper West"="#8C6BB1")
 aqf <- function(x) factor(unname(AQ[x]), levels = unname(AQ))
 save_s <- function(p, name, w, h) m6_save(p, file.path(OUT, name), w, h)
 
@@ -78,9 +84,9 @@ s2 <- function() {
   save_s(m6_tag(a | b), "figureS2_charge_balance", 9.2, 4.6)
 }
 
-## S3 — Seasonal change (evapoconcentration + reactive signal by aquifer) -----
+## S3 — Seasonal change (evapoconcentration + reactive signal by region) -----
 s3 <- function() {
-  p <- rd("m6_ng_field_pairs.csv") |> mutate(aq = aqf(aquifer))
+  p <- rd("m6_ng_field_pairs.csv") |> mutate(aq = aqf(region))
   a <- ggplot(p, aes(aq, evapo_factor, fill = aq)) +
     geom_hline(yintercept = 1, linetype = "dashed", colour = "#999999") +
     geom_boxplot(width = 0.6, outlier.size = 0.4, linewidth = 0.32) +
@@ -98,9 +104,13 @@ s3 <- function() {
 }
 
 ## S4 — Alternative edge networks (composition + divergence metrics) ----------
+## Three Hydrosheaf-generated edge sets, compared against each other; an
+## earlier revision also compared against a fourth "provided_graph" set
+## imported from a retired antecedent-study workbook (see DECISIONS.md),
+## which has been removed rather than substituted.
 s4 <- function() {
   f <- rd("m6_edge_family_distribution.csv")
-  es <- c(provided_graph="Provided graph", chemistry_knn="Chemistry kNN",
+  es <- c(chemistry_knn="Chemistry kNN",
           geographic_nearest="Geographic", random_perturbed="Random")
   f <- f |> mutate(edge_set = factor(unname(es[edge_set]), levels = unname(es)))
   a <- ggplot(f, aes(edge_set, frac, fill = dominant_family)) +
@@ -112,14 +122,14 @@ s4 <- function() {
     theme_m6() + theme(axis.text.x = element_text(angle = 15, hjust = 1))
   s <- rd("m6_edge_network_summary.csv") |>
     mutate(edge_set = factor(unname(es[edge_set]), levels = unname(es))) |>
-    select(edge_set, `TVD vs provided` = tvd_vs_provided,
+    select(edge_set, `TVD vs chemistry kNN` = tvd_vs_chemistry_knn,
            `Mean stability` = mean_stability) |>
     pivot_longer(-edge_set)
   b <- ggplot(s, aes(edge_set, value, fill = name)) +
     geom_col(position = position_dodge(0.7), width = 0.65) +
-    scale_fill_manual(values = c("TVD vs provided"="#C77C2B","Mean stability"="#2166AC"),
+    scale_fill_manual(values = c("TVD vs chemistry kNN"="#C77C2B","Mean stability"="#2166AC"),
                       name = NULL) +
-    labs(subtitle = "Divergence and stability vs provided graph", x = NULL, y = NULL) +
+    labs(subtitle = "Divergence and stability vs chemistry-kNN edges", x = NULL, y = NULL) +
     theme_m6() + theme(axis.text.x = element_text(angle = 15, hjust = 1))
   save_s(m6_tag(a | b), "figureS4_edge_networks", 9.6, 4.8)
 }
@@ -213,7 +223,49 @@ s10 <- function() {
   save_s(g, "figureS10_limitation_detail", 10.5, 5.2)
 }
 
-for (f in list(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10)) {
+## S11 — Competing no-flow explanation sensitivity ---------------------------
+s11 <- function() {
+  null <- rd("m6_null_sensitivity_summary.csv") |>
+    mutate(dataset = dslab(dataset),
+           edge_set = recode(edge_set,
+                             chemistry_knn = "Chemistry kNN",
+                             geographic_nearest = "Geographic nearest",
+                             random_perturbed = "Random perturbed"),
+           comparison = paste(dataset, edge_set, sep = " — ")) |>
+    select(comparison, fraction_gt_0_5, fraction_gt_0_8) |>
+    pivot_longer(starts_with("fraction_"),
+                 names_to = "threshold", values_to = "fraction") |>
+    mutate(threshold = recode(
+      threshold,
+      fraction_gt_0_5 = "Competing screen (>0.5)",
+      fraction_gt_0_8 = "Dominant screen (>0.8)"
+    ))
+  g <- ggplot(
+    null,
+    aes(x = reorder(comparison, fraction), y = fraction, fill = threshold)
+  ) +
+    geom_col(position = position_dodge(width = 0.72), width = 0.64) +
+    coord_flip() +
+    scale_y_continuous(labels = percent, limits = c(0, 1),
+                       expand = expansion(c(0, 0.02))) +
+    scale_fill_manual(values = c(
+      "Competing screen (>0.5)" = "#2166AC",
+      "Dominant screen (>0.8)" = "#B2182B"
+    ), name = NULL, guide = guide_legend(nrow = 1)) +
+    labs(
+      title = "Figure S11. Sensitivity to competing no-flow explanations",
+      x = NULL,
+      y = "Fraction of evaluated edges",
+      caption = paste0(
+        "HydroSheaf screening thresholds, not calibrated field probabilities.\n",
+        "High values restrict flow-path interpretation."
+      )
+    ) +
+    theme_m6()
+  save_s(g, "figureS11_null_sensitivity", 9.2, 5.4)
+}
+
+for (f in list(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11)) {
   ok <- try(f(), silent = FALSE)
   if (inherits(ok, "try-error")) cat("  [warn] a supplementary figure failed\n")
   else cat("supp figure done\n")

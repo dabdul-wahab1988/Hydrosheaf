@@ -1,0 +1,67 @@
+{
+  "schema_version": "2.1",
+  "title": "Evidence integration reduces groundwater interpretive non-uniqueness only conditionally in a single-generator benchmark with adverse controls",
+  "scope": "M7.3 single-generator conditional-integration benchmark: whether combining hydraulic, age and hydrochemical evidence reduces topological and age non-uniqueness, tested against an independent MODFLOW 6/MODPATH 7 synthetic truth with predeclared adverse controls, plus a descriptive Northern Ghana data-scope audit.",
+  "objectives": [
+    {
+      "id": "OBJ-1",
+      "statement": "Quantify the incremental topology-ranking contribution of hydraulic, age and chemical evidence, alone, in pairs and combined, under native and adverse (permuted) conditions.",
+      "acceptance_criteria": [
+        "Native panel PR-AUC/ROC-AUC/Brier/log-loss/entropy/ECE reported for all seven evidence panels",
+        "Case-block bootstrap contrasts reported for native and permuted conditions with 95% CIs",
+        "Predeclared conflict diagnostic reported including its sensitivity outcome"
+      ]
+    },
+    {
+      "id": "OBJ-2",
+      "statement": "Quantify how correct, partial and reversed topology assumptions change groundwater-age accuracy, interval width and coverage under an informative and a weak tracer regime.",
+      "acceptance_criteria": [
+        "Age MAE, bias, 95% coverage and interval width reported for four topology conditions and two tracer regimes",
+        "Importance-sampling ESS and log mean weight reported per case/regime",
+        "Paired case-block bootstrap contrasts reported for correct/partial/reversed vs no-topology"
+      ]
+    },
+    {
+      "id": "OBJ-3",
+      "statement": "Quantify reaction-family recovery under core and enhanced hydrochemical indicator panels, with carbonate processes reported separately.",
+      "acceptance_criteria": [
+        "Modal-family accuracy, true-family probability, support entropy and effective supported families reported per process and panel",
+        "Carbonate weathering and precipitation reported separately from aggregate accuracy"
+      ]
+    },
+    {
+      "id": "OBJ-4",
+      "statement": "Audit the Northern Ghana workbook to separate supportable component diagnostics from non-identifiable field claims.",
+      "acceptance_criteria": [
+        "Evidence-availability audit reported (chemistry, isotopes, age tracers, screen intervals, coordinates, connectivity)",
+        "Explicit claim boundary reported distinguishing supportable from non-identifiable interpretations"
+      ]
+    }
+  ],
+  "inputs": [
+    {"id": "DATA-1", "path": "results/m7_3_locked/evidence_panel_summary.csv", "provenance": "run_m7_3_nonuniqueness.py locked run, protocol commit d336e87"},
+    {"id": "DATA-2", "path": "results/m7_3_locked/evidence_case_bootstrap_contrasts.csv", "provenance": "run_m7_3_nonuniqueness.py locked run"},
+    {"id": "DATA-3", "path": "results/m7_3_locked/topology_age_sensitivity.csv", "provenance": "run_m7_3_nonuniqueness.py locked run"},
+    {"id": "DATA-4", "path": "results/m7_3_locked/topology_age_bootstrap_contrasts.csv", "provenance": "run_m7_3_nonuniqueness.py locked run"},
+    {"id": "DATA-5", "path": "results/m7_3_locked/reaction_nonuniqueness_summary.csv", "provenance": "run_m7_3_nonuniqueness.py locked run"},
+    {"id": "DATA-6", "path": "results/m7_3_locked/ghana_data_scope_audit.json", "provenance": "audit_ghana_workbook, run_m7_3_nonuniqueness.py locked run"},
+    {"id": "DATA-7", "path": "results/m7_3_locked/manifest.json", "provenance": "locked-run manifest, protocol commit d336e87"}
+  ],
+  "risks": [
+    {"id": "RISK-1", "risk": "Synthetic truth is model-conditioned and could be mistaken for field validation", "mitigation": "Explicit claim guardrails in Outline.md, Methods, Discussion and Conclusion distinguishing synthetic from field truth"},
+    {"id": "RISK-2", "risk": "Reduced posterior uncertainty could be misread as improved inference under evidence misspecification", "mitigation": "Predeclared adverse (permutation) controls and paired discrimination/calibration metrics reported alongside entropy"}
+  ],
+  "quality": {"minimum_test_coverage": 80},
+  "implementation": {
+    "backend_language": "python",
+    "entrypoint": "scripts/run_m7_3_nonuniqueness.py",
+    "dependency_lock": "../../.venv",
+    "results_store_profile": "local-files",
+    "r_consumer_enabled": true,
+    "qgis_consumer_enabled": false
+  },
+  "manuscript_requirements": {
+    "figures": ["FIG-1", "FIG-2", "FIG-3", "FIG-4", "FIG-5", "FIG-S1"],
+    "tables": ["TAB-1", "TAB-2", "TAB-3", "TAB-4", "TAB-5", "TAB-6", "TAB-S1", "TAB-S2", "TAB-S3", "TAB-S4", "TAB-S5"]
+  }
+}

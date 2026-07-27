@@ -103,14 +103,19 @@ reported separately and may not be hidden inside aggregate accuracy.
 
 ## Experiment 4: Ghana data-scope audit
 
-The field audit is descriptive, not a truth benchmark. The workbook is checked
-for measured chemistry, environmental age tracers, screen intervals,
-coordinates, hydraulic observations and independent connectivity labels.
+The field audit is descriptive, not a truth benchmark. The canonical workbook
+(`data/FieldData/NorthenGhana/NorthernGhana.xlsx`; an earlier revision audited
+a different, antecedent study's own derived workbook instead, since removed —
+DECISIONS.md) is checked for measured chemistry, environmental age tracers,
+screen intervals, coordinates, hydraulic observations, an intra-season
+sampling-date field and independent connectivity/aquifer-type labels; it
+carries none of the latter five.
 
 Stable water isotopes are recharge/source tracers, not residence-time tracers.
 Elevation minus one static-water-level measurement is a single-occasion head
-proxy, not a repeated head field. Masked coordinates and processed graph edges
-are not independent site-scale flow truth.
+proxy, not a repeated head field. Masked coordinates are not independent
+site-scale flow truth, and no processed graph edges exist in the canonical
+source.
 
 The permitted objective is:
 

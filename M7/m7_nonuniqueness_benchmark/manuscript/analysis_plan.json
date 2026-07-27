@@ -1,0 +1,240 @@
+{
+  "schema_version": "1.0",
+  "artifacts": [
+    {
+      "id": "FIG-1",
+      "kind": "figure",
+      "path": "figures/publication/figure1_benchmark_and_claim_design.png",
+      "objective_ids": ["OBJ-1", "OBJ-2", "OBJ-3", "OBJ-4"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["docs/m7_3_protocol.md", "results/m7_3_locked/ghana_data_scope_audit.json"],
+      "validation_checks": [
+        "schematic matches the locked protocol's four-experiment design",
+        "Ghana claim-boundary panel matches ghana_data_scope_audit.json fields"
+      ]
+    },
+    {
+      "id": "FIG-2",
+      "kind": "figure",
+      "path": "figures/publication/figure2_evidence_integration.png",
+      "objective_ids": ["OBJ-1"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": [
+        "results/m7_3_locked/evidence_panel_summary.csv",
+        "results/m7_3_locked/evidence_case_bootstrap_contrasts.csv"
+      ],
+      "validation_checks": [
+        "panel values match tables/publication/table2_native_evidence_panels.csv",
+        "contrast values match tables/publication/table3_evidence_contrasts.csv",
+        "axis units and CI bars verified against source CSVs"
+      ]
+    },
+    {
+      "id": "FIG-3",
+      "kind": "figure",
+      "path": "figures/publication/figure3_topology_conditions_age.png",
+      "objective_ids": ["OBJ-2"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": [
+        "results/m7_3_locked/topology_age_sensitivity.csv",
+        "results/m7_3_locked/topology_age_bootstrap_contrasts.csv"
+      ],
+      "validation_checks": [
+        "values match tables/publication/table4_topology_age_contrasts.csv",
+        "reversed tritium-only panel annotated with the 8/12 ESS failure noted in docs/m7_3_results.md"
+      ]
+    },
+    {
+      "id": "FIG-4",
+      "kind": "figure",
+      "path": "figures/publication/figure4_reaction_nonuniqueness.png",
+      "objective_ids": ["OBJ-3"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/reaction_nonuniqueness_summary.csv"],
+      "validation_checks": [
+        "values match tables/publication/table5_reaction_nonuniqueness.csv",
+        "carbonate weathering/precipitation panels show zero recovery under both panels"
+      ]
+    },
+    {
+      "id": "FIG-5",
+      "kind": "figure",
+      "path": "figures/publication/figure5_ghana_supportability_boundary.png",
+      "objective_ids": ["OBJ-4"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": [
+        "results/m7_3_locked/ghana_data_scope_audit.json",
+        "M6/m6_field_transfer_benchmark/docs/m6_results_summary.md"
+      ],
+      "validation_checks": [
+        "evidence-to-claim mapping matches tables/publication/table6_ghana_claim_boundary.csv",
+        "no panel implies field validation of topology, age or reaction truth"
+      ]
+    },
+    {
+      "id": "FIG-S1",
+      "kind": "figure",
+      "path": "figures/supporting_validation/figure_s1_model_domain_map.png",
+      "objective_ids": ["OBJ-2"],
+      "generator": "scripts/make_supporting_model_domain_map.R",
+      "inputs": ["results/supporting_validation/cases/locked_test_4101"],
+      "validation_checks": [
+        "coordinates confirmed as synthetic model-space metres, not geographic",
+        "figure caption states it must not be presented on a Ghana or other geographic basemap"
+      ]
+    },
+    {
+      "id": "TAB-1",
+      "kind": "table",
+      "path": "tables/publication/table1_benchmark_design.csv",
+      "objective_ids": ["OBJ-1", "OBJ-2", "OBJ-3", "OBJ-4"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/manifest.json"],
+      "validation_checks": [
+        "case counts, particle counts and bootstrap counts match manifest.json",
+        "candidate recall matches manifest.json (1.000)"
+      ]
+    },
+    {
+      "id": "TAB-2",
+      "kind": "table",
+      "path": "tables/publication/table2_native_evidence_panels.csv",
+      "objective_ids": ["OBJ-1"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/evidence_panel_summary.csv"],
+      "validation_checks": [
+        "PR-AUC/ROC-AUC/Brier/log-loss/entropy/ECE values match evidence_panel_summary.csv for the native condition"
+      ]
+    },
+    {
+      "id": "TAB-3",
+      "kind": "table",
+      "path": "tables/publication/table3_evidence_contrasts.csv",
+      "objective_ids": ["OBJ-1"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/evidence_case_bootstrap_contrasts.csv"],
+      "validation_checks": [
+        "mean differences and 95% CIs match evidence_case_bootstrap_contrasts.csv"
+      ]
+    },
+    {
+      "id": "TAB-4",
+      "kind": "table",
+      "path": "tables/publication/table4_topology_age_contrasts.csv",
+      "objective_ids": ["OBJ-2"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/topology_age_bootstrap_contrasts.csv"],
+      "validation_checks": [
+        "MAE/coverage/interval-width contrasts match topology_age_bootstrap_contrasts.csv for both tracer regimes"
+      ]
+    },
+    {
+      "id": "TAB-5",
+      "kind": "table",
+      "path": "tables/publication/table5_reaction_nonuniqueness.csv",
+      "objective_ids": ["OBJ-3"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/reaction_nonuniqueness_summary.csv"],
+      "validation_checks": [
+        "per-process modal accuracy, true-family probability and entropy match reaction_nonuniqueness_summary.csv"
+      ]
+    },
+    {
+      "id": "TAB-6",
+      "kind": "table",
+      "path": "tables/publication/table6_ghana_claim_boundary.csv",
+      "objective_ids": ["OBJ-4"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/ghana_data_scope_audit.json"],
+      "validation_checks": [
+        "availability/status/defensible-use rows match ghana_data_scope_audit.json fields"
+      ]
+    },
+    {
+      "id": "TAB-S1",
+      "kind": "table",
+      "path": "tables/publication/tableS1_all_evidence_conditions.csv",
+      "objective_ids": ["OBJ-1"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/evidence_panel_summary.csv"],
+      "validation_checks": [
+        "all seven panels reported under all four locked conditions (native, age_permuted, hydraulic_permuted, joint_misspecified)"
+      ]
+    },
+    {
+      "id": "TAB-S2",
+      "kind": "table",
+      "path": "tables/publication/tableS2_case_block_contrasts.csv",
+      "objective_ids": ["OBJ-1"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/evidence_case_bootstrap_contrasts.csv"],
+      "validation_checks": [
+        "all six predeclared contrasts present with paired case-block bootstrap CIs"
+      ]
+    },
+    {
+      "id": "TAB-S3",
+      "kind": "table",
+      "path": "tables/publication/tableS3_topology_age_sensitivity.csv",
+      "objective_ids": ["OBJ-2"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/topology_age_sensitivity.csv"],
+      "validation_checks": [
+        "per-case, per-regime MAE, coverage, entropy and importance ESS reported"
+      ]
+    },
+    {
+      "id": "TAB-S4",
+      "kind": "table",
+      "path": "tables/publication/tableS4_reaction_edge_nonuniqueness.csv",
+      "objective_ids": ["OBJ-3"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/reaction_edge_nonuniqueness.csv"],
+      "validation_checks": [
+        "edgewise modal family, true-family probability and support entropy reported for all scored edges"
+      ]
+    },
+    {
+      "id": "TAB-S5",
+      "kind": "table",
+      "path": "tables/publication/tableS5_conflict_diagnostics.csv",
+      "objective_ids": ["OBJ-1"],
+      "generator": "scripts/make_m7_3_publication_assets.py",
+      "inputs": ["results/m7_3_locked/evidence_conflict_summary.csv"],
+      "validation_checks": [
+        "predeclared univariate probability-span conflict flag reported including its zero sensitivity outcome"
+      ]
+    },
+    {
+      "id": "TAB-7",
+      "kind": "table",
+      "path": "tables/publication/table7_summary_decision_table.csv",
+      "objective_ids": ["OBJ-1", "OBJ-2", "OBJ-3", "OBJ-4"],
+      "generator": "manual synthesis from Tables 3-6 and Supplementary Table S6",
+      "inputs": [
+        "tables/publication/table3_evidence_contrasts.csv",
+        "tables/publication/table4_topology_age_contrasts.csv",
+        "tables/publication/table5_reaction_nonuniqueness.csv",
+        "tables/publication/table6_ghana_claim_boundary.csv",
+        "tables/publication/tableS6_multiplicity_correction.csv"
+      ],
+      "validation_checks": [
+        "every classification traces to a specific contrast and metric already reported in Tables 3-6 or Supplementary Table S6",
+        "classifications for the age and hydraulics PR-AUC contrasts reflect the multiplicity-corrected result, not only the original bootstrap screening"
+      ]
+    },
+    {
+      "id": "TAB-S6",
+      "kind": "table",
+      "path": "tables/publication/tableS6_multiplicity_correction.csv",
+      "objective_ids": ["OBJ-1"],
+      "generator": "scripts/multiplicity_check.py",
+      "inputs": ["results/m7_3_locked/evidence_case_metrics.csv"],
+      "validation_checks": [
+        "exact permutation p-values recomputed directly from per-case paired differences (n=12, 4096 sign permutations)",
+        "Benjamini-Hochberg adjusted p reported for the full predeclared family of 24 contrast-by-metric tests",
+        "native age and native hydraulics PR-AUC rows correctly flagged as not surviving q=0.05 correction while their entropy (and, for hydraulics, calibration) rows are flagged as surviving"
+      ]
+    }
+  ]
+}

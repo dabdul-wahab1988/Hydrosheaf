@@ -1,0 +1,437 @@
+# Response to Reviewers
+
+We thank the independent reviewer. Every numbered Critical, Major, and Minor finding is preserved below and answered individually. Post-hoc analyses are explicitly labelled and do not replace locked primary outputs.
+
+## M6-R001 (Minor)
+
+**Reviewer comment (verbatim)**
+
+1. **[Minor]** The title promises findings "across Ghanaian aquifers," but the manuscript states repeatedly and explicitly that no independent aquifer-type classification exists for any of the three datasets ("No independent aquifer-type, geology-group, lithology, land-use, quality-control-class, or process-label metadata exists for these boreholes beyond region and district," Study design and datasets) and that every result is reported by dataset or administrative region instead. A reader who takes the title at face value would expect aquifer-stratified findings, which the paper explicitly does not and cannot provide. Retitle to reference datasets, sites, or catchments rather than aquifers, for example "...across three Ghanaian groundwater datasets," or add a subtitle clause that makes clear the stratification is by dataset and region, not aquifer type.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R002 (Minor)
+
+**Reviewer comment (verbatim)**
+
+2. **[Minor]** The abstract is a single 249-word paragraph, denser and longer than the roughly 150-200 word unstructured-abstract convention typical of the Nature-portfolio Communications journals (Outline.md records Communications Earth & Environment as the working target). It packs the aim, three datasets, five separate quantitative results (Tier-4 baseline, tier-ablation collapse, external transfer for two datasets, edge-uncertainty, hold-forward) and the significance statement into one block, which makes it hard to skim. Trim to the aim, one or two headline numbers, and the significance statement, and move the remaining quantitative detail (edge-uncertainty result, hold-forward baseline comparison) into the main text only.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R003 (Minor)
+
+**Reviewer comment (verbatim)**
+
+3. **[Minor]** The abstract's closing sentence ("The significance is a conservative, evidence-gated framework stating which process interpretations survive sparse field data...") does not disclose that this framework has so far been demonstrated on only one of the three datasets reaching the tier where its core diagnostic (Sr/SiO2 corroboration) is even testable, and only within Ghana. The Discussion is explicit about this ("the tier-ablation result... has been demonstrated as a within-Ghana transfer and not yet as a transfer across substantially different lithological provinces elsewhere in West Africa"), but the abstract's significance claim reads as more general than that. Add a short qualifying clause to the abstract's final sentence, for example "...demonstrated within one well-resourced Ghanaian dataset and two sparser external transfers."
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R004 (Major)
+
+**Reviewer comment (verbatim)**
+
+1. **[Major]** The literature underpinning the novelty claim is not current. A web search conducted for this review returned several 2024-2025 papers applying machine-learning and data-driven methods to Ghanaian groundwater characterization that are directly on-topic and are not cited or discussed anywhere in the manuscript: a 2024 machine-learning groundwater-quality-prediction study for the Nabogo Basin in Northern Ghana (PMC11002067), and a 2025 machine-learning groundwater-pollution-prediction study for a Ghanaian crystalline-aquifer terrain (Earth Systems and Environment, 2025). A 2024 paper on identification of hydrogeochemical processes via multivariate statistics and inverse geochemical modeling (Environmental Monitoring and Assessment) is also relevant to the equifinality/identifiability framing and is absent. None of the manuscript's 21 bibliography entries postdate 2022 except the one 2025 GraphFlow citation. Search for and cite at least the Ghana-specific 2024-2025 examples, and add one or two sentences explicitly distinguishing this study's identifiability-class-and-evidence-gate framing from what those machine-learning characterization studies do.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R005 (Major)
+
+**Reviewer comment (verbatim)**
+
+2. **[Major]** The paper's central novelty claim, "no existing Ghanaian or, more broadly, West African groundwater study... has reported this kind of transparent, quantitative map," is anchored to only four regional citations (anku2008ghana, banoengyakubo2011ghana, chegbeleh2020talensi, zakaria2021anayari), none of which is a computational or machine-learning study. Given the recent, on-topic papers identified in the previous point, this claim is not yet adequately tested against the current literature landscape. Either broaden the search underlying this claim and show that the identified 2024-2025 studies do not, in fact, report this kind of evidence-tiered identifiability map (which is plausible, since they appear to be prediction/classification studies rather than identifiability-audit studies), stating explicitly why they are different, or soften the claim further.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R006 (Minor)
+
+**Reviewer comment (verbatim)**
+
+3. **[Minor]** The third paragraph of the Introduction ("To the authors' knowledge, no existing Ghanaian...") runs to roughly 200 words in a single block, covering the novelty claim, the citation list, a critique of what the regional studies do and do not do, and a statement of practical stakes. This is too much for one paragraph to carry cleanly. Split it after the sentence ending "...an interpretation that looks equally confident whether or not it is actually well supported carries a real decision cost" is reached, or earlier, into two paragraphs, one stating the gap and one stating the stakes.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R007 (Minor)
+
+**Reviewer comment (verbatim)**
+
+4. **[Minor]** The Predictions in Ungauged Basins (PUB) analogy (sivapalan2003pub, hrachowitz2013pub) is used as the paper's main methodological precedent for "evaluating a model by how it degrades as evidence is withdrawn," and it is honestly flagged as a streamflow analogy rather than a hydrogeochemistry precedent. That honesty is appropriate, but the Introduction does not attempt to find a closer, hydrogeochemistry-specific transferability or data-scarcity precedent, if one exists, before reaching for the streamflow literature. A brief search for reaction-inference or geochemical-model transferability studies (rather than parameter-calibration transferability, which is a different problem) would strengthen this argument if such a precedent can be found, or would confirm that the PUB analogy is genuinely the best available anchor.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R008 (Major)
+
+**Reviewer comment (verbatim)**
+
+1. **[Major]** The evidence-lift-gate's tracer-corroboration thresholds, SiO2 >= 10 mg/L for silicate, Sr >= 0.10 mg/L or a saturation index for carbonate, F > 0.05 mmol/L for fluoride mobilisation (Supplementary Methods S5), are asserted to come from "conventional analytical reporting levels" (main Methods) but no citation, standard, or specific analytical detection-limit reference is given for any of the three numbers. These thresholds are not a peripheral detail: they are what converts a numerically well-fitting reaction estimate into a "non-identifiable" classification, and the Discussion itself states they were "not varied in a sensitivity analysis." Given that the paper's headline number (51.9% of wells losing identifiability) is entirely downstream of the Sr/SiO2 threshold specifically, cite the source of each threshold (a stated laboratory reporting limit, an EPA or WHO method detection-limit standard, or equivalent), or run the sensitivity analysis now rather than deferring it to future work.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R009 (Major)
+
+**Reviewer comment (verbatim)**
+
+2. **[Major]** Bootstrap resample counts for the support-stability diagnostic range from B = 8 to B = 48 "for runtime rather than precision reasons" (Study design and datasets; Supplementary Methods S4). B = 8 is a small number of resamples from which to estimate a Jaccard-similarity-based stability statistic, and no standard error or confidence interval is reported for the stability metric itself at the low end of that range, so a reader cannot tell whether the reported stability values (0.958-0.976 in Table 3) are precise estimates or noisy ones. Report the standard error (or a bootstrap-of-the-bootstrap) of the stability estimate at B = 8, or re-run the lowest-B experiments at a uniform, larger B (for example 200) to confirm the reported values are not sensitive to this choice.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R010 (Major)
+
+**Reviewer comment (verbatim)**
+
+3. **[Major]** The penalty scale for reactions requiring an unmeasured ion is fixed at 20, versus 1 for eligible reactions, and is asserted to be "large enough... to exclude them from the selected support without altering the optimisation of eligible reactions" (main Methods), but no diagnostic is reported to substantiate this claim. A penalty ratio that is too small could allow an ineligible reaction into the support under some residual configurations; a penalty that is too large could distort the L1/L2 optimisation of the eligible reactions it sits alongside in the same objective. Report a small sensitivity check, for example penalty scale 10 versus 20 versus 50 on a representative subset of wells, showing that the selected support and fitted extents are stable across this range.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R011 (Major)
+
+**Reviewer comment (verbatim)**
+
+4. **[Major]** Study design and datasets and the Methods section both describe the Northern Ghana sampling as occurring "in both the wet and dry seasons of March and August 2025" without stating which month is which season, but the Variable availability and evidence tiers subsection states explicitly, "Northern Ghana was also sampled twice, in March (wet season) and August (dry season) 2025." This directly contradicts Supplementary Methods S11, which states, "the canonical field data record one dry-season (March 2025) and one wet-season (August 2025) observation per well." Only one of these can be correct, and the Supplementary Methods version is consistent with Northern Ghana's actual seasonality (a Sudan/Guinea-savannah dry season running roughly November to April, with peak rainfall in August), and with S11's own hold-forward design, which requires dry-season features to precede the wet-season label chronologically. Fix the sentence in Variable availability and evidence tiers to read "March (dry season) and August (wet season)," and audit the rest of the manuscript for the same swap (see the Cross-Section Consistency Audit below for the full detail).
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R012 (Minor)
+
+**Reviewer comment (verbatim)**
+
+5. **[Minor]** Three separate hyperparameters or thresholds that all bear directly on the same headline number, the Sr/SiO2 tracer-corroboration thresholds, the unmeasured-ion penalty scale, and the bootstrap resample count, are each individually disclosed by the authors as untested for sensitivity, but no combined sensitivity analysis is reported. Reporting three separate, deferred, single-parameter caveats understates the cumulative uncertainty on the 51.9% figure. At minimum, add a small combined-sensitivity table varying the two or three most consequential choices together and report the resulting range for the headline non-identifiable fraction, rather than leaving each caveat isolated.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R013 (Major)
+
+**Reviewer comment (verbatim)**
+
+1. **[Major]** The Results paragraph describing the tier-ablation collapse, the paper's stated "pivotal result," mislabels which tracer is removed at which step. It reads: "Removing isotopes (Tier 1) and then fluoride and all remaining lifters (Tier 0) left the non-identifiable fraction close to this level (51.9% and 60.0% respectively)." But per the Methods' own tier ladder (Tier 1 = majors + isotopes; Tier 2 = Tier 1 + fluoride), descending from Tier 2 to Tier 1 removes fluoride, not isotopes, since isotopes remain present at Tier 1; descending from Tier 1 to Tier 0 removes isotopes, not "fluoride and all remaining lifters," since fluoride was already gone by Tier 1. The underlying numbers in Table 3 are correct and internally consistent (confirmed against results/m6_tier_ablation.csv and Supplementary Table S4 in this review), so this is a labeling error in the prose, not a numerical one, but it sits inside the sentence that identifies exactly which measurement is responsible for which portion of the identifiability loss, which is the paper's central, most quotable finding. Rewrite the sentence to read "Removing fluoride (Tier 1) and then isotopes and all remaining lifters (Tier 0)..." and re-check every other place in the manuscript (Discussion, Conclusion) that references this specific tier-by-tier attribution.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R014 (Major)
+
+**Reviewer comment (verbatim)**
+
+2. **[Major]** The external-transfer paragraph draws a comparative causal claim from Talensi data that Table 1 explicitly says cannot support it. Table 1 assigns Talensi's claim strength as "External transfer; screening only (charge-balance limited)," and reports that 0 of 63 Talensi samples meet the primary quantitative charge-balance threshold applied everywhere else in the study (all 63 fall into screening or exploratory quality). Despite this, the Results text states: "Talensi (Tier 1) returned 37.2% non-identifiable edges, materially lower than a Northern Ghana edge-based Tier-1 reference of 54.2%... the direction of this comparison reverses what a data-availability-only account would predict, and is read here as evidence that per-dataset process composition... drives the non-identifiable rate at least as much as the evidence tier itself." This is a specific, comparative, causal-sounding inference drawn from a dataset the manuscript itself has flagged, one page earlier, as unsuitable for quantitative interpretation. Either re-state the screening-only caveat immediately before this specific comparison (not only in the earlier Dataset readiness section), or soften the causal language from "is read here as evidence that" to something more tentative, such as "is at least consistent with, though not established by, given Talensi's independent charge-balance limitation."
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R015 (Major)
+
+**Reviewer comment (verbatim)**
+
+3. **[Major]** The competing no-flow-explanation sensitivity screen (Section "Dataset readiness and missingness"; Supplementary S12) found that chemistry-similarity edges score a mean null score above 0.89 in every dataset, and that 96-100% of edges in every dataset/edge-set combination exceed the 0.5 competing-explanation screening threshold. This means that almost every constructed edge used anywhere in the paper, including the ones underlying the precise-looking external-transfer percentages (37.2%, 95.3%) and the edge-uncertainty statistics, could equally be explained by a non-flow process. The manuscript states this caveat once, in the Dataset readiness paragraph, but does not repeat it where the specific percentages are reported (the External transfer subsection, Table 4, Extended Data Figure 1). A reader who reads only the External transfer subsection would not encounter this important qualifier. Add the caveat, in one sentence, directly to the paragraph introducing the 37.2%/95.3% figures and to the Table 4 caption, not only to the earlier readiness discussion.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R016 (Minor)
+
+**Reviewer comment (verbatim)**
+
+4. **[Minor]** The reaction-family label "anthropogenic" is used in Supplementary Table S6 and the Figure ED1 legend to describe the external-dataset dominant-process breakdown, while the main-text Results and Figure 3 use "agro-domestic nitrate loading" or "nitrate loading" for what appears to be the same reaction-dictionary family. The manuscript never states that these are the same label used in two different places. Standardise on one family name across all main-text prose, tables, and figure legends, or add one clarifying sentence the first time "anthropogenic" appears stating that it corresponds to the nitrate-loading family described earlier.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R017 (Minor)
+
+**Reviewer comment (verbatim)**
+
+5. **[Minor]** The Discussion's "Monitoring implications" subsection generalizes the strontium/silica recommendation to "a silicate-dominated, data-limited Ghanaian aquifer" in general, based on results demonstrated specifically for Lower Anayari (41 samples) and the Northern Ghana Tier-3-to-2 transition (320 samples). The Discussion's own Fifth limit, two paragraphs later, flags that Lower Anayari's much smaller sample size relative to Northern Ghana is a confound not yet separated from the tracer-availability effect the study set out to isolate. These two points are never explicitly connected: a reader encountering the monitoring recommendation has no signal that its main evidentiary basis (Lower Anayari) carries an unresolved sample-size confound flagged three paragraphs later. Add a forward reference at the point the recommendation is made, directing the reader to the Fifth limit, so the two are read together.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R018 (Minor)
+
+**Reviewer comment (verbatim)**
+
+1. **[Minor]** artifact_registry.json's interpretation field for TAB-3 states, "The frac_family_changed_vs_tier4 column is constant (0.331) across Tiers 0-3," but the current tables/table3_tier_ablation.csv, and the manuscript's own Results text ("a constant 35.6% of wells at every ablated tier"), both report 0.356. This is a stale number left over from before the canonical-field-data correction, not refreshed when the underlying table was regenerated. It does not affect the manuscript body, which is internally consistent, but the artifact registry is one of the files this review was asked to check, and a reader who cross-references it against the manuscript would find a discrepancy. Update artifact_registry.json's TAB-3 interpretation field to match the current CSV (0.356).
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R019 (Minor)
+
+**Reviewer comment (verbatim)**
+
+2. **[Minor]** Figure ED1 panel d uses "Nitrate" as a legend colour label for what Supplementary Table S6 records as the "anthropogenic" family in the same dataset. This is the figure-level instance of the terminology drift flagged in Results and Discussion issue 4 above. Use one consistent family name across the figure legend and the supplementary table it summarises.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R020 (Minor)
+
+**Reviewer comment (verbatim)**
+
+3. **[Minor]** Table 3 and Table 4 both carry a caption note explaining that they use different inference-unit constructions (within-well seasonal pairs versus edge residuals) and are not tier-for-tier comparable, which is good, transparent practice. However, this caveat lives only in the table captions; Figure 4 and Extended Data Figure 1, which visualize the same two tables, do not carry an equivalent on-figure note. A reader who looks only at the figures, without reading both captions closely, could conflate the two "Tier 1"/"Tier 2" labels as meaning the same thing in both figures. Add a short one-line note directly on Figure 4 and Extended Data Figure 1 (for example, in the figure's own caption text or as a subtitle) restating which inference-unit construction each figure uses.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R021 (Major)
+
+**Reviewer comment (verbatim)**
+
+1. **[Major]** The bibliography contains no citation of machine-learning or data-driven groundwater-process-characterization work published in the last two years, despite this being an active literature directly relevant to the paper's core theme (see Introduction critique). Add at least the two or three most relevant recent Ghana-specific examples identified in this review (the 2024 Nabogo Basin machine-learning groundwater-quality study and the 2025 Ghanaian crystalline-aquifer machine-learning pollution-prediction study), and explicitly position this study's identifiability-aware, evidence-gated approach against them in the Discussion.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R022 (Minor)
+
+**Reviewer comment (verbatim)**
+
+2. **[Minor]** moracchini2025graphflow is cited immediately after "a random/perturbed null set of matched size" in both the Study design section and the Methods section, implying it supports that specific null-edge-set construction choice. Verified via web search for this review: the cited paper (Moracchini et al., Geoscientific Model Development, 2025) approximates groundwater contaminant transport using graph shortest-path computation for fault-scenario selection; it does not itself use or validate a random/perturbed null-edge-set comparator. The citation is a reasonable general precedent for "graph-based methods applied to groundwater," but is attached at a point in the text that implies closer methodological support than the cited paper actually provides. Move the citation to a more general sentence about graph-based groundwater methods, or pair it with a citation specific to null/random-graph comparison methodology (the already-cited Meinshausen and Bühlmann 2010 stability-selection paper is a more natural anchor for the random-null-comparator idea specifically).
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R023 (Minor)
+
+**Reviewer comment (verbatim)**
+
+3. **[Minor]** Two of the three regional field-setting citations, chegbeleh2020talensi and zakaria2021anayari, are each the sole citation anchoring an entire external dataset's hydrogeological framing. Both were independently verified via web search for this review (see Citation Integrity Check below) and found to represent their source papers accurately, which is a genuine strength and reflects the correction recorded in DECISIONS.md. Even so, resting each external site's entire hydrogeological context on a single paper is thin. Add at least one additional independent source per external dataset if one exists in the literature, to avoid single-source dependency for framing claims about Talensi and Lower Anayari specifically.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R024 (Major)
+
+**Reviewer comment (verbatim)**
+
+1. **[Major]** Sentence length is a pervasive readability problem throughout the manuscript. From the Introduction: "To the authors' knowledge, no existing Ghanaian or, more broadly, West African groundwater study, including the regional hydrochemistry studies drawn on for the field settings analysed here [citations], has reported this kind of transparent, quantitative map: which process interpretations remain stable under real, uneven field evidence, which collapse when a specific diagnostic is missing, and which single additional measurement would most reduce ambiguity at a given site." This single sentence runs to roughly 75 words and asks the reader to hold the novelty claim, a four-item citation list, and a three-part definition in mind simultaneously. A cleaner version would separate the claim from its unpacking: "To the authors' knowledge, no existing Ghanaian or West African groundwater study has reported this kind of transparent, quantitative map [citations]. Such a map would show which process interpretations remain stable under real, uneven field evidence, which collapse when a specific diagnostic is missing, and which single additional measurement would most reduce ambiguity at a given site." This pattern recurs throughout the document and should be checked globally.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R025 (Major)
+
+**Reviewer comment (verbatim)**
+
+2. **[Major]** The same long-sentence pattern recurs in the paper's most important passages, not only in peripheral ones. The pivotal tier-ablation paragraph in Results and the "Monitoring implications" paragraph in Discussion both pack a headline number, a mechanistic explanation, and a qualifying caveat into single 70-90-word sentences. This trades brevity for precision and hedging, but at real cost to a reader's ability to follow the argument on a single pass, which matters most exactly where the paper wants the reader to retain the point. Run a global pass targeting any sentence over roughly 45-50 words and split it into two.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R026 (Minor)
+
+**Reviewer comment (verbatim)**
+
+3. **[Minor]** Setting the sentence-length issue aside, the manuscript is otherwise clean. UK spelling is applied consistently ("harmonised," "modelling," "characterised"), passive and non-personal construction is used correctly throughout, and terminology is largely stable (Mechanism Resolution Score is standardised to MRS after its first definition). This technical correctness should be preserved while the sentence-length issue above is addressed; a copy-edit pass that only shortens sentences, without otherwise rewriting the prose, would likely resolve most of the readability concern.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R027 (Minor)
+
+**Reviewer comment (verbatim)**
+
+4. **[Minor]** Direct word-count of the assembled manuscript body (Introduction through Conclusion, excluding figure/table captions and equations) in this review comes to approximately 6,700-6,750 words, which exceeds the project's own stated 6,500-word ceiling recorded in DECISIONS.md, and, more importantly, exceeds the roughly 5,000-word main-text guideline of Communications Earth & Environment, the journal named in Outline.md's working title (Methods is excluded from that journal's count; even so, the remaining prose is approximately 5,800-5,900 words, about 17% over). DECISIONS.md's own recorded count (6,126 words, "within the 6,500-word ceiling") predates the July 26-27 canonical-data and saturation-index correction rounds, which added substantial new disclosure text, and was not updated after those rounds. Recount the current manuscript and either trim toward the target length (Results and Discussion, the two longest and most repetitive sections, are the most likely places to cut) or update the internal record and confirm the intended venue's actual limit before submission.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R028 (Major)
+
+**Reviewer comment (verbatim)**
+
+1. **[Major]** The paper's central novelty claim rests on a literature search that, as flagged in the Introduction and References critiques, does not yet engage the most current (2024-2025) machine-learning and data-driven groundwater-characterization literature for Ghana specifically. Until that comparison is made explicit, the claim that no existing study has reported this "transparent, quantitative map" cannot be fully verified as stated, even though the specific identifiability-class-and-evidence-gate framing this paper uses is plausibly still distinct from prediction-focused machine-learning studies. Add the comparison explicitly rather than leaving the novelty claim to stand on an incomplete search.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R029 (Minor)
+
+**Reviewer comment (verbatim)**
+
+2. **[Minor]** The contribution is honestly and explicitly scoped by the authors: "The contribution is not a new inference method: the sparse inverse reaction model and its calibration are reused unchanged." This is a genuine strength and avoids the common failure mode of over-claiming methodological novelty. It does mean, however, that the paper's novelty rests entirely on the evidence-tier-ablation and conservatism-prior framing applied to a new region, and the manuscript does not benchmark this framing against any other identifiability-aware or evidence-tiered environmental modeling framework beyond the GLUE/equifinality citations (Beven and Freer 2001; Beven 2006) already used. Add a short paragraph in the Discussion positioning the evidence-tier-ablation idea itself against any other identifiability-aware or evidence-graded inverse modeling frameworks the authors are aware of, in hydrogeochemistry or an adjacent field, to substantiate that the framing itself, not only its Ghanaian application, is a genuine contribution.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R030 (Minor)
+
+**Reviewer comment (verbatim)**
+
+3. **[Minor]** The paper's most concrete, actionable output, the recommendation to add strontium and silica measurements, is explicitly and honestly described by the authors as "not the discovery that these tracers matter, which is established domain knowledge, but a dataset-specific, quantified demonstration of how much identifiability is lost when they are absent." This honest framing should be preserved. It does mean, though, that the manuscript's two genuinely novel contributions, the fit-quality-versus-identifiability dissociation and the evidence-gate-as-conservatism-prior framing, currently share narrative weight with a recommendation that is, by the authors' own admission, a quantification of an already-expected relationship. Foreground the two genuinely novel points more clearly as the headline contribution in the abstract and Conclusion, rather than giving the strontium/silica recommendation equal billing.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+
+## M6-R031 (Minor)
+
+**Reviewer comment (verbatim)**
+
+4. **[Minor]** Generalizability is explicitly and appropriately limited by the authors to "a within-Ghana transfer" on three specific, non-randomly-selected datasets (Discussion, First limit), and the authors themselves identify prospective application to an independently collected dataset as the necessary next test (Discussion, Third limit), which has not yet been done. This honesty is a strength for research integrity, but it constrains how much weight the abstract's significance claim can currently bear. No further action is required beyond what the authors already state, other than ensuring the abstract's own framing (see Title and Abstract issue 3) is consistent with this acknowledged limit.
+
+**Response**
+
+Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+
+**Location and change**
+
+See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.

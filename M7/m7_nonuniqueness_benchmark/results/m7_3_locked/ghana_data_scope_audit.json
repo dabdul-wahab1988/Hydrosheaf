@@ -1,11 +1,11 @@
 {
-  "workbook": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\data\\NorthenGhana\\Aquifers_Dataset_Mendeley.xlsx",
-  "workbook_sha256": "1fe0f8a7f600bcdf67f34b7ee28b4c6e9374fff2365c50220e47c687386b006e",
+  "workbook": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\data\\FieldData\\NorthenGhana\\NorthernGhana.xlsx",
+  "workbook_sha256": "55ca931f98ba2424d0711697b4b80b18b9a12b97c91f4738aa45f78b318aae0e",
   "n_wells": 160,
   "n_hydrochemistry_rows": 320,
   "n_seasons": 2,
-  "first_sampling_date": "2025-03-05",
-  "last_sampling_date": "2025-08-24",
+  "sampling_date_field_available": false,
+  "sampling_granularity": "one dry-season and one wet-season observation per well; no intra-season sampling-date field exists in the canonical source",
   "major_chemistry_available": true,
   "stable_water_isotopes_available": {
     "d18O": true,
@@ -23,13 +23,14 @@
   "time_varying_head_series_available": false,
   "single_occasion_head_proxy_possible": true,
   "coordinates_masked": true,
-  "masking_distance_statement": "approximately 1\u20133 km",
-  "processed_graph_edges_available": true,
+  "masking_distance_statement": "approximately 1-3 km (SI.pdf)",
+  "processed_graph_edges_available": false,
   "independent_field_connectivity_truth_available": false,
   "independent_field_reaction_truth_available": false,
+  "independent_aquifer_type_classification_available": false,
   "supportable_interpretations": [
     "data readiness and measurement-value audit",
-    "within-campaign seasonal chemistry hold-forward",
+    "within-campaign seasonal chemistry hold-forward under a disclosed arbitrary well-revelation order",
     "reaction-family plausibility and equivalence classes",
     "sensitivity to alternative assumed edge sets",
     "null explanations and non-identifiability classification"
@@ -39,7 +40,8 @@
     "exact directed field flow paths",
     "screen-resolved vertical connectivity",
     "unique field reaction mechanisms",
-    "fully observed field digital twin"
+    "fully observed field digital twin",
+    "true chronological sampling sequence within a season"
   ],
   "objective_6": "Apply the framework and its component diagnostics to Ghanaian aquifer datasets to determine which integrated interpretations are supportable under available data and which remain non-identifiable."
 }

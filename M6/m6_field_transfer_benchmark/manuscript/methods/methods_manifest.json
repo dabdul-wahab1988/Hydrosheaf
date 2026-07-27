@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "outline_path": "Outline.md",
+  "main_methods_path": "manuscript/sections/03-methods/section.md",
+  "supplementary_methods_path": "manuscript/supplementary/Supplementary-Methods.md",
+  "main_word_limit": 1300,
+  "word_count_policy": "Prose only; excludes headings, equations, and citations. Part of an overall 6500-word main-text budget (Introduction through Conclusion) set by the user.",
+  "citation_style": "APA 7",
+  "language": "UK English",
+  "tense_voice": "Past-tense, passive, non-personal",
+  "bibliography_path": "manuscript/LITERATURE.bib",
+  "csl_path": "manuscript/methods/apa.csl",
+  "evidence_ledger_path": "manuscript/methods/methods_evidence.csv",
+  "literature_search_path": "manuscript/methods/literature_search.json",
+  "human_review_path": "manuscript/methods/human_review.json",
+  "output_docx_path": "manuscript/Manuscript-Final.docx",
+  "supplementary_methods_required": true,
+  "supplementary_word_target": 4800,
+  "reporting_guidelines": [
+    {
+      "name": "None applicable (not a biomedical or clinical study design)",
+      "scope": "N/A",
+      "source": "N/A",
+      "applicability": "M6 is a computational hydrogeochemical field-transfer and robustness benchmark applied to real aquifer chemistry data; no EQUATOR-listed guideline applies to this study design."
+    }
+  ],
+  "required_artifact_refs": [
+    {"id": "FIG-2", "kind": "figure", "destination": "main"},
+    {"id": "TAB-S7", "kind": "table", "destination": "supplementary"},
+    {"id": "TAB-S8", "kind": "table", "destination": "supplementary"}
+  ],
+  "required_supplementary_sections": [
+    "S1. Data harmonisation, unit conversion and ion-name crosswalk",
+    "S2. Independent charge-balance error calculation and QC-tier classification",
+    "S3. Evidence-tier ladder and inference-unit definitions",
+    "S4. Sparse inverse reaction estimator and transferred identifiability classification",
+    "S5. Evidence-lift gate and tracer-corroboration rules",
+    "S6. Candidate edge-set construction algorithms",
+    "S7. Robustness and circularity diagnostics (evidence-gate on/off, structural diagnostics, bootstrap confidence intervals)",
+    "S8. Synthetic ground-truth validation protocol",
+    "S9. Transport-correction sensitivity protocol",
+    "S10. Talensi charge-balance diagnosis",
+    "S11. Within-campaign seasonal hold-forward benchmark (reused M7.2 protocol)",
+    "S12. Competing no-flow (null-model) sensitivity protocol",
+    "S13. Uncertainty-metric definitions",
+    "S14. Removal of borrowed antecedent-study fields",
+    "S15. Reproducibility protocol and computational environment"
+  ],
+  "equations": [
+    {"id": "EQ-1", "destination": "main", "role": "primary", "purpose": "Defines the Cl-conservative transport-corrected reactive residual (inference-unit input)", "evidence_id": "METH-07"},
+    {"id": "EQ-2", "destination": "main", "role": "primary", "purpose": "Defines the penalised sparse bounded reaction-extent estimator", "evidence_id": "METH-08"},
+    {"id": "EQ-S1", "destination": "supplementary", "role": "derivation", "purpose": "Independent charge-balance error formula and QC-tier thresholds", "evidence_id": "METH-05"},
+    {"id": "EQ-S2", "destination": "supplementary", "role": "derivation", "purpose": "Standardised diagnostic design vector and MRS/class-score projection", "evidence_id": "METH-09"},
+    {"id": "EQ-S3", "destination": "supplementary", "role": "derivation", "purpose": "Deuterium-excess evaporation corroboration rule referenced to the global meteoric water line", "evidence_id": "METH-13"},
+    {"id": "EQ-S4", "destination": "supplementary", "role": "derivation", "purpose": "Bootstrap Jaccard support-stability statistic", "evidence_id": "METH-10"}
+  ]
+}

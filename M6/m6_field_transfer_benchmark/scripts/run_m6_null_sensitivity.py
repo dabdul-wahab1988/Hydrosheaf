@@ -51,6 +51,12 @@ def _sample_mapping(row: Mapping[str, object]) -> dict[str, object]:
     out["2H"] = _finite(row.get("d2H"))
     out["lat"] = _finite(row.get("Latitude"))
     out["lon"] = _finite(row.get("Longitude"))
+    # No independent aquifer-type, geology-group, or lithology classification
+    # exists for the raw Northern Ghana boreholes (see DECISIONS.md), so the
+    # null model's common-lithology check has no data to act on for this
+    # dataset and contributes 0 rather than a lithology-based penalty; it
+    # remains active for Talensi/Lower Anayari, which carry a fixed
+    # site-level Aquifer_Type label.
     out["aquifer_unit"] = row.get("Aquifer_Type")
     out["aquifer_layer"] = row.get("Geology_Group")
     out["lithology"] = row.get("Lithology")
@@ -85,21 +91,16 @@ def _null_config() -> Config:
 
 
 def _northern_edge_sets(df: pd.DataFrame) -> dict[str, list[tuple[str, str]]]:
+    # Three Hydrosheaf-generated edge sets. An earlier revision also scored a
+    # fourth "provided_graph" set imported from a retired antecedent-study
+    # workbook (see DECISIONS.md); it has been removed, not substituted.
     dry = df[df["season"].eq("Dry")].reset_index(drop=True)
-    nodes = {r["site_id"]: r["sample_id"] for r in dry.to_dict("records")}
-    graph = pd.read_excel(m6.DATA["northern_ghana"], sheet_name="Graph_Edges")
-    provided: list[tuple[str, str]] = []
-    for _, row in graph.iterrows():
-        source = nodes.get(row.get("Source_Well_ID"))
-        target = nodes.get(row.get("Target_Well_ID"))
-        if source and target:
-            provided.append((source, target))
     rng = np.random.default_rng(m6.SEED)
+    chemistry_edges = m6.chemistry_knn_edges(dry, k=3)
     return {
-        "provided_graph": sorted(set(provided)),
-        "chemistry_knn": m6.chemistry_knn_edges(dry, k=3),
+        "chemistry_knn": chemistry_edges,
         "geographic_nearest": m6.geographic_edges(dry, k=3),
-        "random_perturbed": m6.random_edges(dry, n=len(provided), rng=rng),
+        "random_perturbed": m6.random_edges(dry, n=len(chemistry_edges), rng=rng),
     }
 
 
@@ -160,6 +161,21 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def _to_markdown(frame: pd.DataFrame) -> str:
+    columns = [str(column) for column in frame.columns]
+    lines = [
+        "| " + " | ".join(columns) + " |",
+        "| " + " | ".join(["---"] * len(columns)) + " |",
+    ]
+    for row in frame.itertuples(index=False, name=None):
+        lines.append(
+            "| "
+            + " | ".join("" if pd.isna(value) else str(value) for value in row)
+            + " |"
+        )
+    return "\n".join(lines)
+
+
 def main() -> None:
     data = m6.load_all()
     config = _null_config()
@@ -185,6 +201,7 @@ def main() -> None:
     metadata = {
         "analysis": "M6 null-model sensitivity extension",
         "locked_baseline_unchanged": True,
+        "q1_role": "supplementary competing-no-flow sensitivity",
         "thresholds": {"competing_no_flow": 0.5, "dominant_no_flow": 0.8},
         "config": {
             "null_model_enabled": True,
@@ -197,7 +214,10 @@ def main() -> None:
             "null_anthropogenic_weight": 0.2,
         },
         "source_hashes": source_hashes,
-        "outputs": [str(score_path), str(summary_path)],
+        "outputs": [
+            score_path.relative_to(ROOT).as_posix(),
+            summary_path.relative_to(ROOT).as_posix(),
+        ],
     }
     run_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
@@ -211,9 +231,9 @@ def main() -> None:
         "",
         "## Outputs",
         "",
-        f"- `{score_path.as_posix()}`: edge-level scores and flags.",
-        f"- `{summary_path.as_posix()}`: dataset/edge-set summaries.",
-        f"- `{run_path.as_posix()}`: configuration and source hashes.",
+        f"- `{score_path.relative_to(ROOT).as_posix()}`: edge-level scores and flags.",
+        f"- `{summary_path.relative_to(ROOT).as_posix()}`: dataset/edge-set summaries.",
+        f"- `{run_path.relative_to(ROOT).as_posix()}`: configuration and source hashes.",
         "",
         "Scores >0.5 are reported as a competing no-flow explanation; scores >0.8 are",
         "reported as a dominant no-flow explanation. These are screening thresholds from",
@@ -221,7 +241,7 @@ def main() -> None:
         "",
         "## Summary",
         "",
-        summary.to_markdown(index=False) if not summary.empty else "No valid edges were scored.",
+        _to_markdown(summary) if not summary.empty else "No valid edges were scored.",
         "",
         "## Guardrail",
         "",

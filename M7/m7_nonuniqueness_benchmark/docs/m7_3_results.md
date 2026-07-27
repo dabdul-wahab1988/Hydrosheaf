@@ -79,17 +79,21 @@ misspecified.
 
 ## Ghana scope decision
 
-The audited Northern Ghana workbook has major chemistry, Sr, SiO2, saturation
-indices, stable water isotopes, metadata, one static-water-level field and
-processed graph edges. It has no environmental age-tracer panel, screen
-intervals, repeated head series, exact public coordinates, independently
-verified connectivity or reaction truth.
+The audited canonical Northern Ghana workbook (`data/FieldData/NorthenGhana/
+NorthernGhana.xlsx`; an earlier revision audited a different, antecedent
+study's own derived workbook instead, since removed — DECISIONS.md) has major
+chemistry, Sr, SiO2, stable water isotopes and one static-water-level field
+per well. It has no independent aquifer-type/geology/land-use classification,
+no environmental age-tracer panel, screen intervals, repeated head series,
+exact public coordinates, intra-season sampling dates, processed graph edges,
+independently verified connectivity or reaction truth.
 
 Consequently, the Ghanaian data support component diagnostics, seasonal
-chemistry hold-forward, alternative-edge sensitivity, reaction-family
-plausibility/equivalence classes and explicit non-identifiability mapping. They
-do not support field residence-time validation, exact directed connectivity,
-screen-resolved flow, unique reaction mechanisms or a fully observed field
+chemistry hold-forward under a disclosed arbitrary well-revelation order,
+alternative-edge sensitivity, reaction-family plausibility/equivalence
+classes and explicit non-identifiability mapping. They do not support field
+residence-time validation, exact directed connectivity, screen-resolved flow,
+unique reaction mechanisms or a fully observed field
 digital twin.
 
 The field evidence is synthesized in

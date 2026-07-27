@@ -59,12 +59,24 @@ TABLES_DIR = BENCHMARK_DIR / "tables"
 DOCS_DIR = BENCHMARK_DIR / "docs"
 PHREEQC_DIR = BENCHMARK_DIR / "phreeqc_inputs"
 PHREEQC_INVERSE_DIR = PHREEQC_DIR / "inverse_baseline"
-GHANA_WORKBOOK = REPO_ROOT / "data" / "NorthenGhana" / "Aquifers_Dataset_Mendeley.xlsx"
-LEGACY_NORTHERN_GHANA_WORKBOOK = (
-    REPO_ROOT / "data" / "NorthenGhana" / "NorthernGhana.xlsx"
+PHREEQC_GHANA_FIELD_DIR = PHREEQC_DIR / "ghana_field_si"
+# Canonical field data (see data/FieldData/). Northern Ghana provides only the
+# raw Dry/Wet hydrochemistry workbook; there is no independent aquifer-type,
+# geology-group, lithology, or saturation-index metadata for these wells. An
+# earlier revision of this script read those attributes from a separate
+# "Aquifers_Dataset_Mendeley.xlsx" workbook, which does not belong to this
+# dataset: it is the derived product of a different, antecedent study
+# ("Graph-inverted Ghanaian aquifers under aridification"; see
+# data/FieldData/NorthenGhana/SI.pdf) that classified these same boreholes and
+# even pre-computed its own connectivity graph. Reusing that workbook would
+# import another study's classifications and graph structure into what is
+# meant to be an independent field demonstration, and the file is not part of
+# the canonical field data, so it has been removed from this pipeline.
+NORTHERN_GHANA_WORKBOOK = (
+    REPO_ROOT / "data" / "FieldData" / "NorthenGhana" / "NorthernGhana.xlsx"
 )
-TALENSI_CSV = REPO_ROOT / "data" / "Talensi_MiningArea" / "talensi.csv"
-LOWER_ANAYARI_CSV = REPO_ROOT / "data" / "LowerAnayari" / "manu.csv"
+TALENSI_CSV = REPO_ROOT / "data" / "FieldData" / "Talensi_MiningArea" / "talensi.csv"
+LOWER_ANAYARI_CSV = REPO_ROOT / "data" / "FieldData" / "LowerAnayari" / "manu.csv"
 RANDOM_SEED = 20250615
 N_SCENARIOS_PER_ARCHETYPE = 60
 NOISE_LEVELS = [0.0, 0.03, 0.08]
@@ -340,6 +352,7 @@ def ensure_directories() -> None:
         DOCS_DIR,
         PHREEQC_DIR,
         PHREEQC_INVERSE_DIR,
+        PHREEQC_GHANA_FIELD_DIR,
     ):
         directory.mkdir(parents=True, exist_ok=True)
 
@@ -1138,9 +1151,6 @@ def write_field_evidence_lifted_resolution(
         score_column="hydrosheaf_core_evidence_score",
         group_columns=[
             "well_id",
-            "aquifer",
-            "geology_group",
-            "lithology",
             "region",
             "district",
         ],
@@ -2852,29 +2862,186 @@ def run_thermodynamic_threshold_sensitivity(
     return pd.DataFrame(rows)
 
 
-def load_ghana_pairs() -> tuple[pd.DataFrame, pd.DataFrame]:
-    hydro = pd.read_excel(GHANA_WORKBOOK, sheet_name="Hydrochemistry_Seasonal")
-    wells = pd.read_excel(GHANA_WORKBOOK, sheet_name="Wells_Nodes")
-    hydro["Sampling_Date"] = pd.to_datetime(hydro["Sampling_Date"])
-    years = sorted(hydro["Sampling_Date"].dropna().dt.year.unique().tolist())
-    if years != [2025]:
-        raise ValueError(f"Northern Ghana sampling years must be [2025], found {years}.")
-    metadata = wells[
-        [
-            "Well_ID",
-            "Aquifer_Type",
-            "Geology_Group",
-            "Lithology",
-            "Region",
-            "District",
-        ]
-    ].drop_duplicates("Well_ID")
-    hydro = hydro.drop(columns=["Aquifer_Type"], errors="ignore").merge(
-        metadata,
-        on=["Well_ID", "Region"],
-        how="left",
+def load_ghana_pairs() -> pd.DataFrame:
+    """Raw Northern Ghana wet/dry hydrochemistry, long-format by season.
+
+    Sourced only from the canonical Dry/Wet sheets of
+    data/FieldData/NorthenGhana/NorthernGhana.xlsx. This workbook carries the
+    measured chemistry, physicochemistry, isotopes, Sr, and SiO2 for each
+    borehole plus Well_ID/Region/District, but no independent aquifer-type,
+    geology-group, lithology, or sampling-date metadata (see the constant
+    comment above), so those attributes are not available here.
+    """
+    dry = pd.read_excel(NORTHERN_GHANA_WORKBOOK, sheet_name="Dry")
+    wet = pd.read_excel(NORTHERN_GHANA_WORKBOOK, sheet_name="Wet")
+    dry = dry.assign(Season="dry")
+    wet = wet.assign(Season="wet")
+    return pd.concat([wet, dry], ignore_index=True)
+
+
+# Saturation-index phases requested from the raw Northern Ghana wet-season
+# panel. Restricted to phases computable from the measured ions: the panel
+# has no Al (rules out Albite/Anorthite/K-feldspar) and no PO4 (rules out
+# Fluorapatite), unlike the retired Mendeley-derived workbook's coverage.
+GHANA_SI_PHASES = ["Calcite", "Dolomite", "Gypsum", "Halite", "Fluorite"]
+GHANA_SI_CSV = "ghana_field_saturation_indices.csv"
+
+
+def compute_ghana_field_saturation_indices(
+    executable: Path,
+    database: Path,
+) -> pd.DataFrame:
+    """Live-PHREEQC saturation indices for the raw Northern Ghana wet-season
+    panel, keyed by Well_ID. Replaces the retired Mendeley workbook's
+    precomputed SI columns with an independent calculation from this
+    project's own measured chemistry (pH, temperature, and major ions)."""
+    wet = pd.read_excel(NORTHERN_GHANA_WORKBOOK, sheet_name="Wet")
+    lines: list[str] = []
+    for index, row in wet.iterrows():
+        lines.extend(
+            [
+                f"SOLUTION {index + 1} {row['Well_ID']}",
+                "    units mg/L",
+                f"    temp {float(row['Temperature_C']):.6f}",
+                f"    pH {float(row['pH']):.6f}",
+                f"    Ca {float(row['Ca_mg_L']):.6f}",
+                f"    Mg {float(row['Mg_mg_L']):.6f}",
+                f"    Na {float(row['Na_mg_L']):.6f}",
+                f"    K {float(row['K_mg_L']):.6f}",
+                f"    Cl {float(row['Cl_mg_L']):.6f}",
+                f"    S(6) {float(row['SO4_mg_L']):.6f} as SO4",
+                f"    N(5) {float(row['NO3_mg_L']):.6f} as NO3",
+                f"    F {float(row['F_mg_L']):.6f}",
+                f"    Alkalinity {float(row['HCO3_mg_L']):.6f} as HCO3",
+            ]
+        )
+        if index == 0:
+            lines.extend(
+                [
+                    "SELECTED_OUTPUT 1",
+                    "    -file ghana_field_si.sel",
+                    "    -reset false",
+                    "    -high_precision true",
+                    "    -simulation true",
+                    f"    -saturation_indices {' '.join(GHANA_SI_PHASES)}",
+                ]
+            )
+        lines.append("END")
+    input_path = PHREEQC_GHANA_FIELD_DIR / "ghana_field_si.pqi"
+    output_path = PHREEQC_GHANA_FIELD_DIR / "ghana_field_si.out"
+    selected_path = PHREEQC_GHANA_FIELD_DIR / "ghana_field_si.sel"
+    input_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    run_phreeqc(input_path, output_path, database, executable)
+    selected = pd.read_csv(selected_path, sep="\t")
+    selected.columns = [column.strip() for column in selected.columns]
+    if len(selected) != len(wet):
+        raise RuntimeError(
+            "PHREEQC returned "
+            f"{len(selected)} rows for {len(wet)} Northern Ghana wet-season "
+            "solutions; simulation count mismatch."
+        )
+    result = pd.DataFrame({"well_id": wet["Well_ID"].astype(str).to_numpy()})
+    for phase in GHANA_SI_PHASES:
+        values = pd.to_numeric(selected[f"si_{phase}"], errors="coerce")
+        result[f"{phase}_SI"] = values.to_numpy()
+    return result
+
+
+EXTERNAL_SI_CSV = "external_field_saturation_indices.csv"
+
+
+def compute_external_field_saturation_indices(
+    executable: Path,
+    database: Path,
+) -> pd.DataFrame:
+    """Live-PHREEQC saturation indices for Talensi and Lower Anayari, keyed by
+    (dataset, sample_id). Both external datasets measure complete pH,
+    temperature and major-ion panels -- the only inputs this computation
+    needs -- so it is not gated behind strontium or silica availability. An
+    earlier revision of the external field-transfer audit left these two
+    datasets' saturation indices uncomputed entirely (passed an empty
+    upstream_si to every fit), which this replaces. Talensi measures no
+    fluoride, so its fluorite SI reflects F treated as absent rather than an
+    independently measured near-zero value."""
+    talensi = pd.read_csv(TALENSI_CSV)
+    manu = pd.read_csv(LOWER_ANAYARI_CSV)
+    lines: list[str] = []
+    keys: list[tuple[str, str]] = []
+    for dataset, frame, id_col, ion_cols in (
+        ("Talensi", talensi, "Code",
+         {"Ca": "Ca", "Mg": "Mg", "Na": "Na", "K": "K", "Cl": "Cl",
+          "SO4": "SO4", "NO3": "NO3", "HCO3": "HCO3"}),
+        ("LowerAnayari", manu, "Sample ID",
+         {"Ca": "Ca", "Mg": "Mg", "Na": "Na", "K": "K", "Cl": "Cl",
+          "SO4": "SO4", "NO3": "NO3", "HCO3": "HCO3", "F": "F"}),
+    ):
+        for _, row in frame.iterrows():
+            if pd.isna(row["pH"]) or pd.isna(row["Temp"]):
+                continue
+            keys.append((dataset, str(row[id_col])))
+            lines.append(f"SOLUTION {len(keys)} {dataset}_{row[id_col]}")
+            lines.append("    units mg/L")
+            lines.append(f"    temp {float(row['Temp']):.6f}")
+            lines.append(f"    pH {float(row['pH']):.6f}")
+            for element, column in ion_cols.items():
+                value = row.get(column)
+                if pd.isna(value):
+                    continue
+                if isinstance(value, str) and value.strip().startswith("<"):
+                    # Below-detection-limit notation (e.g. "<0.001"): use
+                    # half the stated detection limit, matching the
+                    # convention already used elsewhere in this repository
+                    # for the same field datasets (scripts/analysis/
+                    # run_m2_field_benchmarks.py).
+                    value = float(value.strip().lstrip("<")) / 2.0
+                value = float(value)
+                if element == "SO4":
+                    lines.append(f"    S(6) {value:.6f} as SO4")
+                elif element == "NO3":
+                    lines.append(f"    N(5) {value:.6f} as NO3")
+                elif element == "HCO3":
+                    lines.append(f"    Alkalinity {value:.6f} as HCO3")
+                else:
+                    lines.append(f"    {element} {value:.6f}")
+            if len(keys) == 1:
+                lines.extend(
+                    [
+                        "SELECTED_OUTPUT 1",
+                        "    -file external_field_si.sel",
+                        "    -reset false",
+                        "    -high_precision true",
+                        "    -simulation true",
+                        f"    -saturation_indices {' '.join(GHANA_SI_PHASES)}",
+                    ]
+                )
+            lines.append("END")
+    input_path = PHREEQC_GHANA_FIELD_DIR / "external_field_si.pqi"
+    output_path = PHREEQC_GHANA_FIELD_DIR / "external_field_si.out"
+    selected_path = PHREEQC_GHANA_FIELD_DIR / "external_field_si.sel"
+    input_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    run_phreeqc(input_path, output_path, database, executable)
+    selected = pd.read_csv(selected_path, sep="\t")
+    selected.columns = [column.strip() for column in selected.columns]
+    if len(selected) != len(keys):
+        raise RuntimeError(
+            "PHREEQC returned "
+            f"{len(selected)} rows for {len(keys)} external-field solutions; "
+            "simulation count mismatch."
+        )
+    result = pd.DataFrame(
+        {"dataset": [k[0] for k in keys], "sample_id": [k[1] for k in keys]}
     )
-    return hydro, wells
+    for phase in GHANA_SI_PHASES:
+        values = pd.to_numeric(selected[f"si_{phase}"], errors="coerce")
+        # PHREEQC reports -999(.999) for a phase it cannot evaluate (e.g.
+        # fluorite for Talensi, which measures no fluoride at all); treat
+        # that sentinel as not computed rather than as a genuine, extremely
+        # undersaturated value. Ghana's own SI computation (above) never hit
+        # this because Ghana measures every required element for every
+        # sample.
+        values = values.where(values > -900.0, np.nan)
+        result[f"{phase}_SI"] = values.to_numpy()
+    return result
 
 
 def _ghana_vector(row: pd.Series) -> tuple[np.ndarray, list[str]]:
@@ -2893,8 +3060,15 @@ def _ghana_vector(row: pd.Series) -> tuple[np.ndarray, list[str]]:
 def run_ghana_field_demonstration(
     hyperparameters: Mapping[str, float],
     class_map: Mapping[str, str],
+    saturation_indices: pd.DataFrame | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    hydro, _ = load_ghana_pairs()
+    quantitative = load_ghana_pairs()
+    si_by_well: dict[str, dict[str, float]] = {}
+    if saturation_indices is not None:
+        for _, si_row in saturation_indices.iterrows():
+            si_by_well[str(si_row["well_id"])] = {
+                phase: float(si_row[f"{phase}_SI"]) for phase in GHANA_SI_PHASES
+            }
     support_threshold = float(
         hyperparameters.get("support_threshold_mmolL", SUPPORT_THRESHOLD)
     )
@@ -2908,11 +3082,10 @@ def run_ghana_field_demonstration(
     reliability_coefficients = np.asarray(
         calibration["reliability_coefficients"], dtype=float
     )
-    quantitative = hydro[
-        hydro["Data_Class"].astype(str).str.contains(
-            "Quantitative inverse modelling", case=False, na=False
-        )
-    ]
+    # The raw workbook carries no Data_Class flag distinguishing a curated
+    # "quantitative inverse modelling" subset; every well with a full major-ion
+    # panel in both seasons is used (matching the >=6 measured-ion gate below
+    # and the coverage already used by the external ELRI transfer audit).
     ec_tds_models = _calibrate_field_ec_tds(quantitative)
     pair_rows: list[dict[str, object]] = []
     extent_rows: list[dict[str, object]] = []
@@ -2939,12 +3112,12 @@ def run_ghana_field_demonstration(
             continue
         indices = [ION_ORDER.index(ion) for ion in measured]
         residual = dry_vector[indices] - wet_vector[indices]
-        upstream_si = {
-            "Calcite": float(wet.get("Calcite_SI", np.nan)),
-            "Dolomite": float(wet.get("Dolomite_SI", np.nan)),
-            "Gypsum": float(wet.get("Gypsum_SI", np.nan)),
-            "Halite": float(wet.get("Halite_SI", np.nan)),
-        }
+        # Saturation indices computed independently by live PHREEQC from the
+        # raw wet-season ion panel (compute_ghana_field_saturation_indices),
+        # restricted to the phases that panel can support (Calcite, Dolomite,
+        # Gypsum, Halite, Fluorite; see GHANA_SI_PHASES). Falls back to
+        # unconstrained (empty dict) only if the SI table was not supplied.
+        upstream_si: dict[str, float] = dict(si_by_well.get(str(well_id), {}))
         penalty_scales, evidence_rows = hydrosheaf_core_evidence(
             wet_vector,
             residual,
@@ -3013,8 +3186,8 @@ def run_ghana_field_demonstration(
             heldout_rows.append(
                 {
                     "well_id": well_id,
-                    "aquifer": wet["Aquifer_Type"],
-                    "lithology": wet["Lithology"],
+                    "region": wet["Region"],
+                    "district": wet["District"],
                     "heldout_ion": heldout,
                     "observed_delta_mmolL": residual[heldout_index],
                     "predicted_delta_mmolL": prediction[heldout_index],
@@ -3105,13 +3278,8 @@ def run_ghana_field_demonstration(
         pair_rows.append(
             {
                 "well_id": well_id,
-                "aquifer": wet["Aquifer_Type"],
-                "geology_group": wet["Geology_Group"],
-                "lithology": wet["Lithology"],
                 "region": wet["Region"],
                 "district": wet["District"],
-                "wet_date": pd.Timestamp(wet["Sampling_Date"]).date().isoformat(),
-                "dry_date": pd.Timestamp(dry["Sampling_Date"]).date().isoformat(),
                 "n_measured_ions": len(measured),
                 "support_threshold_mmolL": support_threshold,
                 "selected_support": ";".join(sorted(selected)),
@@ -3161,9 +3329,6 @@ def run_ghana_field_demonstration(
             field_evidence_rows.append(
                 {
                     "well_id": well_id,
-                    "aquifer": wet["Aquifer_Type"],
-                    "geology_group": wet["Geology_Group"],
-                    "lithology": wet["Lithology"],
                     "region": wet["Region"],
                     "district": wet["District"],
                     "selected": reaction.label in selected,
@@ -3176,8 +3341,8 @@ def run_ghana_field_demonstration(
             extent_rows.append(
                 {
                     "well_id": well_id,
-                    "aquifer": wet["Aquifer_Type"],
-                    "lithology": wet["Lithology"],
+                    "region": wet["Region"],
+                    "district": wet["District"],
                     "reaction": reaction.label,
                     "family": reaction.family,
                     "extent_mmolL": extent,
@@ -3190,8 +3355,8 @@ def run_ghana_field_demonstration(
             class_rows.append(
                 {
                     "well_id": well_id,
-                    "aquifer": wet["Aquifer_Type"],
-                    "lithology": wet["Lithology"],
+                    "region": wet["Region"],
+                    "district": wet["District"],
                     "equivalence_class": class_id,
                     "selected": class_id in selected_classes,
                 }
@@ -3213,6 +3378,7 @@ def _external_field_edge_outputs(
     downstream: Mapping[str, object],
     hyperparameters: Mapping[str, float],
     class_map: Mapping[str, str],
+    upstream_si: Mapping[str, float] | None = None,
 ) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
     support_threshold = float(
         hyperparameters.get("support_threshold_mmolL", SUPPORT_THRESHOLD)
@@ -3233,7 +3399,7 @@ def _external_field_edge_outputs(
         upstream_vector,
         residual,
         measured,
-        {},
+        upstream_si or {},
     )
     optional_diagnostics, optional_observed = _field_optional_diagnostics_from_rows(
         upstream["row"],
@@ -3263,7 +3429,7 @@ def _external_field_edge_outputs(
             LEGACY_PRIMARY_METHOD,
             hyperparameters["lambda_l1"],
             hyperparameters["lambda_l2"],
-            {},
+            upstream_si or {},
             SI_THRESHOLD,
             penalty_scales=penalty_scales,
         )
@@ -3356,8 +3522,8 @@ def _external_field_edge_outputs(
 def _legacy_northern_ghana_external_edges() -> list[
     tuple[str, Mapping[str, object], Mapping[str, object]]
 ]:
-    dry = pd.read_excel(LEGACY_NORTHERN_GHANA_WORKBOOK, sheet_name="Dry")
-    wet = pd.read_excel(LEGACY_NORTHERN_GHANA_WORKBOOK, sheet_name="Wet")
+    dry = pd.read_excel(NORTHERN_GHANA_WORKBOOK, sheet_name="Dry")
+    wet = pd.read_excel(NORTHERN_GHANA_WORKBOOK, sheet_name="Wet")
     dry = dry.copy()
     wet = wet.copy()
     dry["_sample_id"] = dry["Well_ID"].astype(str) + "_dry"
@@ -3444,7 +3610,28 @@ def _spatial_external_edges_from_csv(
 def run_external_field_transfer(
     hyperparameters: Mapping[str, float],
     class_map: Mapping[str, str],
+    ghana_si: pd.DataFrame | None = None,
+    external_si: pd.DataFrame | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    # Saturation-index lookup keyed by (dataset, sample_id), evaluated at the
+    # upstream sample of each edge (consistent with the Ghana field
+    # demonstration's own convention of computing SI from the wet-season/
+    # upstream chemistry). All three datasets measure complete pH,
+    # temperature and major-ion panels, so SI is available for every one of
+    # them; an earlier revision left it uncomputed for Talensi and Lower
+    # Anayari specifically (DECISIONS.md).
+    si_lookup: dict[tuple[str, str], dict[str, float]] = {}
+    if ghana_si is not None:
+        for _, row in ghana_si.iterrows():
+            si_lookup[("NorthernGhana.xlsx", str(row["well_id"]) + "_wet")] = {
+                phase: float(row[f"{phase}_SI"]) for phase in GHANA_SI_PHASES
+            }
+    if external_si is not None:
+        for _, row in external_si.iterrows():
+            si_lookup[(str(row["dataset"]), str(row["sample_id"]))] = {
+                phase: float(row[f"{phase}_SI"]) for phase in GHANA_SI_PHASES
+            }
+
     edge_specs: list[tuple[str, Mapping[str, object], Mapping[str, object]]] = []
     edge_specs.extend(_legacy_northern_ghana_external_edges())
     edge_specs.extend(
@@ -3498,6 +3685,9 @@ def run_external_field_transfer(
     pair_rows: list[dict[str, object]] = []
     evidence_rows: list[dict[str, object]] = []
     for edge_id, upstream, downstream in edge_specs:
+        edge_si = si_lookup.get(
+            (str(upstream["dataset"]), str(upstream["sample_id"])), {}
+        )
         rows, evidence = _external_field_edge_outputs(
             dataset=str(upstream["dataset"]),
             edge_id=edge_id,
@@ -3505,6 +3695,7 @@ def run_external_field_transfer(
             downstream=downstream,
             hyperparameters=hyperparameters,
             class_map=class_map,
+            upstream_si=edge_si,
         )
         pair_rows.extend(rows)
         evidence_rows.extend(evidence)
@@ -3523,11 +3714,15 @@ def run_external_field_transfer(
 def write_external_field_transfer_outputs(
     hyperparameters: Mapping[str, float],
     class_map: Mapping[str, str],
+    ghana_si: pd.DataFrame | None = None,
+    external_si: pd.DataFrame | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     print("M5: running external field ELRI transfer on NorthernGhana, Talensi, and Lower Anayari...")
     pairs, evidence, resolution = run_external_field_transfer(
         hyperparameters,
         class_map,
+        ghana_si=ghana_si,
+        external_si=external_si,
     )
     pairs.to_csv(RESULTS_DIR / "external_field_transfer_pairs.csv", index=False)
     evidence.to_csv(RESULTS_DIR / "external_field_reaction_evidence.csv", index=False)
@@ -3730,10 +3925,13 @@ def write_summary(
         if "phreeqc_inverse_setup" in phreeqc_inverse
         else float("nan")
     )
+    phreeqc_version_match = re.search(r"phreeqc-([\d.]+-\d+)", str(executable))
     summary = {
         "generated_at": pd.Timestamp.now(tz="UTC").isoformat(),
         "random_seed": RANDOM_SEED,
-        "phreeqc_version": "3.7.3-15968",
+        "phreeqc_version": (
+            phreeqc_version_match.group(1) if phreeqc_version_match else "unknown"
+        ),
         "phreeqc_executable": str(executable),
         "phreeqc_database": str(database),
         "phreeqc_runtime_seconds": (
@@ -4206,9 +4404,20 @@ def main() -> None:
     if args.skip_field:
         field_pairs = pd.DataFrame()
     else:
+        ghana_si_path = RESULTS_DIR / GHANA_SI_CSV
+        if ghana_si_path.exists():
+            print("M5: reusing Northern Ghana field saturation indices...")
+            ghana_si = pd.read_csv(ghana_si_path)
+        else:
+            print(
+                "M5: computing Northern Ghana field saturation indices via "
+                "live PHREEQC..."
+            )
+            ghana_si = compute_ghana_field_saturation_indices(executable, database)
+            ghana_si.to_csv(ghana_si_path, index=False)
         print("M5: running the 2025 Northern Ghana chemistry-only demonstration...")
         field_pairs, field_extents, field_heldout, field_classes, field_evidence = (
-            run_ghana_field_demonstration(hyperparameters, class_map)
+            run_ghana_field_demonstration(hyperparameters, class_map, ghana_si)
         )
         field_pairs.to_csv(RESULTS_DIR / "ghana_field_pairs.csv", index=False)
         field_extents.to_csv(RESULTS_DIR / "ghana_field_reaction_extents.csv", index=False)
@@ -4218,7 +4427,22 @@ def main() -> None:
             RESULTS_DIR / "ghana_field_hydrosheaf_core_evidence.csv", index=False
         )
         write_field_evidence_lifted_resolution(class_map, field_evidence)
-        write_external_field_transfer_outputs(hyperparameters, class_map)
+        external_si_path = RESULTS_DIR / EXTERNAL_SI_CSV
+        if external_si_path.exists():
+            print("M5: reusing Talensi/Lower Anayari field saturation indices...")
+            external_si = pd.read_csv(external_si_path)
+        else:
+            print(
+                "M5: computing Talensi/Lower Anayari field saturation indices "
+                "via live PHREEQC..."
+            )
+            external_si = compute_external_field_saturation_indices(
+                executable, database
+            )
+            external_si.to_csv(external_si_path, index=False)
+        write_external_field_transfer_outputs(
+            hyperparameters, class_map, ghana_si=ghana_si, external_si=external_si
+        )
     write_summary(
         scenarios,
         phreeqc_frame,

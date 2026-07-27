@@ -1,0 +1,9 @@
+{
+  "title": "Identifiability-aware sparse inverse reaction inference for groundwater hydrogeochemistry: a PHREEQC benchmark and Northern Ghana transfer audit",
+  "scope": "Controlled synthetic capability benchmark plus a non-validating chemistry-only field transfer audit.",
+  "objectives": [
+    "Quantify exact-phase and equivalence-class recovery under controlled ground truth.",
+    "Test held-out-ion falsification and retrospective measurement prioritisation.",
+    "Demonstrate bounded transfer to Northern Ghana field chemistry without claiming field validation."
+  ]
+}

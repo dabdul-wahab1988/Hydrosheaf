@@ -30,11 +30,11 @@ HydroSheaf pillars are observed in the field.
 | Component diagnostic | Available evidence and result | Supportable interpretation |
 |---|---|---|
 | Data readiness | Northern Ghana has 320 wet/dry samples from 160 wells. Independent charge-balance screening gives 294 quantitative, 19 screening and 7 exploratory records. | The chemistry is suitable for quantitative class-level diagnostics after explicit QC filtering. |
-| Seasonal chemistry prediction | In 138 complete quantitative well pairs and 20 sequential August issue batches, graph-ridge MAE was lower than persistence by 0.168 log1p units, 95% CI [0.152, 0.185]. Its advantage over an expanding mean-delta model was 0.00584, CI [−0.00120, 0.01296]. | Within-campaign wet-to-dry chemistry is predictable. Incremental value of the processed graph over a simple seasonal baseline is not established. |
-| Reaction-family plausibility | At the maximum M6 tier, all 160 Northern Ghana wells were classified as partially identifiable; conservative reporting admitted 7.3 reaction alternatives on average rather than 5.8 single best-fit reactions. | Family/equivalence-class interpretations are supportable; unique mineral reactions are not. |
+| Seasonal chemistry prediction | In 140 complete quantitative well pairs revealed in 20 fixed, disclosed arbitrary batches (no real sampling-date sequence exists in the canonical data), graph-ridge MAE was lower than persistence by 0.173 log1p units, 95% CI [0.158, 0.188]. Its advantage over an expanding mean-delta model was 0.00512, CI [−0.00174, 0.01191]. | Within-campaign wet-to-dry chemistry is predictable under a disclosed arbitrary revelation order. Incremental value of the self-generated connectivity graph over a simple seasonal baseline is not established. |
+| Reaction-family plausibility | At the maximum M6 tier, all 160 Northern Ghana wells were classified as partially identifiable; conservative reporting admitted 7.1 reaction alternatives on average rather than 5.4 single best-fit reactions. | Family/equivalence-class interpretations are supportable; unique mineral reactions are not. |
 | Measurement-value audit | Removing Sr/SiO2 changed the non-identifiable fraction from 0.6% at Tier 3 to 51.9% at Tier 2, while mean MRS remained approximately 71. | Sr/SiO2 are load-bearing corroborative measurements; fit/reliability scores alone can conceal structural non-identifiability. |
-| Edge-set sensitivity | Network composition changed relative to the provided graph: total-variation distance was 0.093 for geographic-nearest, 0.171 for random-perturbed and 0.229 for chemistry-kNN edges. | Network-level process attribution depends on the assumed edge set. Exact field connectivity is not identified. |
-| External sparse-data transfer | Talensi was 36% non-identifiable and charge-balance limited; Lower Anayari was 96.5% non-identifiable, principally for silicate-dominant edges without Sr/SiO2. | The framework can diagnose when sparse datasets are screening-only and identify the next useful measurement; it does not validate mechanisms there. |
+| Edge-set sensitivity | Comparing three Hydrosheaf-generated edge sets against each other (chemistry-kNN as reference; no imported graph is used), total-variation distance was 0.12 for geographic-nearest and 0.05 for random-perturbed edges. | Network-level process attribution depends on the assumed edge set. Exact field connectivity is not identified. |
+| External sparse-data transfer | With saturation indices computed independently for both external datasets (not withheld as unavailable), Talensi was 37.2% non-identifiable and charge-balance limited, materially lower than its matched Northern Ghana reference (54.2%); Lower Anayari was 95.3% non-identifiable, principally for silicate-dominant edges without Sr/SiO2, a family saturation indices do not corroborate. | The framework can diagnose when sparse datasets are screening-only and identify the next useful measurement; it does not validate mechanisms there. |
 | Stable-isotope use | d18O and d2H are present for the Northern Ghana campaign. | Recharge/source and mixing plausibility can be discussed; groundwater age cannot be inferred from these isotope fields. |
 
 ## What remains non-identifiable
@@ -49,9 +49,11 @@ Under the available Ghanaian data, the following cannot be validated:
 6. an operational Ghanaian digital twin with validated state updating and
    forecasting.
 
-The processed graph and prior `Dominant_Process` or
-`Aquifer_Evolution_Label` fields are analytical references. Agreement with them
-is concordance, not accuracy against independent truth.
+An earlier revision of this workflow additionally read a different, antecedent
+study's own inferred `Dominant_Process` and `Aquifer_Evolution_Label` fields, plus an
+imported graph-edge sheet, for the same boreholes. Those fields, and the workbook that
+supplied them, have been removed from this study entirely rather than retained as a
+concordance reference (`DECISIONS.md`).
 
 ## How M6 and M7 now fit together
 

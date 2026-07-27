@@ -2,7 +2,10 @@
 
 Executes six experiments on the real Ghanaian datasets and writes all results
 CSVs consumed by the R figure/table scripts. Deterministic (seed=1234).
-Honesty boundary: inferred Mendeley labels are concordance references, never truth.
+Northern Ghana chemistry comes only from the canonical raw workbook
+(data/FieldData/NorthenGhana/NorthernGhana.xlsx); no aquifer/geology/
+lithology metadata, prior process labels, or externally provided graph
+edges are used (see DECISIONS.md).
 """
 from __future__ import annotations
 
@@ -20,24 +23,13 @@ RESULTS = m6.RESULTS_DIR
 RESULTS.mkdir(parents=True, exist_ok=True)
 
 
-def _seasonal_wells(ng: pd.DataFrame):
-    wells = [w for w in ng.site_id.unique()
-             if ((ng.site_id == w) & (ng.season == "Wet")).any()
-             and ((ng.site_id == w) & (ng.season == "Dry")).any()]
-    pairs = {}
-    for w in wells:
-        pairs[w] = (ng[(ng.site_id == w) & (ng.season == "Wet")].iloc[0].to_dict(),
-                    ng[(ng.site_id == w) & (ng.season == "Dry")].iloc[0].to_dict())
-    return pairs
-
-
 # ============================================================ E1: readiness ===
 def experiment1_readiness(data):
     print("E1 dataset readiness / missingness ...")
     tier_cap = {"northern_ghana": "tier4_full_metadata", "manu": "tier2_fluoride",
                 "talensi": "tier1_isotopes"}
     all_vars = ["Ca", "Mg", "Na", "K", "HCO3", "Cl", "SO4", "NO3", "F", "Fe",
-                "d18O", "d2H", "Sr_mgL", "SiO2_mgL", "Calcite_SI", "Aquifer_Type"]
+                "d18O", "d2H", "Sr_mgL", "SiO2_mgL", "Calcite_SI", "Region"]
     read_rows, avail_rows, cbe_rows = [], [], []
     for name, df in data.items():
         cbe = df.apply(m6.charge_balance_error, axis=1)
@@ -67,8 +59,8 @@ def experiment1_readiness(data):
 
 # ================================================ E2: NG seasonal transfer ===
 def experiment2_ng_transfer(ng, clf, cmap, rng):
-    print("E2 Northern Ghana seasonal x aquifer transfer ...")
-    pairs = _seasonal_wells(ng)
+    print("E2 Northern Ghana seasonal x region transfer ...")
+    pairs = m6.seasonal_well_pairs(ng)
     cfg = m6.TIERS["tier4_full_metadata"]
     rows = []
     t = time.time()
@@ -79,8 +71,7 @@ def experiment2_ng_transfer(ng, clf, cmap, rng):
         if r is None:
             continue
         rows.append({
-            "well_id": w, "aquifer": wet["Aquifer_Type"],
-            "geology": wet.get("Geology_Group"), "lithology": wet.get("Lithology"),
+            "well_id": w, "region": wet["Region"], "district": wet.get("District"),
             "latitude": wet.get("Latitude"), "longitude": wet.get("Longitude"),
             "evapo_factor": f, "dominant_family": r.dominant_family,
             "dominant_process": r.dominant_process, "resolution_class": r.resolution_class,
@@ -88,52 +79,34 @@ def experiment2_ng_transfer(ng, clf, cmap, rng):
             "support_stability": r.support_stability, "heldout_rmse": r.heldout_rmse,
             "reactive_rmse": r.rmse, "n_support": len(r.support),
             "support": ";".join(sorted(r.support)),
-            "prior_process": wet.get("Dominant_Process_prior"),
-            "prior_concordant": _family_matches_prior(r.dominant_family,
-                                                       wet.get("Dominant_Process_prior")),
         })
         if (i + 1) % 40 == 0:
             print(f"    {i+1}/{len(pairs)} ({time.time()-t:.0f}s)")
     df = pd.DataFrame(rows)
     df.to_csv(RESULTS / "m6_ng_field_pairs.csv", index=False)
 
-    # per aquifer x class support
-    sup = (df.groupby(["aquifer", "resolution_class"]).size()
+    # per region x class support
+    sup = (df.groupby(["region", "resolution_class"]).size()
            .rename("n").reset_index())
     sup.to_csv(RESULTS / "m6_ng_class_support.csv", index=False)
-    agg = (df.groupby("aquifer")
+    agg = (df.groupby("region")
            .agg(n_wells=("well_id", "count"), mean_mrs=("mrs", "mean"),
                 mean_stability=("support_stability", "mean"),
                 frac_partial=("resolution_class",
                               lambda s: float((s == "partially_identifiable").mean())),
-                frac_concordant=("prior_concordant", "mean"),
                 top_family=("dominant_family", lambda s: s.mode().iat[0] if len(s) else ""))
            .reset_index())
     agg.to_csv(RESULTS / "m6_ng_aquifer_season_summary.csv", index=False)
-    # family x aquifer for figure 3
-    fam = (df.groupby(["aquifer", "dominant_family"]).size().rename("n").reset_index())
+    # family x region for figure 3
+    fam = (df.groupby(["region", "dominant_family"]).size().rename("n").reset_index())
     fam.to_csv(RESULTS / "m6_ng_family_by_aquifer.csv", index=False)
     return df
-
-
-PRIOR_FAMILY = {
-    "Silicate weathering and recharge mixing": "silicate",
-    "Cation exchange / Na enrichment": "ion_exchange",
-    "Agro-domestic nitrate loading": "anthropogenic",
-    "Evapoconcentration and salinity evolution": "evaporite",
-}
-
-
-def _family_matches_prior(family, prior):
-    if prior is None or (isinstance(prior, float) and np.isnan(prior)):
-        return np.nan
-    return float(PRIOR_FAMILY.get(str(prior), "??") == family)
 
 
 # ==================================================== E3: tier ablation ======
 def experiment3_tier_ablation(ng, clf, cmap, rng):
     print("E3 tier ablation (Tier 4 -> Tier 0) ...")
-    pairs = _seasonal_wells(ng)
+    pairs = m6.seasonal_well_pairs(ng)
     rows = []
     for w, (wet, dry) in pairs.items():
         per_tier = {}
@@ -145,7 +118,7 @@ def experiment3_tier_ablation(ng, clf, cmap, rng):
             if r is None:
                 continue
             per_tier[tier] = r
-            rows.append({"well_id": w, "aquifer": wet["Aquifer_Type"], "tier": tier,
+            rows.append({"well_id": w, "region": wet["Region"], "tier": tier,
                          "resolution_class": r.resolution_class,
                          "dominant_family": r.dominant_family, "mrs": r.mrs,
                          "support_stability": r.support_stability,
@@ -188,20 +161,19 @@ def experiment4_edge_uncertainty(ng, clf, cmap, rng, cap=140):
     print("E4 edge & flow-path uncertainty ...")
     dry = ng[ng.season == "Dry"].reset_index(drop=True)
     nodes = _node_lookup(dry)
-    id_by_well = {r["site_id"]: r["sample_id"] for r in dry.to_dict("records")}
 
-    # provided graph edges -> map wells to dry samples
-    ge = pd.read_excel(m6.DATA["northern_ghana"], sheet_name="Graph_Edges")
-    provided = []
-    for _, e in ge.iterrows():
-        s, t = id_by_well.get(e["Source_Well_ID"]), id_by_well.get(e["Target_Well_ID"])
-        if s and t:
-            provided.append((s, t))
+    # Three Hydrosheaf-generated edge sets, compared against each other.
+    # An earlier revision also compared against a fourth "provided_graph"
+    # edge set imported from a retired antecedent-study workbook (see
+    # DECISIONS.md); that borrowed topology has been removed rather than
+    # substituted, so this experiment now asks how much Hydrosheaf's own
+    # edge-construction choice matters, not how it compares to an external
+    # graph.
+    chemistry_edges = m6.chemistry_knn_edges(dry, k=3)
     edge_sets = {
-        "provided_graph": provided,
-        "chemistry_knn": m6.chemistry_knn_edges(dry, k=3),
+        "chemistry_knn": chemistry_edges,
         "geographic_nearest": m6.geographic_edges(dry, k=3),
-        "random_perturbed": m6.random_edges(dry, n=len(provided), rng=rng),
+        "random_perturbed": m6.random_edges(dry, n=len(chemistry_edges), rng=rng),
     }
     cfg = m6.TIERS["tier4_full_metadata"]
     rows = []
@@ -225,12 +197,15 @@ def experiment4_edge_uncertainty(ng, clf, cmap, rng, cap=140):
     ed = pd.DataFrame(rows)
     ed.to_csv(RESULTS / "m6_edge_sensitivity.csv", index=False)
 
-    # network summary: family distribution + divergence vs provided graph
+    # network summary: family distribution + divergence vs the chemistry-knn
+    # edge set (the most evidence-based of the three Hydrosheaf-generated
+    # sets, used as the reference now that the borrowed provided-graph
+    # comparator has been removed).
     fam = (ed.groupby(["edge_set", "dominant_family"]).size().rename("n").reset_index())
     fam["frac"] = fam.groupby("edge_set")["n"].transform(lambda s: s / s.sum())
     fam.to_csv(RESULTS / "m6_edge_family_distribution.csv", index=False)
 
-    ref = fam[fam.edge_set == "provided_graph"].set_index("dominant_family")["frac"]
+    ref = fam[fam.edge_set == "chemistry_knn"].set_index("dominant_family")["frac"]
     summ = []
     for setname in edge_sets:
         cur = fam[fam.edge_set == setname].set_index("dominant_family")["frac"]
@@ -239,7 +214,7 @@ def experiment4_edge_uncertainty(ng, clf, cmap, rng, cap=140):
                                  - cur.reindex(idx, fill_value=0)).sum())
         sub = ed[ed.edge_set == setname]
         summ.append({"edge_set": setname, "n_edges": len(sub),
-                     "tvd_vs_provided": tvd,
+                     "tvd_vs_chemistry_knn": tvd,
                      "mean_mrs": float(sub.mrs.mean()),
                      "mean_stability": float(sub.support_stability.mean()),
                      "frac_partial": float((sub.resolution_class == "partially_identifiable").mean())})
@@ -250,8 +225,13 @@ def experiment4_edge_uncertainty(ng, clf, cmap, rng, cap=140):
 # ================================================= E5: external transfer =====
 def experiment5_external(data, ng_ref, clf, cmap, rng):
     print("E5 external sparse transfer (Talensi, Manu) ...")
-    specs = {"talensi": ("tier1_isotopes", ["iso"]),
-             "manu": ("tier2_fluoride", ["iso"])}
+    # Both external datasets measure pH, temperature and major ions, so
+    # PHREEQC saturation indices are computed for them the same way as for
+    # Northern Ghana (m6.load_talensi/load_manu) and used here as an
+    # additional "si" evidence lifter; SI is not gated behind Sr/SiO2
+    # availability, unlike the Northern Ghana Tier 3/4 ladder.
+    specs = {"talensi": ("tier1_isotopes", ["iso", "si"]),
+             "manu": ("tier2_fluoride", ["iso", "si"])}
     rows = []
     for name, (tier, lifters) in specs.items():
         df = data[name].reset_index(drop=True)
@@ -262,8 +242,8 @@ def experiment5_external(data, ng_ref, clf, cmap, rng):
             src, tgt = nodes.get(s), nodes.get(t)
             if src is None or tgt is None:
                 continue
-            r = m6.fit_unit(src, tgt, cfg["ions"], None, clf, cmap, rng, n_boot=16,
-                            lifters=lifters, evidence_row=tgt)
+            r = m6.fit_unit(src, tgt, cfg["ions"], m6._upstream_si(tgt), clf, cmap, rng,
+                            n_boot=16, lifters=lifters, evidence_row=tgt)
             if r is None:
                 continue
             rows.append({"dataset": name, "native_tier": tier, "source": s, "target": t,
@@ -281,14 +261,14 @@ def experiment5_external(data, ng_ref, clf, cmap, rng):
     rng.shuffle(ng_edges)
     ng_nodes = _node_lookup(dry)
     ng_rows = []
-    for tier, lifters in [("tier1_isotopes", ["iso"]), ("tier2_fluoride", ["iso"])]:
+    for tier, lifters in [("tier1_isotopes", ["iso", "si"]), ("tier2_fluoride", ["iso", "si"])]:
         cfg = m6.TIERS[tier]
         for (s, t) in ng_edges[:120]:
             src, tgt = ng_nodes.get(s), ng_nodes.get(t)
             if src is None or tgt is None:
                 continue
-            r = m6.fit_unit(src, tgt, cfg["ions"], None, clf, cmap, rng, n_boot=8,
-                            lifters=lifters, evidence_row=tgt, heldout=False)
+            r = m6.fit_unit(src, tgt, cfg["ions"], m6._upstream_si(tgt), clf, cmap, rng,
+                            n_boot=8, lifters=lifters, evidence_row=tgt, heldout=False)
             if r:
                 ng_rows.append({"dataset": "northern_ghana_ref", "native_tier": tier,
                                 "mrs": r.mrs, "support_stability": r.support_stability,

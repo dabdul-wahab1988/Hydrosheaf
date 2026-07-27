@@ -1,0 +1,28 @@
+{
+  "n_complete_quantitative_pairs": 140,
+  "n_issue_batches": 20,
+  "batch_assignment": "fixed, disclosed, seeded pseudo-random permutation of wells into sequential batches; not a real sampling-date order (the canonical field data records one dry and one wet observation per well with no intra-season date field)",
+  "batch_order_seed": 2025,
+  "future_wet_labels_used_at_issue": false,
+  "dry_features_known_before_any_batch": true,
+  "coordinates_spatially_masked": true,
+  "field_claim": "within-campaign one-step hydrochemistry hold-forward under a disclosed arbitrary well-revelation order; not independent topology, age, reaction-truth, or temporal-sequence validation",
+  "ridge_alpha_preregistered": 10.0,
+  "minimum_ridge_samples": 16,
+  "paired_block_bootstrap": {
+    "graph_ridge_minus_persistence": {
+      "mean_paired_mae_difference_log1p": -0.1730526594565409,
+      "ci95_low": -0.18797055955948952,
+      "ci95_high": -0.1576762371938826,
+      "negative_favours_graph_ridge": true,
+      "resampling_unit": "well"
+    },
+    "graph_ridge_minus_expanding_mean_delta": {
+      "mean_paired_mae_difference_log1p": -0.005119646754853752,
+      "ci95_low": -0.011906816909490907,
+      "ci95_high": 0.0017376540789004235,
+      "negative_favours_graph_ridge": true,
+      "resampling_unit": "well"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": "2.1",
+  "title": "Field transfer of Hydrosheaf under data scarcity: robustness, uncertainty and limits across three Ghanaian groundwater datasets",
+  "scope": "Field transfer and robustness benchmark of the identifiability-aware Hydrosheaf reaction-inference workflow, applied unchanged to one well-resourced and two sparse Ghanaian groundwater datasets; evaluates transferability and honesty of reporting, not independent validation of reactions, flow paths or ages.",
+  "objectives": [
+    {"id": "RQ1", "statement": "Dataset readiness: what can and cannot be inferred from each Ghanaian dataset given its available evidence tier.", "acceptance_criteria": ["Per-dataset tier attainment and missingness quantified", "Independent charge-balance audit classifies quality tiers per dataset (no external quality-class field exists in the canonical raw data to check it against)"]},
+    {"id": "RQ2", "statement": "Field transfer: how stable are reaction-class support, evidence gates and identifiability class across season and administrative region in Northern Ghana (no independent aquifer-type classification exists for these boreholes).", "acceptance_criteria": ["160 wells classified at Tier 4", "Seasonal and region-stratified stability reported"]},
+    {"id": "RQ3", "statement": "Diagnostic robustness: how much do process labels, reaction-class confidence and identifiability class change when diagnostics are removed.", "acceptance_criteria": ["Full Tier 4-to-0 ablation completed", "Gate on/off and synthetic-truth validation completed"]},
+    {"id": "RQ4", "statement": "Connectivity robustness: do conclusions depend too strongly on assumed edges.", "acceptance_criteria": ["Three Hydrosheaf-generated edge-construction strategies compared", "Null-model sensitivity screened"]},
+    {"id": "RQ5", "statement": "External transfer: what transfers, and what are the failure modes, when the workflow is applied to genuinely sparse external datasets.", "acceptance_criteria": ["Talensi and Lower Anayari evaluated at native tier against matched-tier Northern Ghana references"]},
+    {"id": "RQ6", "statement": "Limits: which process classes are identifiable, weakly identifiable, or non-identifiable under field data scarcity.", "acceptance_criteria": ["Per-process, per-dataset limitation map produced", "Conservative versus best-fit reporting compared"]}
+  ],
+  "inputs": [
+    {"id": "DATA-1", "path": "data/FieldData/NorthenGhana/NorthernGhana.xlsx", "provenance": "Northern Ghana seasonal groundwater chemistry workbook, canonical raw Dry/Wet sheets only (320 samples, 160 wells, March/August 2025). An earlier revision additionally read data/NorthenGhana/Aquifers_Dataset_Mendeley.xlsx, a different, antecedent study's own derived product (aquifer/geology/lithology metadata, workbook saturation indices, a provided graph-edge sheet, inferred process labels); that workbook is not this project's field data and has been removed entirely (DECISIONS.md)."},
+    {"id": "DATA-2", "path": "data/Talensi_MiningArea/talensi.csv", "provenance": "Talensi artisanal-mining-area groundwater chemistry dataset (63 samples)"},
+    {"id": "DATA-3", "path": "data/LowerAnayari/manu.csv", "provenance": "Lower Anayari groundwater chemistry dataset (41 samples)"}
+  ],
+  "risks": [
+    {"id": "RISK-1", "risk": "Inferred labels from a different, antecedent study's derived workbook (Dominant_Process, Aquifer_Evolution_Label, Graph_Edges) could be mistaken for independent ground truth.", "mitigation": "That workbook and its fields have been removed from this study entirely rather than retained as a concordance reference; honesty boundary stated in Methods, Study design, Discussion and DECISIONS.md."},
+    {"id": "RISK-2", "risk": "Evidence-lift gate could manufacture apparent identifiability loss (circularity).", "mitigation": "Gate on/off comparison and gate-independent structural diagnostics reported (Supplementary Methods S7, Extended Data Fig. 3)."}
+  ],
+  "quality": {"minimum_test_coverage": 80},
+  "implementation": {
+    "backend_language": "python",
+    "entrypoint": "M6/m6_field_transfer_benchmark/scripts/run_m6_q1.py",
+    "dependency_lock": "N/A",
+    "results_store_profile": "local-csv",
+    "r_consumer_enabled": true,
+    "qgis_consumer_enabled": false
+  },
+  "manuscript_requirements": {"figures": ["FIG-1", "FIG-2", "FIG-3", "FIG-4", "FIG-5", "FIG-6"], "tables": ["TAB-1", "TAB-2", "TAB-3", "TAB-4", "TAB-5"]}
+}

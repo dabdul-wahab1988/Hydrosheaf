@@ -1,0 +1,175 @@
+{
+  "schema_version": "1.0",
+  "searches": [
+    {
+      "source": "web search (general index)",
+      "query": "MODFLOW 6 MODPATH 7 USGS particle tracking documentation citation",
+      "searched_on": "2026-07-24",
+      "scope": "Identify the official USGS documentation for the MODFLOW 6 flow model and MODPATH 7 particle-tracking model used by the independent synthetic-truth generator."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "Langevin Hughes Banta Provost 2017 MODFLOW 6 documentation groundwater flow model USGS Techniques and Methods",
+      "searched_on": "2026-07-24",
+      "scope": "Verify exact bibliographic metadata (report series, chapter number, DOI) for the MODFLOW 6 documentation."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "multi-tracer groundwater age dating tritium 39Ar Bayesian uncertainty environmental tracers",
+      "searched_on": "2026-07-24",
+      "scope": "Identify primary methodological literature on combining tritium and argon-39 for groundwater age inference, to support the local age-likelihood specification."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "Visser 2013 groundwater age distributions multiple tracers 85Kr 3H/3He 39Ar Water Resources Research volume pages doi",
+      "searched_on": "2026-07-24",
+      "scope": "Verify exact bibliographic metadata for the multi-tracer groundwater age dating reference."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "McCallum 2015 \"Limitations of the Use of Environmental Tracers to Infer Groundwater Age\" Groundwater volume issue pages doi",
+      "searched_on": "2026-07-24",
+      "scope": "Verify exact bibliographic metadata for the environmental-tracer limitations reference supporting the Introduction problem statement."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "joint inversion multiple data types groundwater hydrogeology reduces non-uniqueness",
+      "searched_on": "2026-07-24",
+      "scope": "Identify literature on joint/multi-data inversion as the conventional motivation for evidence integration reducing non-uniqueness."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "Linde Binley Tryggvason Pedersen Revil 2006 joint inversion hydrogeological geophysical data Water Resources Research",
+      "searched_on": "2026-07-24",
+      "scope": "Verify exact bibliographic metadata for the joint-inversion reference."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "rank normalized R-hat effective sample size MCMC convergence diagnostic Vehtari",
+      "searched_on": "2026-07-24",
+      "scope": "Identify the standard convergence/effective-sample-size guidance underlying the importance-sampling stability rule (ESS >= 400)."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "Vehtari Gelman Simpson Carpenter Burkner 2021 rank-normalization improved Rhat Bayesian Analysis volume pages",
+      "searched_on": "2026-07-24",
+      "scope": "Verify exact bibliographic metadata for the rank-normalized R-hat/ESS reference."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "precision-recall AUC versus ROC AUC imbalanced classification Davis Goadrich",
+      "searched_on": "2026-07-24",
+      "scope": "Identify the primary methodological reference establishing PR-AUC as more informative than ROC-AUC under class imbalance."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "Davis Goadrich 2006 \"relationship between Precision-Recall and ROC curves\" ICML citation",
+      "searched_on": "2026-07-24",
+      "scope": "Verify exact bibliographic metadata for the PR-AUC/ROC-AUC reference."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "calibration Brier score expected calibration error probabilistic forecast verification",
+      "searched_on": "2026-07-24",
+      "scope": "Identify the origin of the Brier score used as a calibration metric alongside log loss and expected calibration error."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "Brier 1950 \"Verification of forecasts expressed in terms of probability\" Monthly Weather Review volume pages",
+      "searched_on": "2026-07-24",
+      "scope": "Verify exact bibliographic metadata for the Brier score reference."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "negative transfer data fusion misspecified evidence overconfidence calibration false confidence",
+      "searched_on": "2026-07-24",
+      "scope": "Survey literature on overconfidence arising from misspecified or fused evidence, relevant to the negative-transfer decision rule; no single primary source was selected from this survey query."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "carbonate weathering precipitation non-identifiability reaction path modeling groundwater PHREEQC equifinality",
+      "searched_on": "2026-07-24",
+      "scope": "Survey literature on PHREEQC-based reaction-path modelling of carbonate processes; confirmed PHREEQC as the applicable official documentation for thermodynamic direction bounds already used by the project."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "Vehtari 2021 rank-normalized R-hat bulk-ESS tail-ESS threshold 400 MCMC chains guidance",
+      "searched_on": "2026-07-24",
+      "scope": "Verify, in response to pre-submission review, whether Vehtari et al. (2021) endorses an ESS >= 400 threshold for single-particle-set importance-sampling effective sample size or only for multi-chain MCMC bulk/tail effective sample size; confirmed the latter, and the Methods citation was corrected accordingly."
+    },
+    {
+      "source": "web search (general index)",
+      "query": "Kish 1965 \"Survey Sampling\" effective sample size design effect citation publisher",
+      "searched_on": "2026-07-24",
+      "scope": "Identify the original source of the importance-weighting effective-sample-size formula used in this study, to correctly attribute the formula itself separately from the adopted numerical stability threshold."
+    }
+  ],
+  "selected_sources": [
+    {
+      "citation_key": "langevin2017modflow6",
+      "supports_method_ids": ["METH-1"],
+      "authority": "official documentation",
+      "reason": "Official USGS documentation for the MODFLOW 6 groundwater flow model executed by the independent synthetic-truth generator."
+    },
+    {
+      "citation_key": "pollock2016modpath",
+      "supports_method_ids": ["METH-1"],
+      "authority": "official documentation",
+      "reason": "Official USGS user guide for MODPATH 7, the particle-tracking model executed by the independent synthetic-truth generator."
+    },
+    {
+      "citation_key": "parkhurst2013phreeqc",
+      "supports_method_ids": ["METH-12"],
+      "authority": "official documentation",
+      "reason": "Official USGS documentation for PHREEQC, whose thermodynamic direction bounds are retained by both hydrochemical panels in the reaction-family bootstrap."
+    },
+    {
+      "citation_key": "visser2013multitracer",
+      "supports_method_ids": ["METH-7"],
+      "authority": "primary",
+      "reason": "Primary methodological example of combining multiple environmental age tracers (including 39Ar) to constrain groundwater age, supporting the rationale for a multi-tracer local age likelihood."
+    },
+    {
+      "citation_key": "mccallum2015limitations",
+      "supports_method_ids": ["METH-7"],
+      "authority": "primary",
+      "reason": "Primary methodological source on known limitations of environmental-tracer age inference, motivating explicit uncertainty propagation in the local age likelihood."
+    },
+    {
+      "citation_key": "vehtari2021rhat",
+      "supports_method_ids": ["METH-11"],
+      "authority": "primary",
+      "reason": "Cited only by analogy for the ESS >= 400 stability convention used across chains in rank-normalised MCMC diagnostics; this paper does not itself address single-particle-set importance-sampling effective sample size, and the Methods text now states this limitation explicitly rather than presenting the citation as direct endorsement."
+    },
+    {
+      "citation_key": "kish1965survey",
+      "supports_method_ids": ["METH-11"],
+      "authority": "primary",
+      "reason": "Original source of the importance-weighting effective-sample-size formula (ESS as the reciprocal sum of squared normalised weights) used directly in this study's topology-conditioned age inference."
+    },
+    {
+      "citation_key": "davisgoadrich2006prcurves",
+      "supports_method_ids": ["METH-15"],
+      "authority": "primary",
+      "reason": "Primary methodological reference establishing that PR-AUC is more informative than ROC-AUC under class imbalance, justifying its priority as the discrimination metric."
+    },
+    {
+      "citation_key": "brier1950verification",
+      "supports_method_ids": ["METH-16"],
+      "authority": "primary",
+      "reason": "Origin of the Brier score used jointly with log loss and expected calibration error to check that reduced uncertainty is not accepted without a calibration check."
+    },
+    {
+      "citation_key": "linde2006jointinversion",
+      "supports_method_ids": ["METH-17"],
+      "authority": "primary",
+      "reason": "Primary example of the conventional joint-inversion motivation for evidence integration, against which this benchmark's falsifiable decision-rule framing is contrasted."
+    },
+    {
+      "citation_key": "neuman2003bma",
+      "supports_method_ids": ["METH-17"],
+      "authority": "primary",
+      "reason": "Primary reference for treating multiple candidate models/evidence sources jointly under uncertainty, relevant background for the conventional integration rationale being tested."
+    }
+  ]
+}

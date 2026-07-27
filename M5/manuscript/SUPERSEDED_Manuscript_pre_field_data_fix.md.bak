@@ -1,0 +1,851 @@
+# Identifiability-Aware Reaction Inference Makes Groundwater Mechanisms Falsifiable
+
+*Target journal: Water Resources Research (primary); Journal of Hydrology (alternative). Main text word budget: 6,500 words (Introduction-Conclusion).*
+
+## Abstract
+
+Inverse geochemical models can fit observed concentration changes without
+uniquely identifying the responsible reactions, a non-uniqueness problem
+that undermines single best-fit groundwater interpretations. The aim was to
+develop and validate, within Hydrosheaf, a groundwater-process framework, an
+identifiability-aware sparse inversion approach integrating
+reaction-equivalence classes, a Mechanism Resolution Score, held-out-ion
+falsification, and next-best-measurement selection, in a controlled
+benchmark and a chemistry-only field transfer. The bounded guarded model was
+benchmarked on 240 live-PHREEQC scenarios across four
+hydrochemical archetypes (21,600 factorial inverse fits) and applied to 138
+same-borehole wet/dry pairs from Northern Ghana. Results showed that, in the
+synthetic benchmark, 55% of the lowest-residual quartile of fits still had
+exact-phase F1 below 0.80. The guarded model achieved
+mean exact-phase and equivalence-class F1 of 0.563 and 0.609 with a
+false-discovery rate of 0.361, improving on a legacy baseline (0.465).
+Thermodynamic screening removed impossible reactions but left 72% of
+constrained fits below equivalence-class F1 0.80; a conventional PHREEQC
+baseline generated 185.8 feasible models per scenario, and the
+resolution score reached 48.9% accuracy on an untouched archetype. The
+significance is that the approach prevents overinterpretation of
+non-identifiable pathways, replacing single best-fit narratives with a
+measurable resolution hierarchy.
+
+# Introduction
+
+## General studies: groundwater reactions and water-resource interpretation
+
+Identifying which mineral dissolution, precipitation, ion-exchange, redox, and
+anthropogenic processes have shaped a groundwater sample is central to
+groundwater-resource assessment [@plummer1980massbalance]. Hydrochemical
+evolution along a flow path records the joint influence of recharge
+composition, lithology, mixing, residence time, climate, and human pressure,
+so a defensible reconstruction of that evolution requires separating these
+influences rather than fitting a single aggregate signal. Reaction-pathway
+interpretation in turn informs contaminant-source attribution, aquifer
+vulnerability assessment, treatment-process selection, and long-term
+water-quality prediction, all of which depend on knowing which transformation
+actually occurred rather than which transformation is merely consistent with
+the observed concentrations. Carbonate dissolution, silicate weathering,
+cation exchange, evaporite dissolution, redox transformation, and
+nitrate-source attribution each imply a different management response, so
+misassigning the operative reaction can misdirect remediation spending,
+mislabel a naturally elevated solute as contamination, or understate a
+genuine anthropogenic source. Inverse hydrogeochemistry has therefore become
+the general scientific approach for reconstructing groundwater transformations
+that cannot be observed directly. This study develops that approach within
+Hydrosheaf, a graph- and sheaf-based framework in which candidate flow
+connectivity, residence time, and reaction pathway are separately evidenced
+layers attached to a shared directed edge between two sampled points; the
+present work is the chemical-reaction layer.
+
+## Current studies: contemporary inverse hydrogeochemical approaches
+
+Contemporary practice draws on PHREEQC inverse mole-balance modelling
+[@parkhurst2013phreeqc] and its predecessor NETPATH [@plummer1994netpath],
+mineral saturation indices, end-member mixing analysis
+[@christophersen1992emma], isotope constraints, sparse regression such as the
+lasso and elastic net [@tibshirani1996lasso; @zou2005elasticnet], and Bayesian
+model-averaging treatments of structural uncertainty [@neuman2003bma], and
+more recent Bayesian mixing frameworks that explicitly propagate source and
+tracer uncertainty rather than reporting a single mixing ratio
+[@popp2019bayesianmixing; @beria2020hydromix]. Thermodynamic screening,
+regularisation, and multi-tracer evidence are widely
+used to narrow the set of plausible reactions and to make reported pathways
+more parsimonious. Recent studies increasingly combine hydrochemistry with
+spatial, hydraulic, isotopic, or age information, and graph-based
+representations of candidate flow connectivity, developed independently for
+transport-scenario screening rather than for chemistry [@moracchini2025graphflow],
+offer one route to representing that connectivity explicitly. Even so,
+connectivity, travel time, and reaction pathway are typically estimated and
+reported as separate outputs rather than as a jointly conditioned inference.
+There is a parallel movement toward reproducible workflows, ensemble
+interpretation, and data-guided monitoring-network design that explicitly
+values the marginal information content of additional measurements
+[@sreekanth2017monitoring]. Collectively, these advances improve the
+plausibility and parsimony of an inferred reaction set, but plausibility and
+parsimony do not by themselves establish that the inferred mechanism is the
+unique explanation of the observations. A model that fits well because it is
+correct and a model that fits well because the available ions cannot
+distinguish it from a competing reaction combination remain, on residual
+error alone, indistinguishable.
+
+## Problem statement: numerical fit is not mechanistic identification
+
+The central problem is that multiple stoichiometrically equivalent or
+near-equivalent reaction combinations can reproduce the same concentration
+difference between two waters. Christophersen and Hooper showed for
+end-member mixing that unambiguous identification of source composition from
+a mixture alone is impossible without independent constraints
+[@christophersen1992emma], and the wider equifinality literature establishes
+that many distinct parameter or structural choices can be observationally
+indistinguishable in an environmental model [@beven2001glue; @beven2006manifesto].
+The same structural indeterminacy applies to sparse inverse reaction
+inference: a low concentration residual, a sparse support, or a
+thermodynamically feasible solution may still identify the wrong reaction, or
+only one member of an unresolved equivalence class. Incomplete ion panels,
+analytical noise, uncertain phase dictionaries, transport-model error, mixing,
+and correlated stoichiometric vectors all contribute to this non-identifiability.
+Conventional missing-ion tests can appear favourable for the wrong reason,
+because setting an omitted ion's weight to zero removes it from the objective
+function rather than testing whether the fitted reaction predicts it. Without
+ground-truth phase-recovery testing, calibrated resolution diagnostics, and
+genuine predictive falsification, an inverse hydrogeochemical study can report
+an overconfident mechanistic narrative that a numerically equivalent
+alternative would equally well support. The practical consequence is not
+merely academic: a management decision built on the wrong member of an
+equivalence class can misattribute a water-quality trend, target the wrong
+recharge source for protection, or miss a genuine early warning of
+contamination because the fitted narrative absorbed it into an
+indistinguishable natural process.
+
+## Novelty: identifiability-aware and predictively falsifiable reaction inference
+
+This study reframes the inferential target: rather than selecting one
+plausible reaction pathway, it determines what level of mechanism the
+available observations can actually resolve. Five innovations, delivered and
+tested in this manuscript, support this reframing: (1) reaction-equivalence
+classes derived from rank, singular values, null-space structure, and mutual
+coherence of the reaction dictionary; (2) a live-PHREEQC factorial benchmark
+with known phase and extent ground truth; (3) a calibrated Mechanism
+Resolution Score; (4) held-out-ion predictive falsification in place of
+retained-ion residual comparison; and (5) retrospective next-best-measurement
+selection based on expected ambiguity reduction. A sixth position, edge-
+conditioned chemical confidence within the wider Hydrosheaf framework, is
+introduced conceptually here but is not evaluated in this chemistry-only
+study; it is left for the integration with topology and residence-time
+evidence described in Future development. Positioned this way, the study
+functions as a chemical claim-auditing layer that distinguishes an
+identifiable mechanism, a partially resolved reaction class, and a
+non-identifiable pathway, rather than as a new reactive-transport solver.
+
+## Aim and objectives
+
+The aim is to develop and validate an identifiability-aware framework that
+determines when groundwater reaction mechanisms are uniquely recoverable,
+recoverable only as equivalence classes, or unsupported by the available
+observations. Five objectives follow. First, construct a diverse
+live-PHREEQC benchmark with known reaction phases, directions, and extents.
+Second, quantify how stoichiometric structure, analytical noise, missing
+ions, transport confounding, and regularisation alter exact-phase and
+equivalence-class recovery. Third, develop and independently test a
+Mechanism Resolution Score against held-out synthetic archetypes. Fourth,
+evaluate held-out-ion prediction and next-best-measurement selection as
+falsification and monitoring-design tools. Fifth, demonstrate chemistry-only
+identifiability-aware reporting using 320 wet/dry hydrochemical records from
+160 Northern Ghana boreholes sampled in March and August 2025, a crystalline
+basement setting in which silicate weathering and cation exchange are
+established controls on groundwater composition [@anku2008ghana;
+@banoengyakubo2011ghana].
+
+## Significance
+
+The evidence base for these claims is primarily the controlled live-PHREEQC
+benchmark, where ground truth is known; the Northern Ghana component
+demonstrates chemistry-only transfer under realistic data sparsity and does
+not itself validate reaction mechanism, so it is not treated as independent
+support for the significance claims below. Scientifically, the framework
+replaces unqualified reaction-pathway selection
+with a measurable resolution hierarchy that separates numerical
+reconstruction, thermodynamic feasibility, and mechanistic identification.
+Methodologically, it converts equifinality from an implicit caveat into an
+explicit, quantified diagnostic attached to every reported reaction.
+Practically, it identifies which additional ion or tracer would most improve
+a given groundwater interpretation, giving monitoring design an evidence base
+rather than a fixed panel. Within Hydrosheaf, it supplies chemically
+qualified edge-level evidence without claiming to have independently
+validated flow-path topology or groundwater age, preserving the modular
+claim boundary between this chemical-reaction layer and Hydrosheaf's
+separately reported topology and residence-time layers, which are developed
+and validated in companion work. More broadly, it contributes a transferable
+template for reproducible, decision-relevant groundwater-process inference
+under sparse and noisy chemical observation.
+
+# Methods
+
+## Conceptual model and mass-balance formulation
+
+The basic inferential unit was a directed Hydrosheaf edge linking an
+upstream and a downstream groundwater composition. Where available, each
+edge carried topology confidence from the graph/sheaf layer and a
+residence-time estimate from the temporal layer; where these upstream
+quantities were unavailable, the analysis was labelled explicitly as
+chemistry-only rather than fully integrated Hydrosheaf inference. The
+transport-corrected concentration residual was defined as
+
+<!-- EQ:EQ-1 -->
+$$
+\mathbf{r} = \mathbf{x}_v - \mathbf{x}_{\mathrm{transport}},
+$$
+
+where $\mathbf{x}_v$ was the observed downstream ion-concentration vector and
+$\mathbf{x}_{\mathrm{transport}}$ was the concentration expected from
+conservative transport alone. Reaction extents $\mathbf{z}$ were estimated by
+solving a bounded, penalised sparse regression
+
+<!-- EQ:EQ-2 -->
+$$
+\hat{\mathbf{z}}
+=
+\arg\min_{\mathbf{z}}
+\left[
+\frac{1}{2}
+\|\mathbf{W}^{1/2}(\mathbf{r}-\mathbf{S}^{\mathsf T}\mathbf{z})\|_2^2
++\lambda_1\sum_j p_j|z_j|
++\frac{\lambda_2}{2}\|\mathbf{z}\|_2^2
+\right],
+$$
+
+subject to thermodynamic lower and upper bounds on each $z_j$, where
+$\mathbf{S}$ was the signed stoichiometric reaction matrix, $\mathbf{W}$ was
+a diagonal ion-specific analytical-uncertainty weight built from the assumed
+measurement precision of each species, $p_j$ was a per-reaction penalty
+scale that down-weighted geologically implausible reactions relative to the
+locally expected assemblage, and $\lambda_1$, $\lambda_2$ were the lasso and
+ridge regularisation weights of an elastic-net-type penalty
+[@tibshirani1996lasso; @zou2005elasticnet]. Dissolution and precipitation
+corresponded to opposite signs of $z_j$ under a single locked sign
+convention applied consistently across every reaction in the dictionary, so
+that a negative extent always denoted removal of the associated ions from
+solution regardless of whether the underlying process was mineral
+precipitation, sorption, or reductive uptake. The objective, penalty, and
+bound scaling were fixed to one internally consistent convention before any
+scenario was fitted, and the coordinate-descent convergence tolerance was
+defined on that same scale so that stopping behaviour did not depend on an
+arbitrary unit choice. Full symbol definitions, units, and the
+coordinate-descent solution to Equation 2 are given in Supplementary
+Methods S1-S2.
+
+## Reaction dictionary, solver, and identifiability diagnostics
+
+The stoichiometric reaction matrix comprised 16 signed reactions over an
+11-ion panel, spanning mineral dissolution/precipitation, cation exchange,
+nitrate-source, and denitrification vectors. Coefficients were estimated by
+coordinate descent with soft thresholding, a fixed iteration budget, and
+convergence and bound-feasibility checks (Supplementary Methods S1-S2).
+Because several reaction directions are stoichiometrically collinear or
+exactly opposed (for example, competing ion-exchange directions), the
+dictionary was not assumed to be identifiable a priori. Rank, nullity,
+singular values, condition number, and mutual coherence of the
+panel-specific design matrix were computed for every ion panel to diagnose
+identifiability directly, following the general principle that residual fit
+alone cannot distinguish structurally equivalent solutions
+[@christophersen1992emma; @beven2001glue]. Reactions or reaction combinations
+that were linear-algebraically indistinguishable under a given ion panel
+were grouped into exact reaction-equivalence classes; near-collinear
+combinations were grouped into approximate classes using a coherence
+threshold (Supplementary Methods S3). This distinction separated two
+different failure modes that a single residual-based metric conflates: a
+solver failing to find any adequate reaction combination, and a solver
+correctly finding an adequate combination that the observed ion panel simply
+cannot distinguish from an equally consistent alternative. Recovery was
+therefore always reported at two levels: exact-phase recovery against the
+single true reaction, and equivalence-class recovery against the class
+containing the true reaction, so that an apparent failure at the exact-phase
+level could be re-evaluated as an information-limited but structurally
+correct result at the equivalence-class level.
+
+## PHREEQC synthetic benchmark and comparators
+
+Ground truth was generated with a live PHREEQC 3.7.3 factorial benchmark
+[@parkhurst2013phreeqc] of 240 scenarios (60 replicates across four
+hydrochemical archetypes: carbonate, crystalline/silicate, evaporitic, and a
+mixed archetype combining carbonate and silicate weathering with cation
+exchange in a single water), each with one to five simultaneous known
+phases, dissolution or precipitation direction, and a reaction extent within
+a realistic groundwater range. Scenarios were run at three analytical-noise
+levels (0%, 3%, 8% of concentration) and under five ion panels ranging from
+the full 11-ion set to a reduced 5-ion core panel, factorially combined with
+mixing/evaporation transport confounders, giving 21,600 factorial inverse
+fits. Seven methods were compared: bounded least squares, lasso, elastic
+net, a thermodynamic elastic net, the Hydrosheaf Guarded model
+(thermodynamically bounded, penalty-scaled elastic net), a Hydrosheaf-Core
+evidence-gated variant that adds sparse geochemical evidence gates (Gibbs,
+exchange, redox, charge-balance, and saturation-index checks) without
+requiring rare tracers, and a conventional PHREEQC `INVERSE_MODELING`
+baseline [@parkhurst2013phreeqc] run under strict 5% and relaxed 20%
+analytical-uncertainty bounds. Hydrosheaf Guarded used the identical
+coordinate-descent solve as the thermodynamic elastic net (same fit method
+and penalty weights) and differed from it only in the support threshold
+applied to convert continuous reaction extents into a selected phase set;
+consequently, continuous quantities such as extent RMSE, reconstruction
+RMSE, and runtime are identical between the two methods by construction, and
+only phase-support and equivalence-class metrics, which depend on the
+threshold, differ between them. The strict bound followed conventional
+inverse-modelling practice; the relaxed bound represented the wider
+tolerance sometimes adopted when a strict solution is infeasible, so both
+feasibility and recovery accuracy could be reported as a function of the
+declared uncertainty. Thermodynamic bounds, geologic penalty priors,
+indicator-ion gates, and the L1/L2 penalty weights were each ablated
+individually to isolate their marginal contribution to phase recovery,
+false-discovery rate, and extent error. Regularisation was selected by a
+predeclared grid with a one-standard-error rule, which selected the most
+parsimonious penalty whose cross-validated performance was within one
+standard error of the minimum-residual penalty, rather than by minimum
+residual alone, because a minimum-residual choice systematically favours the
+member of an equivalence class with the smallest incidental numerical
+advantage rather than the member best supported by independent evidence
+(Supplementary Methods S4). The conventional PHREEQC inverse baseline was
+run without a sparsity penalty, so it reported every phase combination
+consistent with the declared uncertainty bounds rather than a single
+preferred solution; its full feasible-model count and its first minimal
+model were both retained so that solver multiplicity itself could be
+compared against the guarded models' equivalence-class reporting.
+
+## Evaluation metrics and the Mechanism Resolution Score
+
+Primary metrics were phase-support precision, recall, F1, and false-discovery
+rate; equivalence-class precision, recall, and coverage; signed
+reaction-direction accuracy; extent RMSE, MAE, and interval coverage;
+concentration-reconstruction RMSE; held-out-ion RMSE and interval coverage;
+thermodynamic-violation rate; bootstrap support stability across resamples
+and penalty values [@meinshausen2010stability]; and convergence/runtime.
+Held-out-ion prediction withheld a predeclared ion from the fitting objective
+and tested whether the inferred reaction predicted its concentration, in
+place of the weaker convention of merely zero-weighting an omitted ion.
+Whether residual error predicts support accuracy was tested with regression,
+calibration curves, and rank correlation. A calibrated Mechanism Resolution
+Score (MRS), combining rank, nullity, coherence, support stability, held-out
+error, and thermodynamic feasibility, was fitted on three training
+archetypes (carbonate, crystalline, evaporitic) and evaluated, untouched,
+on the mixed archetype, reporting four ordered resolution classes:
+non-identifiable, partially identifiable, equivalence-class identifiable,
+and identifiable (Supplementary Methods S4). Held-out-archetype testing was
+used specifically because within-archetype cross-validation would let the
+score learn archetype-specific shortcuts rather than a transferable relation
+between structural diagnostics and phase-recovery reliability. Next-best
+measurement was evaluated retrospectively by masking observed variables,
+ranking the expected ambiguity reduction from each candidate ion, and
+comparing the realised reduction in held-out prediction error against fixed
+and random measurement panels, following the general principle that a
+monitoring design should be scored by its measured value of information
+rather than by convention or availability alone
+[@sreekanth2017monitoring] (Supplementary Methods S5). An analogous
+data-tier experiment compared a core major-ion panel against panels enriched
+with controlled synthetic SiO2, Sr, and water-isotope diagnostics, and
+further with Br, dissolved oxygen, dissolved organic carbon, and
+sulphate/nitrate-isotope diagnostics, reporting an entropy-based
+evidence-lifted resolution index that quantifies conditional evidence
+separation within an equivalence class rather than new mass-balance
+uniqueness (Supplementary Methods S5).
+
+## Northern Ghana chemistry-only field demonstration
+
+The framework was applied to 320 wet/dry hydrochemical records from 160
+Northern Ghana boreholes sampled in March and August 2025, spanning four
+aquifer classes and 12 lithologies dominated by crystalline basement and
+Voltaian sedimentary terrain in which silicate weathering and cation
+exchange are established regional controls [@anku2008ghana;
+@banoengyakubo2011ghana]. The 294 records that met a quantitative
+charge-balance quality class were used for primary field analyses; the
+remainder were retained for sensitivity reporting. Records were paired by
+borehole, retaining only boreholes with both a wet-season and a dry-season
+quality-passing record and at least six ions measured in common between the
+two records; this yielded 138 quantitative wet-to-dry pairs from the 294
+quality-passing records, fewer than the 147 pairs a full halving would imply
+because some boreholes had only one qualifying season or an overlapping-ion
+count below the six-ion threshold. Support stability and
+held-out-ion performance were stratified by aquifer, lithology, and season,
+and reaction-equivalence classes were reported wherever the measured ions
+did not distinguish individual phases (Supplementary Methods S7). The
+identifiability-aware output was compared directly against a conventional
+single best-fit interpretation of the same field pairs so that the practical
+difference between the two reporting styles could be shown on the same
+data. Generated graph edges and heuristic hydraulic residence times were not
+treated as independent ground truth; this component is reported as a
+chemistry-only transfer demonstration, not as validation of connectivity,
+groundwater age, or reaction mechanism.
+
+## Reproducibility
+
+Code, the environment lock file, the PHREEQC database, generated scenario
+inputs and outputs, random seeds, and figure-generation scripts were
+archived with a reproducible entry point and will be deposited, with data
+and claim limitations, in a permanent repository before submission
+(Supplementary Methods S8). Software versions, fixed random seeds, and
+predeclared hyperparameter grids were recorded for every stage of the
+pipeline, and scenario-level PHREEQC input and output files were preserved
+unmodified so any ground-truth value could be traced to the simulation that
+produced it. The distinction between synthetic benchmark
+evidence, retrospective measurement-value simulation, and the Northern Ghana
+field transfer was preserved throughout so no synthetic result could be
+misread as field validation.
+
+# Results
+
+## Benchmark overview and numerical validity
+
+The live-PHREEQC factorial benchmark generated 240 scenarios across four
+hydrochemical archetypes (carbonate, crystalline/silicate, evaporitic, and
+mixed), each with known active phases, directions, and extents, yielding
+21,600 factorial inverse fits across seven compared methods, three
+analytical-noise levels, and five ion panels [[TAB:TAB-1]]. Agreement
+between the PHREEQC-simulated endpoint chemistry and the concentration
+change implied by the sampled stoichiometry and extents was high: the
+maximum PHREEQC-to-stoichiometric generation residual across all retained
+scenarios was 6.56 x 10^-4 mmol/L, several orders of magnitude below the
+smallest applied analytical-noise level, confirming that the generator
+itself introduced negligible error relative to the noise conditions under
+test [[FIG:FIG-1]]. In well-conditioned, noise-free cases, exact recovery
+of the true reaction set was confirmed before any stress test was applied.
+Convergence was high but not universal: the guarded and thermodynamic
+elastic-net models converged in 82.5% of fits, lasso and elastic net in
+76.7-77.9%, and bounded least squares in only 35.4%, reflecting the
+comparative difficulty of the unregularised, unbounded optimisation problem
+[[TABREF:TAB-1]]. Non-convergent fits were retained and flagged rather than
+discarded, so all reported recovery statistics reflect the full factorial
+design rather than a convergence-filtered subset, and every summary
+statistic below traces to an explicit fit-level record carrying its own
+convergence flag, runtime, and identifiability diagnostics [[TABREF:TAB-1]].
+
+## Good concentration fits can conceal incorrect pathways
+
+Across the benchmark, concentration-reconstruction accuracy and phase-support
+accuracy diverged substantially. Among the lowest concentration-residual
+quartile of fits, 55.0% still had exact-phase F1 below 0.80, directly
+supporting the central claim that a low residual does not imply a correctly
+recovered mechanism [[FIG:FIG-2]]. At 3% analytical noise with the full
+11-ion panel, the training-calibrated Hydrosheaf guarded model achieved a
+mean exact-phase F1 of 0.563 [95% CI 0.525-0.602] and a mean equivalence-class
+F1 of 0.609 [0.569-0.648], a materially higher equivalence-class than
+exact-phase score that is itself evidence of structural, not merely
+numerical, ambiguity [[TABREF:TAB-1]]. The guarded model's false-discovery
+rate of 0.361 [0.319-0.402] was lower than the legacy thermodynamic
+elastic-net model's 0.465 [0.428-0.503] and the unconstrained lasso and
+elastic-net models' 0.505 and 0.516 respectively, showing that
+thermodynamic guarding and penalty scaling reduced spurious reaction
+selection without eliminating it. Reaction-equivalence classes recovered a
+consistently higher fraction of scenarios than exact-phase matching across
+every comparator, and the gap between the two was widest for the three
+exactly collinear class pairs identified in the dictionary's null-space
+structure, confirming that part of the
+observed exact-phase shortfall reflects information-limited ambiguity rather
+than solver failure [[FIG:FIG-3]]. Bounded least squares, the only
+comparator without a sparsity penalty, illustrated the opposite failure
+mode. Its mean phase F1 of 0.435 [0.413-0.457] and false-discovery rate of
+0.697 [0.679-0.715] were the worst of any comparator, despite the lowest
+mean reconstruction RMSE of all seven methods (0.008 mmol/L)
+[[TABREF:TAB-1]]. An unpenalised least-squares fit can therefore
+reconstruct concentrations essentially exactly while still selecting a
+materially wrong reaction set. Lasso and elastic net narrowed this gap
+relative to bounded least squares but still returned false-discovery rates
+above 0.50, and only the guarded and Hydrosheaf-Core models, which combined
+sparsity with thermodynamic and evidence-based screening, brought
+false-discovery rate below 0.40 while maintaining comparable or better
+phase and equivalence-class F1. The Hydrosheaf-Core evidence gate itself had
+a mean reaction-evidence score of 0.622 across the synthetic benchmark, but
+only 23.0% of reaction rows it flagged as high evidence corresponded to a
+truly active reaction in the known ground truth, so a high evidence score
+from this gate should be read as a moderate prior in favour of a reaction,
+not as a reliable positive indicator on its own.
+
+## Effects of sparsity and stoichiometric identifiability
+
+Under the full ion panel the reaction dictionary had rank 8 and nullity 4,
+so at least four independent reaction directions could be reallocated among
+themselves without changing any predicted concentration, regardless of
+noise level, solver choice, or sample size. Three exact reaction-equivalence
+classes accounted for this null space: the two oppositely signed cation
+exchange pairs (calcium-sodium and magnesium-sodium exchange, each exact
+algebraic negatives of one another) and, less expectedly, an anorthite/
+calcite pair, in which silicate weathering and carbonate dissolution proved
+exactly indistinguishable under the measured ion panel because both
+reactions were written to load identically onto calcium and bicarbonate,
+the only ions either reaction affects that the panel measures
+[[FIGREF:FIG-3]]. This structural ceiling, established independently of any
+specific inverse fit, sets an upper bound on exact-phase recoverability
+under the full panel that no comparator method exceeded. Conditioning on
+additional diagnostic evidence separated the two exchange pairs
+substantially (mean evidence-lifted resolution index, ELRI, around 0.3) but
+barely separated anorthite from calcite (mean ELRI below 0.1); correctly
+identifying the active member of
+the anorthite/calcite pair when truly active succeeded in only 49% of
+core-tier cases, rising to 70% with plus-lite diagnostics and falling back
+to 65% with the enhanced tier, a non-monotonic pattern [[FIGREF:FIG-3]].
+Regularisation paths showed stable, well-separated support in
+well-conditioned archetypes and abrupt, penalty-sensitive support changes in
+archetypes with higher mutual coherence, consistent with this rank
+deficiency rather than with noise alone (Supplementary Methods S4;
+Supplementary Figure S6). Reducing $\lambda_1$ increased recall at the cost
+of false discoveries; increasing $\lambda_2$ stabilised support across
+bootstrap resamples without resolving the null-space ambiguity, improving
+stability in correlated but non-degenerate subsets while leaving the three
+collinear pairs unresolved by construction. Bootstrap support-stability
+analysis independently confirmed this: well-separated reactions were
+selected with high, penalty-insensitive frequency across resamples, while
+the three collinear pairs shifted sharply with small changes in
+$\lambda_1$. The Mechanism Resolution Score (MRS), calibrated on
+the carbonate, crystalline, and evaporitic archetypes, achieved 48.9%
+four-class classification accuracy on the untouched mixed archetype
+(Supplementary Methods S4; Supplementary Figure S7). This is materially
+better than the 25% expected under random four-class assignment and
+demonstrates that structural and stability diagnostics carry transferable
+information about recovery reliability, but 48.9% is a moderate, not a
+strong, transfer result and is reported without inflation: the MRS narrows
+expectations about recovery reliability but does not by itself certify a
+specific interpretation as correct.
+
+## Missing ions and minimum analytical information
+
+Ion-ablation results showed that removing individual diagnostic ions
+produced abrupt, reaction-specific changes in phase support even when the
+residual on the retained ions remained low, consistent with the
+introduction's prediction that conventional missing-ion tests can appear
+favourable for the wrong reason (Supplementary Figure S8). Held-out-ion
+prediction, which tested whether the fitted reaction predicted a withheld
+ion's concentration change rather than merely omitting it from the
+objective, distinguished reaction combinations that residual comparison on
+the retained ions alone could not. Retrospective next-best-measurement
+selection based on expected ambiguity reduction outperformed both fixed and
+randomly chosen panels of equal size in realised held-out prediction error
+and equivalence-class resolution, supporting the framework's use as a
+monitoring-design tool rather than only a diagnostic one (Supplementary
+Figure S9).
+
+The data-tier
+experiment [[FIG:FIG-4]] showed a consistent, modest improvement in mean class F1 moving
+from the core panel (0.606) through plus-lite (0.610) to the enhanced panel
+(0.614), with false-discovery rate falling from 0.383 to 0.364 to 0.361
+[[TABREF:TAB-1]]. ELRI values rose more
+sharply, from a mean of 0.225 (core) to 0.243 (plus-lite) and a
+conditionally-preferred-or-resolved fraction rising from 55.1% to 62.8% for
+both plus-lite and enhanced tiers, indicating that additional diagnostics
+narrowed evidential support within ambiguous equivalence classes more than
+they changed the underlying mass-balance recovery rate [[FIGREF:FIG-4]]. The
+divergence between the modest gain in class F1 (0.606 to 0.614, a difference
+of 0.008 across the full core-to-enhanced range) and the larger gain in
+conditionally-preferred-or-resolved fraction (55.1% to 62.8%) is itself
+informative: it shows that most of the practical value of the additional
+diagnostics tested here lay in helping an analyst choose among already
+identified equivalence-class members, rather than in expanding the set of
+scenarios for which the correct class was found at all. Realised
+next-best-measurement value tracked expected value closely, but diverged for
+reactions whose diagnostic ion carried elevated analytical noise, so
+expected-information-gain rankings should be read as a priority ordering
+rather than a guaranteed reduction in ambiguity.
+
+## Value and limits of thermodynamic screening
+
+Comparing unconstrained and PHREEQC-bounded fits showed that thermodynamic
+bounds reliably eliminated fitted reaction directions inconsistent with the
+local saturation state, removing a class of false positives that no purely
+statistical penalty could distinguish from a feasible alternative
+[[FIG:FIG-5]]. This screening effect was real but partial: 72% of
+thermodynamically constrained fits remained below an equivalence-class F1 of
+0.80, showing that feasible, non-unique solutions persisted after
+infeasible directions were removed. The conventional PHREEQC
+`INVERSE_MODELING` baseline illustrated the same limit from a different
+angle. Under strict 5% analytical-uncertainty bounds it was feasible for
+45.8% of scenarios; relaxing the bound to 20% raised feasibility to 99.6%,
+but at the cost of generating a mean of 185.8 feasible models and 6.8
+minimal models per scenario [[TABREF:TAB-1]]. Its first-minimal-model
+equivalence-class F1 of 0.512 was below every guarded comparator's
+equivalence-class F1, showing that reporting one arbitrarily selected
+feasible model, even from a fully thermodynamically consistent solver,
+understated the true model multiplicity that the same solver's own output
+revealed. Aggregating across the strict and relaxed uncertainty settings,
+the guarded model's mean phase F1 of 0.563 and equivalence-class F1 of 0.609
+both exceeded the conventional baseline's first-minimal-model values of
+0.510 and 0.512 respectively, while the conventional baseline's own
+minimal-model union achieved a higher equivalence-class F1 of 0.539, and an
+oracle-selected minimal model, an idealised upper bound obtained only by
+already knowing which feasible model was correct and therefore not
+achievable by any practical selection rule, reached 0.586. This ordering
+shows that the conventional solver's thermodynamic completeness was not
+itself the limiting factor on its theoretical ceiling; the practical
+limiting factor was which one of its many internally consistent outputs a
+residual-based rule reported as the answer, and no residual-based rule
+closed the gap to the oracle ceiling in this benchmark [[TABREF:TAB-1]].
+
+## Northern Ghana chemistry-only demonstration
+
+The Northern Ghana chemistry-only demonstration used 138 quantitative
+wet-to-dry pairs drawn from 294 quality-passing records across four aquifer
+classes and 12 lithologies. Median Hydrosheaf-Core evidence score was 0.681
+and median total-dissolved-solids consistency score was 0.941, indicating
+generally coherent, chemically plausible fits [[FIG:FIG-6]]. Under the
+transferred MRS calibration, all 138 pairs were classified as partially
+identifiable, none as fully identifiable, supporting conservative
+class-level rather than single-phase reporting for this dataset. Fluoride
+carried the highest retrospective measurement-value score among tested
+ions in the Northern Ghana transfer analysis, consistent with its
+diagnostic specificity for fluorite/apatite-related reactions that the
+major-ion panel alone constrains only weakly. The external field-transfer
+extension, repeating the ELRI audit on three independently sourced
+chemistry datasets, returned a median ELRI of 0.072 for both
+`NorthernGhana.xlsx` (160 edges) and Talensi (85 edges), and 0.010 for
+Lower Anayari (49 edges), consistently low values that reinforce the
+chemistry-only, non-validating status of these comparisons
+[[TABREF:TAB-1]]. Comparing the identifiability-aware output against a
+conventional single best-fit interpretation on the same field pairs showed
+materially fewer confidently stated exact mechanisms and correspondingly
+more explicit equivalence-class and alternative-pathway statements. Support
+stability and held-out-ion performance, stratified by aquifer class,
+lithology, and season, showed no wet/dry pattern large enough to justify a
+seasonal reaction-pathway narrative once identifiability-aware reporting was
+applied, even though nominal best-fit residuals differed modestly between
+seasons; this is interpreted strictly as a difference in
+predictive consistency, not evidence of a genuine seasonal shift in
+flow-path evolution, given the absence of independent groundwater-age or
+flow-path data. All three external field-transfer datasets returned ELRI
+values well below the enhanced-tier synthetic benchmark values, indicating
+that real-world diagnostic coverage narrowed equivalence-class ambiguity
+considerably less than the controlled synthetic diagnostics did, so the
+Ghana and external field results demonstrate transfer under realistic data
+sparsity rather than an upper bound on what the framework can achieve.
+
+## Computational performance
+
+Median runtime per fit ranged from 16.8 ms (Hydrosheaf-Core) to 28.0 ms
+(bounded least squares) across the 21,600 factorial fits, with the guarded
+and thermodynamic elastic-net models both at 17.2 ms [[TABREF:TAB-1]]. This
+runtime scale, combined with linear scaling in the number of ions and
+reactions used by the coordinate-descent solver, supports the framework's
+feasibility for screening groundwater networks substantially larger than
+the 138-pair Northern Ghana demonstration without a qualitative change in
+per-edge computational cost. The conventional PHREEQC inverse baseline,
+by contrast, required an explicit combinatorial search over feasible phase
+subsets to report its full model set, consistent with its much higher
+reported model multiplicity (185.8 feasible models per scenario on average)
+relative to the single regularised solution returned by every guarded
+comparator. Runtime differences among the six sparse-regression comparators
+were small in absolute terms (17-28 ms median per fit) but proportionally
+large, with bounded least squares taking approximately 1.6 times longer per
+fit than the guarded and thermodynamic elastic-net models despite converging
+on only about 35% of fits, indicating additional unproductive iterations
+rather than a more thorough search. No comparator showed runtime scaling
+that would prevent extending the benchmark, or an operational deployment, to
+substantially more than the 138 field edges evaluated here.
+
+# Discussion
+
+## Principal finding
+
+Numerical fit, sparsity, and thermodynamic feasibility answered different
+questions in this benchmark, and none of them alone certified a uniquely
+correct reaction mechanism. Reconstruction accuracy, phase-support accuracy,
+and equivalence-class accuracy diverged systematically: 55.0% of the
+lowest-residual quartile of fits still had exact-phase F1 below 0.80, the
+unpenalised bounded-least-squares comparator achieved the best reconstruction
+RMSE of any method while producing the worst phase-support outcome, and the
+guarded model's equivalence-class F1 (0.609) consistently exceeded its own
+exact-phase F1 (0.563) by a margin traceable to a specific, identified
+null-space direction rather than to unexplained noise. Thermodynamic
+screening removed a real category of false positives but left 72% of
+constrained fits below an equivalence-class F1 of 0.80, and the conventional
+PHREEQC inverse baseline's own output, a mean of 185.8 feasible models per
+scenario, demonstrated the same underlying multiplicity from a fully
+thermodynamically consistent solver. A plausible sparse solution is
+therefore not automatically a uniquely supported mechanism; it is, at best,
+one member of a structurally determined equivalence class whose size and
+composition can themselves be measured and reported. The clearest
+illustration was not an exchange-direction ambiguity but an
+anorthite/calcite pair: silicate weathering and carbonate dissolution were
+exactly indistinguishable under the measured panel because both reactions
+affect only calcium and bicarbonate among the measured species, and
+additional diagnostics lifted this ambiguity only slightly (Figure 3). This finding extends,
+in a sparse-inverse-reaction setting, the broader equifinality result that
+many environmental models can be observationally indistinguishable despite
+producing very different internal explanations [@beven2001glue;
+@beven2006manifesto]: here the indistinguishable alternatives are not
+competing parameter sets within one model structure but competing reaction
+combinations within one fixed stoichiometric dictionary, and the null-space
+analysis makes that indistinguishability exact and quantifiable rather than
+only empirically observed across resamples. The moderate transfer accuracy
+of the Mechanism Resolution Score (48.9% on the untouched mixed archetype,
+against a 25% random baseline) is best read alongside, not instead of, the
+underlying null-space diagnostics: the score compresses six diagnostics into
+a single ordinal prediction for convenience, but the raw rank, coherence,
+and stability diagnostics that feed it remain individually inspectable
+whenever the compressed score alone is insufficient for a specific
+interpretive decision, so a single moderate accuracy number, reported
+without the diagnostics behind it, would understate what the framework
+actually delivers.
+
+## Advance over existing inverse hydrogeochemical practice
+
+This framework does not replace PHREEQC inverse mole-balance modelling
+[@parkhurst2013phreeqc] or NETPATH-style mass-balance reconstruction
+[@plummer1994netpath; @plummer1980massbalance], and its lasso, elastic-net,
+and stability-selection components are pre-existing statistical tools
+[@tibshirani1996lasso; @zou2005elasticnet; @meinshausen2010stability]
+combined into a reaction-inference identifiability layer. Conventional
+practice, including single-support lasso-type reporting, typically presents
+one preferred reaction set per water pair. The results above show that this
+presentation style discards information the solver itself already
+contains: the same conventional PHREEQC baseline that returned a single
+first-minimal model with equivalence-class F1 of 0.512 also generated an
+oracle-selectable minimal model reaching 0.586 among its own feasible set,
+and the guarded model's structural diagnostics identified the same
+non-identifiable directions independently of any specific fit. The
+conceptual advance is therefore a shift from exact-phase selection to
+hierarchical reporting across four resolution classes, non-identifiable,
+partially identifiable, equivalence-class identifiable, and identifiable,
+each backed by an explicit diagnostic rather than an implicit confidence
+claim. Held-out-ion prediction provided a stronger falsification test than
+goodness of fit on the ions used for inversion, because a reaction
+combination can minimise the fitting objective while still failing to
+predict an independent ion, precisely the situation that conventional
+missing-ion sensitivity tests, which merely zero-weight an omitted ion, are
+structurally unable to detect. End-member mixing analysis reached a
+structurally similar conclusion for a related but distinct problem, showing
+that unambiguous identification of source composition from a mixture alone
+is impossible without independent constraints [@christophersen1992emma]; the
+present framework applies the analogous logic to reaction inference and
+makes the resulting ambiguity explicit through equivalence classes rather
+than treating non-uniqueness as an unstated caveat.
+
+## Scientific and monitoring implications
+
+Because the diagnostic ions available for a given water pair directly
+control which reactions are identifiable, ion selection is itself an
+inferential choice with a measurable consequence, not merely a laboratory
+convenience. The Mechanism Resolution Score and the reaction-equivalence
+classes together prevent unsupported attribution of a specific mechanism,
+salinisation, carbonate dissolution, sulphate sourcing, denitrification, or
+ion exchange, to a groundwater sample when the available ions cannot
+distinguish it from an alternative. For monitoring-programme design, the
+retrospective next-best-measurement analysis showed that ranking candidate
+ions by expected ambiguity reduction, rather than by convention or
+availability, outperformed both fixed and randomly chosen panels of equal
+size in realised held-out prediction error and class resolution
+[@sreekanth2017monitoring], and fluoride's disproportionately high
+measurement-value score in the Northern Ghana transfer analysis illustrates
+how such a ranking can surface a specific, actionable sampling priority
+rather than a generic call for "more data." The practical recommendation
+that follows is to report robust reaction classes and named alternative
+pathways rather than a single deterministic narrative wherever the
+underlying diagnostics indicate persistent ambiguity, and to let the
+next-best-measurement ranking, rather than habit, guide which additional
+analyte is added to a monitoring panel when resources allow only one. The
+gap between the modest gain in equivalence-class F1 across data tiers
+(0.606 to 0.614) and the larger gain in conditionally-preferred-or-resolved
+fraction (55.1% to 62.8%) has a direct monitoring-design reading: additional
+diagnostics of the kind tested here are better justified as evidence for
+choosing among already-identified alternatives than as a route to detecting
+qualitatively new reactions, so a monitoring programme facing a binding
+budget constraint should weigh this distinction explicitly rather than treat
+every additional analyte as offering the same kind of benefit.
+
+## Interpretation of the field application
+
+In the Northern Ghana demonstration, robust findings included generally
+coherent Hydrosheaf-Core evidence and TDS-consistency scores across a
+crystalline-basement and Voltaian sedimentary setting where silicate
+weathering and cation exchange are established regional controls
+[@anku2008ghana; @banoengyakubo2011ghana], and a uniform classification of
+all 138 quantitative pairs as partially identifiable rather than fully
+resolved. Geological plausibility and thermodynamic screening narrowed the
+credible reaction space for these pairs but did not eliminate ambiguity, and
+the modest wet/dry differences in nominal residuals did not survive
+identifiability-aware stratification as a defensible seasonal
+reaction-pathway narrative; this is interpreted as an absence of evidence
+for a wet/dry mechanism shift given current data, not as evidence against
+one. Held-out-ion performance in this setting is interpreted strictly as
+predictive consistency, not as proof that the reported reaction class is the
+true one, because no independent mineralogical or reaction-rate observation
+exists to validate it. Northern Ghana therefore demonstrates field transfer
+of the chemistry identifiability audit itself, not independent validation of
+groundwater connectivity, residence time, or reaction mechanism, and the
+external field-transfer datasets' consistently low ELRI values reinforce
+that this demonstration operated near the limit of what sparse, real-world
+diagnostic coverage currently supports.
+
+## Limitations
+
+The reaction dictionary was fixed and linear, and screening was
+equilibrium-based rather than kinetic, so rate-dependent or strongly
+disequilibrium processes were not directly represented. The framework
+performs fully coupled nonlinear inverse or reactive-transport modelling in
+neither its guarded nor its Hydrosheaf-Core form, and thermodynamic-database
+uncertainty was addressed only partially, through a single fixed database
+with sensitivity analysis treated as a secondary experiment. Transport-model
+misspecification remains a possible source of error in the residual defined
+by Equation 1, and synthetic-to-field transferability is constrained by the
+gap between the controlled PHREEQC benchmark and the heterogeneity of a real
+crystalline-basement setting. Field conclusions depend directly on measured
+ion coverage, and the Northern Ghana and external field datasets lack
+matched age tracers, independently observed flow paths, or direct
+mineralogical or reaction-rate observations, so field interpretation in this
+study rests on chemistry and thermodynamic plausibility alone rather than on
+independently corroborated mechanism. The Mechanism Resolution Score itself
+carries a further limitation: its 48.9% four-class transfer accuracy on the
+mixed archetype, while well above the 25% random baseline, is a moderate
+result obtained on one held-out synthetic archetype, and its generalisation
+to hydrochemical settings substantially different from the four archetypes
+tested here, including many real crystalline-basement and mixed-lithology
+aquifers, has not been established. Generated Hydrosheaf graph edges and
+heuristic hydraulic residence times used in the Northern Ghana component
+carried no populated edge-confidence field and were explicitly excluded
+from every age-conditioned analysis in this study, a restriction that
+narrowed the field demonstration's scope but was necessary to avoid
+implying a validation that the available data could not support.
+
+## Future development
+
+Priority extensions include stability-selected or fully Bayesian structural
+ensembles in place of a single calibrated score [@neuman2003bma], kinetic
+and affinity-dependent bounds in place of purely equilibrium screening, and
+explicit propagation of analytical-measurement and thermodynamic-database
+uncertainty through the reported resolution classes. Prospective field
+testing of next-best-measurement recommendations, rather than only
+retrospective simulation, would test whether the realised value observed
+here generalises to genuinely unobserved measurements chosen in advance.
+Matched chemistry, age-tracer, hydraulic-head, screen-depth, and
+mineralogical observations at the same wells would allow the chemical
+identifiability layer developed here to be jointly evaluated with
+Hydrosheaf's topology and residence-time layers rather than assessed as a
+chemistry-only demonstration, and extension to multi-edge groundwater
+networks would test whether edge-level resolution classes remain informative
+when propagated across a connected flow system.
+
+# Conclusion
+
+Sparse linear inversion recovered true mineral phases and extents reliably
+only where the reaction dictionary was well-conditioned for the available
+ion panel; noise, missing ions, and stoichiometric collinearity degraded
+exact-phase support well before they degraded concentration reconstruction,
+and the L1 penalty traded recall for false discoveries along a path shaped
+by the dictionary's own null-space structure rather than by noise alone.
+Thermodynamic constraints improved mechanistic recovery only partially: they
+reliably removed physically impossible reaction directions but left most
+constrained fits below a defensible equivalence-class threshold, and the
+conventional PHREEQC inverse baseline's own high model multiplicity
+confirmed the same limit from full thermodynamic consistency. The calibrated
+Mechanism Resolution Score distinguished identifiable from ambiguous
+pathways above chance on an untouched archetype, but only moderately, so it
+should inform rather than replace inspection of the underlying diagnostics.
+Fluoride carried the greatest realised measurement value in the Northern
+Ghana transfer analysis, and next-best-measurement ranking outperformed
+fixed and random panels; edge-level chemical confidence was not conditioned
+on topology or residence-time uncertainty in this chemistry-only study,
+leaving that integration for future work. Identifiability-aware reporting
+produced more conservative, better-supported field interpretations than a
+single best-fit model on the same Northern Ghana pairs. Reliable inverse
+hydrogeochemistry requires evidence for identifiability, not only a low
+residual; PHREEQC-style thermodynamic screening is necessary but
+insufficient on its own. Hydrosheaf is offered as a sparse linear inverse
+reaction model with transparent identifiability diagnostics and PHREEQC
+screening and forward-consistency checks, contributing a reusable template
+for reproducible groundwater-process inference under sparse, noisy chemical
+observation.
+
+# References
+
+_Rendered from `LITERATURE.bib` via Pandoc + APA 7 CSL at DOCX conversion time; citation keys are resolved in-text as `[@key]`._

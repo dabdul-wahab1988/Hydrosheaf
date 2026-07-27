@@ -15,9 +15,9 @@ import numpy as np
 import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-M7_2_SCRIPTS = REPO_ROOT / "M7" / "m7_strong_integration" / "scripts"
-if str(M7_2_SCRIPTS) not in sys.path:
-    sys.path.insert(0, str(M7_2_SCRIPTS))
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
 
 from hydrosheaf.graph.types import Edge  # noqa: E402
 from hydrosheaf.inference.network_fit import fit_network  # noqa: E402
@@ -27,7 +27,7 @@ from independent_modflow_generator import (  # noqa: E402
     IndependentAquifer,
     generate_independent_aquifer,
 )
-from run_m7_2_strong_integration import (  # noqa: E402
+from run_supporting_validation import (  # noqa: E402
     _json_default,
     _label_rows,
     _truth_family,
@@ -61,7 +61,7 @@ DEFAULT_OUTPUT = (
 )
 DEFAULT_SIMULATOR_WORKSPACE = REPO_ROOT / ".codex_work" / "m7_3_simulators"
 DEFAULT_BIN_DIR = REPO_ROOT / ".codex_work" / "modflow-bin"
-GHANA_WORKBOOK = REPO_ROOT / "data" / "NorthenGhana" / "Aquifers_Dataset_Mendeley.xlsx"
+GHANA_WORKBOOK = REPO_ROOT / "data" / "FieldData" / "NorthenGhana" / "NorthernGhana.xlsx"
 
 
 def _git_head() -> str:

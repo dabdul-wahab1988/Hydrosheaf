@@ -3,6 +3,19 @@
 Locked 9 July 2026. This plan is the contract for the M6 field-transfer analysis. All
 artifacts must trace to an experiment defined here.
 
+**Amendment (2026-07-26):** the plan as originally locked assumed a Northern Ghana
+Tier 4 sourced in part from `Aquifers_Dataset_Mendeley.xlsx` (aquifer/geology/lithology
+metadata, workbook-supplied saturation indices, a provided graph-edge sheet). That
+workbook is a different, antecedent study's own derived product, not this project's
+field data, and has been removed; see `DECISIONS.md`. Consequently: Tier 4 now adds
+Hydrosheaf-computed PHREEQC saturation indices only (no metadata/edges lift); all
+aquifer-stratified reporting below is by administrative region/district instead (no
+independent aquifer-type classification exists for these boreholes); and Experiment 4
+compares three Hydrosheaf-generated edge sets, not four (the provided graph was
+dropped rather than substituted). The bullets below are left in their original,
+as-locked wording for audit purposes; treat "aquifer", "Tier 4 metadata", and
+"4 edge sets/provided graph" as superseded by this amendment wherever they appear.
+
 ## Reused, frozen upstream assets (no re-fitting)
 - `m5_common.py` primitives: `fit_inverse` (FISTA sparse inverse), `reaction_matrix`,
   `matrix_diagnostics`, `equivalence_classes`, `support_from_extents`,

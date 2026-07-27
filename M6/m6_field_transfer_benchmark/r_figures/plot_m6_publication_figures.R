@@ -1,26 +1,37 @@
-## M6 field-transfer benchmark — six Nature-style main figures (2-column layouts).
+## M6 field-transfer benchmark — Q1 main figures plus Extended Data Figure ED1.
 ## Usage: Rscript plot_m6_publication_figures.R
+args <- commandArgs(FALSE)
+HERE <- tryCatch(dirname(normalizePath(sub("--file=", "",
+        grep("--file=", args, value = TRUE)))), error = function(e) getwd())
+if (length(HERE) == 0 || is.na(HERE)) HERE <- getwd()
+LOCAL_LIB <- normalizePath(file.path(HERE, "..", "..", "..", ".r-lib"),
+                           mustWork = FALSE)
+if (dir.exists(LOCAL_LIB)) .libPaths(c(LOCAL_LIB, .libPaths()))
+
 suppressPackageStartupMessages({
   library(ggplot2); library(dplyr); library(tidyr); library(readr)
   library(patchwork); library(forcats); library(stringr); library(scales)
+  library(sf); library(ggspatial)
 })
 
-HERE <- tryCatch(dirname(normalizePath(sub("--file=", "",
-        grep("--file=", commandArgs(FALSE), value = TRUE)))), error = function(e) getwd())
-if (length(HERE) == 0 || is.na(HERE)) HERE <- getwd()
 source(file.path(HERE, "theme_m6.R"))
 BENCH <- normalizePath(file.path(HERE, ".."))
 RES <- file.path(BENCH, "results")
 OUT <- file.path(BENCH, "figures", "r_publication")
+EXTENDED <- file.path(BENCH, "figures", "extended_data")
 dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
+dir.create(EXTENDED, showWarnings = FALSE, recursive = TRUE)
 rd <- function(f) suppressMessages(read_csv(file.path(RES, f), show_col_types = FALSE))
 
-AQ <- c("Middle Voltaian sedimentary aquifer"="Voltaian sed.",
-        "Birimian fractured basement aquifer"="Birimian bsmt.",
-        "Granitoid fractured basement aquifer"="Granitoid bsmt.",
-        "Regolith/alluvial shallow aquifer"="Regolith/alluv.")
-AQCOL <- c("Voltaian sed."="#3B6EA8","Birimian bsmt."="#008C7A",
-           "Granitoid bsmt."="#C77C2B","Regolith/alluv."="#8C6BB1")
+# No independent aquifer-type/geology-group/lithology classification exists
+# for the raw Northern Ghana boreholes (see DECISIONS.md); stratified
+# reporting uses administrative region instead.
+AQ <- c("Northern Region"="Northern",
+        "North East Region"="North East",
+        "Upper East Region"="Upper East",
+        "Upper West Region"="Upper West")
+AQCOL <- c("Northern"="#3B6EA8","North East"="#008C7A",
+           "Upper East"="#C77C2B","Upper West"="#8C6BB1")
 aqf <- function(x) factor(unname(AQ[x]), levels = unname(AQ))
 famlab <- function() labs(fill = "Process family")
 proc_labels <- c(silicate="Silicate", carbonate="Carbonate",
@@ -32,37 +43,119 @@ proc_labels <- c(silicate="Silicate", carbonate="Carbonate",
 fig1 <- function() {
   coords <- rd("m6_map_coordinates.csv"); ladder <- rd("m6_tier_ladder.csv")
   avail <- rd("m6_variable_availability.csv")
-  dscol <- c("Northern Ghana"="#2166AC","Lower Anayari"="#008C7A","Talensi"="#C77C2B")
-  coords <- coords |> mutate(ds = recode(dataset, northern_ghana="Northern Ghana",
-                                         manu="Lower Anayari", talensi="Talensi"))
-  a <- ggplot(coords, aes(longitude, latitude, colour = ds)) +
-    geom_point(size = 1.5, alpha = 0.8) +
-    scale_colour_manual(values = dscol, name = NULL) +
-    scale_x_continuous(breaks = pretty_breaks(4)) +
-    scale_y_continuous(breaks = pretty_breaks(4)) +
-    labs(subtitle = "Sampling locations", x = "Longitude (°E)", y = "Latitude (°N)") +
-    theme_m6() + theme(legend.position = c(0.02, 0.02),
-                       legend.justification = c(0, 0),
-                       legend.background = element_rect(fill = alpha("white", 0.7), colour = NA))
+  boundary_dir <- file.path(BENCH, "data", "ghana_geoboundaries_2021")
+  adm0_path <- file.path(boundary_dir, "ghana_adm0_2021.shp")
+  adm1_path <- file.path(boundary_dir, "ghana_adm1_2021.shp")
+  ghana <- st_read(adm0_path, quiet = TRUE) |>
+    st_make_valid() |>
+    st_transform(32630)
+  ghana_regions <- st_read(adm1_path, quiet = TRUE) |>
+    st_make_valid() |>
+    st_transform(32630)
+  dscol <- c("Northern Ghana"="#0072B2","Lower Anayari"="#009E73","Talensi"="#D55E00")
+  dsshape <- c("Northern Ghana"=16, "Lower Anayari"=17, "Talensi"=15)
+  coords <- coords |>
+    mutate(ds = recode(dataset, northern_ghana="Northern Ghana",
+                       manu="Lower Anayari", talensi="Talensi"),
+           ds = factor(ds, levels = names(dscol)))
+  ds_short <- c("Northern Ghana" = "N. Ghana", "Lower Anayari" = "L. Anayari",
+                "Talensi" = "Talensi")
+  dsn <- coords |> count(ds) |>
+    mutate(label = paste0(unname(ds_short[as.character(ds)]), " (n=", n, ")"))
+  dslabels <- setNames(dsn$label, dsn$ds)
+  coords_sf <- st_as_sf(coords, coords = c("longitude", "latitude"),
+                        crs = 4326, remove = FALSE) |>
+    st_transform(32630)
+  inside_ghana <- lengths(st_within(coords_sf, ghana)) > 0
+  constrained_n <- sum(!inside_ghana)
+  if (constrained_n > 0) {
+    # The supplied Northern Ghana positions are already masked; a subset falls
+    # outside the more accurate national outline. Preserve all observations but
+    # constrain only those display coordinates to a 5 km interior buffer.
+    ghana_inner <- st_buffer(st_union(st_geometry(ghana)), -5000)
+    nearest <- st_nearest_points(st_geometry(coords_sf[!inside_ghana, ]),
+                                 ghana_inner)
+    endpoints <- st_cast(nearest, "POINT")
+    snapped <- endpoints[seq.int(2, length(endpoints), by = 2)]
+    geometry <- st_geometry(coords_sf)
+    geometry[!inside_ghana] <- snapped
+    st_geometry(coords_sf) <- geometry
+  }
+  map_bb <- st_bbox(ghana)
+  xlim <- c(unname(map_bb["xmin"]) - 15000, unname(map_bb["xmax"]) + 15000)
+  ylim <- c(unname(map_bb["ymin"]) - 15000, unname(map_bb["ymax"]) + 15000)
+
+  a <- ggplot() +
+    geom_sf(data = ghana_regions, fill = "#F7F5F0", colour = "#C2BCB1",
+            linewidth = 0.18) +
+    geom_sf(data = ghana, fill = NA, colour = "#404040", linewidth = 0.55) +
+    geom_sf(data = coords_sf, aes(colour = ds, shape = ds),
+            size = 1.65, alpha = 0.78, stroke = 0.2) +
+    scale_colour_manual(values = dscol, labels = dslabels, name = NULL) +
+    scale_shape_manual(values = dsshape, labels = dslabels, name = NULL) +
+    coord_sf(crs = st_crs(32630), datum = st_crs(4326),
+             xlim = xlim, ylim = ylim, expand = FALSE, clip = "on") +
+    annotation_scale(location = "br", width_hint = 0.27,
+                     unit_category = "metric", style = "ticks",
+                     text_cex = 0.55, line_width = 0.38,
+                     pad_x = grid::unit(0.10, "in"),
+                     pad_y = grid::unit(0.10, "in")) +
+    annotation_north_arrow(location = "tl", which_north = "true",
+                           pad_x = grid::unit(0.10, "in"),
+                           pad_y = grid::unit(0.10, "in"),
+                           height = grid::unit(0.30, "in"),
+                           width = grid::unit(0.24, "in"),
+                           style = north_arrow_minimal(
+                             text_size = 6, line_width = 0.45)) +
+    labs(subtitle = "Sampling locations (masked coordinates)", x = NULL, y = NULL) +
+    theme_m6(base_size = 11) +
+    theme(panel.background = element_rect(fill = "#EEF4F7", colour = "#7A7A7A",
+                                          linewidth = 0.35),
+          panel.grid.major = element_line(colour = "white", linewidth = 0.35),
+          axis.line = element_blank(), axis.ticks = element_blank(),
+          legend.position = "bottom", legend.justification = "center",
+          legend.direction = "horizontal",
+          legend.background = element_blank(),
+          legend.key.height = grid::unit(8, "pt"),
+          legend.key.width = grid::unit(9, "pt"),
+          legend.text = element_text(size = 6.6),
+          legend.spacing.x = grid::unit(2, "pt"),
+          legend.margin = margin(1, 0, 0, 0),
+          plot.margin = margin(5, 5, 5, 5))
 
   ladder <- ladder |> mutate(dataset = factor(dataset,
               levels = c("talensi","manu","northern_ghana"),
               labels = c("Talensi","Lower Anayari","Northern Ghana")),
-              tier = fct_reorder(tier, tier_index))
-  b <- ggplot(ladder, aes(tier, dataset, fill = factor(attained))) +
+              tier = fct_reorder(tier, tier_index),
+              x = as.integer(tier), y = as.integer(dataset))
+  b <- ggplot(ladder, aes(x, y, fill = factor(attained))) +
     geom_tile(colour = "white", linewidth = 1) +
-    geom_text(aes(label = ifelse(attained == 1, "✓", "–"),
-                  colour = factor(attained)), size = 4.6, fontface = "bold") +
+    geom_segment(data = filter(ladder, attained == 1),
+                 aes(x = x - 0.12, xend = x - 0.02,
+                     y = y, yend = y - 0.10),
+                 inherit.aes = FALSE, colour = "white", linewidth = 0.8,
+                 lineend = "round") +
+    geom_segment(data = filter(ladder, attained == 1),
+                 aes(x = x - 0.02, xend = x + 0.16,
+                     y = y - 0.10, yend = y + 0.14),
+                 inherit.aes = FALSE, colour = "white", linewidth = 0.8,
+                 lineend = "round") +
+    geom_text(data = filter(ladder, attained == 0), aes(label = "-"),
+              colour = "#B7B7B7", size = 4.6, fontface = "bold") +
     scale_fill_manual(values = c("0"="#F0F0F0","1"="#2166AC"), guide = "none") +
-    scale_colour_manual(values = c("0"="#BBBBBB","1"="white"), guide = "none") +
-    scale_x_discrete(labels = function(x) str_replace(x, "Tier ", "T")) +
+    scale_x_continuous(breaks = seq_along(levels(ladder$tier)),
+                       labels = str_replace(levels(ladder$tier), "Tier ", "T"),
+                       expand = expansion(add = 0.5)) +
+    scale_y_continuous(breaks = seq_along(levels(ladder$dataset)),
+                       labels = levels(ladder$dataset),
+                       expand = expansion(add = 0.5)) +
     labs(subtitle = "Evidence-tier attainment", x = NULL, y = NULL) +
     theme_m6() + theme(panel.grid = element_blank(), axis.line = element_blank(),
                        axis.ticks = element_blank())
 
   varlev <- c("Ca","Mg","Na","K","HCO3","Cl","SO4","NO3","F","Fe",
-              "d18O","d2H","Sr_mgL","SiO2_mgL","Calcite_SI","Aquifer_Type")
-  varnice <- c(Sr_mgL="Sr", SiO2_mgL="SiO2", Calcite_SI="SI", Aquifer_Type="Aquifer",
+              "d18O","d2H","Sr_mgL","SiO2_mgL","Calcite_SI","Region")
+  varnice <- c(Sr_mgL="Sr", SiO2_mgL="SiO2", Calcite_SI="SI",
                d18O="δ18O", d2H="δ2H")
   avail <- avail |> mutate(
     variable = factor(variable, levels = varlev,
@@ -72,15 +165,25 @@ fig1 <- function() {
   c <- ggplot(avail, aes(variable, fct_rev(dataset), fill = frac_present)) +
     geom_tile(colour = "white", linewidth = 0.7) +
     scale_fill_gradient(low = "#F7F7F7", high = "#08519C", limits = c(0,1),
+                        breaks = c(0, 0.5, 1),
                         name = "Fraction present", labels = percent,
-                        guide = guide_colourbar(barheight = 0.5, barwidth = 8)) +
+                        guide = guide_colourbar(barheight = 0.35, barwidth = 6.5,
+                                                title.position = "top",
+                                                title.hjust = 0.5)) +
     labs(subtitle = "Variable availability across datasets", x = NULL, y = NULL) +
     theme_m6() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10.5),
                        panel.grid = element_blank(), axis.line = element_blank(),
                        axis.ticks = element_blank())
 
-  p <- m6_tag((a | b) / c + plot_layout(heights = c(1.15, 0.85)), collect = FALSE)
-  m6_save(p, file.path(OUT, "figure1_dataset_tier_design"), 8.8, 7.4)
+  top <- (a | b) + plot_layout(widths = c(0.86, 1.14))
+  p <- m6_tag(top / c + plot_layout(heights = c(1.22, 0.78)),
+              caption = paste0(
+                "Locations are masked; ", constrained_n,
+                " out-of-bound masks were constrained 5 km inside Ghana for display.\n",
+                "Map: sf + ggspatial; WGS84 / UTM zone 30N (EPSG:32630).\n",
+                "Boundaries: geoBoundaries GHA ADM1, 2021 (OSM; CC BY-SA 2.0)."),
+              collect = FALSE)
+  m6_save(p, file.path(OUT, "figure1_dataset_tier_design"), 8.8, 8.0)
 }
 
 ## ================================================= FIGURE 2: workflow ========
@@ -127,10 +230,10 @@ fig2 <- function() {
 
 ## ============================================ FIGURE 3: NG stability =========
 fig3 <- function() {
-  pairs <- rd("m6_ng_field_pairs.csv") |> mutate(aq = aqf(aquifer))
-  cls <- rd("m6_ng_class_support.csv") |> mutate(aq = aqf(aquifer),
+  pairs <- rd("m6_ng_field_pairs.csv") |> mutate(aq = aqf(region))
+  cls <- rd("m6_ng_class_support.csv") |> mutate(aq = aqf(region),
            resolution_class = factor(resolution_class, levels = m6_resolution_levels))
-  fam <- rd("m6_ng_family_by_aquifer.csv") |> mutate(aq = aqf(aquifer))
+  fam <- rd("m6_ng_family_by_aquifer.csv") |> mutate(aq = aqf(region))
   nlab <- pairs |> count(aq) |> mutate(lab = paste0("n=", n))
 
   a <- ggplot(cls, aes(aq, n, fill = resolution_class)) +
@@ -138,7 +241,7 @@ fig3 <- function() {
     m6_fill_scale(labels = m6_resolution_labels, name = NULL,
                   guide = guide_legend(nrow = 1)) +
     scale_y_continuous(labels = percent, expand = expansion(c(0, 0.02))) +
-    labs(subtitle = "Identifiability class by aquifer", x = NULL, y = "Share of wells") +
+    labs(subtitle = "Identifiability class by region", x = NULL, y = "Share of wells") +
     theme_m6() + theme(axis.text.x = element_text(angle = 18, hjust = 1))
 
   b <- ggplot(fam, aes(aq, n, fill = dominant_family)) +
@@ -166,7 +269,7 @@ fig3 <- function() {
     theme_m6() + theme(axis.text.x = element_text(angle = 18, hjust = 1))
 
   p <- m6_tag((a | b) / (c | d),
-    caption = "All aquifers report uniformly partially identifiable at full information (Tier 4); Hydrosheaf does not over-resolve.")
+    caption = "All regions report uniformly partially identifiable at full information (Tier 4); Hydrosheaf does not over-resolve.")
   m6_save(p, file.path(OUT, "figure3_ng_stability"), 8.8, 8.0)
 }
 
@@ -229,7 +332,7 @@ fig4 <- function() {
   m6_save(p, file.path(OUT, "figure4_tier_ablation"), 8.8, 8.0)
 }
 
-## ============================================ FIGURE 5: external =============
+## ====================================== EXTENDED DATA 1: external ============
 fig5 <- function() {
   summ <- rd("m6_external_summary.csv")
   extc <- rd("m6_external_transfer.csv") |>
@@ -278,7 +381,7 @@ fig5 <- function() {
 
   p <- m6_tag((a | b) / (d | c),
     caption = "Lower Anayari's silicate-dominant waters are 96% non-identifiable without Sr/SiO2, despite good charge balance.")
-  m6_save(p, file.path(OUT, "figure5_external_transfer"), 8.8, 8.0)
+  m6_save(p, file.path(EXTENDED, "figureED1_external_transfer"), 8.8, 8.0)
 }
 
 ## ============================================ FIGURE 6: limitation map =======
@@ -320,10 +423,26 @@ fig6 <- function() {
 }
 
 main <- function() {
-  for (f in list(fig1, fig2, fig3, fig4, fig5, fig6)) {
-    ok <- try(f(), silent = FALSE)
-    if (inherits(ok, "try-error")) cat("  [warn] a figure failed\n") else cat("figure done\n")
+  figures <- list(fig1, fig2, fig3, fig4, fig5, fig6)
+  requested <- grep("^--figure=", commandArgs(TRUE), value = TRUE)
+  if (length(requested)) {
+    index <- as.integer(sub("^--figure=", "", requested[[1]]))
+    if (is.na(index) || index < 1 || index > length(figures)) {
+      stop("--figure must be an integer from 1 to ", length(figures))
+    }
+    figures <- figures[index]
   }
+  failures <- 0L
+  for (f in figures) {
+    ok <- try(f(), silent = FALSE)
+    if (inherits(ok, "try-error")) {
+      failures <- failures + 1L
+      cat("  [warn] a figure failed\n")
+    } else {
+      cat("figure done\n")
+    }
+  }
+  if (failures > 0L) stop(failures, " figure export(s) failed")
   cat("All main figures written to", OUT, "\n")
 }
 main()

@@ -10,11 +10,9 @@ import pandas as pd
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-M7_2_SCRIPTS = ROOT / "M7" / "m7_strong_integration" / "scripts"
 M7_3_SCRIPTS = ROOT / "M7" / "m7_nonuniqueness_benchmark" / "scripts"
-for script_dir in (M7_3_SCRIPTS, M7_2_SCRIPTS):
-    if str(script_dir) not in sys.path:
-        sys.path.insert(0, str(script_dir))
+if str(M7_3_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(M7_3_SCRIPTS))
 
 from m7_3_analysis import (  # noqa: E402
     CORE_IONS,
@@ -158,7 +156,7 @@ def test_core_chemistry_config_zero_weights_excluded_ions() -> None:
 
 
 def test_ghana_scope_audit_enforces_data_limited_claim() -> None:
-    workbook = ROOT / "data" / "NorthenGhana" / "Aquifers_Dataset_Mendeley.xlsx"
+    workbook = ROOT / "data" / "FieldData" / "NorthenGhana" / "NorthernGhana.xlsx"
     audit = audit_ghana_workbook(workbook)
     assert audit["n_wells"] == 160
     assert audit["n_hydrochemistry_rows"] == 320

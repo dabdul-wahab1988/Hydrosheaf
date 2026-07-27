@@ -1,0 +1,243 @@
+--- baseline/M7__m7_nonuniqueness_benchmark__manuscript__Manuscript-Final.md
++++ manuscript/Manuscript-Final-Revised.md
+@@ -1,28 +1,27 @@
+-# Evidence integration reduces groundwater interpretive non-uniqueness only conditionally: an independent benchmark with adverse controls
++# Evidence integration reduces groundwater interpretive non-uniqueness only conditionally in a single-generator benchmark with adverse controls
+ 
+ **Abstract**
+ 
+ Combining hydraulic, age, and hydrochemical evidence is widely assumed to
+-reduce non-uniqueness in groundwater interpretation, but reduced
+-uncertainty does not itself prove improvement, a gap this study addressed
+-directly. The aim was to determine, in one independent MODFLOW 6/MODPATH 7
+-generator sharing no code with the inference method evaluated, when
+-integrating evidence is complementary, redundant, or resulted in false
+-confidence; the approach combined four linked experiments with predeclared
+-adverse (permutation) controls, six development and twelve locked test
+-cases, 50,000 age particles per case/regime, 64 reaction bootstraps per
+-case, and a descriptive Ghana audit. Chemistry was robustly complementary
+-topology-ranking evidence; age and hydraulics each showed a directional
+-PR-AUC change that did not survive an exact permutation test with
+-multiplicity correction, while their entropy, and for hydraulics also
+-calibration, changes did. Correct topology reduced age error by
+-0.062-0.164 years depending on tracer regime, reversed topology degraded
+-accuracy or destabilised inference, and carbonate reactions remained
+-unrecovered under both chemistry panels. Every adverse control lowered
+-apparent uncertainty while worsening discrimination and calibration,
+-robustly to correction. The practical significance, specific to the
+-tested generator, is that integration benefit must be demonstrated per
+-pairing against corrected calibration checks, not assumed.
++reduce groundwater interpretive non-uniqueness, but lower uncertainty does
++not prove improvement. We asked, within one independent MODFLOW 6/MODPATH 7
++generator sharing no code with the evaluated inference method, when evidence
++integration is complementary, redundant, or produces false confidence. Four
++linked experiments used predeclared permutation controls, six development and
++twelve locked test cases, 50,000 age particles per case/regime, 64 reaction
++bootstraps per case, and a descriptive Ghana audit. Chemistry was robustly
++complementary topology-ranking evidence. Age and hydraulics each showed a
++directional PR-AUC change that did not survive exact permutation testing with
++multiplicity correction, although their entropy changes, and hydraulics'
++calibration changes, did. Correct topology reduced age error by 0.062-0.164
++years depending on tracer regime; reversed topology degraded accuracy or
++destabilised inference. Carbonate reactions remained unrecovered under both
++chemistry panels. Every adverse control lowered apparent uncertainty while
++worsening discrimination and calibration, robustly to correction. The
++Northern Ghana audit supported component diagnostics but not field truth for
++topology, age, or unique reactions. Specific to this tested generator, an
++integration benefit must be demonstrated per pairing against calibration and
++adverse-control checks, not assumed.
+ 
+ ## Introduction
+ 
+@@ -96,7 +95,8 @@
+ goodness of fit alone [@mccallum2015limitations], and an inference pipeline
+ that reports posterior uncertainty without a paired predictive-accuracy or
+ calibration check has no way to distinguish a genuinely informative
+-addition from one of these failure modes. A systematic search did not
++addition from one of these failure modes. To our knowledge, a targeted
++literature search did not
+ identify a groundwater benchmark that combines all three of an external,
+ code-independent truth generator, a locked development/test split, and
+ predeclared adverse controls capable of separating a genuinely
+@@ -254,7 +254,8 @@
+ used tritium alone [@visser2013multitracer; @mccallum2015limitations]. Fifty
+ thousand common local age-posterior particles were drawn per case and
+ tracer regime. These particles were then reweighted under four topology
+-conditions: no connectivity assumption; a 50% partial true graph; the
++conditions: no connectivity assumption; a five-of-nine partial true graph
++(55.6% of true edges); the
+ complete true graph; and the completely reversed graph. Reweighting applied
+ a soft downstream-older importance potential to every assumed edge, so that
+ an incompatible topology assumption degraded the effective sample size
+@@ -277,7 +278,9 @@
+ saturation calculations [@parkhurst2013phreeqc]. Modal-family accuracy, the
+ probability assigned to the true reaction family, family-support entropy,
+ and the effective number of supported families were computed per edge and
+-aggregated by process, with carbonate weathering and carbonate
++aggregated by process. The reaction solver was evaluated inference, not part
++of the synthetic generator, preserving generator-inference separation.
++Carbonate weathering and carbonate
+ precipitation reported separately from the aggregate rather than folded
+ into it.
+ 
+@@ -323,6 +326,54 @@
+ complementarity/redundancy/negative-transfer decision rule are reported in
+ Supplementary Methods.
+ 
++### Estimator clarification and reviewer-requested sensitivities
++
++PR-AUC was computed on all candidate edges pooled within each test case and
++then contrasted by resampling the 12 independent cases as blocks. This preserves
++the edge-ranking estimand while preventing edges within a generated aquifer
++from being treated as independent replicates. The reported interval is the
++percentile interval of the paired case-block contrast; direct pooled-edge
++contrasts are supplied only as descriptive checks. Posterior graph sampling by
++generative flow networks provides a relevant modern alternative
++[@deleu2022daggflownet], but this benchmark intentionally evaluates a fixed,
++auditable candidate-edge scoring task rather than full graph-posterior learning.
++
++The effective-sample-size threshold was varied from 200 to 400 and 1,000. All
++conditions remained stable in every case except reversed topology: under
++tritium only, the stable-case fraction changed from 0.583 to 0.333 and 0.083;
++under two tracers it changed from 1.000 to 1.000 and 0.833. Thus, the qualitative
++diagnosis of reversed-topology incompatibility is stable and becomes more
++conservative as the threshold rises.
++
++Logistic L2 regularisation was varied over C = 0.1, 0.3, 1, 3, and 10. Native
++HAC PR-AUC changed narrowly from 0.477 to 0.486; Brier score improved from
++0.096 to 0.083 and log loss from 0.305 to 0.247. Standardised H/A/C
++coefficients are archived for every C in
++`results/m7_3_locked/review_sensitivity.csv`, so the stability claim is not
++based on performance values alone.
++
++The probability-span conflict threshold was varied from 0.10 to 0.50. At 0.10
++it flagged 39.8% of native edges and 59.5%-61.2% under adverse conditions, but
++its error rate remained condition-dependent; thresholds of 0.30 or higher
++flagged no edges. This confirms that the originally predeclared univariate
++diagnostic is not a reliable standalone safeguard. The 3% reaction-noise level
++and five-year topology order scale remain predeclared fixed settings, not
++validated universal constants, and are retained as explicit single-generator
++limitations.
++
++A reviewer-requested case-block bootstrap placed the enhanced-minus-core modal
++family accuracy difference at 0.0556 (95% CI 0.0278-0.0833; 12 cases). Under
++tritium-only evidence, reversed topology also produced a falsely narrow mean
++interval relative to complete topology (-3.394 years; 95% CI -5.777 to
++-1.069), while failing the ESS diagnostic in most cases. Values in prose are
++rounded only after analysis; CSV outputs retain full precision.
++
++Recent hydrochemical metamodelling has used machine-learning ensembles to
++estimate groundwater-age distributions [@tschritter2023age]. That work predicts
++ages from chemistry, whereas the present benchmark tests whether adding an
++evidence stream improves or harms a separately scored topology, age, or
++reaction inference under adverse controls.
++
+ ## Results
+ 
+ ### Benchmark scale and candidate recall
+@@ -336,8 +387,6 @@
+ summarised in Figure 1.
+ 
+ ![Figure 1. Benchmark architecture and claim boundary. The independent synthetic-truth branch separates official MODFLOW 6/MODPATH 7 flow and pathline generation, nonlinear chemistry and tracer generation, truth-blind inference, and locked adverse-control scoring from the Northern Ghana branch, which distinguishes supportable component diagnostics from field interpretations that remain non-identifiable under the available evidence.](figures/publication/figure1_benchmark_and_claim_design.png)
+-
+-**Figure 1.** Benchmark architecture and claim boundary. The independent synthetic-truth branch separates official MODFLOW 6/MODPATH 7 flow and pathline generation, nonlinear chemistry and tracer generation, truth-blind inference, and locked adverse-control scoring from the Northern Ghana branch, which distinguishes supportable component diagnostics from field interpretations that remain non-identifiable under the available evidence.
+ 
+ Topology-conditioned age inference used 50,000 importance-sampling
+ particles per case and tracer regime; reaction-family inference used 64
+@@ -393,8 +442,6 @@
+ | HAC | 0.480 | 0.908 | 0.088 | 0.268 | 0.421 | 0.060 |
+ 
+ ![Figure 2. Evidence integration is conditional. Panel a compares native hydraulic (H), age (A), chemistry (C), pairwise and fully integrated topology-ranking performance. Panel b shows case-block incremental PR-AUC contrasts with 95% bootstrap confidence-interval error bars. Panels c and d separate the misspecification stress test into certainty and discrimination shifts, with error bars representing 95% bootstrap confidence intervals throughout, showing that permuted evidence can reduce entropy while degrading PR-AUC.](figures/publication/figure2_evidence_integration.png)
+-
+-**Figure 2.** Evidence integration is conditional. Panel a compares native hydraulic (H), age (A), chemistry (C), pairwise and fully integrated topology-ranking performance. Panel b shows case-block incremental PR-AUC contrasts with 95% bootstrap confidence-interval error bars. Panels c and d separate the misspecification stress test into certainty and discrimination shifts, with error bars representing 95% bootstrap confidence intervals throughout, showing that permuted evidence can reduce entropy while degrading PR-AUC.
+ 
+ The full native and adverse condition grid for all seven panels, extending
+ this comparison beyond the headline HAC/HC/HA/AC contrasts, is reported in
+@@ -467,7 +514,8 @@
+ topology reduced age mean absolute error (MAE) by 0.062 years relative to no
+ topology assumption (95% CI [-0.071, -0.053]), narrowed 95% intervals by
+ 0.252 years (95% CI [-0.281, -0.222]), and left coverage effectively
+-unchanged (+0.014, 95% CI [0.000, 0.035]); the 50% partial-true graph gave a
++unchanged (+0.014, 95% CI [0.000, 0.035]); the five-of-nine partial-true graph
++(55.6%) gave a
+ smaller benefit (MAE -0.025 years, interval width -0.145 years). Under the
+ weak (³H-only) regime, the same complete-true contrast reduced MAE by 0.164
+ years (95% CI [-0.184, -0.145]) and narrowed intervals by 0.912 years (95%
+@@ -476,8 +524,6 @@
+ that a single-tracer panel cannot supply on its own.
+ 
+ ![Figure 3. Correct topology improves age inference. Panels a and b show changes in age MAE and 95% interval width for correct, partial and reversed topology assumptions, with 95% bootstrap confidence-interval error bars on each contrast. Panel c reports importance-sampling effective-sample-size fractions (point values, no interval), including the reversed-graph failures. Panel d shows coverage changes with confidence-interval error bars. Reversed tritium-only accuracy contrasts are not interpreted because 8 of 12 cases failed the predeclared effective-sample-size rule.](figures/publication/figure3_topology_conditions_age.png)
+-
+-**Figure 3.** Correct topology improves age inference. Panels a and b show changes in age MAE and 95% interval width for correct, partial and reversed topology assumptions, with 95% bootstrap confidence-interval error bars on each contrast. Panel c reports importance-sampling effective-sample-size fractions (point values, no interval), including the reversed-graph failures. Panel d shows coverage changes with confidence-interval error bars. Reversed tritium-only accuracy contrasts are not interpreted because 8 of 12 cases failed the predeclared effective-sample-size rule.
+ 
+ **Table 4.** Topology-conditioned age contrasts for complete-true, partial-true and reversed topology relative to no topology assumption, reported for both the informative (³H+³⁹Ar) and weak (³H-only) tracer regimes.
+ 
+@@ -495,6 +541,12 @@
+ | ³H only | Complete true − none | Age MAE (years) | -0.164 [-0.184, -0.145] | 12 |
+ | ³H only | Complete true − none | 95% coverage | 0.014 [0.000, 0.035] | 12 |
+ | ³H only | Complete true − none | 95% interval width (years) | -0.912 [-0.964, -0.863] | 12 |
++| ³H only | Partial true − none | Age MAE (years) | -0.057 [-0.074, -0.040] | 12 |
++| ³H only | Partial true − none | 95% coverage | 0.000 [-0.021, 0.021] | 12 |
++| ³H only | Partial true − none | 95% interval width (years) | -0.456 [-0.489, -0.422] | 12 |
++| ³H only | Reversed − complete true | Age MAE (years) | 0.024 [-0.889, 0.888] | 12 |
++| ³H only | Reversed − complete true | 95% coverage | -0.056 [-0.090, -0.021] | 12 |
++| ³H only | Reversed − complete true | 95% interval width (years) | -3.394 [-5.777, -1.069] | 12 |
+ 
+ Reversed topology behaved asymmetrically to this benefit rather than as a
+ merely weaker version of it. Under the informative regime, reversed
+@@ -532,8 +584,6 @@
+ 
+ ![Figure 4. Reaction recovery remains process-dependent. The 2x2 panels compare core and enhanced evidence panels for modal-family recovery, probability assigned to the true family, support entropy and effective support size. Carbonate weathering and precipitation remain unrecovered despite low support entropy, demonstrating that numerical stability can be confidently wrong.](figures/publication/figure4_reaction_nonuniqueness.png)
+ 
+-**Figure 4.** Reaction recovery remains process-dependent. The 2x2 panels compare core and enhanced evidence panels for modal-family recovery, probability assigned to the true family, support entropy and effective support size. Carbonate weathering and precipitation remain unrecovered despite low support entropy, demonstrating that numerical stability can be confidently wrong.
+-
+ **Table 5.** Reaction-family recovery and non-uniqueness by process and hydrochemical panel (core; enhanced), reporting edge counts, modal-family accuracy, true-family probability, support entropy and effective supported families.
+ 
+ | Panel | Process | Edges | Modal accuracy | True-family probability | Support entropy | Effective families |
+@@ -551,10 +601,12 @@
+ | Enhanced | Silicate Weathering | 24 | 1.000 | 0.951 | 0.161 | 1.199 |
+ | Enhanced | Sulfate Reduction | 12 | 1.000 | 0.986 | 0.058 | 1.064 |
+ 
+-Overall modal-family accuracy rose descriptively from 0.556 under the core
+-panel to 0.611 under the enhanced panel across all 108 scored edges, a
+-change for which no case-block interval was predeclared and which is
+-therefore reported descriptively rather than as an inferential result.
++Overall modal-family accuracy rose from 0.556 under the core panel to 0.611
++under the enhanced panel across all 108 scored edges. A post-hoc case-block
++bootstrap estimated the paired increase as 0.0556 (95% CI 0.0278-0.0833;
++12 independent cases). Because this interval was requested after review rather
++than predeclared, it is labelled post hoc and does not alter the locked primary
++decision rule.
+ Several carbonate rows showed low family-support entropy (as low as 0.000
+ for enhanced-panel carbonate precipitation) despite zero accuracy,
+ indicating that the reaction solver was frequently confident in an
+@@ -572,9 +624,7 @@
+ field, and masked rather than exact site coordinates (Figure 5,
+ Table 6).
+ 
+-![Figure 5. Ghana data support component diagnostics, not complete field truth. Panels a and b map observed evidence to defensible claims. Panel c shows the companion M6 evidence-tier ablation and panel d shows the truth-free supporting seasonal hold-forward test.](figures/publication/figure5_ghana_supportability_boundary.png)
+-
+-**Figure 5.** Ghana data support component diagnostics, not complete field truth. Panels a and b map observed evidence to defensible claims. Panel c shows the companion M6 evidence-tier ablation and panel d shows the truth-free supporting seasonal hold-forward test.
++![Figure 5. Ghana data support component diagnostics, not complete field truth. Panels a and b map observed evidence to defensible claims. Panel c shows a companion study's predeclared five-tier field-transfer ablation of reaction identifiability as diagnostic chemistry is withdrawn; panel d shows a truth-free supporting seasonal hold-forward test. Synthetic panels elsewhere use 12 locked cases; these Ghana panels use 160 wet-to-dry well pairs and 140 complete pairs, respectively.](figures/publication/figure5_ghana_supportability_boundary.png)
+ 
+ **Table 6.** Northern Ghana data scope and claim boundary, listing evidence availability status and the corresponding defensible use for each evidence type.
+ 
+@@ -643,6 +693,9 @@
+ | Topology-conditioned age | Reversed topology vs complete-true (informative regime) | Negative transfer | MAE increase and coverage decrease |
+ | Topology-conditioned age | Reversed topology vs complete-true (weak regime) | Numerically unstable (not interpreted) | Importance-sampling ESS failure in 8 of 12 cases |
+ | Reaction-family recovery | Enhanced vs core panel (denitrification, sulfate reduction, silicate weathering, iron reduction) | Partial improvement (descriptive) | Accuracy and true-family probability improve; no case-block interval predeclared |
++| Reaction-family recovery | Enhanced vs core panel (carbonate weathering and precipitation) | Non-identifiable under either panel | Zero modal accuracy under both panels despite low support entropy |
++| Northern Ghana audit | Component chemical and isotopic diagnostics | Supportable | Major hydrochemistry and stable isotopes available |
++| Northern Ghana audit | Field topology, age, and reaction-mechanism validation | Not supportable | Environmental age tracers, screen intervals, repeated head series, and independent connectivity truth all absent |
+ 
+ ## Discussion
+ 
+@@ -901,7 +954,7 @@
+ in this revision) and the per-case simulation provenance records
+ (executable identity, checksums, and version strings for every generated
+ case) are held in the authors' version-controlled project repository at
+-the commit identified in the Methods. Prior to submission, these result
++`https://github.com/dabdul-wahab1988/Hydrosheaf`. Prior to submission, these result
+ tables and provenance records should be deposited in a persistent,
+ publicly accessible repository (for example Zenodo or a comparable
+ AGU-recommended repository) and the resulting dataset DOI substituted for

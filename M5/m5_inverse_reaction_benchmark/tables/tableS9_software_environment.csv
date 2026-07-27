@@ -1,11 +1,15 @@
-Item,Value
-Python,3.10.17
-NumPy,2.2.6
-pandas,2.3.3
-PHREEQC,3.7.3-15968
-PHREEQC executable,C:\Program Files\USGS\phreeqc-3.7.3-15968-x64\bin\Release\phreeqc.exe
-PHREEQC database,C:\Program Files\USGS\phreeqc-3.7.3-15968-x64\database\phreeqc.dat
-Random seed,20250615
-Selected lambda_l1,0.019796928015359
-Selected lambda_l2,0.005
-Selected support threshold (mmol/L),0.03
+Scope,Item,Value
+Locked synthetic benchmark,Python,3.10.17
+Locked synthetic benchmark,NumPy,2.2.6
+Locked synthetic benchmark,pandas,2.3.3
+Locked synthetic benchmark,PHREEQC,3.7.3-15968
+Field saturation-index extension,Python,3.14.6
+Field saturation-index extension,NumPy,2.4.6
+Field saturation-index extension,pandas,2.3.3
+Field saturation-index extension,PHREEQC,3.8.6-17100
+Field saturation-index extension,PHREEQC executable,C:\Program Files\USGS\phreeqc-3.8.6-17100-x64\bin\Release\phreeqc.exe
+Field saturation-index extension,PHREEQC database,C:\Program Files\USGS\phreeqc-3.8.6-17100-x64\database\phreeqc.dat
+All deterministic analyses,Random seed,20250615
+Locked synthetic benchmark,Selected lambda_l1,0.019796928015359
+Locked synthetic benchmark,Selected lambda_l2,0.005
+Locked synthetic benchmark,Selected support threshold (mmol/L),0.03

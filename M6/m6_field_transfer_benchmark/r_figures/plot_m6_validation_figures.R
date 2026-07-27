@@ -1,15 +1,19 @@
-## M6 validation & reviewer-response figures (Fig 7 synthetic validation,
-## Fig 8 circularity + transport sensitivity). Nature style, 2-column.
+## M6 Extended Data figures: synthetic validation and robustness diagnostics.
+HERE <- tryCatch(dirname(normalizePath(sub("--file=", "",
+        grep("--file=", commandArgs(FALSE), value = TRUE)))), error = function(e) getwd())
+if (length(HERE) == 0 || is.na(HERE)) HERE <- getwd()
+LOCAL_LIB <- normalizePath(file.path(HERE, "..", "..", "..", ".r-lib"),
+                           mustWork = FALSE)
+if (dir.exists(LOCAL_LIB)) .libPaths(c(LOCAL_LIB, .libPaths()))
 suppressPackageStartupMessages({
   library(ggplot2); library(dplyr); library(tidyr); library(readr)
   library(patchwork); library(forcats); library(stringr); library(scales)
 })
-HERE <- tryCatch(dirname(normalizePath(sub("--file=", "",
-        grep("--file=", commandArgs(FALSE), value = TRUE)))), error = function(e) getwd())
-if (length(HERE) == 0 || is.na(HERE)) HERE <- getwd()
 source(file.path(HERE, "theme_m6.R"))
 BENCH <- normalizePath(file.path(HERE, ".."))
-RES <- file.path(BENCH, "results"); OUT <- file.path(BENCH, "figures", "r_publication")
+RES <- file.path(BENCH, "results")
+OUT <- file.path(BENCH, "figures", "extended_data")
+dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
 rd <- function(f) suppressMessages(read_csv(file.path(RES, f), show_col_types = FALSE))
 proc_labels <- c(silicate="Silicate", carbonate="Carbonate", evaporite="Evapoconc.",
                  ion_exchange="Cation exch.", anthropogenic="Nitrate", redox="Redox",
@@ -17,7 +21,7 @@ proc_labels <- c(silicate="Silicate", carbonate="Carbonate", evaporite="Evapocon
 PAN <- c(T0_majors="T0\nmajors", T2_plus_F="T2\n+F", T3_plus_Sr_SiO2="T3\n+Sr/SiO2")
 panf <- function(x) factor(PAN[x], levels = unname(PAN))
 
-## ---- FIGURE 7: synthetic-field validation (ground truth) -------------------
+## ---- EXTENDED DATA 2: synthetic-field validation (ground truth) ------------
 fig7 <- function() {
   rec <- rd("m6_synthetic_recovery_by_tier.csv")
   val <- rd("m6_synthetic_validation.csv")
@@ -73,10 +77,10 @@ fig7 <- function() {
 
   p <- m6_tag((a | b) / (c | d),
     caption = "Sr/SiO2 improves process-family recovery and structural rank against known truth; exact-mineral recovery stays limited at every tier.")
-  m6_save(p, file.path(OUT, "figure7_synthetic_validation"), 8.8, 8.2)
+  m6_save(p, file.path(OUT, "figureED2_synthetic_validation"), 8.8, 8.2)
 }
 
-## ---- FIGURE 8: circularity resolution + transport sensitivity --------------
+## ---- EXTENDED DATA 3: circularity + transport sensitivity ------------------
 fig8 <- function() {
   gs <- rd("m6_field_gate_structural.csv")
   ts <- rd("m6_transport_sensitivity.csv")
@@ -114,8 +118,10 @@ fig8 <- function() {
 
   p <- m6_tag(a | b,
     caption = "The field collapse is the conservative prior (ungated: all stay partially identifiable); attribution is stable across principled corrections.")
-  m6_save(p, file.path(OUT, "figure8_circularity_sensitivity"), 9.6, 5.2)
+  m6_save(p, file.path(OUT, "figureED3_circularity_sensitivity"), 9.6, 5.2)
 }
 
-ok7 <- try(fig7(), silent = FALSE); cat(if (inherits(ok7,"try-error")) "fig7 FAIL\n" else "fig7 done\n")
-ok8 <- try(fig8(), silent = FALSE); cat(if (inherits(ok8,"try-error")) "fig8 pending (data not ready)\n" else "fig8 done\n")
+ok7 <- try(fig7(), silent = FALSE)
+cat(if (inherits(ok7,"try-error")) "ED2 FAIL\n" else "ED2 done\n")
+ok8 <- try(fig8(), silent = FALSE)
+cat(if (inherits(ok8,"try-error")) "ED3 pending (data not ready)\n" else "ED3 done\n")
