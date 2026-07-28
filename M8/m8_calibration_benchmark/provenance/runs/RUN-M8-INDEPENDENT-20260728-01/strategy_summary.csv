@@ -1,0 +1,6 @@
+strategy,n,candidate_time_days,median_joint_abs_log10_error,success_rate,median_abs_log10_error_dispersivity,coverage_95pc_dispersivity,median_abs_log10_error_decay,coverage_95pc_decay
+E_optimal,250,50.0,0.16003443071577828,1.0,0.16735195027341399,0.02,0.1540638086420963,0.004
+development_oracle,250,50.0,0.16003443071577828,1.0,0.16735195027341399,0.02,0.1540638086420963,0.004
+no_new_measurement,250,,0.4280883145286154,1.0,0.8261513024479649,0.788,0.1366523415454331,0.64
+random,250,,0.28898420239847733,1.0,0.45347713065635264,0.46,0.12449569915470779,0.424
+existing_active_learning_heuristic,0,,,,,,,

@@ -63,6 +63,38 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
     "VadoseRunConfig": (".vadose.contracts", "VadoseRunConfig"),
     "TuningReport": (".tuning", "TuningReport"),
     "tune_reaction_hyperparameters": (".tuning", "tune_reaction_hyperparameters"),
+    "AcquisitionConfig": (
+        ".calibration.bayesian_active_learning",
+        "AcquisitionConfig",
+    ),
+    "MeasurementOption": (
+        ".calibration.bayesian_active_learning",
+        "MeasurementOption",
+    ),
+    "PredictiveScenario": (
+        ".calibration.bayesian_active_learning",
+        "PredictiveScenario",
+    ),
+    "expected_information_gain": (
+        ".calibration.bayesian_active_learning",
+        "expected_information_gain",
+    ),
+    "expected_brier_risk_reduction": (
+        ".calibration.bayesian_active_learning",
+        "expected_brier_risk_reduction",
+    ),
+    "rank_measurement_options": (
+        ".calibration.bayesian_active_learning",
+        "rank_measurement_options",
+    ),
+    "select_measurement_batch": (
+        ".calibration.bayesian_active_learning",
+        "select_measurement_batch",
+    ),
+    "update_hypothesis_posterior": (
+        ".calibration.bayesian_active_learning",
+        "update_hypothesis_posterior",
+    ),
     # NEW WORKFLOW
     "analyze_dataset": (".workflows.auto", "analyze_dataset"),
     "ClaimRecord": (".validation", "ClaimRecord"),

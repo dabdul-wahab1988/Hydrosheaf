@@ -1,0 +1,19 @@
+{
+  "artifacts": {
+    "action_log.csv": "4b4e747f9541ba44ca4dc27f0c2fbd08e8e8aac7be98f54e1f774ccd18c934ec",
+    "case_metrics.csv": "3602912d1aa921152a7942a0362ec95f425a1c7393d79b0e71dab60af8b5d9c5",
+    "claim_decision.json": "1530f21bc955f8598ae994e392aa371dfbe6a17dd6ee63d6c0cef8363aae12d2",
+    "generator_provenance.json": "8cd7f5b589fc2babecef97470f4eb46a1744127a617bf4316f4e2c74e0a65864",
+    "paired_bootstrap_contrasts.csv": "b0384373725d1cd62ea302641e6f94a289a68ca130a2a52dfca2c1aeada484ef",
+    "strategy_summary.csv": "cff03e920c26acd298be56ce442bd576339927b68fe984d50855ca58033cc926"
+  },
+  "bootstrap_samples": 5000,
+  "budget": 10.0,
+  "git_revision": "47fbf7ca385b3210547673519ac2b30f910a80d9",
+  "max_actions": 5,
+  "n_cases": 24,
+  "n_particles": 256,
+  "phase": "locked_test",
+  "run_id": "RUN-M8-FRONTIER-AL-20260728-01",
+  "status": "PASS"
+}

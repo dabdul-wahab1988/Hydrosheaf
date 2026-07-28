@@ -1,0 +1,6 @@
+strategy,n_cases,actionability_rate,median_brier,median_pr_auc,median_log_loss,median_entropy_reduction_per_cost,median_cost,median_actions
+legacy_uncertainty_chemistry,24,1.0,0.0457798883051,1.0,0.18814157121,0.0531573583353,10.0,5.0
+mean_information_decision_per_cost,24,1.0,0.0471292551156,1.0,0.192959979143,0.0521613159906,10.0,5.0
+random_feasible,24,1.0,0.0738511994877,1.0,0.255741999166,0.0168881569012,9.0,3.0
+realised_oracle,24,1.0,0.0395180589081,1.0,0.16999155924,0.07972624129,10.0,5.0
+robust_information_decision_per_cost,24,1.0,0.0480962808135,1.0,0.195910269575,0.0519636818245,10.0,5.0

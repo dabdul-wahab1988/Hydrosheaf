@@ -1,0 +1,2 @@
+run_id,status,started_at_utc,ended_at_utc,git_commit,config_hash,input_manifest_hash,environment_hash,database_snapshot_id
+RUN-M8-CONFIRM-20260728-01,PASS,2026-07-27T17:23:26.752474+00:00,2026-07-27T17:24:10.861702+00:00,3a628fcd99ee6b0fc2244ed5048f0156025ac7af,d0a6d9192dc2d043b26dcdf2e5d9ffaddf48d1249b3830ae1c12131f7cd2fefd,7b43b65eb3dd534707932266733e1b45440cd9cd645562ff082c501c7d91f7b1,dd200d48d21f2f6d8f7833bb8f2bf3d416e3004e22eece64a52a89517d01b3a7,NOT-APPLICABLE-TRACK-B-FILESYSTEM

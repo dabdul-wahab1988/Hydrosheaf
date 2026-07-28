@@ -1,0 +1,16 @@
+{
+  "allowed_claim": "On untouched, code-independent controlled-synthetic aquifer cases, scenario-robust Bayesian acquisition improved Brier score and joint topology information per declared relative cost over random acquisition, while remaining noninferior to the strong legacy uncertainty policy.",
+  "frontier_active_learning_claim_supported": true,
+  "gates": {
+    "actionability": true,
+    "brier_noninferiority_vs_legacy_uncertainty_chemistry": true,
+    "brier_superiority_vs_random_feasible": true,
+    "candidate_recall": true,
+    "information_efficiency_noninferiority_vs_legacy_uncertainty_chemistry": true,
+    "information_efficiency_superiority_vs_random_feasible": true,
+    "pr_auc_nonharm_vs_legacy_uncertainty_chemistry": true,
+    "pr_auc_nonharm_vs_random_feasible": true
+  },
+  "guardrail": "Controlled-synthetic joint-topology evidence under a declared relative-cost and likelihood model; not prospective field validation.",
+  "run_id": "RUN-M8-FRONTIER-AL-20260728-01"
+}

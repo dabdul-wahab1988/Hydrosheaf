@@ -1,0 +1,7 @@
+strategy,reference,metric,median_paired_difference,ci95_low,ci95_high
+E_optimal,no_new_measurement,abs_log10_error_dispersivity,-0.6690402624566391,-0.7373715569750927,-0.5756777810794862
+E_optimal,no_new_measurement,abs_log10_error_decay,0.02097590066669649,0.009223552122804346,0.027626529481983728
+development_oracle,no_new_measurement,abs_log10_error_dispersivity,-0.6690402624566391,-0.7307637418914619,-0.5756777810794862
+development_oracle,no_new_measurement,abs_log10_error_decay,0.02097590066669649,0.009223552122804346,0.027626529481983728
+random,no_new_measurement,abs_log10_error_dispersivity,-0.08927500420937878,-0.18008717348658,-0.013901521673156763
+random,no_new_measurement,abs_log10_error_decay,-0.0032596147693392877,-0.008427706183707678,-9.189912313178894e-05

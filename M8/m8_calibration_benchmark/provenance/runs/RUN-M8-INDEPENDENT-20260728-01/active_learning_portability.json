@@ -1,0 +1,7 @@
+{
+  "status": "NOT_ACTIONABLE_FOR_TRANSPORT_TIME_SELECTION",
+  "n_recommendations": 8,
+  "n_unique_priority_scores": 1,
+  "explicit_transport_time_action": false,
+  "reason": "The existing heuristic consumes topology evidence classes and does not consume candidate-time Jacobians or emit a transport concentration time."
+}

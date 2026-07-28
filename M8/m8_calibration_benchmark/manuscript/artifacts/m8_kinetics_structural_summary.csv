@@ -1,0 +1,4 @@
+design,n_concentration_observations,independent_surface_area_observation,rank,lambda_min,lambda_max,eigen_ratio,condition,logdet_fim,trace_inverse,sd_log10_p1,sd_log10_p2,parameter_correlation,sensitivity_cosine
+single_time_data_only,2,False,1,0.0,31.59595807049312,0.0,inf,-inf,inf,inf,inf,,1.0
+multi_time_data_only,8,False,1,0.0,2191.540690779066,0.0,inf,-inf,inf,inf,inf,,0.9999999999999998
+multi_time_plus_surface_area,8,True,2,48.859843190243964,2242.680847588822,0.02178635593324603,45.90028745807819,11.604383092661552,0.02091259998430101,0.10446339064141566,0.1,-0.9572731593909599,0.9572731593909596

@@ -1,0 +1,31 @@
+{
+  "run_id": "RUN-M8-INDEPENDENT-20260728-01",
+  "status": "PASS",
+  "locked_protocol": true,
+  "created_at_utc": "2026-07-28T11:34:40.197760+00:00",
+  "git_revision": "47fbf7ca385b3210547673519ac2b30f910a80d9",
+  "development_replicates": 80,
+  "test_replicates": 250,
+  "bootstrap_samples": 5000,
+  "truth_generator": "independent_implicit_finite_volume_upwind_v1",
+  "calibration_model": "HydroSheaf analytical TransportCalibrationAdapter",
+  "truth_cells": 240,
+  "dt_days": 0.05,
+  "excluded_capabilities": [
+    "temporal_series",
+    "graph_3d",
+    "vadose"
+  ],
+  "artifacts": {
+    "active_learning_portability.json": "960870091ca8e194164741253e9d29dbbcc3aa0f40207b93e07d0e96ca84c088",
+    "active_learning_raw.json": "90e26e01df425594b62edd718cfc4d244e931ef86256ff4c9ca004863b195b3a",
+    "analytical_candidate_scores.csv": "e8c403a6e918b9319b7154db79cffa4fd9b3b6489ace8b660f4a5e3c35a0288f",
+    "analytical_fd_stability.csv": "71cdbceb5e99b4e1eb961d150b88e5682f16256085777e462e85fd5b34808840",
+    "claim_decision.json": "6703f37a6db875c39a018e37d8d054b0c2fd56172a1061455175b05741828ab9",
+    "locked_test_calibrations.csv": "97b5f39cf0aff5da09ec034b80a9e7d6394330cc50d01386a96fe092ddc799a2",
+    "numerical_grid_convergence.csv": "180ed558014581cdeb0497052ec0b2391a763f1018b27b61c6b5cf3202671402",
+    "oracle_development.csv": "cefaf2b797b476587939ef1c8319f118613a513ae559df66cd5ab51868ba0b8e",
+    "paired_bootstrap_contrasts.csv": "cfef4aebaf33fd37a52cab1380c0b8295c0e210dd959f7fe69a68ad70fb223b3",
+    "strategy_summary.csv": "76f9da346426052afe706b3dc2c194ce64049228d7498a711871a86cb99b56ad"
+  }
+}

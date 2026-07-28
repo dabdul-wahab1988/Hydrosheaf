@@ -1,0 +1,32 @@
+{
+  "artifacts": {
+    "action_log.csv": "a9ddf46ef1fedc4423e3ecfa9c48cab909abc6eeb19f9f2b229e0dd8728252ee",
+    "case_metrics.csv": "beb06888d39a402241e263c93545603fa0188d7cbd419cb2d234f9931fb6c01e",
+    "generator_provenance.json": "e2a76876aa22b40ce3fbe12ada64c8e083451854e947ff49bfa3f0da620b0ba0",
+    "paired_bootstrap_contrasts.csv": "bb3e7e06d660c5ddfe357859a65436cc533d72fd7fbbbf105556880d6dc42f9f",
+    "strategy_summary.csv": "6bdf0d98dc9da5793b5661a5049afaabb1ba22a0f47b41b6a875b1909a76aee0"
+  },
+  "bootstrap_samples": 5000,
+  "budget": 10.0,
+  "calibration_model": {
+    "path": "development_calibration_model.json",
+    "seeds": [
+      7401,
+      7402,
+      7403,
+      7404,
+      7405,
+      7406,
+      7407,
+      7408
+    ],
+    "sha256": "2a51772a82a0f076e568fd4c708c8d4f075d89cb0c7801e5fb413001925edde5"
+  },
+  "git_revision": "47fbf7ca385b3210547673519ac2b30f910a80d9",
+  "max_actions": 5,
+  "n_cases": 8,
+  "n_particles": 256,
+  "phase": "development",
+  "run_id": "DEV-M8-FRONTIER-AL-20260728-01",
+  "status": "PASS"
+}

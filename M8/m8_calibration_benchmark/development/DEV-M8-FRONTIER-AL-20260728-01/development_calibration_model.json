@@ -1,0 +1,163 @@
+{
+  "development_run_id": "DEV-M8-FRONTIER-AL-20260728-01",
+  "development_seeds": [
+    7401,
+    7402,
+    7403,
+    7404,
+    7405,
+    7406,
+    7407,
+    7408
+  ],
+  "feature_names": [
+    "intercept",
+    "distance_km",
+    "abs_head_drop_m",
+    "hydraulic_prior"
+  ],
+  "measurement_types": {
+    "age_tracer": {
+      "0": {
+        "coefficient_shrinkage": 0.25,
+        "coefficients": [
+          6.355863694742428,
+          -1.0861200320033337,
+          0.5714645320934536,
+          8.23509032717528
+        ],
+        "n": 193,
+        "residual_sd": 19.63433592776111,
+        "response_mean": 13.816134544541903,
+        "response_sd": 20.780449532350513,
+        "unshrunk_coefficients": [
+          -16.024948854655996,
+          -4.344480128013335,
+          2.2858581283738144,
+          32.94036130870112
+        ]
+      },
+      "1": {
+        "coefficient_shrinkage": 0.25,
+        "coefficients": [
+          12.028639234737312,
+          3.4066709502364185,
+          1.0121566179949144,
+          -1.224884129174917e-10
+        ],
+        "n": 70,
+        "residual_sd": 7.822418667015779,
+        "response_mean": 17.60922043110061,
+        "response_sd": 7.9732854757332206,
+        "unshrunk_coefficients": [
+          -4.713104354352576,
+          13.626683800945674,
+          4.048626471979658,
+          -4.899536516699668e-10
+        ]
+      }
+    },
+    "chemistry_panel": {
+      "0": {
+        "coefficient_shrinkage": 0.25,
+        "coefficients": [
+          0.3664475940865802,
+          -0.015793415789748824,
+          -0.0013170915105484705,
+          -0.014416936407553897
+        ],
+        "n": 193,
+        "residual_sd": 0.09727630019059484,
+        "response_mean": 0.335438191277181,
+        "response_sd": 0.09991205914199856,
+        "unshrunk_coefficients": [
+          0.45947580251477776,
+          -0.0631736631589953,
+          -0.005268366042193882,
+          -0.05766774563021559
+        ]
+      },
+      "1": {
+        "coefficient_shrinkage": 0.25,
+        "coefficients": [
+          0.2619147696909783,
+          -0.13675180114978977,
+          0.014497800510605011,
+          9.88283058774048e-12
+        ],
+        "n": 70,
+        "residual_sd": 0.05921509243601394,
+        "response_mean": 0.2067495663803101,
+        "response_sd": 0.06131514164678998,
+        "unshrunk_coefficients": [
+          0.4274103796229829,
+          -0.5470072045991591,
+          0.057991202042420045,
+          3.953132235096192e-11
+        ]
+      }
+    },
+    "connectivity_tracer": {
+      "0": {
+        "coefficient_shrinkage": 0.25,
+        "coefficients": [
+          0.08372519089571678,
+          0.010182028258781032,
+          -0.001533681324814988,
+          0.02870386424025961
+        ],
+        "n": 193,
+        "residual_sd": 0.1289918599808118,
+        "response_mean": 0.11473603624420506,
+        "response_sd": 0.1306456417294829,
+        "unshrunk_coefficients": [
+          -0.009307345149748009,
+          0.04072811303512413,
+          -0.006134725299259952,
+          0.11481545696103844
+        ]
+      },
+      "1": {
+        "coefficient_shrinkage": 0.25,
+        "coefficients": [
+          0.9213850416215138,
+          -0.0843432666523574,
+          0.007462437130217537,
+          2.389799100695762e-11
+        ],
+        "n": 70,
+        "residual_sd": 0.13484815340842465,
+        "response_mean": 0.8828304518429275,
+        "response_sd": 0.13605504420238945,
+        "unshrunk_coefficients": [
+          1.0370488109572726,
+          -0.3373730666094296,
+          0.029849748520870148,
+          9.559196402783048e-11
+        ]
+      }
+    }
+  },
+  "ridge_penalty": 0.001,
+  "schema_version": "1.0",
+  "stress": {
+    "noise_sd_multiplier": 1.6,
+    "separation_multiplier": 0.65,
+    "separation_sd_multiplier": 1.25
+  },
+  "topology_prior_calibration": {
+    "class_weight": "balanced",
+    "coefficients": [
+      -6.330674735100593,
+      1.1354228288970432,
+      1.5058096842915063
+    ],
+    "feature_names": [
+      "distance_km",
+      "abs_head_drop_m",
+      "hydraulic_prior"
+    ],
+    "intercept": 0.6395948562402236,
+    "regularisation_C": 1.0
+  }
+}

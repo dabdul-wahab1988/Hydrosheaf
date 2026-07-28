@@ -42,5 +42,60 @@
       "reproducibility": "Generated from locked tables by the checksummed presentation-only postprocessor; PNG and PDF SHA-256 values are recorded in provenance/reviewed_artifact_manifest.json."
     },
     "reviewer_notes": "The figure is a controlled-synthetic benchmark summary. Bootstrap intervals remain in the tables rather than the compact four-panel graphic; quantitative claims must cite the tables or paired-comparison file."
+  },
+  {
+    "artifact_id": "TAB-M8-INDEPENDENT",
+    "status": "PASS",
+    "checks": {
+      "statistical": "E-optimal, development-oracle, random and no-new strategies each contain 250 locked test replicates; all 1,000 calibrations succeeded. The development oracle was frozen from 80 separate development replicates.",
+      "scientific": "The 50 d E-optimal choice matched the development oracle. It reduced dispersivity error but increased decay error under independent numerical truth, so dual-parameter robustness was not claimed. The existing active-learning routine emitted no actionable transport time.",
+      "presentation": "Parameter-specific medians and coverage are explicit. The active-learning row uses not-applicable performance fields rather than an invented candidate mapping.",
+      "reproducibility": "RUN-M8-INDEPENDENT-20260728-01 used a hash-locked protocol and sources. The 240-cell truth passed the 480-cell grid check with maximum difference 0.203 observation standard deviations."
+    },
+    "reviewer_notes": "Controlled-synthetic model-discrepancy evidence only. The equal-weight development oracle optimises joint log error and does not imply that 50 d is optimal for decay."
+  },
+  {
+    "artifact_id": "TAB-M8-INDEPENDENT-CONTRASTS",
+    "status": "PASS",
+    "checks": {
+      "statistical": "Each parameter-strategy comparison is paired by locked-test replicate and uses a 5,000-resample percentile bootstrap interval.",
+      "scientific": "E-optimal versus no-new dispersivity difference was -0.6690 with a wholly negative interval; decay difference was +0.0210 with a wholly positive interval. The preregistered dual-parameter rule therefore failed.",
+      "presentation": "The sign convention is explicit: negative error differences favour the named strategy.",
+      "reproducibility": "The table is generated directly by the locked independent-model runner and is SHA-256 registered in its run manifest."
+    },
+    "reviewer_notes": "Do not average the opposite parameter effects into a claim that both improved."
+  },
+  {
+    "artifact_id": "TAB-M8-FRONTIER-AL-SUMMARY",
+    "status": "PASS_BOUNDED",
+    "checks": {
+      "statistical": "All five strategies contain 24 locked cases. Candidate recall averaged 0.9861 and the proposed policy was actionable in every case.",
+      "scientific": "The summary supports superiority to random and noninferiority to legacy only when read with the paired contrasts. It does not support legacy superiority or field transfer.",
+      "presentation": "Strategy, case count, actionability, Brier score, PR-AUC, log loss, entropy reduction per cost, cost and action count are explicit.",
+      "reproducibility": "The file has SHA-256 cff03e920c26acd298be56ce442bd576339927b68fe984d50855ca58033cc926 in both the authoritative and reproduction runs."
+    },
+    "reviewer_notes": "Every proposed-policy action was a chemistry panel. Do not cite the availability of age and connectivity actions as evidence that the locked workflow found them useful."
+  },
+  {
+    "artifact_id": "TAB-M8-FRONTIER-AL-CONTRASTS",
+    "status": "PASS_BOUNDED",
+    "checks": {
+      "statistical": "Each contrast is paired by 24 aquifer cases and uses 5,000 bootstrap resamples. Brier and information-efficiency intervals exclude zero versus random.",
+      "scientific": "Against legacy, the Brier upper interval 0.00582 passed the +0.01 margin and the information lower interval -0.00955 passed the -0.01 margin. These are noninferiority results, not superiority results.",
+      "presentation": "Comparator, metric, median paired difference and interval endpoints are explicit with a consistent sign convention.",
+      "reproducibility": "The file has SHA-256 b0384373725d1cd62ea302641e6f94a289a68ca130a2a52dfca2c1aeada484ef in both completed runs."
+    },
+    "reviewer_notes": "The information-efficiency lower interval is only about 0.00045 nats per cost above the frozen legacy noninferiority boundary; describe this as a narrow pass."
+  },
+  {
+    "artifact_id": "REP-M8-FRONTIER-AL-QUALIFICATION",
+    "status": "PASS_BOUNDED",
+    "checks": {
+      "statistical": "The report reproduces the locked metrics and paired intervals without recalculation or threshold changes.",
+      "scientific": "The qualification explicitly separates controlled-synthetic workflow status from unearned claims of field effectiveness, universal optimality and legacy superiority.",
+      "presentation": "Passing, failing and undemonstrated dimensions are separately named.",
+      "reproducibility": "All seven authoritative outputs, including the run manifest, are byte-identical to the completed reproduction."
+    },
+    "reviewer_notes": "The initial detached reproduction attempt was an environmental execution interruption before artifact creation and is disclosed. The completed rerun used the same locked sources, model, seeds and thresholds."
   }
 ]

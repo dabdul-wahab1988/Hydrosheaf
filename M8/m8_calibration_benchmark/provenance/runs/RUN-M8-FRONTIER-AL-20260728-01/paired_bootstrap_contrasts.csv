@@ -1,0 +1,13 @@
+strategy,comparator,metric,n_cases,median_paired_difference,ci95_low,ci95_high
+robust_information_decision_per_cost,random_feasible,brier,24,-0.024834255588,-0.0289666636286,-0.0191895284203
+robust_information_decision_per_cost,random_feasible,pr_auc,24,0.0,0.0,0.0
+robust_information_decision_per_cost,random_feasible,joint_entropy_reduction_per_cost,24,0.0358089708679,0.0220600864657,0.0421771150037
+robust_information_decision_per_cost,legacy_uncertainty_chemistry,brier,24,0.001479488688,0.0,0.0058150848929
+robust_information_decision_per_cost,legacy_uncertainty_chemistry,pr_auc,24,0.0,0.0,0.0
+robust_information_decision_per_cost,legacy_uncertainty_chemistry,joint_entropy_reduction_per_cost,24,-0.00421876264605,-0.0095472948623,0.0
+robust_information_decision_per_cost,mean_information_decision_per_cost,brier,24,0.0,0.0,0.0
+robust_information_decision_per_cost,mean_information_decision_per_cost,pr_auc,24,0.0,0.0,0.0
+robust_information_decision_per_cost,mean_information_decision_per_cost,joint_entropy_reduction_per_cost,24,0.0,0.0,0.0
+robust_information_decision_per_cost,realised_oracle,brier,24,0.00836584712585,0.0060890059281,0.0110972211884
+robust_information_decision_per_cost,realised_oracle,pr_auc,24,0.0,0.0,0.0
+robust_information_decision_per_cost,realised_oracle,joint_entropy_reduction_per_cost,24,-0.0250546933286,-0.0352447273806,-0.0149407464307

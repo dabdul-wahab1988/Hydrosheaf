@@ -1,0 +1,209 @@
+{
+  "recommendations": [
+    {
+      "rank": 1,
+      "edge_id": "transport_time_105d",
+      "u": "base_design",
+      "v": "transport_time_105d",
+      "priority_score": 0.0,
+      "uncertainty_reasons": [
+        "all-variants-agree"
+      ],
+      "recommended_measurements": [
+        "review edge evidence"
+      ],
+      "expected_benefit": "Additional data would improve topology confidence",
+      "evidence_flags": [],
+      "evidence_reason": "",
+      "evidence_class": "",
+      "current_selection_status": {
+        "baseline_selected": true,
+        "null_model_default_selected": true,
+        "assumption_calibrated_selected": true
+      },
+      "validation_status": "unlabeled",
+      "manuscript_safe_note": "Recommendations are for planning purposes; they do not validate the edge."
+    },
+    {
+      "rank": 2,
+      "edge_id": "transport_time_120d",
+      "u": "base_design",
+      "v": "transport_time_120d",
+      "priority_score": 0.0,
+      "uncertainty_reasons": [
+        "all-variants-agree"
+      ],
+      "recommended_measurements": [
+        "review edge evidence"
+      ],
+      "expected_benefit": "Additional data would improve topology confidence",
+      "evidence_flags": [],
+      "evidence_reason": "",
+      "evidence_class": "",
+      "current_selection_status": {
+        "baseline_selected": true,
+        "null_model_default_selected": true,
+        "assumption_calibrated_selected": true
+      },
+      "validation_status": "unlabeled",
+      "manuscript_safe_note": "Recommendations are for planning purposes; they do not validate the edge."
+    },
+    {
+      "rank": 3,
+      "edge_id": "transport_time_150d",
+      "u": "base_design",
+      "v": "transport_time_150d",
+      "priority_score": 0.0,
+      "uncertainty_reasons": [
+        "all-variants-agree"
+      ],
+      "recommended_measurements": [
+        "review edge evidence"
+      ],
+      "expected_benefit": "Additional data would improve topology confidence",
+      "evidence_flags": [],
+      "evidence_reason": "",
+      "evidence_class": "",
+      "current_selection_status": {
+        "baseline_selected": true,
+        "null_model_default_selected": true,
+        "assumption_calibrated_selected": true
+      },
+      "validation_status": "unlabeled",
+      "manuscript_safe_note": "Recommendations are for planning purposes; they do not validate the edge."
+    },
+    {
+      "rank": 4,
+      "edge_id": "transport_time_180d",
+      "u": "base_design",
+      "v": "transport_time_180d",
+      "priority_score": 0.0,
+      "uncertainty_reasons": [
+        "all-variants-agree"
+      ],
+      "recommended_measurements": [
+        "review edge evidence"
+      ],
+      "expected_benefit": "Additional data would improve topology confidence",
+      "evidence_flags": [],
+      "evidence_reason": "",
+      "evidence_class": "",
+      "current_selection_status": {
+        "baseline_selected": true,
+        "null_model_default_selected": true,
+        "assumption_calibrated_selected": true
+      },
+      "validation_status": "unlabeled",
+      "manuscript_safe_note": "Recommendations are for planning purposes; they do not validate the edge."
+    },
+    {
+      "rank": 5,
+      "edge_id": "transport_time_240d",
+      "u": "base_design",
+      "v": "transport_time_240d",
+      "priority_score": 0.0,
+      "uncertainty_reasons": [
+        "all-variants-agree"
+      ],
+      "recommended_measurements": [
+        "review edge evidence"
+      ],
+      "expected_benefit": "Additional data would improve topology confidence",
+      "evidence_flags": [],
+      "evidence_reason": "",
+      "evidence_class": "",
+      "current_selection_status": {
+        "baseline_selected": true,
+        "null_model_default_selected": true,
+        "assumption_calibrated_selected": true
+      },
+      "validation_status": "unlabeled",
+      "manuscript_safe_note": "Recommendations are for planning purposes; they do not validate the edge."
+    },
+    {
+      "rank": 6,
+      "edge_id": "transport_time_50d",
+      "u": "base_design",
+      "v": "transport_time_50d",
+      "priority_score": 0.0,
+      "uncertainty_reasons": [
+        "all-variants-agree"
+      ],
+      "recommended_measurements": [
+        "review edge evidence"
+      ],
+      "expected_benefit": "Additional data would improve topology confidence",
+      "evidence_flags": [],
+      "evidence_reason": "",
+      "evidence_class": "",
+      "current_selection_status": {
+        "baseline_selected": true,
+        "null_model_default_selected": true,
+        "assumption_calibrated_selected": true
+      },
+      "validation_status": "unlabeled",
+      "manuscript_safe_note": "Recommendations are for planning purposes; they do not validate the edge."
+    },
+    {
+      "rank": 7,
+      "edge_id": "transport_time_70d",
+      "u": "base_design",
+      "v": "transport_time_70d",
+      "priority_score": 0.0,
+      "uncertainty_reasons": [
+        "all-variants-agree"
+      ],
+      "recommended_measurements": [
+        "review edge evidence"
+      ],
+      "expected_benefit": "Additional data would improve topology confidence",
+      "evidence_flags": [],
+      "evidence_reason": "",
+      "evidence_class": "",
+      "current_selection_status": {
+        "baseline_selected": true,
+        "null_model_default_selected": true,
+        "assumption_calibrated_selected": true
+      },
+      "validation_status": "unlabeled",
+      "manuscript_safe_note": "Recommendations are for planning purposes; they do not validate the edge."
+    },
+    {
+      "rank": 8,
+      "edge_id": "transport_time_90d",
+      "u": "base_design",
+      "v": "transport_time_90d",
+      "priority_score": 0.0,
+      "uncertainty_reasons": [
+        "all-variants-agree"
+      ],
+      "recommended_measurements": [
+        "review edge evidence"
+      ],
+      "expected_benefit": "Additional data would improve topology confidence",
+      "evidence_flags": [],
+      "evidence_reason": "",
+      "evidence_class": "",
+      "current_selection_status": {
+        "baseline_selected": true,
+        "null_model_default_selected": true,
+        "assumption_calibrated_selected": true
+      },
+      "validation_status": "unlabeled",
+      "manuscript_safe_note": "Recommendations are for planning purposes; they do not validate the edge."
+    }
+  ],
+  "summary": {
+    "n_recommendations": 8,
+    "top_priority_score": 0.0,
+    "n_edges_scored": 8,
+    "bootstrap_instability_detected": false
+  },
+  "inputs_used": {
+    "benchmark_report": true,
+    "validation_report": false,
+    "samples": false,
+    "candidate_edges": true,
+    "config": false
+  }
+}

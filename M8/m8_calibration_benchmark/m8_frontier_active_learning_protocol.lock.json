@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "run_id": "RUN-M8-FRONTIER-AL-20260728-01",
+  "development_run_id": "DEV-M8-FRONTIER-AL-20260728-01",
+  "locked_at_utc": "2026-07-28T12:45:27Z",
+  "locked_before_test_execution": true,
+  "locked_test_outcomes_inspected": false,
+  "calibration_model": "development/DEV-M8-FRONTIER-AL-20260728-01/development_calibration_model.json",
+  "calibration_seeds": [7401, 7402, 7403, 7404, 7405, 7406, 7407, 7408],
+  "development_tuning_seeds": [7451, 7452, 7453, 7454, 7455, 7456, 7457, 7458],
+  "locked_test_seeds": [
+    7601, 7602, 7603, 7604, 7605, 7606, 7607, 7608,
+    7609, 7610, 7611, 7612, 7613, 7614, 7615, 7616,
+    7617, 7618, 7619, 7620, 7621, 7622, 7623, 7624
+  ],
+  "configuration": {
+    "n_particles": 256,
+    "budget_relative_units": 10.0,
+    "max_actions": 5,
+    "bootstrap_samples": 5000,
+    "robustness_weight": 0.75,
+    "decision_weight": 0.95,
+    "minimum_eig_nats": 0.002,
+    "likelihood_coefficient_shrinkage": 0.25,
+    "legacy_brier_noninferiority_margin": 0.01,
+    "legacy_information_noninferiority_margin_nats_per_cost": -0.01
+  },
+  "environment": {
+    "python": "3.14.6",
+    "numpy": "2.4.6",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "scikit_learn": "1.9.0",
+    "flopy": "3.10.0",
+    "modflow_6": "6.7.0 02/05/2026",
+    "modpath_7": "7.2.001"
+  },
+  "sha256": {
+    ".codex_work/modflow-bin/mf6.exe": "b0b70e1c4cde6183932496b644563fd98867c520026321fd22a8fc796084fa1c",
+    ".codex_work/modflow-bin/mp7.exe": "beda7d535237b2b979d5dfba03a1ff935c139cabe581bf90b2c3793e741e9388",
+    "M7/m7_nonuniqueness_benchmark/scripts/independent_modflow_generator.py": "3b06a4bd5c6807e4701c0b92114586f895a9f87ce2445c1cb01e9274564c46ce",
+    "M7/m7_nonuniqueness_benchmark/scripts/strong_inference.py": "01f848eedf515390e7c4e5b336f90fcfcdd1d40aef1cd780eb69579a5fd7f86e",
+    "M8/m8_calibration_benchmark/DEVELOPMENT_DECISION_FRONTIER_ACTIVE_LEARNING.md": "95237a6507631787b043502535684a946ab2d0fc0b0ffdda232f7fde0daecc0b",
+    "M8/m8_calibration_benchmark/M8_FRONTIER_ACTIVE_LEARNING_PROTOCOL.md": "0a0a6b371fc2a57dc8b29248fd9f290132f7a2de9aa94d3dfd16212449650603",
+    "M8/m8_calibration_benchmark/development/DEV-M8-FRONTIER-AL-20260728-01/development_calibration_model.json": "2a51772a82a0f076e568fd4c708c8d4f075d89cb0c7801e5fb413001925edde5",
+    "M8/m8_calibration_benchmark/scripts/run_m8_frontier_active_learning.py": "935db74fc11eb2f2f5602bc0e49c9d9be480bbb733c5eb21e5ebdcff24bdf8a1",
+    "M8/m8_calibration_benchmark/tests/test_run_m8_frontier_active_learning.py": "b6af3ee57f87e0bd3753cfeb220960d0e1e9b4dcf67503eba7a3afe6bb173179",
+    "hydrosheaf/__init__.py": "38e5bd2b45b498afec37fe332bb3068ad00f7d65b5e035a7ed132133404c3c5c",
+    "hydrosheaf/calibration/bayesian_active_learning.py": "a1470fb67822d71632c72688aec47531585e920a27aad7084ec50e7a21769748",
+    "hydrosheaf/config.py": "2579393ae09259e31e02f049911f63d6801c5234daaacf10169c08a94ac38e25",
+    "hydrosheaf/graph/build.py": "4002f3f7e47993ef46d39b985c711c9f646378335d9e79205b91f5b1107802d8",
+    "hydrosheaf/graph/types.py": "9c1469f2293521f714537df1c9624718481974e6abf99d41d3fe9e3d7c5f8e02",
+    "hydrosheaf/inference/network_fit.py": "cc708b32dcbff62b8954ce18855993fb090ac034aa8ecdcd5978fda8d5a1a02f",
+    "tests/test_bayesian_active_learning.py": "c41e3a6bf98fa8bd485adbc3361a1d6ea57b8e80670e95ad4b90818ff170e350"
+  }
+}

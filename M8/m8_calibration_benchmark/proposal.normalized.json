@@ -1,7 +1,7 @@
 {
   "schema_version": "2.1",
-  "title": "M8 confirmatory parameter-specific optimal-design benchmark",
-  "scope": "Controlled synthetic evaluation of parameter-specific identifiability and measurement design using HydroSheaf's production transport and kinetic calibration adapters; no field-validation claim is permitted.",
+  "title": "M8 confirmatory optimal-design and Bayesian active-learning benchmark",
+  "scope": "Controlled synthetic evaluation of parameter-specific identifiability, measurement design, model-form robustness and topology active learning using production HydroSheaf interfaces; no field-validation claim is permitted.",
   "objectives": [
     {
       "id": "OBJ-M8-TRANSPORT",
@@ -29,6 +29,24 @@
         "Demonstrate constant-product ridge invariance and a rank-one data-only Fisher matrix.",
         "Show that an independent surface-area observation restores full local rank."
       ]
+    },
+    {
+      "id": "OBJ-M8-INDEPENDENT",
+      "statement": "Test whether the matched-model transport design result transfers to independently generated numerical truth and whether the existing active-learning routine can express a transport sampling-time decision.",
+      "acceptance_criteria": [
+        "Pass a preregistered numerical-grid convergence gate.",
+        "Use separate development-oracle and locked-test replicate families.",
+        "Do not translate categorical topology recommendations into transport times ad hoc."
+      ]
+    },
+    {
+      "id": "OBJ-M8-FRONTIER-AL",
+      "statement": "Prospectively qualify explicit, cost-aware and finite-scenario-robust Bayesian active learning for sequential topology-measurement design under independent controlled-synthetic aquifer truth.",
+      "acceptance_criteria": [
+        "Outperform random acquisition in paired Brier score and joint-hypothesis information per cost.",
+        "Remain noninferior to a strong legacy uncertainty-chemistry policy within frozen Brier and information-efficiency margins.",
+        "Meet candidate-recall, actionability and PR-AUC non-harm gates and regenerate all registered outputs byte-identically."
+      ]
     }
   ],
   "inputs": [
@@ -36,6 +54,16 @@
       "id": "CODE-HYDROSHEAF",
       "path": "scripts/run_m8_confirmatory.py",
       "provenance": "HydroSheaf checkout containing production transport and kinetic adapters"
+    },
+    {
+      "id": "CODE-M8-INDEPENDENT",
+      "path": "scripts/run_m8_independent_active.py",
+      "provenance": "Hash-locked independent numerical truth and active-learning portability runner"
+    },
+    {
+      "id": "CODE-M8-FRONTIER-AL",
+      "path": "scripts/run_m8_frontier_active_learning.py",
+      "provenance": "Hash-locked robust Bayesian topology active-learning runner with an independent MODFLOW 6/MODPATH 7 generator"
     }
   ],
   "risks": [
@@ -53,6 +81,16 @@
       "id": "RISK-M8-EXPLORATORY",
       "risk": "Previously inspected exploratory results cannot be retrospectively preregistered.",
       "mitigation": "Use a new locked protocol, fresh run ID, and fresh seed family; label the result prospective confirmation."
+    },
+    {
+      "id": "RISK-M8-MODEL-FORM",
+      "risk": "An optimal observation selected under the analytical model may not improve every parameter under model-form discrepancy.",
+      "mitigation": "Generate truth with an independently implemented, grid-converged numerical solver and retain parameter-specific claim decisions."
+    },
+    {
+      "id": "RISK-M8-ACTIVE-LEARNING-SCOPE",
+      "risk": "A successful controlled-synthetic active-learning benchmark may be overgeneralised to field effectiveness, strong-baseline superiority or measurement modalities that were available but never selected.",
+      "mitigation": "Use prospective claim gates, report superiority and noninferiority separately, disclose selected modality counts, require exact regeneration, and retain explicit field and modality exclusions."
     }
   ],
   "quality": {
@@ -74,6 +112,6 @@
   },
   "manuscript_requirements": {
     "figures": ["FIG-M8-CONFIRMATORY"],
-    "tables": ["TAB-M8-TRANSPORT", "TAB-M8-OED", "TAB-M8-KINETICS"]
+    "tables": ["TAB-M8-TRANSPORT", "TAB-M8-OED", "TAB-M8-KINETICS", "TAB-M8-INDEPENDENT", "TAB-M8-INDEPENDENT-CONTRASTS", "TAB-M8-FRONTIER-AL-SUMMARY", "TAB-M8-FRONTIER-AL-CONTRASTS", "REP-M8-FRONTIER-AL-QUALIFICATION"]
   }
 }

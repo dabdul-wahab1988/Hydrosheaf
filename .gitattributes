@@ -1,0 +1,4 @@
+# Preserve byte-locked M8 scientific artifacts exactly as generated.
+M8/m8_calibration_benchmark/development/** -text whitespace=cr-at-eol
+M8/m8_calibration_benchmark/manuscript/artifacts/** -text whitespace=cr-at-eol
+M8/m8_calibration_benchmark/provenance/** -text whitespace=cr-at-eol

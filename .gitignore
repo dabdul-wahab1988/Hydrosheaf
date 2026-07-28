@@ -225,3 +225,12 @@ graphify-out/
 !M4/m4_topology_benchmark/tables/**
 # Keep the bulky raw public-archive dumps out regardless.
 M4/m4_topology_benchmark/results/public_archives/
+
+# M8 prospectively locked benchmark artifacts are part of the scientific record;
+# external simulator workspaces are reproducible scratch and must remain local.
+M8/m8_calibration_benchmark/.simulator_workspaces/
+!M8/m8_calibration_benchmark/manuscript/artifacts/
+!M8/m8_calibration_benchmark/manuscript/artifacts/**
+!M8/m8_calibration_benchmark/development/DEV-M8-FRONTIER-AL-20260728-01/**
+!M8/m8_calibration_benchmark/provenance/
+!M8/m8_calibration_benchmark/provenance/**

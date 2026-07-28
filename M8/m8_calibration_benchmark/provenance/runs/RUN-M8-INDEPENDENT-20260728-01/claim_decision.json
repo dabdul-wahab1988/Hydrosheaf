@@ -1,0 +1,11 @@
+{
+  "numerical_convergence_gate_passed": true,
+  "independent_model_robustness_supported": false,
+  "analytical_E_optimal_time_days": 50.0,
+  "development_oracle_time_days": 50.0,
+  "active_learning_transport_status": "NOT_ACTIONABLE_FOR_TRANSPORT_TIME_SELECTION",
+  "active_learning_transport_claim_supported": false,
+  "allowed_claim": "Independent-model robustness of the E-optimal transport result was not confirmed under the locked dual-parameter rule.",
+  "active_learning_consequence": "The existing active-learning routine is topology/categorical decision support, not a transport experimental-design optimiser; the M8 transport performance claim is removed unless a Jacobian-aware interface is added.",
+  "guardrail": "Controlled-synthetic model-class evidence only; not field validation."
+}

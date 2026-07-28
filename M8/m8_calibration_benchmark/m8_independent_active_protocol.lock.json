@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "run_id": "RUN-M8-INDEPENDENT-20260728-01",
+  "locked_before_execution": true,
+  "development_replicates": 80,
+  "test_replicates": 250,
+  "bootstrap_samples": 5000,
+  "truth_cells": 240,
+  "grid_check_cells": [120, 240, 480],
+  "dt_days": 0.05,
+  "excluded_capabilities": ["temporal_series", "graph_3d", "vadose"],
+  "sha256": {
+    "M8/m8_calibration_benchmark/M8_INDEPENDENT_ACTIVE_PROTOCOL.md": "180214c38221c84207df20181897e0918af01eacbde659592b5a40d66165a083",
+    "M8/m8_calibration_benchmark/scripts/run_m8_independent_active.py": "ee6ce3d32b92239449be39eaf2496b04a719a2ed29d2f001965f155c4985b8b5",
+    "M8/m8_calibration_benchmark/scripts/run_m8_confirmatory.py": "ca4bb7bfafbabf452a50b3d8ffb348b96527b1cbc3daf2380b9a4a2e374dee6e",
+    "hydrosheaf/calibration/adapters.py": "81d5394803bd6862449112fbbfd0a90c9b3298c8c9d8b641405440445b8c07ea",
+    "hydrosheaf/calibration/active_learning.py": "62e6ff902ba7eda64797c437e0ed3d02c228a1f118601eabb07f76b81b7b5b6a",
+    "hydrosheaf/calibration/glm.py": "e15b956c0915cf6fcd9fcc4511e865a0782cb6cb5d32a8060161247d8eff4a92"
+  }
+}

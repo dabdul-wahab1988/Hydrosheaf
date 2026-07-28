@@ -1,6 +1,10 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "locked_run_id": "RUN-M8-CONFIRM-20260728-01",
+  "additional_locked_run_ids": [
+    "RUN-M8-INDEPENDENT-20260728-01",
+    "RUN-M8-FRONTIER-AL-20260728-01"
+  ],
   "presentation_amendment": {
     "amended_at_utc": "2026-07-27T17:30:00Z",
     "reason": "Human review found that the original figure title implied different target-specific choices even though all criteria selected 50 d, and the random-strategy table displayed the first random draw rather than a varied-candidate label. Numerical estimates and decision rules were unchanged.",
@@ -58,6 +62,71 @@
         "Balanced 2x2 layout with readable labels and units.",
         "Panels distinguish predicted local information from realised recovery.",
         "Kinetic structural evidence is labelled as a controlled synthetic result."
+      ]
+    },
+    {
+      "id": "TAB-M8-INDEPENDENT",
+      "kind": "table",
+      "path": "provenance/runs/RUN-M8-INDEPENDENT-20260728-01/strategy_summary.csv",
+      "objective_ids": ["OBJ-M8-INDEPENDENT"],
+      "generator": "scripts/run_m8_independent_active.py",
+      "inputs": ["M8_INDEPENDENT_ACTIVE_PROTOCOL.md", "m8_independent_active_protocol.lock.json", "scripts/run_m8_independent_active.py"],
+      "validation_checks": [
+        "The 240-cell numerical truth passes the locked comparison with the 480-cell reference.",
+        "E-optimal, development-oracle, random, and no-new strategies contain 250 locked test replicates.",
+        "The active-learning row is explicitly not applicable when no transport-time action is emitted."
+      ]
+    },
+    {
+      "id": "TAB-M8-INDEPENDENT-CONTRASTS",
+      "kind": "table",
+      "path": "provenance/runs/RUN-M8-INDEPENDENT-20260728-01/paired_bootstrap_contrasts.csv",
+      "objective_ids": ["OBJ-M8-INDEPENDENT"],
+      "generator": "scripts/run_m8_independent_active.py",
+      "inputs": ["M8_INDEPENDENT_ACTIVE_PROTOCOL.md", "scripts/run_m8_independent_active.py"],
+      "validation_checks": [
+        "Parameter-specific differences are paired by replicate.",
+        "Each interval uses 5,000 bootstrap resamples.",
+        "The decision rule is applied separately to dispersivity and decay."
+      ]
+    },
+    {
+      "id": "TAB-M8-FRONTIER-AL-SUMMARY",
+      "kind": "table",
+      "path": "provenance/runs/RUN-M8-FRONTIER-AL-20260728-01/strategy_summary.csv",
+      "objective_ids": ["OBJ-M8-FRONTIER-AL"],
+      "generator": "scripts/run_m8_frontier_active_learning.py",
+      "inputs": ["M8_FRONTIER_ACTIVE_LEARNING_PROTOCOL.md", "m8_frontier_active_learning_protocol.lock.json", "development/DEV-M8-FRONTIER-AL-20260728-01/development_calibration_model.json"],
+      "validation_checks": [
+        "Every strategy contains the same 24 untouched independent aquifer cases.",
+        "Candidate recall, actionability, Brier score, PR-AUC, log loss, information per cost, resource cost, and action count are finite.",
+        "The interpretation distinguishes superiority to random from noninferiority to the strong legacy policy."
+      ]
+    },
+    {
+      "id": "TAB-M8-FRONTIER-AL-CONTRASTS",
+      "kind": "table",
+      "path": "provenance/runs/RUN-M8-FRONTIER-AL-20260728-01/paired_bootstrap_contrasts.csv",
+      "objective_ids": ["OBJ-M8-FRONTIER-AL"],
+      "generator": "scripts/run_m8_frontier_active_learning.py",
+      "inputs": ["M8_FRONTIER_ACTIVE_LEARNING_PROTOCOL.md", "scripts/run_m8_frontier_active_learning.py"],
+      "validation_checks": [
+        "All proposed-versus-comparator contrasts are paired by aquifer case.",
+        "Each interval uses 5,000 deterministic bootstrap resamples.",
+        "The frozen superiority, noninferiority, non-harm, recall, and actionability gates are applied without post-test changes."
+      ]
+    },
+    {
+      "id": "REP-M8-FRONTIER-AL-QUALIFICATION",
+      "kind": "report",
+      "path": "provenance/runs/RUN-M8-FRONTIER-AL-20260728-01/scientific_workflow_qualification.json",
+      "objective_ids": ["OBJ-M8-FRONTIER-AL"],
+      "generator": "manual hash comparison after locked regeneration",
+      "inputs": ["provenance/runs/RUN-M8-FRONTIER-AL-20260728-01/run_manifest.json", "provenance/reproducibility/RUN-M8-FRONTIER-AL-20260728-01-REPRODUCED/run_manifest.json"],
+      "validation_checks": [
+        "All seven registered authoritative and reproduction outputs have identical SHA-256 values.",
+        "The report states the failed or undemonstrated claims as well as the passing claim.",
+        "The field, legacy-superiority, multimodal-usefulness, and batch-validation exclusions are explicit."
       ]
     }
   ]
