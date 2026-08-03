@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "artifact": "run_m7_robust_hybrid_sheaf.py",
+  "sha256": "a0ef13bde5391af62698927211cb4e701123affebb108d331795ce8596e2e191",
+  "matches_active_runner": true,
+  "matches_confirmatory_lock": true,
+  "confirmatory_lock_path": "m7_robust_hybrid_confirmatory.lock.json",
+  "confirmatory_lock_sha256": "c8fe679567793dbe2706bad6c838acd00ba91123d5b3afbae175783986bbf5e8",
+  "recovered_on": "2026-07-30",
+  "recovery_source": "Codex session snapshot rollout-2026-07-28T09-58-57-019fa829-c2b0-7e43-a775-26eca97dea77.jsonl, initial runner patch",
+  "locked_test_rerun_during_recovery": false,
+  "note": "Later presentation-only source edits caused the checkout mismatch. The exact initially locked bytes were restored; immutable result artifacts were hash-verified and were not regenerated."
+}

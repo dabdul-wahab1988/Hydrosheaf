@@ -1,0 +1,69 @@
+{
+  "schema_version": "2.1",
+  "title": "HydroSheaf benchmarks: a harmonized identifiability comparison of directed connectivity, residence-time, and reaction inference in data-limited aquifers",
+  "scope": "A companion benchmark article to M2.3 (the HydroSheaf framework paper). O3 does not introduce new software architecture. It harmonizes three already-locked, independently designed component benchmarks (M3 nuclear-tracer/age, M4 MODPATH-referenced topology, M5 PHREEQC-screened reaction) under one common identifiability taxonomy and reports a cross-component pattern that no single component paper can show on its own: under independent, prior-free evaluation, recall/sensitivity substantially exceeds precision/specificity in all three physically distinct inference problems, and apparent agreement improves only when a benchmark is recast as calibration/emulation against the same reference it is tested on.",
+  "objectives": [
+    {
+      "id": "OBJ-1",
+      "statement": "Harmonize the three components' independently designed benchmark protocols (reference type, positive/negative controls, independent-vs-prior-informed modes, reportability guards) into one common evidence taxonomy.",
+      "acceptance_criteria": [
+        "A taxonomy table classifies every retained benchmark row from M3, M4 and M5 by independence, control type, and claim scope.",
+        "No benchmark row is re-labelled in a way that contradicts its component DECISIONS.md."
+      ]
+    },
+    {
+      "id": "OBJ-2",
+      "statement": "Quantify, on a common recall/sensitivity versus precision/specificity axis, how each of the three inference layers performs when evaluated independently and without calibration to the reference it is judged against.",
+      "acceptance_criteria": [
+        "Cross-component comparison figure and table report recall-type and precision-type metrics side by side for M3, M4 and M5 using each component's own locked headline metric.",
+        "Every reported value traces to a primary CSV/JSON artefact under M3/M4/M5 results/ or tables/ directories with no recomputation of the underlying inference."
+      ]
+    },
+    {
+      "id": "OBJ-3",
+      "statement": "Quantify the screening-to-calibration/emulation gap that recurs in the age and reaction layers, and the independent-to-prior-informed gap that recurs in the topology layer, and state why calibrated or prior-informed numbers are not independent validation.",
+      "acceptance_criteria": [
+        "Table reports both the independent/uncalibrated and the calibrated/prior-informed metric for each layer where both exist, with the non-independence stated in the same row."
+      ]
+    },
+    {
+      "id": "OBJ-4",
+      "statement": "Compare the three benchmarks on computational and design scale (scenario count, fit count, runtime where recorded, external reference type) to give the reader a comp-geo-relevant sense of benchmark cost and reach.",
+      "acceptance_criteria": [
+        "A benchmark-scale table reports scenario/fit counts and any recorded runtime for all three components from their own manifests."
+      ]
+    },
+    {
+      "id": "OBJ-5",
+      "statement": "Describe, for a reader unfamiliar with the project, every dataset (synthetic and field) that any of the three benchmarks consumes, at a level sufficient to reproduce the comparison.",
+      "acceptance_criteria": [
+        "Data section and a data-inventory table cover the USGS national groundwater-age release, the USGS Savage/Great Miami/Long Island MODFLOW-MODPATH archives, the 240-scenario PHREEQC factorial benchmark, and the Northern Ghana/Lower Anayari/Talensi field datasets, each with source, size, and role."
+      ]
+    }
+  ],
+  "inputs": [
+    {"id": "DATA-M3", "path": "M3/m3_age_benchmark/results", "provenance": "M3 locked age/TTD benchmark result tables (USGS national groundwater-age release comparison, TracerLPM strict-parity emulation, graph-regularization falsification test)"},
+    {"id": "DATA-M4", "path": "M4/m4_topology_benchmark/results", "provenance": "M4 locked topology benchmark result tables (USGS Savage/Great Miami/Long Island MODFLOW-MODPATH archives, independent vs MODPATH-informed graph modes)"},
+    {"id": "DATA-M5", "path": "M5/m5_inverse_reaction_benchmark/results", "provenance": "M5 locked reaction benchmark result tables (240-scenario live-PHREEQC factorial inversion, conventional PHREEQC inverse baseline, Northern Ghana/Talensi/Lower Anayari field transfer)"},
+    {"id": "DATA-M2.3", "path": "M2.3/manuscript/artifacts/data", "provenance": "M2.3 recomputed evidence exports, read only for cross-checking consistency with the companion framework paper, not as a primary evidence source for O3"}
+  ],
+  "risks": [
+    {"id": "RISK-1", "risk": "Overlap/self-plagiarism against M2.3, which already reports a compressed version of the same three-way pattern.", "mitigation": "O3 is explicitly framed as the depth companion to M2.3's compressed treatment; Discussion states the relationship and non-duplication explicitly; O3 reports full benchmark design, ablations and computational cost that M2.3's 7,000-word budget excludes."},
+    {"id": "RISK-2", "risk": "M3/M4/M5 locked results predate the 2026-08-01/02 hydrosheaf/validation programme-layer changes.", "mitigation": "Verified those commits touch the RUN-INTEGRATION-FULL programme/decision-utility layer used by M2.3's integrated claim, not the core nuclear/, sheaf/topology_refine.py inference paths M3/M4 benchmark, nor the reactions.py dictionary M5 benchmarks against; M2.3 itself reused M3's pre-Aug-1 results without rerunning them. Any residual staleness risk is disclosed in Limitations rather than silently assumed away."},
+    {"id": "RISK-3", "risk": "Re-deriving cross-component numbers could silently diverge from each component's own locked, reviewed values.", "mitigation": "Python synthesis layer reads only already-locked CSV/JSON artefacts and performs no re-simulation; every derived number is cross-checked against the value quoted in the component's own docs/*_results_summary.md."}
+  ],
+  "quality": {"minimum_test_coverage": null},
+  "implementation": {
+    "backend_language": "python",
+    "entrypoint": "O3/analysis/python/derive_cross_component_evidence.py",
+    "dependency_lock": ".venv",
+    "results_store_profile": "read-only-csv-passthrough",
+    "r_consumer_enabled": true,
+    "qgis_consumer_enabled": false
+  },
+  "evidence_ingestion": {"enabled": false},
+  "manuscript_requirements": {
+    "figures": ["FIG-1", "FIG-2", "FIG-3", "FIG-4", "FIG-5", "FIG-6"],
+    "tables": ["TAB-1", "TAB-2", "TAB-3", "TAB-4"]
+  }
+}

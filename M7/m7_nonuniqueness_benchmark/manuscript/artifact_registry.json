@@ -5,7 +5,12 @@
       "id": "FIG-1",
       "kind": "figure",
       "path": "figures/publication/figure1_benchmark_and_claim_design.png",
-      "objective_ids": ["OBJ-1", "OBJ-2", "OBJ-3", "OBJ-4"],
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-2",
+        "OBJ-3",
+        "OBJ-4"
+      ],
       "caption": "Benchmark architecture and claim boundary. The independent synthetic-truth branch separates official MODFLOW 6/MODPATH 7 flow and pathline generation, nonlinear chemistry and tracer generation, truth-blind inference, and locked adverse-control scoring from the Northern Ghana branch, which distinguishes supportable component diagnostics from field interpretations that remain non-identifiable under the available evidence.",
       "technical_description": "Schematic composed from the locked M7.3 protocol structure (four linked experiments) and the Ghana data-scope audit fields; carries no fitted statistic.",
       "interpretation": "Establishes that all quantitative claims in this study derive from a generator that shares no code with the inference method being tested, and that the Ghana branch is evidence-scope auditing rather than field validation.",
@@ -15,7 +20,9 @@
       "id": "FIG-2",
       "kind": "figure",
       "path": "figures/publication/figure2_evidence_integration.png",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "caption": "Evidence integration is conditional. Panel a compares native hydraulic (H), age (A), chemistry (C), pairwise and fully integrated topology-ranking performance. Panel b shows case-block incremental PR-AUC contrasts with 95% bootstrap confidence-interval error bars. Panels c and d separate the misspecification stress test into certainty and discrimination shifts, with error bars representing 95% bootstrap confidence intervals throughout, showing that permuted evidence can reduce entropy while degrading PR-AUC.",
       "technical_description": "Built from results/m7_3_locked/evidence_panel_summary.csv (native panel metrics) and evidence_case_bootstrap_contrasts.csv (10,000-replicate case-block bootstrap contrasts); confidence intervals plotted with matplotlib errorbar.",
       "interpretation": "Chemistry behaves as robustly complementary topology evidence; age and hydraulics show entropy and calibration effects that survive multiplicity correction without a topology-ranking effect that does (Supplementary Table S6); every predeclared adverse control lowers apparent uncertainty while worsening discrimination and calibration.",
@@ -25,7 +32,9 @@
       "id": "FIG-3",
       "kind": "figure",
       "path": "figures/publication/figure3_topology_conditions_age.png",
-      "objective_ids": ["OBJ-2"],
+      "objective_ids": [
+        "OBJ-2"
+      ],
       "caption": "Correct topology improves age inference. Panels a and b show changes in age MAE and 95% interval width for correct, partial and reversed topology assumptions, with 95% bootstrap confidence-interval error bars on each contrast. Panel c reports importance-sampling effective-sample-size fractions (point values, no interval), including the reversed-graph failures. Panel d shows coverage changes with confidence-interval error bars. Reversed tritium-only accuracy contrasts are not interpreted because 8 of 12 cases failed the predeclared effective-sample-size rule.",
       "technical_description": "Built from results/m7_3_locked/topology_age_sensitivity.csv (per-case, per-regime diagnostics) and topology_age_bootstrap_contrasts.csv (paired case-block bootstrap contrasts, n=12 cases, 10,000 replicates).",
       "interpretation": "Correct topology conditionally reduces age uncertainty, most strongly when the tracer panel is weak; reversed topology is not a merely less-accurate alternative but can destabilise inference outright under weak tracer information.",
@@ -35,7 +44,9 @@
       "id": "FIG-4",
       "kind": "figure",
       "path": "figures/publication/figure4_reaction_nonuniqueness.png",
-      "objective_ids": ["OBJ-3"],
+      "objective_ids": [
+        "OBJ-3"
+      ],
       "caption": "Reaction recovery remains process-dependent. The 2x2 panels compare core and enhanced evidence panels for modal-family recovery, probability assigned to the true family, support entropy and effective support size. Carbonate weathering and precipitation remain unrecovered despite low support entropy, demonstrating that numerical stability can be confidently wrong.",
       "technical_description": "Built from results/m7_3_locked/reaction_nonuniqueness_summary.csv, aggregating 64-replicate bootstrap family-support probabilities per edge across core and enhanced hydrochemical panels.",
       "interpretation": "An enhanced indicator panel improves several redox and silicate processes but not carbonate weathering or precipitation, which remain non-identifiable regardless of panel richness.",
@@ -44,10 +55,12 @@
     {
       "id": "FIG-5",
       "kind": "figure",
-      "path": "figures/publication/figure5_ghana_supportability_boundary.png",
-      "objective_ids": ["OBJ-4"],
-      "caption": "Ghana data support component diagnostics, not complete field truth. Panels a and b map observed evidence to defensible claims. Panel c shows a companion study's predeclared five-tier field-transfer ablation of reaction identifiability as diagnostic chemistry is withdrawn; panel d shows a truth-free supporting seasonal hold-forward test. Synthetic panels elsewhere use 12 locked cases; these Ghana panels use 160 wet-to-dry well pairs and 140 complete pairs, respectively.",
-      "technical_description": "Built from results/m7_3_locked/ghana_data_scope_audit.json and the companion M6 field-transfer evidence-tier ablation summary.",
+      "path": "figures/publication/figure5_ghana_supportability_boundary_m7_only.png",
+      "objective_ids": [
+        "OBJ-4"
+      ],
+      "caption": "Northern Ghana evidence and claim boundary using evidence from this study only. Panels a and b map observed evidence to defensible claims; panel c reports 160 wells, 140 complete seasonal pairs and 320 seasonal observations; panel d reports the truth-free seasonal hold-forward comparison. No external field-transfer experiment is included.",
+      "technical_description": "Built only from results/m7_3_locked/ghana_data_scope_audit.json and results/supporting_validation/field_prequential outputs.",
       "interpretation": "Northern Ghana chemistry and isotope data support component-level diagnostics and non-identifiability mapping; they do not support field validation of residence time, exact topology, or a unique reaction mechanism.",
       "validation_status": "PASS"
     },
@@ -55,7 +68,9 @@
       "id": "FIG-S1",
       "kind": "figure",
       "path": "figures/supporting_validation/figure_s1_model_domain_map.png",
-      "objective_ids": ["OBJ-2"],
+      "objective_ids": [
+        "OBJ-2"
+      ],
       "caption": "Locked synthetic model domain (representative realization 4101). The MODFLOW/MODPATH truth network, observation nodes and hydraulic heads are shown in synthetic model-space coordinates. This is not a geographic map and must not be presented on a Ghana or other geographic basemap.",
       "technical_description": "Generated by scripts/make_supporting_model_domain_map.R from results/supporting_validation/cases/locked_test_4101.",
       "interpretation": "Illustrates the geometry and scale of the independent synthetic aquifer used throughout the benchmark; provided for orientation only and does not itself carry a quantitative result.",
@@ -65,17 +80,25 @@
       "id": "TAB-1",
       "kind": "table",
       "path": "tables/publication/table1_benchmark_design.csv",
-      "objective_ids": ["OBJ-1", "OBJ-2", "OBJ-3", "OBJ-4"],
-      "caption": "Locked benchmark design and computational scale, including development and locked-test case counts, age-importance particle count, reaction-bootstrap count, case-block bootstrap count, and locked-test candidate recall.",
-      "technical_description": "Transcribed directly from results/m7_3_locked/manifest.json.",
-      "interpretation": "Establishes the fixed scale and truth-blind structure of the benchmark against which all reported contrasts should be read.",
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-2",
+        "OBJ-3",
+        "OBJ-4",
+        "OBJ-5"
+      ],
+      "caption": "Design and claim map for all seven audits.",
+      "technical_description": "Synthesis of the locked process-based integration, public-pipeline, representation-benchmark and estimator-diagnostic protocols plus the Ghana data-scope audit; introduces no fitted statistic.",
+      "interpretation": "Separates generator systems, samples, comparators, lock points, multiplicity families and permitted claims.",
       "validation_status": "PASS"
     },
     {
       "id": "TAB-2",
       "kind": "table",
       "path": "tables/publication/table2_native_evidence_panels.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "caption": "Native locked-test evidence-panel performance for all seven hydraulic (H), age (A) and chemistry (C) panel combinations, reporting PR-AUC, ROC-AUC, Brier score, log loss, mean edge entropy and expected calibration error.",
       "technical_description": "Transcribed from results/m7_3_locked/evidence_panel_summary.csv (native condition).",
       "interpretation": "Chemistry is the strongest individual topology-ranking stream, hydraulics is weaker, age alone is below a useful ranking level, and hydraulics-plus-chemistry is the strongest evidence pair.",
@@ -85,7 +108,9 @@
       "id": "TAB-3",
       "kind": "table",
       "path": "tables/publication/table3_evidence_contrasts.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "caption": "Case-block evidence contrasts, including native incremental-evidence additions and adverse (permuted) controls, each reported as a paired 10,000-replicate case-block bootstrap mean difference with 95% confidence interval.",
       "technical_description": "Transcribed from results/m7_3_locked/evidence_case_bootstrap_contrasts.csv.",
       "interpretation": "Age adds no positive incremental topology-ranking value beyond hydraulics and chemistry; chemistry and hydraulics each add positive value; every adverse control worsens PR-AUC, Brier score and log loss while reducing entropy.",
@@ -95,7 +120,9 @@
       "id": "TAB-4",
       "kind": "table",
       "path": "tables/publication/table4_topology_age_contrasts.csv",
-      "objective_ids": ["OBJ-2"],
+      "objective_ids": [
+        "OBJ-2"
+      ],
       "caption": "Topology-conditioned age contrasts for complete-true, partial-true and reversed topology relative to no topology assumption, reported for both the informative (³H+³⁹Ar) and weak (³H-only) tracer regimes.",
       "technical_description": "Transcribed from results/m7_3_locked/topology_age_bootstrap_contrasts.csv.",
       "interpretation": "Correct and partial topology narrow age intervals without a coverage penalty, most strongly under the weak tracer regime; reversed topology worsens accuracy under the informative regime and is numerically unstable under the weak regime.",
@@ -105,8 +132,10 @@
       "id": "TAB-5",
       "kind": "table",
       "path": "tables/publication/table5_reaction_nonuniqueness.csv",
-      "objective_ids": ["OBJ-3"],
-      "caption": "Reaction-family recovery and non-uniqueness by process and hydrochemical panel (core; enhanced), reporting edge counts, modal-family accuracy, true-family probability, support entropy and effective supported families.",
+      "objective_ids": [
+        "OBJ-3"
+      ],
+      "caption": "Reaction-family recovery and non-uniqueness by process and hydrochemical panel (core; enhanced), reporting edge counts, modal-family accuracy, true-family probability, support entropy and effective supported families. Process abbreviations: precip., precipitation; weather., weathering; denitrif., denitrification.",
       "technical_description": "Transcribed from results/m7_3_locked/reaction_nonuniqueness_summary.csv.",
       "interpretation": "Denitrification and sulfate reduction are recovered reliably in both panels; carbonate weathering and precipitation are recovered in neither, despite low support entropy indicating confident, not merely ambiguous, misclassification.",
       "validation_status": "PASS"
@@ -115,7 +144,9 @@
       "id": "TAB-6",
       "kind": "table",
       "path": "tables/publication/table6_ghana_claim_boundary.csv",
-      "objective_ids": ["OBJ-4"],
+      "objective_ids": [
+        "OBJ-4"
+      ],
       "caption": "Northern Ghana data scope and claim boundary, listing evidence availability status and the corresponding defensible use for each evidence type.",
       "technical_description": "Transcribed from results/m7_3_locked/ghana_data_scope_audit.json.",
       "interpretation": "Major hydrochemistry and stable isotopes support component inference and recharge/source evidence; environmental age tracers, screen intervals, repeated head series and independent connectivity/reaction truth are absent, so residence time, vertical connectivity and unique reaction mechanisms remain non-identifiable from this dataset.",
@@ -125,7 +156,9 @@
       "id": "TAB-S1",
       "kind": "table",
       "path": "tables/publication/tableS1_all_evidence_conditions.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "caption": "Every evidence panel reported under every native and adverse (permuted) locked-test condition.",
       "technical_description": "Full transcription of results/m7_3_locked/evidence_panel_summary.csv across all four locked conditions.",
       "interpretation": "Confirms that the entropy-reduction/discrimination-degradation divergence under adverse conditions is a general pattern across panels, not an artefact of the HAC panel alone.",
@@ -135,7 +168,9 @@
       "id": "TAB-S2",
       "kind": "table",
       "path": "tables/publication/tableS2_case_block_contrasts.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "caption": "All case-block evidence contrasts computed for the benchmark, extending beyond the six headline contrasts reported in the main text.",
       "technical_description": "Full transcription of results/m7_3_locked/evidence_case_bootstrap_contrasts.csv.",
       "interpretation": "Provides full reproducibility detail for every paired contrast underlying the main-text summary.",
@@ -145,7 +180,9 @@
       "id": "TAB-S3",
       "kind": "table",
       "path": "tables/publication/tableS3_topology_age_sensitivity.csv",
-      "objective_ids": ["OBJ-2"],
+      "objective_ids": [
+        "OBJ-2"
+      ],
       "caption": "Per-case, per-regime topology-to-age sensitivity, including age MAE, coverage, entropy, and importance-sampling effective sample size for each of the four topology conditions.",
       "technical_description": "Full transcription of results/m7_3_locked/topology_age_sensitivity.csv.",
       "interpretation": "Identifies exactly which cases failed the effective-sample-size stability rule under the reversed/weak-tracer combination, supporting the main-text ESS-failure statistic.",
@@ -155,7 +192,9 @@
       "id": "TAB-S4",
       "kind": "table",
       "path": "tables/publication/tableS4_reaction_edge_nonuniqueness.csv",
-      "objective_ids": ["OBJ-3"],
+      "objective_ids": [
+        "OBJ-3"
+      ],
       "caption": "Edgewise reaction support and entropy for every scored true flow edge, reporting modal family, true-family probability and support entropy.",
       "technical_description": "Full transcription of results/m7_3_locked/reaction_edge_nonuniqueness.csv.",
       "interpretation": "Shows the carbonate non-identifiability result holds at individual-edge resolution rather than only in process-level aggregates.",
@@ -165,7 +204,9 @@
       "id": "TAB-S5",
       "kind": "table",
       "path": "tables/publication/tableS5_conflict_diagnostics.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "caption": "The predeclared univariate probability-span conflict diagnostic, including its zero sensitivity to the misspecification conditions that case-level metrics detected clearly.",
       "technical_description": "Full transcription of results/m7_3_locked/evidence_conflict_summary.csv.",
       "interpretation": "Reports a failed heuristic transparently: the predeclared conflict flag did not identify any edges as conflicting even under joint misspecification, illustrating why paired discrimination/calibration metrics are necessary rather than a single univariate threshold.",
@@ -175,7 +216,12 @@
       "id": "TAB-7",
       "kind": "table",
       "path": "tables/publication/table7_summary_decision_table.csv",
-      "objective_ids": ["OBJ-1", "OBJ-2", "OBJ-3", "OBJ-4"],
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-2",
+        "OBJ-3",
+        "OBJ-4"
+      ],
       "caption": "Summary decision table synthesising the complementary, redundant, or negative-transfer classification of every tested contrast across the four experiments, refined by the multiplicity-corrected re-analysis in Supplementary Table S6.",
       "technical_description": "Manual synthesis from Tables 3 through 6 and Supplementary Table S6; introduces no new statistic.",
       "interpretation": "Makes the paper's three-way decision rule directly inspectable as a single table rather than only as prose, and reflects the refined evidence base for the age and hydraulics increments (calibration and entropy support, not a multiplicity-corrected PR-AUC change).",
@@ -185,10 +231,161 @@
       "id": "TAB-S6",
       "kind": "table",
       "path": "tables/publication/tableS6_multiplicity_correction.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "caption": "Multiplicity-correction robustness check for the six predeclared case-block contrasts across four metrics (24 tests), reporting an exact sign-flip permutation p-value and a Benjamini-Hochberg adjusted p-value for each, added in response to pre-submission peer review.",
       "technical_description": "Computed by scripts/multiplicity_check.py directly from results/m7_3_locked/evidence_case_metrics.csv; exact two-sided sign-flip permutation test over all 4096 sign assignments for n=12 paired cases, with Benjamini-Hochberg correction at q=0.05 across the full family of 24 tests.",
       "interpretation": "The native age and native hydraulics PR-AUC contrasts do not survive correction (adjusted p=0.070 for both), while their entropy contrasts do (adjusted p=0.004 and p<0.01 respectively), and hydraulics' Brier and log-loss contrasts also survive; all chemistry and adverse-control contrasts survive correction. This refines the paper's central claim: PR-AUC evidence for the age and hydraulics increments is directional but not statistically robust at this sample size, while the entropy (and, for hydraulics, calibration) evidence is robust.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-6",
+      "kind": "figure",
+      "path": "figures/publication/figure6_sheaf_vs_weighted_graph.png",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "caption": "Sheaf-versus-weighted-graph representation comparison with simultaneous 95% intervals controlling all 120 published contrasts; intended printed width 7.08 in and minimum label size 8 pt.",
+      "technical_description": "Balanced 2 x 2 summary generated from immutable representation-benchmark case metrics and the post-review full-family max-z audit.",
+      "interpretation": "The affine sheaf materially outperforms the identity-restriction graph and permuted-map control and localises planted incompatibilities, but does not show an overall discrimination or calibration gain over the strong edge-local graph comparator.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-8",
+      "kind": "table",
+      "path": "tables/publication/table8_sheaf_vs_weighted_graph.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "caption": "Representation-benchmark model means across 64 cases; full-family contrasts are in Table S10.",
+      "technical_description": "Deterministic model-level aggregation of results/RUN-M7-SHEAF-VS-GRAPH-20260729-01/case_metrics.csv.",
+      "interpretation": "Non-identity restriction maps add globally coherent relation modelling beyond an ordinary identity graph, but the strongest edge-local graph remains statistically indistinguishable in overall PR-AUC and Brier score.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S7",
+      "kind": "table",
+      "path": "tables/publication/tableS7_sheaf_vs_graph_contrasts.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "caption": "All predeclared overall and scenario-specific sheaf-versus-graph paired case-block bootstrap contrasts.",
+      "technical_description": "Complete transcription of the immutable M7.4 paired_bootstrap_contrasts.csv, including discrimination, calibration, decision and planted-conflict localisation metrics.",
+      "interpretation": "Shows where the sheaf contribution is conditional: zero in the identity limit, positive against identity restrictions and permuted maps, localised for incompatible cycles, and not superior overall to a strong edge-local graph.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S8",
+      "kind": "table",
+      "path": "tables/publication/tableS8_public_pipeline_acceptance.csv",
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-5"
+      ],
+      "caption": "Public-pipeline system-acceptance condition summary, with paired contrasts retained in the companion Markdown artifact.",
+      "technical_description": "Deterministic transcription from the six-case strict public-pipeline run RUN-M7-SYSTEM-20260728-01.",
+      "interpretation": "Execution passed, but the complete public pipeline did not establish an overall incremental full-sheaf gain over every simpler baseline; this is a workflow acceptance result, not evidence of general superiority.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-7",
+      "kind": "figure",
+      "path": "figures/publication/figure7_robust_hybrid_sheaf.png",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "caption": "Local-first/global-fallback estimator diagnostic with simultaneous 95% intervals controlling all 560 published contrasts. The selected nominal hybrid has local weight 1.0 and is local-first/global-fallback.",
+      "technical_description": "Balanced 2 x 2 summary generated from the immutable one-time 128-case M7.5 test under the primary separate-crossfit calibration regime.",
+      "interpretation": "Native maps and conflict localisation remain supported, but overall edge-local ranking/calibration gains and scenario ranking gains do not survive full-family correction.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-9",
+      "kind": "table",
+      "path": "tables/publication/table9_robust_hybrid_sheaf.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "caption": "Estimator-diagnostic model means across 128 cases; selected local-first arms have local weight 1.0 and full-family contrasts are in Table S11.",
+      "technical_description": "Deterministic aggregation of the M7.5 case table under separately group-cross-fitted development calibration.",
+      "interpretation": "Restoring local evidence improves the original global representation, but LOO robustification does not add value and the robust hybrid does not improve all primary outcomes over the edge-local graph.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S9",
+      "kind": "table",
+      "path": "tables/publication/tableS9_robust_hybrid_contrasts.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "caption": "Complete overall and scenario-specific M7.5 paired case-block bootstrap contrasts for both separately cross-fitted and shared calibration regimes.",
+      "technical_description": "Complete 560-row export of the immutable M7.5 paired_bootstrap_contrasts.csv.",
+      "interpretation": "Shows the bounded contribution explicitly: significant overall PR-AUC and native-map information, conditional cycle/noisy-missing gains, unresolved overall calibration, and adverse LOO robustification.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S10",
+      "kind": "table",
+      "path": "tables/publication/tableS10_m7_4_multiplicity_adjusted.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "caption": "All 120 M7.4 contrasts with max-z simultaneous 95% intervals.",
+      "technical_description": "10,000 shared case-block bootstrap resamples; one complete published family.",
+      "interpretation": "Controls family-wise selection across every published M7.4 scenario, comparator and metric.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S11",
+      "kind": "table",
+      "path": "tables/publication/tableS11_m7_5_multiplicity_adjusted.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "caption": "All 560 M7.5 contrasts with max-z simultaneous 95% intervals.",
+      "technical_description": "10,000 shared case-block bootstrap resamples; one complete published family.",
+      "interpretation": "Removes unsupported scenario-ranking claims while retaining map and conflict signals that survive family correction.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S12",
+      "kind": "table",
+      "path": "tables/publication/tableS12_precision_and_power.csv",
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-2",
+        "OBJ-3",
+        "OBJ-5"
+      ],
+      "caption": "Post-review precision and future-replication planning audit.",
+      "technical_description": "20,000 empirical simulations with explicitly post-review, non-field-validated margins.",
+      "interpretation": "Separates realised statistical precision from practical magnitude without retroactive power claims.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S13",
+      "kind": "table",
+      "path": "tables/publication/tableS13_public_pipeline_selection.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "caption": "Public-pipeline selection rule, thresholds and confusion-count audit.",
+      "technical_description": "Deterministic audit of all recovered candidates across four pipeline arms.",
+      "interpretation": "Explains identical conditional F1 and distinguishes conditional scoring from end-to-end candidate recall.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S14",
+      "kind": "table",
+      "path": "tables/publication/tableS14_m7_6_m3_mechanism.csv",
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-2"
+      ],
+      "caption": "Auxiliary controlled-synthetic M3 mechanism diagnostic, reporting shared-nuisance infeasibility, redox-stratified CFC pair contrasts, the CFC-12 specificity control and the binding isotope-age control.",
+      "technical_description": "Compact claim-bearing view derived from results/RUN-M7-6-M3-MECHANISM-20260731-01/m3_mechanism_primary_contrasts.csv and the locked claim decision.",
+      "interpretation": "The declared nuisance increases synthetic full-panel infeasibility, but the CFC-12 specificity control fails; the diagnostic does not identify the USGS cause or provide field validation.",
       "validation_status": "PASS"
     }
   ]

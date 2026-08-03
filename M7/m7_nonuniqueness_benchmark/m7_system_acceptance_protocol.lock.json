@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "run_id": "RUN-M7-SYSTEM-20260728-01",
+  "locked_before_execution": true,
+  "locked_seeds": [6301, 6302, 6303, 6304, 6305, 6306],
+  "bootstrap_samples": 5000,
+  "excluded_capabilities": ["temporal_series", "graph_3d", "vadose"],
+  "sha256": {
+    "M7/m7_nonuniqueness_benchmark/M7_SYSTEM_ACCEPTANCE_PROTOCOL.md": "9494123d3530baef4acc5f736615f47a393e8dbaaaab100611ed3802223ae92d",
+    "M7/m7_nonuniqueness_benchmark/scripts/run_m7_system_acceptance.py": "4ae3754d9c99a247f6c9054aaf60309cdf1453498a5747d497cb9217b72ef217",
+    "M7/m7_nonuniqueness_benchmark/scripts/independent_modflow_generator.py": "3b06a4bd5c6807e4701c0b92114586f895a9f87ce2445c1cb01e9274564c46ce",
+    "M7/m7_nonuniqueness_benchmark/scripts/strong_inference.py": "01f848eedf515390e7c4e5b336f90fcfcdd1d40aef1cd780eb69579a5fd7f86e",
+    "hydrosheaf/api.py": "b8198b7e30dc6c7fe44e03f222d24e70061f6f9e477a5e78053b444f6668a23c",
+    "hydrosheaf/sheaf/topology_refine.py": "957e6413bd1fce6ede59f9c08aa1fa020454621f0d8b080915502a0d2f7c02f8"
+  }
+}

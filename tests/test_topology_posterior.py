@@ -2,14 +2,19 @@
 
 import unittest
 from typing import Sequence
+from unittest import mock
 
 from hydrosheaf.config import Config
 from hydrosheaf.graph.types import Edge
 from hydrosheaf.inference.topology_posterior import (
+    TopologyPosteriorError,
     run_topology_posterior,
     attach_posterior_attrs,
     make_topology_cost_fn,
+    select_posterior_edges,
+    validate_unique_edge_ids,
 )
+from hydrosheaf.sheaf.topology_refine import refine_edges_with_sheaf
 
 
 def _make_edge(edge_id: str, u: str, v: str, confidence: float = 0.5) -> Edge:
@@ -394,6 +399,187 @@ class TestAttachPosteriorAttrs(unittest.TestCase):
                 attrs["posterior_entropy_definition"],
                 "sum_of_marginal_bernoulli_edge_entropies",
             )
+
+
+class TestPosteriorSelectionContracts(unittest.TestCase):
+    def test_one_edge_small_state_matches_exact_bernoulli_posterior(self):
+        edge = _make_edge("A->B", "A", "B", confidence=0.8)
+        config = Config(
+            topology_posterior_samples=2000,
+            topology_posterior_burnin=200,
+            topology_posterior_beta=0.0,
+            topology_posterior_edge_penalty=0.0,
+        )
+
+        result = run_topology_posterior(
+            [edge], lambda edges: 0.0, config, seed=17
+        )
+
+        # With one edge and no likelihood or sparsity term, the exact posterior
+        # inclusion probability is the Bernoulli prior p=0.8.
+        self.assertAlmostEqual(
+            result["edge_probabilities"]["A->B"], 0.8, delta=0.05
+        )
+        self.assertEqual(result["status"], "completed")
+
+    def test_threshold_abstention_does_not_fallback_to_map(self):
+        edge = _make_edge("A->B", "A", "B", confidence=0.49)
+        posterior = {
+            "edge_probabilities": {"A->B": 0.49},
+            "map_edges": ["A->B"],
+        }
+
+        selected = select_posterior_edges(
+            [edge], posterior, max_neighbors=1, probability_threshold=0.5
+        )
+
+        self.assertEqual(selected, [])
+        self.assertEqual(posterior["selected_edge_ids"], [])
+        self.assertEqual(posterior["selection_status"], "abstained")
+
+    def test_max_neighbors_is_enforced_after_probability_filter(self):
+        edges = [
+            _make_edge("A->B", "A", "B"),
+            _make_edge("A->C", "A", "C"),
+            _make_edge("A->D", "A", "D"),
+            _make_edge("B->D", "B", "D"),
+        ]
+        posterior = {
+            "edge_probabilities": {
+                "A->B": 0.91,
+                "A->C": 0.89,
+                "A->D": 0.88,
+                "B->D": 0.95,
+            },
+            "map_edges": ["A->D"],
+        }
+
+        selected = select_posterior_edges(
+            edges, posterior, max_neighbors=2, probability_threshold=0.5
+        )
+
+        self.assertEqual(
+            {edge.edge_id for edge in selected}, {"A->B", "A->C", "B->D"}
+        )
+        self.assertEqual(
+            sum(edge.u == "A" for edge in selected), 2
+        )
+        self.assertEqual(posterior["selected_edge_ids"], ["A->B", "A->C", "B->D"])
+
+    def test_duplicate_edge_ids_fail_fast_in_sampler_and_selector(self):
+        duplicate_edges = [
+            _make_edge("duplicate", "A", "B"),
+            _make_edge("duplicate", "A", "C"),
+        ]
+
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            validate_unique_edge_ids(duplicate_edges)
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            run_topology_posterior(duplicate_edges, lambda edges: 0.0, Config())
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            select_posterior_edges(
+                duplicate_edges,
+                {"edge_probabilities": {"duplicate": 0.9}},
+                max_neighbors=1,
+            )
+
+    def test_select_mode_replaces_selection_and_marks_attributes(self):
+        edges = [
+            _make_edge("A->B", "A", "B"),
+            _make_edge("A->C", "A", "C"),
+        ]
+        posterior = {
+            "edge_probabilities": {"A->B": 0.9, "A->C": 0.8},
+            "edge_log_odds": {"A->B": 2.0, "A->C": 1.0},
+            "map_edges": ["A->C"],
+            "selected_edge_ids": ["A->B"],
+            "selection_status": "selected",
+            "selection_probability_threshold": 0.5,
+            "selection_max_neighbors": 1,
+        }
+        selected = [edges[1]]
+
+        attach_posterior_attrs(selected, edges, posterior, mode="select")
+
+        self.assertEqual([edge.edge_id for edge in selected], ["A->B"])
+        self.assertTrue(edges[0].attrs["posterior_selected"])
+        self.assertFalse(edges[1].attrs["posterior_selected"])
+
+    def test_enabled_posterior_selection_is_authoritative(self):
+        samples = [
+            {"site_id": "A", "Cl": 1.0},
+            {"site_id": "B", "Cl": 1.1},
+            {"site_id": "C", "Cl": 1.2},
+        ]
+        candidates = [
+            _make_edge("good", "A", "B"),
+            _make_edge("bad", "A", "C"),
+        ]
+        config = Config(
+            phreeqc_enabled=False,
+            topology_posterior_enabled=True,
+            edge_max_neighbors=1,
+        )
+        config.topology_posterior_probability_threshold = 0.8
+        posterior = {
+            "edge_probabilities": {"good": 0.95, "bad": 0.79},
+            "edge_log_odds": {"good": 3.0, "bad": 1.0},
+            "map_edges": ["bad"],
+            "status": "completed",
+        }
+
+        with mock.patch(
+            "hydrosheaf.inference.topology_posterior.make_topology_cost_fn",
+            return_value=lambda edges: 0.0,
+        ), mock.patch(
+            "hydrosheaf.inference.topology_posterior.run_topology_posterior",
+            return_value=posterior,
+        ):
+            selected = refine_edges_with_sheaf(samples, candidates, config)
+
+        self.assertEqual([edge.edge_id for edge in selected], ["good"])
+        self.assertEqual(selected[0].attrs["posterior_selection_status"], "selected")
+        self.assertEqual(
+            selected[0].attrs["posterior_selection_probability_threshold"], 0.8
+        )
+        self.assertNotIn("posterior_selection_status", candidates[0].attrs)
+
+    def test_enabled_posterior_failure_raises_failed_status(self):
+        samples = [
+            {"site_id": "A", "Cl": 1.0},
+            {"site_id": "B", "Cl": 1.1},
+        ]
+        candidates = [_make_edge("A->B", "A", "B")]
+        config = Config(
+            phreeqc_enabled=False,
+            topology_posterior_enabled=True,
+        )
+
+        with mock.patch(
+            "hydrosheaf.inference.topology_posterior.run_topology_posterior",
+            side_effect=RuntimeError("synthetic posterior failure"),
+        ):
+            with self.assertRaises(TopologyPosteriorError) as raised:
+                refine_edges_with_sheaf(samples, candidates, config)
+
+        self.assertEqual(raised.exception.status, "failed")
+        self.assertIsInstance(raised.exception.cause, RuntimeError)
+
+    def test_disabled_posterior_preserves_local_sheaf_path(self):
+        samples = [
+            {"site_id": "A", "Cl": 1.0},
+            {"site_id": "B", "Cl": 1.1},
+        ]
+        candidates = [_make_edge("A->B", "A", "B")]
+        config = Config(phreeqc_enabled=False, topology_posterior_enabled=False)
+
+        with mock.patch(
+            "hydrosheaf.inference.topology_posterior.run_topology_posterior",
+            side_effect=AssertionError("disabled posterior was called"),
+        ):
+            selected = refine_edges_with_sheaf(samples, candidates, config)
+
+        self.assertEqual([edge.edge_id for edge in selected], ["A->B"])
 
 
 if __name__ == "__main__":

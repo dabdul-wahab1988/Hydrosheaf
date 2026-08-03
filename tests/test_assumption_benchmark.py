@@ -245,7 +245,10 @@ def test_benchmark_manuscript_claim_allowed():
 
         # No calibration_result → manuscript_claim_allowed is False
         report = run_assumption_benchmark(config)
-        assert report["independent_validation"] is True
+        # The fixture reuses edge IDs across calibration and validation.  A
+        # different filename is not an independent validation unit.
+        assert report["independent_validation"] is False
+        assert "overlapping edge IDs" in report["independence_reason"]
         assert report["manuscript_claim_allowed"] is False
 
         # With calibration_result containing optimal_parameters → True
@@ -255,8 +258,8 @@ def test_benchmark_manuscript_claim_allowed():
             "optimal_parameters": {"edge_logit__AtoB": 1.0},
         }
         report2 = run_assumption_benchmark(config, calibration_result=cal_result)
-        assert report2["independent_validation"] is True
-        assert report2["manuscript_claim_allowed"] is True
+        assert report2["independent_validation"] is False
+        assert report2["manuscript_claim_allowed"] is False
 
 
 def test_benchmark_same_file_raises():

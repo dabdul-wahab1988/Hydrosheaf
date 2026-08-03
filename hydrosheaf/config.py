@@ -151,6 +151,8 @@ class Config:
     topology_posterior_require_root_reachability: bool = False
     topology_posterior_root_nodes: List[str] = field(default_factory=list)
     topology_posterior_invalid_cost: float = 1.0e6
+    topology_posterior_probability_threshold: float = 0.5
+    topology_posterior_seed: int = 42
     # State-independent mixture of symmetric topology proposals.  Keeping the
     # probabilities independent of the current graph preserves the simple
     # Metropolis acceptance ratio while allowing both structural and edge-count
@@ -404,6 +406,18 @@ class Config:
     null_spatial_weight: float = 0.2
     null_anthropogenic_weight: float = 0.2
 
+    # Null-aware calibrated topology inference.  These settings govern the
+    # decision layer; the fitted calibrator is supplied explicitly to the
+    # public inference function so calibration labels cannot be hidden in a
+    # global Config object.
+    null_aware_present_threshold: float = 0.75
+    null_aware_absent_threshold: float = 0.25
+    null_aware_null_reject_threshold: float = 0.8
+    null_aware_require_calibration: bool = True
+    null_aware_require_deployable_calibration: bool = True
+    null_aware_candidate_p_min: float = 0.0
+    null_aware_l2: float = 1.0
+
     # Ultra upgrades
     compositional_objective: bool = False  # Use Aitchison geometry for residuals
     compositional_weighting: bool = False # Use 1/x weights (relative error)
@@ -448,6 +462,22 @@ class Config:
             raise ValueError("temp_default_c must be positive.")
         if self.si_threshold_tau < 0:
             raise ValueError("si_threshold_tau must be non-negative.")
+        if not 0.0 <= self.topology_posterior_probability_threshold <= 1.0:
+            raise ValueError(
+                "topology_posterior_probability_threshold must be in [0, 1]."
+            )
+        if not 0.0 <= self.null_aware_absent_threshold < self.null_aware_present_threshold <= 1.0:
+            raise ValueError(
+                "null_aware thresholds must satisfy 0 <= absent < present <= 1."
+            )
+        if not 0.0 <= self.null_aware_null_reject_threshold <= 1.0:
+            raise ValueError(
+                "null_aware_null_reject_threshold must be in [0, 1]."
+            )
+        if not 0.0 <= self.null_aware_candidate_p_min <= 1.0:
+            raise ValueError("null_aware_candidate_p_min must be in [0, 1].")
+        if self.null_aware_l2 < 0.0:
+            raise ValueError("null_aware_l2 must be non-negative.")
         if not 0.0 <= self.edge_p_min <= 1.0:
             raise ValueError("edge_p_min must be between 0 and 1.")
         if self.edge_radius_km < 0:

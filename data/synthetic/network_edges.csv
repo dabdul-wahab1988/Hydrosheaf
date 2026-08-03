@@ -1,0 +1,6 @@
+from_station,to_station,edge_type,distance_m,delta_head_m
+L1,BH2,vadose_to_groundwater,104.61172303811958,
+L2,BH3,vadose_to_groundwater,86.49627343313844,
+BH1,BH2,groundwater_flow,109.53619868756938,0.6000000000000227
+BH2,BH3,groundwater_flow,109.53629239492271,0.7999999999999545
+BH3,BH4,groundwater_flow,110.49495525616163,0.7000000000000455

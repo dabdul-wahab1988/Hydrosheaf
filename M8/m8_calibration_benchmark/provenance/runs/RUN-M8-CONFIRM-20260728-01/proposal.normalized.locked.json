@@ -1,0 +1,117 @@
+{
+  "schema_version": "2.1",
+  "title": "M8 confirmatory optimal-design and Bayesian active-learning benchmark",
+  "scope": "Controlled synthetic evaluation of parameter-specific identifiability, measurement design, model-form robustness and topology active learning using production HydroSheaf interfaces; no field-validation claim is permitted.",
+  "objectives": [
+    {
+      "id": "OBJ-M8-TRANSPORT",
+      "statement": "Quantify dispersivity and decay recovery separately across controlled transport sampling designs.",
+      "acceptance_criteria": [
+        "Report parameter-specific log-error, uncertainty coverage, and paired bootstrap intervals.",
+        "Use a noise-whitened Jacobian in log10-parameter space.",
+        "Do not infer significance by treating deterministic sampling designs as random observations."
+      ]
+    },
+    {
+      "id": "OBJ-M8-OED",
+      "statement": "Test whether target-specific and joint Fisher-information criteria select different next observations and whether their predicted advantages transfer to realised recovery.",
+      "acceptance_criteria": [
+        "Use common random numbers and common starting values across strategies.",
+        "Compare parameter-targeted, D-, A-, E-, balanced, random, redundant, and no-new-measurement strategies.",
+        "Separate local-start performance from distant-start sensitivity."
+      ]
+    },
+    {
+      "id": "OBJ-M8-KINETICS",
+      "statement": "Verify the structural k-times-surface-area non-identifiability in the production PHREEQC kinetic adapter and test an independent surface-area constraint as the identifying intervention.",
+      "acceptance_criteria": [
+        "Use the production KineticCalibrationAdapter and PHREEQC forward calculation.",
+        "Demonstrate constant-product ridge invariance and a rank-one data-only Fisher matrix.",
+        "Show that an independent surface-area observation restores full local rank."
+      ]
+    },
+    {
+      "id": "OBJ-M8-INDEPENDENT",
+      "statement": "Test whether the matched-model transport design result transfers to independently generated numerical truth and whether the existing active-learning routine can express a transport sampling-time decision.",
+      "acceptance_criteria": [
+        "Pass a preregistered numerical-grid convergence gate.",
+        "Use separate development-oracle and locked-test replicate families.",
+        "Do not translate categorical topology recommendations into transport times ad hoc."
+      ]
+    },
+    {
+      "id": "OBJ-M8-FRONTIER-AL",
+      "statement": "Prospectively qualify explicit, cost-aware and finite-scenario-robust Bayesian active learning for sequential topology-measurement design under independent controlled-synthetic aquifer truth.",
+      "acceptance_criteria": [
+        "Outperform random acquisition in paired Brier score and joint-hypothesis information per cost.",
+        "Remain noninferior to a strong legacy uncertainty-chemistry policy within frozen Brier and information-efficiency margins.",
+        "Meet candidate-recall, actionability and PR-AUC non-harm gates and regenerate all registered outputs byte-identically."
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "CODE-HYDROSHEAF",
+      "path": "scripts/run_m8_confirmatory.py",
+      "provenance": "HydroSheaf checkout containing production transport and kinetic adapters"
+    },
+    {
+      "id": "CODE-M8-INDEPENDENT",
+      "path": "scripts/run_m8_independent_active.py",
+      "provenance": "Hash-locked independent numerical truth and active-learning portability runner"
+    },
+    {
+      "id": "CODE-M8-FRONTIER-AL",
+      "path": "scripts/run_m8_frontier_active_learning.py",
+      "provenance": "Hash-locked robust Bayesian topology active-learning runner with an independent MODFLOW 6/MODPATH 7 generator"
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-M8-UNITS",
+      "risk": "Raw-parameter Fisher metrics depend on parameter units.",
+      "mitigation": "Differentiate with respect to log10 parameters and whiten by the declared observation error model."
+    },
+    {
+      "id": "RISK-M8-PRIOR",
+      "risk": "Random starting values can become random regularisation centres.",
+      "mitigation": "Disable adapter-created priors for the primary data-identifiability experiment."
+    },
+    {
+      "id": "RISK-M8-EXPLORATORY",
+      "risk": "Previously inspected exploratory results cannot be retrospectively preregistered.",
+      "mitigation": "Use a new locked protocol, fresh run ID, and fresh seed family; label the result prospective confirmation."
+    },
+    {
+      "id": "RISK-M8-MODEL-FORM",
+      "risk": "An optimal observation selected under the analytical model may not improve every parameter under model-form discrepancy.",
+      "mitigation": "Generate truth with an independently implemented, grid-converged numerical solver and retain parameter-specific claim decisions."
+    },
+    {
+      "id": "RISK-M8-ACTIVE-LEARNING-SCOPE",
+      "risk": "A successful controlled-synthetic active-learning benchmark may be overgeneralised to field effectiveness, strong-baseline superiority or measurement modalities that were available but never selected.",
+      "mitigation": "Use prospective claim gates, report superiority and noninferiority separately, disclose selected modality counts, require exact regeneration, and retain explicit field and modality exclusions."
+    }
+  ],
+  "quality": {
+    "minimum_test_coverage": 0
+  },
+  "implementation": {
+    "backend_language": "python",
+    "entrypoint": "generation_script.py",
+    "dependency_lock": "../../uv.lock",
+    "results_store_profile": "immutable-filesystem-run",
+    "r_consumer_enabled": false,
+    "qgis_consumer_enabled": false
+  },
+  "evidence_ingestion": {
+    "enabled": false,
+    "tool": "none",
+    "mode": "not-applicable",
+    "manifest_path": ""
+  },
+  "manuscript_requirements": {
+    "figures": ["FIG-M8-CONFIRMATORY"],
+    "tables": ["TAB-M8-TRANSPORT", "TAB-M8-OED", "TAB-M8-KINETICS", "TAB-M8-INDEPENDENT", "TAB-M8-INDEPENDENT-CONTRASTS", "TAB-M8-FRONTIER-AL-SUMMARY", "TAB-M8-FRONTIER-AL-CONTRASTS", "REP-M8-FRONTIER-AL-QUALIFICATION"]
+  }
+}

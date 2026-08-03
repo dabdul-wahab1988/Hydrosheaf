@@ -22,6 +22,7 @@ from .adapters import TopologyCalibrationAdapter, TopologyCalibrationObservation
 from .benchmark_bootstrap import bootstrap_benchmark_metrics
 from .factory import setup_topology_adapter
 from .validation_workflow import (
+    _independence_status,
     _load_topology_observations,
     _extract_assumption_params_from_optimal,
     _extract_config_only_thresholds,
@@ -143,8 +144,7 @@ def run_assumption_benchmark(
 
     cal_path = _resolve_path(cal_obs_file)
     val_path = _resolve_path(val_obs_file)
-    independent = cal_path != val_path
-    if not independent:
+    if cal_path == val_path:
         raise ValueError(
             "Calibration and validation label files must be different "
             "for an independent benchmark. "
@@ -156,6 +156,12 @@ def run_assumption_benchmark(
     cal_edge_ids = {obs.edge_id for obs in cal_observations}
     val_edge_ids = {obs.edge_id for obs in val_observations}
     overlapping = cal_edge_ids & val_edge_ids
+    independent, independence_reason = _independence_status(
+        cal_obs_file,
+        val_obs_file,
+        settings,
+        overlapping,
+    )
 
     logger.info(
         "Benchmark setup — cal labels: %d, val labels: %d, overlap: %d",
@@ -349,6 +355,7 @@ def run_assumption_benchmark(
         "calibration_label_file": cal_obs_file,
         "validation_label_file": val_obs_file,
         "independent_validation": independent,
+        "independence_reason": independence_reason,
         "manuscript_claim_allowed": independent and has_calibration,
         "n_calibration_labels": len(cal_observations),
         "n_validation_labels": len(val_observations),

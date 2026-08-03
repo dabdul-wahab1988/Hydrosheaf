@@ -59,3 +59,21 @@ def test_uncorroborated_gas_does_not_override_old_14c():
     assert estimate["n_tracers"] == 1
     assert estimate["tracers"] == ["14C"]
     assert estimate["skipped_estimates"]
+
+
+def test_multi_tracer_he4_uses_site_calibration_fields():
+    common = {
+        "he4_ccpg": 1.0e-7,
+        "he4_background_ccpg": 0.0,
+    }
+    fast = infer_multi_tracer_age(
+        {**common, "he4_accumulation_rate_ccpg_per_year": 1.0e-9},
+        sample_year=2020.0,
+        use_helium4=True,
+    )
+    slow = infer_multi_tracer_age(
+        {**common, "he4_accumulation_rate_ccpg_per_year": 1.0e-11},
+        sample_year=2020.0,
+        use_helium4=True,
+    )
+    assert slow["age_years"] > fast["age_years"] * 20.0

@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "run_utc": "2026-07-31T01:29:04.512248+00:00",
+  "protocol_id": "m3-identified-ttd-sigmasweep-k5p0-20260731",
+  "protocol_status": "development",
+  "claim_authority": "implementation_only",
+  "git_commit": "2e73d51757a724532ef21ad45e51fc24841f33b1",
+  "python_version": "3.14.6",
+  "source_mode": "national",
+  "withheld_tracers": [
+    "3H",
+    "SF6",
+    "CFC11",
+    "CFC12",
+    "CFC113",
+    "14C"
+  ],
+  "input_hashes": {
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_10_Abbreviations.txt": "6f0769aece0aae6710304acbc282dee65671f782a313893843306c64f583b7c0",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_1_Sites.txt": "9e24224a42bd755c1de9e75b70dbe0f36be905874bb79782cd99172edb2a6aef",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_2_Ages.txt": "fb986203d3f128ed0421db1a48e1ddd1310be2ad8344ebb7a6eb43122347a03a",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_3_Tracers.txt": "22cb17b3b6e3703756d872d3ee68bd5161a40297b9c29da51a9b079839826888",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_4_LPM_ModOut.txt": "bf41827169dbbcf898b5ea8267a7fad96a7a5f152817c15ade1d4108fac35cce",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_5_DissGas_ModOut.txt": "480adf60a1400c2c0e767c0cca5584c8d0cb31fa1a23d6409c4405bcdca68265",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_6_TrcOut.txt": "a4f9a1044b8f33195b27249e9dac1832ffa0093cebb6397865a757c4dbf9d029",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_7_Carbon14.txt": "a5fa25ec95b7d68ead3c75f3b8076b4e1a40da233a786b40f4c12084104ab327",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_8_References.txt": "9ceded5452749d40234d3b9ac2452be9aa27221f78853956e61aa1ea767e07f2",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_9_FieldNames.txt": "fc626c0cd988a69cba3a41ea798fa97272aa6bad408a6e43bd9beb0224a868d2"
+  },
+  "protocol_path": "M3\\m3_age_benchmark\\configs\\sigma_sweep_20260731\\protocol_k5p0.yaml",
+  "protocol_sha256": "a1b469745aa57a6adfe6a2fc45e6635f0abd6b2c4656c746d746557bff859570",
+  "script_sha256": "53ea46e0f7a5f5afd9b86f49bf23cfd89f504bb1e581573c94e9987513a372c9",
+  "output_path": "M3\\m3_age_benchmark\\results\\sigma_sweep_20260731\\sweep_k5p0.csv",
+  "output_sha256": "92660b5f2257e4ab45d64f13959b007d2b1790ed5e2d4686edbfd93914e79f60",
+  "leakage_control": "held-out tracer and direct algebraic equivalent removed before constraint construction; reported ages and age fractions unused",
+  "graph_mode": "disabled_local_only",
+  "summary": {
+    "n_rows": 7632,
+    "n_eligible": 3501,
+    "n_predictions": 2879,
+    "abstention_rate": 0.8469008854612968,
+    "held_out_coverage": 0.897186523098298,
+    "median_prediction_width": 31.053251632651993,
+    "p90_prediction_width": 99.32024412913321,
+    "status_counts": {
+      "NOT_ELIGIBLE": 4131,
+      "ABSTAIN": 2965,
+      "IDENTIFIED": 302,
+      "PARTIALLY_IDENTIFIED": 234
+    },
+    "reason_counts": {
+      "The tracer-consistent set is feasible, but no requested functional meets a predeclared width gate.": 2349,
+      "No non-negative unit-mass TTD satisfies the declared tracer intervals: The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)": 526,
+      "All requested functionals meet their predeclared width gates.": 302,
+      "The tracer-consistent set is feasible, but at least one requested functional lacks or exceeds a predeclared width gate.": 234,
+      "insufficient_conditioning_tracers": 72,
+      "No non-negative unit-mass TTD satisfies the declared tracer intervals: The HiGHS status code was not recognized. (HiGHS Status 15: model_status is Unknown; primal_status is Infeasible)": 17,
+      "No non-negative unit-mass TTD satisfies the declared tracer intervals: The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is Infeasible)": 1
+    }
+  }
+}

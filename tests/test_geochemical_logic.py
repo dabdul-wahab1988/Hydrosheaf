@@ -9,6 +9,8 @@ def test_redox_classification():
     assert classify_redox({"NO3": 0.0, "Fe": 0.05}) == "reducing"
     # Ambiguous
     assert classify_redox({"NO3": 0.01, "Fe": 0.001}) == "ambiguous"
+    assert classify_redox({"NO3": None, "Fe": None}) == "ambiguous"
+    assert classify_redox({"NO3": "<0.05", "Fe": None}) == "ambiguous"
 
 
 def test_redox_constraints():

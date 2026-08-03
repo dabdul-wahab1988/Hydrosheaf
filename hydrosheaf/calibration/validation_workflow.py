@@ -12,7 +12,7 @@ import json
 import os
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
 import pandas as pd
 
@@ -88,6 +88,148 @@ def _extract_config_only_thresholds(cfg: HConfig) -> Dict[str, float]:
 def _edge_id_set(observations: List[TopologyCalibrationObservation]) -> set:
     """Extract the set of edge IDs from a list of observations."""
     return {obs.edge_id for obs in observations}
+
+
+def _independence_status(
+    cal_obs_file: str,
+    val_obs_file: str,
+    settings: Mapping[str, Any],
+    overlapping: set,
+) -> tuple[bool, str]:
+    """Determine whether validation is independent for the primary claim.
+
+    Different filenames are not sufficient evidence of independence: the
+    same edge ID in both files is a leaked labelled unit, even when the two
+    labels disagree.  Overlapping IDs may only be accepted when both files
+    carry explicit, disjoint group assignments under the following contract::
+
+        {
+            "kind": "grouped",
+            "group_column": "split_group",
+            "calibration_groups": ["calibration"],
+            "validation_groups": ["validation"],
+            "allow_overlapping_edge_ids": True,
+        }
+
+    The contract is checked against the source CSVs rather than trusted from
+    filenames or from the observed labels themselves.
+    """
+    if not overlapping:
+        return (
+            True,
+            "Calibration and validation edge IDs are disjoint; filenames "
+            "are not used as the independence criterion.",
+        )
+
+    contract = settings.get("grouped_independence_contract")
+    if not isinstance(contract, Mapping):
+        return (
+            False,
+            "independent_validation=False: calibration and validation contain "
+            f"{len(overlapping)} overlapping edge IDs. Different filenames "
+            "(including reversed labels) do not establish independent "
+            "validation; provide an explicit grouped_independence_contract "
+            "with disjoint group assignments to authorize this design.",
+        )
+
+    if contract.get("kind") != "grouped":
+        return (
+            False,
+            "independent_validation=False: overlapping edge IDs require a "
+            "grouped_independence_contract with kind='grouped'.",
+        )
+    if contract.get("allow_overlapping_edge_ids") is not True:
+        return (
+            False,
+            "independent_validation=False: overlapping edge IDs require "
+            "grouped_independence_contract.allow_overlapping_edge_ids=True.",
+        )
+
+    group_column = contract.get("group_column")
+    if not isinstance(group_column, str) or not group_column.strip():
+        return (
+            False,
+            "independent_validation=False: grouped independence requires a "
+            "non-empty group_column.",
+        )
+
+    def _group_set(value: Any) -> set[str]:
+        if isinstance(value, str):
+            values = [value]
+        elif isinstance(value, (list, tuple, set, frozenset)):
+            values = value
+        else:
+            values = []
+        return {str(item).strip() for item in values if str(item).strip()}
+
+    calibration_groups = _group_set(contract.get("calibration_groups"))
+    validation_groups = _group_set(contract.get("validation_groups"))
+    if not calibration_groups or not validation_groups:
+        return (
+            False,
+            "independent_validation=False: grouped independence requires "
+            "non-empty calibration_groups and validation_groups.",
+        )
+    if calibration_groups & validation_groups:
+        return (
+            False,
+            "independent_validation=False: calibration_groups and "
+            "validation_groups must be disjoint.",
+        )
+
+    try:
+        cal_df = pd.read_csv(cal_obs_file)
+        val_df = pd.read_csv(val_obs_file)
+    except Exception as exc:
+        return (
+            False,
+            "independent_validation=False: could not verify the grouped "
+            f"independence contract from the label files ({exc}).",
+        )
+
+    if group_column not in cal_df.columns or group_column not in val_df.columns:
+        return (
+            False,
+            "independent_validation=False: grouped independence requires "
+            f"'{group_column}' in both label files.",
+        )
+
+    def _observed_groups(df: pd.DataFrame) -> set[str]:
+        return {
+            str(value).strip()
+            for value in df[group_column].dropna().tolist()
+            if str(value).strip()
+        }
+
+    observed_calibration_groups = _observed_groups(cal_df)
+    observed_validation_groups = _observed_groups(val_df)
+    if not observed_calibration_groups or not observed_validation_groups:
+        return (
+            False,
+            "independent_validation=False: grouped independence requires a "
+            f"non-empty '{group_column}' assignment in both label files.",
+        )
+
+    unknown_calibration_groups = (
+        observed_calibration_groups - calibration_groups
+    )
+    unknown_validation_groups = (
+        observed_validation_groups - validation_groups
+    )
+    if unknown_calibration_groups or unknown_validation_groups:
+        return (
+            False,
+            "independent_validation=False: grouped independence contract does "
+            "not cover all observed group assignments.",
+        )
+
+    return (
+        True,
+        "Calibration and validation share "
+        f"{len(overlapping)} edge IDs, but independence is authorized by an "
+        "explicit grouped_independence_contract with disjoint '"
+        f"{group_column}' assignments.",
+    )
 
 
 def _make_edge(
@@ -184,6 +326,12 @@ def run_assumption_calibration_validation(
     cal_edge_ids = _edge_id_set(cal_observations)
     val_edge_ids = _edge_id_set(val_observations)
     overlapping = cal_edge_ids & val_edge_ids
+    independent_validation, independence_reason = _independence_status(
+        cal_obs_file,
+        val_obs_file,
+        settings,
+        overlapping,
+    )
 
     logger.info(
         "Calibration labels: %d, Validation labels: %d, Overlapping edge IDs: %d",
@@ -379,7 +527,8 @@ def run_assumption_calibration_validation(
         "validation_metrics": validation_metrics,
         "calibration_label_file": cal_obs_file,
         "validation_label_file": val_obs_file,
-        "independent_validation": True,
+        "independent_validation": independent_validation,
+        "independence_reason": independence_reason,
         "n_calibration_labels": len(cal_observations),
         "n_validation_labels": len(val_observations),
         "n_overlapping_edge_ids": len(overlapping),

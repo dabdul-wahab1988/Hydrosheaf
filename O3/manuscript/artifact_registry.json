@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "artifacts": [
+    {
+      "id": "FIG-1", "kind": "figure",
+      "path": "manuscript/artifacts/figures/FIG-1.pdf",
+      "objective_ids": ["OBJ-1"],
+      "caption": "Three independently designed HydroSheaf benchmarks and the common evidence taxonomy this paper adds. M3 compares nuclear-tracer/lumped-parameter age inference against the USGS national groundwater-age release; M4 compares reduced-order graph topology against MODPATH particle-tracking connectivity from public MODFLOW archives; M5 compares sparse linear reaction inversion against a 240-scenario live-PHREEQC factorial synthetic benchmark. Each pipeline was locked independently, on its own timetable, before this comparison was constructed.",
+      "technical_description": "Schematic diagram drawn in R (ggplot2 geom_tile/geom_segment) from a declared layout table; not derived from a statistical computation.",
+      "interpretation": "Establishes that the recurring pattern reported in Figures 2-3 is observed across, not designed into, three unrelated benchmark protocols.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-5", "kind": "figure",
+      "path": "manuscript/artifacts/figures/FIG-5.pdf",
+      "objective_ids": ["OBJ-4", "OBJ-5"],
+      "caption": "Benchmark scale and computational cost. Top: scenario counts and total fit counts for M3, M4 and M5, each on its own axis (values differ by roughly two orders of magnitude). Bottom: median per-fit runtime, recorded only for M5.",
+      "technical_description": "Bar charts from benchmark_scale.csv (derive_benchmark_scale.py), which reads scenario/fit counts and runtime directly from each component's own manifest or summary JSON/CSV; no re-simulation.",
+      "interpretation": "The three benchmarks are not comparable in raw scale or in what they record about computational cost; this is disclosed rather than normalised away.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-2", "kind": "figure",
+      "path": "manuscript/artifacts/figures/FIG-2.pdf",
+      "objective_ids": ["OBJ-2"],
+      "caption": "Capture-type versus correctness-type metrics under independent, prior-free, uncalibrated evaluation, one panel per component on its own native scale. M4: recall and precision of edge classification against the MODPATH reference (Head-gradient scenario). M3: reportability rate (fraction of fitted rows admitted by the reference-free guard) and within-factor-2 agreement on a held-out cross-validated comparison. M5: recall and precision of active reaction-phase detection, Hydrosheaf Guarded method, against the PHREEQC benchmark.",
+      "technical_description": "Faceted bar chart from headline_metrics.csv (derive_headline_metrics.py); see Table 2 and Methods for the exact source file and averaging convention behind each bar.",
+      "interpretation": "The paper's central cross-component result: in all three physically distinct inference problems, the capture-type axis exceeds the correctness-type axis under independent evaluation.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-3", "kind": "figure",
+      "path": "manuscript/artifacts/figures/FIG-3.pdf",
+      "objective_ids": ["OBJ-3"],
+      "caption": "Independent/screening versus calibrated, emulated, or prior-informed evaluation. Left: M3 age log10 R2, held-out uncalibrated versus calibrated emulation (fit on the same folds it is scored against). Centre: M5 Mechanism Resolution Score four-class accuracy, chance level versus a genuine held-out-archetype transfer test. Right: M4 topology, independent F1 versus prior-informed output-graph edge counts (a different metric, plotted on a separate axis).",
+      "technical_description": "Three-panel bar chart from calibration_gap.csv (derive_calibration_gap.py).",
+      "interpretation": "Calibrating or conditioning on prior information narrows or removes the capture/correctness gap in Figure 2, but the two calibration exercises shown are not equally rigorous (see rigour_note column and Discussion); neither is independent validation.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-4", "kind": "figure",
+      "path": "manuscript/artifacts/figures/FIG-4.pdf",
+      "objective_ids": ["OBJ-1", "OBJ-2"],
+      "caption": "Within-component detail: every retained benchmark row for M3, M4 and M5, coloured by evidence-taxonomy row type (Table 1), plotted on each component's own headline metric.",
+      "technical_description": "Faceted horizontal bar chart from taxonomy.csv, filtered to rows sharing a common metric within each component panel.",
+      "interpretation": "Shows that negative controls collapse to the floor and informed/prior-informed rows sit above independent rows in every component, which is the internal consistency check behind the Figure 2 comparison.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-6", "kind": "figure",
+      "path": "manuscript/artifacts/figures/FIG-6.pdf",
+      "objective_ids": ["OBJ-5"],
+      "caption": "Field- and archive-transfer scope. Top: MODPATH archive endpoint/pathline edge F1 (Savage, Great Miami; Long Island is a documented fallback stub with no active rows). Bottom: median evidence-lifted resolution index (ELRI) for the three field chemistry datasets (Northern Ghana, Talensi, Lower Anayari). No field-transfer benchmark exists for the age layer.",
+      "technical_description": "Faceted horizontal bar chart from field_transfer.csv (derive_field_transfer.py); ELRI medians independently reproduce the values already published in M5's docs/m5_results_summary.md.",
+      "interpretation": "Field/archive transfer scope is uneven across the three layers; none of the three scores shown constitutes field-truth validation (per-component claim ledgers).",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-1", "kind": "table",
+      "path": "manuscript/artifacts/TAB-1.md",
+      "objective_ids": ["OBJ-1"],
+      "caption": "Common evidence taxonomy applied to every retained benchmark row of M3, M4 and M5.",
+      "technical_description": "Hand-assembled from taxonomy.csv (M4, M5 rows machine-read; M3 scenario labels taken from M3/DECISIONS.md and docs/m3_results_summary.md).",
+      "interpretation": "No row's independence or control-type label contradicts its source component's own claim ledger (DECISION D2).",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-2", "kind": "table",
+      "path": "manuscript/artifacts/TAB-2.md",
+      "objective_ids": ["OBJ-2"],
+      "caption": "Headline independent/uncalibrated capture-type and correctness-type metrics, all three components.",
+      "technical_description": "From headline_metrics.csv.",
+      "interpretation": "Numeric basis for Figure 2.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-3", "kind": "table",
+      "path": "manuscript/artifacts/TAB-3.md",
+      "objective_ids": ["OBJ-3"],
+      "caption": "Screening/independent versus calibrated, emulated, or prior-informed metric, with non-independence stated per row.",
+      "technical_description": "From calibration_gap.csv.",
+      "interpretation": "Numeric basis for Figure 3.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-4", "kind": "table",
+      "path": "manuscript/artifacts/TAB-4.md",
+      "objective_ids": ["OBJ-4"],
+      "caption": "Benchmark scale: scenario counts, fit counts, external reference type, and recorded runtime.",
+      "technical_description": "From benchmark_scale.csv.",
+      "interpretation": "Numeric basis for Figure 5.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-5", "kind": "table",
+      "path": "manuscript/artifacts/TAB-5.md",
+      "objective_ids": ["OBJ-5"],
+      "caption": "Full dataset inventory: every synthetic and field dataset any of the three benchmarks consumes, with source, size, and role.",
+      "technical_description": "Hand-assembled from each component's own manifest/results files and the source_doi/source_url fields already recorded in M4's tier archive summaries; no metadata invented beyond what those files record.",
+      "interpretation": "Gives a reader unfamiliar with M3/M4/M5 the full data basis for the comparison in one place.",
+      "validation_status": "PASS"
+    }
+  ]
+}

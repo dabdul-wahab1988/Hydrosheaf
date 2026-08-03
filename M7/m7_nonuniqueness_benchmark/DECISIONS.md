@@ -1,5 +1,59 @@
 # M7 manuscript decisions (r2m Track B)
 
+## 2026-07-31 — M7.6 auxiliary M3 mechanism claim decision
+
+- Executed the separately locked M7.6 auxiliary controlled-synthetic diagnostic
+  under `RUN-M7-6-M3-MECHANISM-20260731-01` after freezing the v2 generator,
+  analysis engine, runner and pre-test amendment in commit `b06523e`.
+- The truth-blind execution gate passed. The environmental-isotope age control
+  was exactly zero: adding E to N for T2 changed MAE by 0.0000 years with a
+  95% interval of [0.0000, 0.0000].
+- Severe shared nuisance increased full-panel synthetic infeasibility by
+  +0.2882 (95% CI +0.2118 to +0.3646), but the redox-stratified CFC-11
+  contrast failed its predeclared CFC-12 specificity control (+0.7188 versus
+  +0.7396). The selective CFC-11 mechanism is therefore **not supported under
+  this generator**.
+- The result is retained as an auxiliary controlled-synthetic M3 diagnostic.
+  It is not field validation, does not resolve the USGS cause, and does not
+  revise any M7.3–M7.5 result or general claim boundary. The manuscript was
+  updated only after this decision; the new text reports the negative
+  mechanism decision explicitly.
+
+## 2026-07-30 — Replace milestone codes with scientific terminology
+
+- Removed internal labels such as M7.2--M7.5 from reader-facing manuscript,
+  supplement, table and figure language.
+- Adopted the terminology contract in
+  `manuscript/READER_FACING_TERMINOLOGY.md`.
+- Retained exact run IDs, locked artifact filenames and paths solely for
+  reproducibility; these identifiers are not used as scientific names.
+
+## 2026-07-30 — Full technical response to independent manuscript review
+
+- Restored the exact M7.5 runner required by the confirmatory lock (SHA-256
+  `a0ef13bde5391af62698927211cb4e701123affebb108d331795ce8596e2e191`) and
+  archived it by content hash. Locked-test results were not rerun.
+- Treated all 120 published M7.4 contrasts and all 560 published M7.5 contrasts
+  as complete families using 10,000 shared case-block bootstrap resamples and
+  two-sided max-z simultaneous 95% intervals.
+- Withdrew overall and scenario-ranking superiority claims against edge-local.
+  Retained exact identity nesting, native-versus-permuted map information,
+  family-wise supported conflict localisation and missing-endpoint fallback.
+- Recorded post-review, non-field-validated planning margins and 20,000-
+  simulation precision audits without presenting them as prospective power.
+- Rebuilt Figure 5 from M7 evidence only; no M6 result appears in the main
+  manuscript. Figures 6 and 7 use the simultaneous intervals and record a
+  7.08-in intended width with minimum 8-pt labels.
+- Reduced the main paper to four tables and moved detailed results to
+  Supplementary Tables S1--S13.
+- Restricted reaction claims to discrimination among the six planted
+  archetypes under the two tested indicator panels and one noise model.
+- Separated the M7.3 MODFLOW/MODPATH generator from the M7.4/M7.5 scalar affine
+  generator throughout the title, abstract, methods and limitations.
+- The M7.4/M7.5 versioned release, data/software DOI, author CRediT roles,
+  funding statement and competing-interest declaration remain submission
+  blockers requiring external author or repository action; none was invented.
+
 ## 2026-07-24 — Revision round 1: pre-submission peer review and response
 
 A full pre-submission peer review (`manuscript/M7_Manuscript_Review_Report.docx`,
@@ -254,3 +308,95 @@ with a disclosed arbitrary order.
   magnitude, so eligibility — and therefore batch membership — is provably
   unaffected by the alteration. All 14 M7 tests and all M7 gates (methods
   draft, citation audit, abstract, assemble) pass.
+
+## 2026-07-28 — Strict public-pipeline system acceptance
+
+- Added and hash-locked `RUN-M7-SYSTEM-20260728-01` before generating six
+  fresh independent MODFLOW 6/MODPATH 7 cases (seeds 6301--6306).
+- The public pipeline completed every requested nuclear-age,
+  sheaf-refinement, and network-fit stage; mean candidate recall was 0.9815
+  and the generator retained `imports_hydrosheaf=false`.
+- Full global-sheaf versus local-age PR-AUC difference: +0.0586, 95% paired
+  bootstrap interval [+0.0386, +0.0777]. Brier difference: -0.00849
+  [-0.00983, -0.00723]. This is evidence that the global section added value
+  relative to the local age gate in this controlled setup.
+- The preregistered overall incremental claim failed: full-sheaf PR-AUC was
+  0.3075 versus 0.3272 for hydraulic-only, and the full-versus-permuted-age
+  PR-AUC interval crossed zero. Selected-edge F1 was unchanged across all
+  conditions because the fixed out-degree rule selected the same count.
+- Decision: retain the system-execution and conditional global-section
+  finding; prohibit an overall topology-superiority or field-validation claim.
+
+## 2026-07-29 — M7.4 competence-matched sheaf-versus-graph benchmark
+
+- Added a separate prospectively locked comparator rather than altering the
+  M7.3 or system-acceptance protocols. The M7.4 lock fixes 32 development and
+  64 held-out cases, four scenario strata, 10,000 paired case-block bootstrap
+  replicates, equal optimisation/tuning budgets, and an identity-limit
+  equivalence gate.
+- Compared an edge-local weighted graph, an ordinary identity-coupled graph
+  Laplacian, the production affine directed-section solver, and a within-case
+  permuted-map adverse control. The independent generator imports no
+  HydroSheaf code; truth does not enter inference features.
+- The execution/equivalence gate passed. Graph and sheaf raw residuals and
+  predictions were exactly equal in all 16 identity-limit test cases.
+- Relative to the identity Laplacian, the affine sheaf improved PR-AUC by
+  +0.0854 (95% CI [+0.0666, +0.1050]) and Brier score by -0.0193
+  [-0.0235, -0.0152]. Native maps also beat the permuted-map control by
+  +0.0909 PR-AUC [+0.0705, +0.1117].
+- Relative to the stronger edge-local weighted graph, overall PR-AUC difference
+  was +0.0097 [-0.0054, +0.0248] and Brier difference +0.00053
+  [-0.00330, +0.00443]; the full incremental-superiority rule failed.
+- In the planted incompatible-cycle stratum, the sheaf improved conflict-
+  localisation PR-AUC over the edge-local graph by +0.0689
+  [+0.0467, +0.0915] and over the identity Laplacian by +0.1098
+  [+0.0917, +0.1278].
+- Decision: allow a controlled-synthetic conditional claim that affine
+  restriction maps represent non-identity relationships and help localise
+  global inconsistencies. Prohibit claims of overall weighted-graph
+  superiority, field validation, or temporal/3-D/vadose performance.
+- Rebuilt the printable supplement from the authoritative publication CSVs.
+  The former 80-page appendix printed 10--20-column per-case and per-edge
+  tables that were unreadable in portrait Word/PDF output. The revised
+  supplement prints compact claim-bearing views and points to every complete
+  machine-readable CSV, reducing the document to 14 legible pages without
+  deleting a row or column from the archived data products.
+
+## 2026-07-29 — M7.5 robust/hybrid diagnostic protocol freeze
+
+- Froze `M7_ROBUST_HYBRID_SHEAF_PROTOCOL.md` and
+  `m7_robust_hybrid_protocol.lock.json` before implementing the new runner or
+  generating development/test cases.
+- Fixed 64 development cases (8401--8464), 128 locked-test cases
+  (8501--8628), four unchanged M7.4 scenarios, three LOO iterations, fixed
+  hybrid/calibration grids, eight seed-group folds, and 10,000 paired
+  case-block bootstrap replicates.
+- Prespecified separate tests of candidate self-influence, loss of local
+  endpoint evidence, calibration mismatch, and a permuted-map adverse control.
+- The locked-test run will occur once after a second lock freezes the runner
+  and development-only selections. M7.4 will remain reported irrespective of
+  whether M7.5 succeeds or fails.
+
+## 2026-07-29 — M7.5 locked claim decision
+
+- The development stage selected a local weight of 1.0 for both hybrids;
+  global compatibility was therefore retained only as a fallback when a local
+  endpoint residual was unavailable. The runner, settings, development
+  manifest and protocol were then frozen in
+  `m7_robust_hybrid_confirmatory.lock.json`.
+- The single authorised 128-case test run passed all execution and provenance
+  gates. Robust hybrid minus edge-local PR-AUC was +0.0200 (95% CI
+  +0.0073 to +0.0324), but Brier was -0.00151 (-0.00419 to +0.00105) and
+  log loss was +0.00333 (-0.00341 to +0.01009). The prespecified overall
+  superiority gate failed.
+- Restoring direct local evidence improved the original global estimator on
+  PR-AUC, Brier score and log loss. Stronger leave-one-edge-out robustification
+  instead worsened Brier and log loss, both as a global estimator and relative
+  to the original hybrid.
+- Conditional PR-AUC gains over edge-local were supported in incompatible-
+  cycle (+0.0437) and noisy/missing (+0.0335) strata. The heterogeneous-affine
+  log-loss penalty remained (+0.0251, CI excluding zero).
+- Native maps beat the permuted-map control on PR-AUC, Brier and log loss.
+  Decision: retain a bounded local-first/global-fallback contribution and
+  map-semantic claim; prohibit general superiority and prohibit describing the
+  LOO robust estimator as excellent.

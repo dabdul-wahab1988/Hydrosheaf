@@ -1,0 +1,70 @@
+{
+  "schema_version": "2.1",
+  "title": "Fit quality is not identifiability: a harmonized robustness, integration-value and calibration audit of groundwater inference under data limitation",
+  "scope": "A companion benchmark article to M2.3 (the HydroSheaf framework paper) and sibling to O3 (Objective 3). O4 does not introduce new software architecture. It harmonizes three already-locked, independently designed component benchmarks (M6 field-transfer/robustness, M7 conditional-integration/non-identifiability, M8 calibration-is-not-identification) under one taxonomy and reports a cross-component pattern no single component paper can show alone: under data limitation, evidence misspecification, or a model-form shift, an internally-generated confidence signal (fit quality, posterior-entropy reduction, nominal interval coverage, optimiser convergence) can remain stable or favourable while an externally-verifiable truth signal (true identifiability class, independent-generator predictive skill, realised parameter-recovery error, structural information rank) degrades or diverges.",
+  "objectives": [
+    {
+      "id": "OBJ-1",
+      "statement": "Harmonize M6, M7 and M8's independently designed stress tests (data-limitation tier ablation, evidence misspecification/adverse controls, model-form shift to independent numerical truth) into one common taxonomy of internal-signal versus external-signal pairs.",
+      "acceptance_criteria": [
+        "A taxonomy table classifies every retained M6/M7/M8 experiment cited by stress axis and by whether a paired internal/external signal is reported.",
+        "No experiment is re-labelled in a way that contradicts its component DECISIONS.md."
+      ]
+    },
+    {
+      "id": "OBJ-2",
+      "statement": "Quantify, for each of the three layers, how an internally-generated confidence signal behaves relative to an externally-verifiable truth signal as stress increases.",
+      "acceptance_criteria": [
+        "Cross-component comparison figure and table report the internal and external signal side by side for M6, M7 and M8 using each component's own locked headline metric.",
+        "Every reported value traces to a primary CSV/JSON artefact under M6/M7/M8 results/ directories or M8's registered manuscript tables, with no recomputation of the underlying inference."
+      ]
+    },
+    {
+      "id": "OBJ-3",
+      "statement": "Report the negative and structural controls that bound each layer's central finding, so the divergence pattern is shown to be a property of the stress test and not an artefact of the classifier or reporting convention.",
+      "acceptance_criteria": [
+        "Table reports each layer's negative/structural control result alongside its main finding."
+      ]
+    },
+    {
+      "id": "OBJ-4",
+      "statement": "Compare the three benchmarks on design/computational scale (replicate counts, case counts, bootstrap resamples) and on field-/archive-transfer scope, disclosing that this scope is uneven across layers (M8 has none).",
+      "acceptance_criteria": [
+        "A benchmark-scale table reports replicate/case/bootstrap counts and transfer scope for all three components from their own manifests."
+      ]
+    },
+    {
+      "id": "OBJ-5",
+      "statement": "Describe, for a reader unfamiliar with the project, every dataset (synthetic and field) that any of the three benchmarks consumes, at a level sufficient to reproduce the comparison.",
+      "acceptance_criteria": [
+        "Data section and a data-inventory table cover the Northern Ghana/Talensi/Lower Anayari field datasets, the independent MODFLOW 6/MODPATH 7 generator used by M7, and the controlled-synthetic transport/kinetic/topology designs used by M8, each with source, size, and role."
+      ]
+    }
+  ],
+  "inputs": [
+    {"id": "DATA-M6", "path": "M6/m6_field_transfer_benchmark/results", "provenance": "M6 locked field-transfer/robustness benchmark result tables (Northern Ghana/Talensi/Lower Anayari, five-tier evidence ablation, synthetic validation with known truth, evidence-gate-off negative control)"},
+    {"id": "DATA-M7", "path": "M7/m7_nonuniqueness_benchmark/results", "provenance": "M7 locked conditional-integration benchmark result tables (m7_3_locked native/adverse-control contrasts; RUN-M7-SHEAF-VS-GRAPH-20260729-01; RUN-M7-ROBUST-HYBRID-SHEAF-20260729-01; RUN-M7-6-M3-MECHANISM-20260731-01)"},
+    {"id": "DATA-M8", "path": "M8/m8_calibration_benchmark/results", "provenance": "M8 locked calibration benchmark result tables (fixed-design sweep, optimal-design experiment, kinetic structural control, independent-model robustness, active-learning portability and frontier qualification); cross-checked against M8/m8_calibration_benchmark/manuscript/Manuscript-Final.md's own registered tables"},
+    {"id": "DATA-M2.3", "path": "M2.3/manuscript/artifacts/data", "provenance": "M2.3 recomputed evidence exports, read only for cross-checking consistency with the companion framework paper, not as a primary evidence source for O4"}
+  ],
+  "risks": [
+    {"id": "RISK-1", "risk": "Overlap/self-plagiarism against O3, which harmonizes the sibling M3/M4/M5 triad under a different axis.", "mitigation": "O4 asks a disjoint question (internal-signal vs external-signal divergence under stress, not capture vs correctness under independent evaluation) of a disjoint evidence set; Discussion states the relationship to O3 and M2.3 explicitly."},
+    {"id": "RISK-2", "risk": "M6/M7/M8 locked results predate the 2026-08-01/02 hydrosheaf/validation programme-layer changes.", "mitigation": "Verified by tracing the actual per-script import graph of every M6/M7/M8 script producing a cited number against the literal diff of every changed shared module, not only by module-dependency reasoning; three headline numbers were independently recomputed from raw CSVs and matched their prose summaries exactly; the one stale number chain found (M7 public-pipeline system-acceptance run) is excluded from every claim. Full detail in DECISIONS.md D3."},
+    {"id": "RISK-3", "risk": "Re-deriving cross-component numbers could silently diverge from each component's own locked, reviewed values.", "mitigation": "Python synthesis layer reads only already-locked CSV/JSON artefacts and performs no re-simulation; every derived number is cross-checked against the value quoted in the component's own docs/*_results.md or manuscript tables."},
+    {"id": "RISK-4", "risk": "M8 has no field-transfer component, unlike M6, which could be read as inconsistent scope.", "mitigation": "This asymmetry is stated directly in Results/Discussion and in the benchmark-scale table (TAB-4) rather than smoothed over or implied to be equivalent."}
+  ],
+  "quality": {"minimum_test_coverage": null},
+  "implementation": {
+    "backend_language": "python",
+    "entrypoint": "O4/analysis/python/derive_taxonomy.py",
+    "dependency_lock": ".venv",
+    "results_store_profile": "read-only-csv-passthrough",
+    "r_consumer_enabled": true,
+    "qgis_consumer_enabled": false
+  },
+  "evidence_ingestion": {"enabled": false},
+  "manuscript_requirements": {
+    "figures": ["FIG-1", "FIG-2", "FIG-3", "FIG-4", "FIG-5", "FIG-6"],
+    "tables": ["TAB-1", "TAB-2", "TAB-3", "TAB-4"]
+  }
+}

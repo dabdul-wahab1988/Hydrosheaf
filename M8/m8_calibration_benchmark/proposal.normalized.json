@@ -1,6 +1,6 @@
 {
   "schema_version": "2.1",
-  "title": "M8 confirmatory optimal-design and Bayesian active-learning benchmark",
+  "title": "Calibration is not identification: parameter recovery, uncertainty calibration and optimal measurement design in groundwater inverse modelling",
   "scope": "Controlled synthetic evaluation of parameter-specific identifiability, measurement design, model-form robustness and topology active learning using production HydroSheaf interfaces; no field-validation claim is permitted.",
   "objectives": [
     {

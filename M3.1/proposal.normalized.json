@@ -1,0 +1,73 @@
+{
+  "schema_version": "2.1",
+  "title": "Conditional Value of Graph Priors in Multi-Tracer Groundwater-Age Inference: A Hydrosheaf Benchmark of Public Aquifer Datasets",
+  "scope": "A version upgrade of the accuracy-locked M3 benchmark paper for Applied Geochemistry. Reruns the residence-time and graph-prior benchmark of Hydrosheaf against the current codebase, verifies every locked statistic by regeneration rather than by inheritance, and adds two exploratory findings produced since the M3 lock: an independent set-valued compatibility audit of the graph-prior question, and an unresolved tracer-level local-infeasibility rate.",
+  "objectives": [
+    {
+      "id": "OBJ-1",
+      "statement": "Reproduce every M3-locked reportable statistic from the current codebase and disclose any numerical delta rather than assume the lock still holds.",
+      "acceptance_criteria": [
+        "The full manuscript-analysis pipeline is rerun against current HEAD in an isolated copy",
+        "Every reportable statistic is diffed against the M3 lock manifest and the outcome is recorded in DECISIONS.md before any prose is drafted from it"
+      ]
+    },
+    {
+      "id": "OBJ-2",
+      "statement": "Evaluate whether physically plausible graph topology improves multi-tracer groundwater-age inference relative to single-well baselines and negative controls.",
+      "acceptance_criteria": [
+        "A graph result is accepted only when RMSE improves, within-factor agreement does not deteriorate, and negative controls do not show a comparable effect",
+        "Reported ages are treated as model-derived reference products, not error-free true ages"
+      ]
+    },
+    {
+      "id": "OBJ-3",
+      "statement": "Test predictive graph value independently of reference-age agreement using leakage-guarded target-tracer withholding.",
+      "acceptance_criteria": [
+        "The withheld tracer is excluded from fitting, graph construction and hyperparameter tuning for every graph node",
+        "Non-estimable comparisons (no eligible graph edges) are reported as non-estimable, not as equivalence"
+      ]
+    },
+    {
+      "id": "OBJ-4",
+      "statement": "Report the independent set-valued compatibility audit and the tracer-level local-infeasibility finding as exploratory diagnostics, without overstating them as confirmatory or field-validated.",
+      "acceptance_criteria": [
+        "The audit is labelled exploratory/development-stage wherever it appears",
+        "No cause is asserted for the infeasibility rate; tested-and-rejected explanations are listed, not one favoured"
+      ]
+    },
+    {
+      "id": "OBJ-5",
+      "statement": "Give the reader a geographic sense of the benchmark's data coverage.",
+      "acceptance_criteria": [
+        "A new study-area map shows the USGS public-supply sites used, by Principal Aquifer or study unit",
+        "The map does not imply field validation beyond the benchmarked release"
+      ]
+    }
+  ],
+  "inputs": [
+    {"id": "DATA-1", "path": "M3/m3_age_benchmark/results", "provenance": "M3 accuracy-locked results, 2026-07-28, commit 47fbf7c — baseline for comparison, not overwritten"},
+    {"id": "DATA-2", "path": "M3.1/m3_age_benchmark/results", "provenance": "Regenerated results from current HEAD, isolated copy of the M3 pipeline"},
+    {"id": "DATA-3", "path": "M3/m3_age_benchmark/docs/m3_identified_ttd_infeasibility_audit_20260731.md", "provenance": "Set-valued compatibility audit and infeasibility finding (exploratory, development-stage)"},
+    {"id": "DATA-4", "path": "M3/m3_age_benchmark/docs/m3_cfc_reconciliation_step1_20260731.md", "provenance": "Seven-explanation exclusion protocol for the infeasibility signature"}
+  ],
+  "risks": [
+    {"id": "RISK-1", "risk": "A regenerated number silently drifts from the M3-locked value without disclosure.", "mitigation": "Every statistic is diffed against the M3 manifest before drafting; deltas are recorded in DECISIONS.md D2 and, if material, in the manuscript's own change note."},
+    {"id": "RISK-2", "risk": "The exploratory set-valued audit is read as confirmatory or as validating true TTD recovery.", "mitigation": "Labelled exploratory/development-stage at every mention; claim excluded explicitly in Outline.md."},
+    {"id": "RISK-3", "risk": "The unresolved infeasibility rate is read as attributed to a specific cause.", "mitigation": "All seven tested explanations are reported as rejected; no cause is asserted."},
+    {"id": "RISK-4", "risk": "Reader-friendly rewriting of the main text loses a scientifically load-bearing caveat present in the locked M3 prose.", "mitigation": "Every simplified main-text sentence is checked against its source section in the current M3 manuscript and the regenerated artifact_validation.json before being finalised."}
+  ],
+  "quality": {"minimum_test_coverage": 0},
+  "implementation": {
+    "backend_language": "python",
+    "entrypoint": "M3.1/m3_age_benchmark/scripts/run_m3_manuscript_analysis.py",
+    "dependency_lock": "uv.lock",
+    "results_store_profile": "local-csv-exports",
+    "r_consumer_enabled": true,
+    "qgis_consumer_enabled": false
+  },
+  "evidence_ingestion": {"enabled": false},
+  "manuscript_requirements": {
+    "figures": ["FIG-1", "FIG-2", "FIG-3", "FIG-4", "FIG-5", "FIG-6", "FIG-7"],
+    "tables": ["TAB-1", "TAB-2", "TAB-3", "TAB-4", "TAB-5"]
+  }
+}

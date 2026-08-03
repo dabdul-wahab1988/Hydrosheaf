@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "outline_path": "Outline.md",
+  "main_methods_path": "manuscript/sections/02-methods/section.md",
+  "supplementary_methods_path": "manuscript/supplementary/Supplementary-Methods.md",
+  "main_word_limit": 1400,
+  "word_count_policy": "Prose only; excludes headings, equations and citations. Main Methods is part of the 6000-word M2_1 contract.",
+  "supplementary_word_limit": 3000,
+  "citation_style": "APA 7",
+  "language": "UK English",
+  "tense_voice": "Past-tense, passive, non-personal",
+  "bibliography_path": "manuscript/LITERATURE.bib",
+  "csl_path": "manuscript/methods/apa.csl",
+  "evidence_ledger_path": "manuscript/methods/methods_evidence.csv",
+  "literature_search_path": "manuscript/methods/literature_search.json",
+  "human_review_path": "manuscript/methods/human_review.json",
+  "output_markdown_path": "manuscript/Manuscript-Final.md",
+  "supplementary_methods_required": true,
+  "reporting_guidelines": [
+    {"name": "None applicable", "scope": "N/A", "source": "N/A", "applicability": "This is a groundwater software and controlled-synthetic validation study, not a clinical or biomedical study design."}
+  ],
+  "equation_policy": "Equations are identified with EQ markers and full derivations are placed in Supplementary Methods."
+}

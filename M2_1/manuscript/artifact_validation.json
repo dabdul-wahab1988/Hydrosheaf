@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS_WITH_SUBMISSION_ACTIONS",
+  "checks": [
+    {"id": "VAL-01", "name": "main_word_budget", "status": "PASS", "observed_prose_words": 5974, "target": 6000},
+    {"id": "VAL-02", "name": "supplement_word_budget", "status": "PASS", "observed_prose_words": 2490, "target": 3000},
+    {"id": "VAL-03", "name": "claim_source_map_complete", "status": "PASS"},
+    {"id": "VAL-04", "name": "field_scope_boundary_present", "status": "PASS"},
+    {"id": "VAL-05", "name": "synthetic_gate_values_match_locked_run", "status": "PASS"},
+    {"id": "VAL-06", "name": "review_critical_and_major_issues_resolved", "status": "PASS_WITH_SUBMISSION_ACTIONS"},
+    {"id": "VAL-07", "name": "reproduction_and_provenance_recorded", "status": "PASS_WITH_CLEAN_RERUN_PENDING"},
+    {"id": "VAL-08", "name": "architecture_figure_rendered", "status": "PASS", "path": "manuscript/artifacts/architecture_flow.svg"},
+    {"id": "VAL-09", "name": "reader_facing_terminology_audit", "status": "PASS", "path": "manuscript/review/reader_facing_audit.md"}
+  ]
+}

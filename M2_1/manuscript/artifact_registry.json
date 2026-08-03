@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "artifacts": [
+    {"id": "TAB-1", "kind": "table", "path": "manuscript/artifacts/package_capability_inventory.csv", "destination": "main", "validation_status": "PASS"},
+    {"id": "TAB-2", "kind": "table", "path": "manuscript/artifacts/synthetic_performance_summary.csv", "destination": "main", "validation_status": "PASS"},
+    {"id": "TAB-3", "kind": "table", "path": "manuscript/artifacts/field_data_inventory.csv", "destination": "main", "validation_status": "PASS"},
+    {"id": "TAB-S1", "kind": "table", "path": "manuscript/artifacts/source_hash_inventory.csv", "destination": "supplementary", "validation_status": "PASS"},
+    {"id": "TAB-S2", "kind": "table", "path": "manuscript/artifacts/field_variable_crosswalk.csv", "destination": "supplementary", "validation_status": "PASS"},
+    {"id": "TAB-S3", "kind": "table", "path": "manuscript/artifacts/reviewer_issue_resolution.csv", "destination": "supplementary", "validation_status": "PASS_WITH_SUBMISSION_ACTIONS"},
+    {"id": "FIG-1", "kind": "conceptual_figure", "path": "manuscript/artifacts/architecture_flow.svg", "source_path": "manuscript/artifacts/architecture_flow.md", "destination": "main", "validation_status": "PASS"},
+    {"id": "REPORT-CLAIM", "kind": "claim_decision", "path": "DECISIONS.md", "destination": "main_and_archive", "validation_status": "PASS_BOUNDED"},
+    {"id": "REPORT-REVIEW", "kind": "review_report", "path": "manuscript/review/manuscript_reviewer_report.md", "destination": "archive", "validation_status": "PASS"},
+    {"id": "REPORT-READER-AUDIT", "kind": "reader_facing_audit", "path": "manuscript/review/reader_facing_audit.md", "destination": "archive", "validation_status": "PASS"}
+  ]
+}

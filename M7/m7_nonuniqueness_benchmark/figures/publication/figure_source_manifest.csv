@@ -1,6 +1,8 @@
-Manuscript item,Artifact stem,Locked source,Purpose
-Figure 1,figure1_benchmark_and_claim_design,Protocol; Ghana data-scope audit,Benchmark architecture and field claim boundary
-Figure 2,figure2_evidence_integration,evidence_panel_summary.csv; evidence_case_bootstrap_contrasts.csv,"Complementarity, redundancy and false confidence"
-Figure 3,figure3_topology_conditions_age,topology_age_sensitivity.csv; topology_age_bootstrap_contrasts.csv,"Topology-conditioned age accuracy, precision and ESS"
-Figure 4,figure4_reaction_nonuniqueness,reaction_nonuniqueness_summary.csv,Process-family recovery and carbonate failure
-Figure 5,figure5_ghana_supportability_boundary,Ghana audit; M6 tier ablation; M7.2 prequential audit,Objective 6 supportability and non-identifiability
+Manuscript item,Artifact stem,Locked source,Purpose,Printed width,Minimum label size
+Figure 1,figure1_benchmark_and_claim_design,Protocol; Ghana data-scope audit,Benchmark architecture and field claim boundary,,
+Figure 2,figure2_evidence_integration,evidence_panel_summary.csv; evidence_case_bootstrap_contrasts.csv,"Complementarity, redundancy and false confidence",,
+Figure 3,figure3_topology_conditions_age,topology_age_sensitivity.csv; topology_age_bootstrap_contrasts.csv,"Topology-conditioned age accuracy, precision and ESS",,
+Figure 4,figure4_reaction_nonuniqueness,reaction_nonuniqueness_summary.csv,Process-family recovery and carbonate failure,,
+Figure 5,figure5_ghana_supportability_boundary_m7_only,Ghana audit; supporting prequential audit,Objective 6 supportability and non-identifiability,,
+Figure 6,figure6_sheaf_vs_weighted_graph,RUN-M7-SHEAF-VS-GRAPH-20260729-01/case_metrics.csv; paired_bootstrap_contrasts.csv; post_review_audit_20260730/m7_4_full_family_simultaneous.csv,Competence-matched affine-sheaf versus weighted-graph ablation with family-wise intervals,7.08 in (180 mm),8.0 pt
+Figure 7,figure7_robust_hybrid_sheaf,RUN-M7-ROBUST-HYBRID-SHEAF-20260729-01/locked_test/case_metrics.csv; paired_bootstrap_contrasts.csv; post_review_audit_20260730/m7_5_full_family_simultaneous.csv,Fresh-seed local-first/global-fallback estimator and family-wise mechanism diagnostic,7.08 in (180 mm),8.0 pt

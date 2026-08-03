@@ -6,4 +6,4 @@
 | Check | Result | Detail |
 |---|---|---|
 | Plan covers every comment exactly once | PASS | missing=[] extra=[] |
-| Plan items satisfy the contract | PASS | count=39 |
+| Plan items satisfy the contract | PASS | count=36 |

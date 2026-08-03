@@ -1,47 +1,43 @@
 # M3 Phase-2 Design Matrix QA
 
-- Generated: 2026-07-27T13:04:48.841706+00:00
+- Generated: 2026-07-28T04:50:02.279248+00:00
 - Config: `C:\Users\ThinkPad P1 G4\Documents\July_2026\NeutroProject\Groundwater\Hydrosheaf\M3\m3_age_benchmark\configs\design_matrix.yaml`
 - Output: `C:\Users\ThinkPad P1 G4\Documents\July_2026\NeutroProject\Groundwater\Hydrosheaf\M3\m3_age_benchmark\results\m3_design_matrix_results.csv`
-- Output rows: 23030
-- Unique scenarios: 14
+- Output rows: 16536
+- Unique scenarios: 13
 - Row limit: full
 
 ## Scenario Metrics
 
 ```text
-                      scenario_id  total_rows  metric_rows  finite_estimates  median_abs_log10_error  log10_rmse  within_factor_2  within_factor_10  calibrated_he4_rows  log10_r2
-                  ablation_no_he4        1645         1577              1577                0.287742    1.028120         0.506024          0.799620                    0  0.351606
-                 ablation_raw_c14        1645         1608              1608                0.284681    1.049055         0.511194          0.788557                  276  0.370504
-               ablation_raw_gases        1645         1609              1609                0.274908    1.040379         0.520199          0.812927                  278  0.379897
-   hydrosheaf_selection_corrected        1645          666               666                0.469818    0.912343         0.366366          0.768769                  127  0.240949
-            oldwater_c14_ensemble        1645         1609              1609                0.447158    1.297217         0.402113          0.717837                  278  0.037528
-oldwater_ensemble_he4_uncertainty        1645         1626              1626                0.411245    1.273281         0.418819          0.730627                  295  0.069368
-         oldwater_he4_uncertainty        1645         1627              1627                0.277442    1.026365         0.516288          0.802704                  295  0.394941
-        parity_reported_corrected        1645         1610              1610                0.301612    1.069606         0.499379          0.787578                  278  0.345245
-               screened_dgm_gases        1645         1610              1610                0.301612    1.069606         0.499379          0.787578                  278  0.345245
-                  tracer_old_only        1645         1198              1198                0.831789    1.601935         0.338063          0.533389                  735 -0.488090
-                tracer_young_only        1645         1533              1533                0.986894    1.619777         0.228311          0.506849                    0 -0.516814
-    tracerlpm_parity_agefractions        1645         1610              1610                0.239417    1.006682         0.547205          0.796894                  278  0.419479
-   tracerlpm_parity_hier_oldwater        1645         1611              1611                0.431364    1.283164         0.414029          0.718187                  278  0.058656
-          tracerlpm_strict_parity        1645         1612              1612                0.291562    1.067338         0.503102          0.789082                  278  0.348288
+                      scenario_id  total_rows  supported_rows  identifiable_rows  evaluated_rows  nonidentifiable_rows  metric_rows  finite_estimates  median_abs_log10_error  log10_rmse  within_factor_2  within_factor_10  calibrated_he4_rows  log10_r2
+                  ablation_no_he4        1272            1272                 65            1272                  1207         65.0              65.0                0.131041    0.398084         0.692308          1.000000                  0.0 -2.997147
+                 ablation_raw_c14        1272            1272                 61            1272                  1211         61.0              61.0                0.146889    0.418957         0.672131          1.000000                  0.0 -3.195868
+               ablation_raw_gases        1272               0                 47            1272                  1225          NaN               NaN                     NaN         NaN              NaN               NaN                  NaN       NaN
+   hydrosheaf_selection_corrected        1272            1272                309            1272                   963        309.0             309.0                0.130446    0.609790         0.673139          0.915858                 87.0  0.763909
+            oldwater_c14_ensemble        1272            1272                 59            1272                  1213         59.0              59.0                0.146889    0.413759         0.677966          1.000000                  0.0 -4.243558
+oldwater_ensemble_he4_uncertainty        1272            1272                 59            1272                  1213         59.0              59.0                0.146889    0.413759         0.677966          1.000000                  0.0 -4.243558
+         oldwater_he4_uncertainty        1272            1272                 66            1272                  1206         66.0              66.0                0.136067    0.395457         0.696970          1.000000                  1.0 -2.617950
+        parity_reported_corrected        1272            1272                 66            1272                  1206         66.0              66.0                0.136067    0.395457         0.696970          1.000000                  1.0 -2.617955
+               screened_dgm_gases        1272            1272                 66            1272                  1206         66.0              66.0                0.136067    0.395457         0.696970          1.000000                  1.0 -2.617955
+                  tracer_old_only        1272            1272                  0            1272                  1272          NaN               NaN                     NaN         NaN              NaN               NaN                  NaN       NaN
+                tracer_young_only        1272            1272                 67            1272                  1205         65.0              65.0                0.192187    0.687181         0.538462          0.923077                  0.0 -0.099892
+    tracerlpm_parity_agefractions        1272            1272                289            1272                   983        289.0             289.0                0.021613    0.196357         0.916955          0.996540                166.0  0.969780
+          tracerlpm_strict_parity        1272            1272                329            1272                   943        329.0             329.0                0.027932    0.276882         0.875380          0.987842                177.0  0.937147
 ```
 
 ## Paired Effects Versus `parity_reported_corrected`
 
 ```text
                       scenario_id  paired_rows  median_delta_log10_error  mean_delta_log10_error  improved_fraction  gained_factor_2_rows  lost_factor_2_rows
-                  ablation_no_he4         1562                  0.000000               -0.036317           0.093470                    30                  22
-                 ablation_raw_c14         1610                  0.000000               -0.008702           0.134161                    28                  10
-               ablation_raw_gases         1611                  0.000000               -0.034543           0.101179                    41                   8
-   hydrosheaf_selection_corrected          662                  0.000000               -0.108527           0.495468                    93                  91
-            oldwater_c14_ensemble         1611                  0.000000                0.191247           0.068281                     5                 162
-oldwater_ensemble_he4_uncertainty         1611                  0.000000                0.163846           0.145251                    38                 173
-         oldwater_he4_uncertainty         1612                  0.000000               -0.036012           0.088089                    35                  11
-               screened_dgm_gases         1612                  0.000000                0.000000           0.000620                     0                   0
-                  tracer_old_only         1196                  0.089709                0.592834           0.162207                    37                 280
-                tracer_young_only         1516                  0.016059                0.579897           0.299472                   109                 488
-    tracerlpm_parity_agefractions         1608                  0.000000               -0.047365           0.365672                   108                  33
-   tracerlpm_parity_hier_oldwater         1611                  0.000000                0.180589           0.094972                    15                 154
-          tracerlpm_strict_parity         1612                  0.000000               -0.002337           0.011166                     6                   1
+                  ablation_no_he4           65              0.000000e+00            0.000000e+00           0.000000                     0                   0
+                 ablation_raw_c14           61              0.000000e+00            5.369846e-03           0.065574                     0                   0
+   hydrosheaf_selection_corrected           64             -1.732147e-03           -4.456361e-02           0.531250                    11                   5
+            oldwater_c14_ensemble           59              0.000000e+00           -3.481711e-04           0.169492                     0                   0
+oldwater_ensemble_he4_uncertainty           59              0.000000e+00           -3.481711e-04           0.169492                     0                   0
+         oldwater_he4_uncertainty           66              0.000000e+00           -7.874929e-07           0.015152                     0                   0
+               screened_dgm_gases           66              0.000000e+00            0.000000e+00           0.000000                     0                   0
+                tracer_young_only           38              5.444561e-08           -5.370691e-03           0.447368                     0                   0
+    tracerlpm_parity_agefractions           40              0.000000e+00           -1.198396e-02           0.350000                     0                   1
+          tracerlpm_strict_parity           44              0.000000e+00            2.291264e-03           0.181818                     0                   1
 ```

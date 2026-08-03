@@ -1,153 +1,274 @@
 {
-  "run_utc": "2026-05-21T16:24:12.869046+00:00",
+  "run_utc": "2026-07-28T06:41:51.430629+00:00",
   "max_rows": null,
-  "age_steps": 35,
+  "age_steps": 90,
   "skip_selection": false,
+  "cross_validation_reused": true,
+  "fit_results_reused": true,
   "artifacts": [
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_results.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_results.csv",
       "exists": true,
-      "bytes": 22721988
+      "bytes": 25825949,
+      "sha256": "af5e690edf51bab2181116d6bd0e2d9ee3972cf16c5d419f3367b0aa4c8e16fe"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_summary.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_summary.csv",
       "exists": true,
-      "bytes": 2090
+      "bytes": 1953,
+      "sha256": "a55798c96419b9cd07b0ce6f048a6b491ebed5052466b9dc389ad921d2634caf"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_pairwise_deltas.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_pairwise_deltas.csv",
       "exists": true,
-      "bytes": 1143
+      "bytes": 850,
+      "sha256": "4a47f62d9acb46c277cee73b24295664447e27f6f9de171586a33e695cbd0172"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_usgs_benchmark_results.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_usgs_benchmark_results.csv",
       "exists": true,
-      "bytes": 1660774
+      "bytes": 2114476,
+      "sha256": "76dbe5128daa68b9dbe45861bc4fe663649cb57a041adf94b02b3f4adcc22501"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_gas_correction_audit.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_gas_correction_audit.csv",
       "exists": true,
-      "bytes": 422959
+      "bytes": 827,
+      "sha256": "5df1d0e554ffc54a58cb0801b5ec2c53d8b474822fe77f037c13f8284922b0f6"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_real_usgs_graph_benchmark.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_real_usgs_graph_benchmark.csv",
       "exists": true,
-      "bytes": 7451
+      "bytes": 7335,
+      "sha256": "bd35289646b6095c588c31ad2d560410dbaef719addea3413cfb3470b017cb70"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_real_usgs_graph_edges.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_real_usgs_graph_edges.csv",
       "exists": true,
-      "bytes": 627128
+      "bytes": 147926,
+      "sha256": "14a3046f18ecfa2f8f99610ef092e71aebd245a5d0e94c649685a3c8a745f95d"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_design_matrix_qa.md",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_real_usgs_graph_benchmark_manifest.json",
       "exists": true,
-      "bytes": 5458
+      "bytes": 732,
+      "sha256": "fc44bad8e49b9275956fa02811dbc91685747588fec95ae3f14055f65b1f2daa"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_gas_correction_audit.md",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_cv_benchmark_3H.csv",
       "exists": true,
-      "bytes": 6009
+      "bytes": 38698,
+      "sha256": "de5b67ea2a20a9d51d18a044293402556d9f3d282b06fecebb39de2d37df6f58"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_graph_benchmark_qa.md",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_cv_benchmark_3H_manifest.json",
       "exists": true,
-      "bytes": 10816
+      "bytes": 1390,
+      "sha256": "20660786ff41f3a57a84f83a99d2f453d89d983b289f900fd64d1ea18e471938"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Supp_TableS1_Age_Class_Performance.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_cv_benchmark_SF6.csv",
       "exists": true,
-      "bytes": 608
+      "bytes": 23650,
+      "sha256": "07057ea52b4f737f9c4b5db12f132e5b6e7fbf081935c992b6a387b6ca912f37"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Supp_TableS2_Old_Groundwater_Diagnostics.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_cv_benchmark_SF6_manifest.json",
       "exists": true,
-      "bytes": 469
+      "bytes": 1390,
+      "sha256": "24a16eaa5771ba16ca25ea6216adf5a6a2ccbfb435f9d23f6f9db36b2e703fdb"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Supp_TableS3_Gas_Correction_Audit.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_cv_benchmark_14C.csv",
       "exists": true,
-      "bytes": 399
+      "bytes": 56709,
+      "sha256": "d7d7f3d9b54e0854d572853ad311a5cdab7c2252b5837e370503f2137b75661b"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table1_Nuclear_Tracer_Physics.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_cv_benchmark_14C_manifest.json",
       "exists": true,
-      "bytes": 500
+      "bytes": 1395,
+      "sha256": "efcfc6c5bcb52e5bd5d059b332fa04151fb24a9ee5fb09056b4815ed7223ce65"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table2_Design_Matrix_Performance.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_cv_benchmark_CFC11.csv",
       "exists": true,
-      "bytes": 1992
+      "bytes": 1548,
+      "sha256": "267f9e33099b41ec7f5d2ffd017908841a7a108590c47053728d1fd59ea9f789"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table3_Paired_Ablation_Effects.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_cv_benchmark_CFC11_manifest.json",
       "exists": true,
-      "bytes": 1121
+      "bytes": 1386,
+      "sha256": "3306c69e11e8bbd9c017f693396720cfb671890a13f0bf4a910eecfa0a80e27c"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table4_Real_USGS_Graph_Benchmark.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_cv_benchmark_CFC12.csv",
       "exists": true,
-      "bytes": 4753
+      "bytes": 2072,
+      "sha256": "0e0bd47c635e14bf2ae818869269e11c465a77a467e333b4e54296121ebfdd9a"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table5_Mode_Comparison.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_cv_benchmark_CFC12_manifest.json",
       "exists": true,
-      "bytes": 2796
+      "bytes": 1386,
+      "sha256": "4b3e4a9c3aae79d4e4ad7349e9e21d02ef8abab58eaf6a7cfad3359350e6d3e1"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table6_Statistical_Significance.csv",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_design_matrix_qa.md",
       "exists": true,
-      "bytes": 886
+      "bytes": 5839,
+      "sha256": "7039e5dd933af38b95485fb7da2d4c815893e8e19977a3bfe7efc4803d9d9633"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig1_Atmospheric_Histories.png",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_gas_correction_audit.md",
       "exists": true,
-      "bytes": 325861
+      "bytes": 1586,
+      "sha256": "e9ee78b908a24818411433e29ed68c561f85855b0e0105760ea3cc83ffa3a0a2"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig2_Design_Matrix_Performance.png",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_graph_benchmark_qa.md",
       "exists": true,
-      "bytes": 461444
+      "bytes": 10975,
+      "sha256": "1968140c2a9dbbe811937693f46ebf7ed3684d5e4bf7d426691472904d45920c"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig3_USGS_Benchmark_Parity.png",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\DECISIONS.md",
       "exists": true,
-      "bytes": 636509
+      "bytes": 4184,
+      "sha256": "3b2d744dbc4552cc4c390f806d76c6d9e56852dc078e35a991452d08d3c57d56"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig4_Real_USGS_Graph_Benchmark.png",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\configs\\design_matrix.yaml",
       "exists": true,
-      "bytes": 380639
+      "bytes": 5967,
+      "sha256": "4c8de0a53f04934eb90807e416af668e5d7c913edace6c8c07e72ff51f180fce"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig5_Age_Class_Diagnostics.png",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Supp_TableS2_Age_Class_Performance.csv",
       "exists": true,
-      "bytes": 561180
+      "bytes": 619,
+      "sha256": "e09ccfc27c9477700116881e89e0c611cad36a47921c661fbb8684f38307361e"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig6_Cross_Validation_Results.png",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Supp_TableS3_Old_Groundwater_Diagnostics.csv",
       "exists": true,
-      "bytes": 628957
+      "bytes": 488,
+      "sha256": "4b06f17d1c5565449cf63c7fb62a67b73e5b4deb64a228d46c2fb8e133c1d2d3"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig7_Residual_Diagnostics.png",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table1_Nuclear_Tracer_Physics.csv",
       "exists": true,
-      "bytes": 463933
+      "bytes": 500,
+      "sha256": "977d27f64002704d1e79dfd0899deae15e8e3fbb08ca69b6fd6b7b5087698783"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Suppl_Fig1_Gas_Correction_Audit.png",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table2_Design_Matrix_Performance.csv",
       "exists": true,
-      "bytes": 466911
+      "bytes": 1790,
+      "sha256": "f1e1075386471408a42be69e1bdfb236fab982ae87739d653521426c33d7ab0a"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Suppl_Fig2_Graph_Edge_Properties.png",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table3_Paired_Ablation_Effects.csv",
       "exists": true,
-      "bytes": 299085
+      "bytes": 826,
+      "sha256": "07f7c640b322dd5dffa68518738b7ae936677b2862ee60d14a7fe4a7d60fed64"
     },
     {
-      "path": "C:\\Users\\DicksonAbdul-Wahab\\Desktop\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Suppl_Fig3_CFC_CV_Performance.png",
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table4_Real_USGS_Graph_Benchmark.csv",
       "exists": true,
-      "bytes": 183819
+      "bytes": 4703,
+      "sha256": "cead42007d1b8c78c142b6eef3d2b4a424169ec4467e17d4907ec03c7300815e"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table5_Mode_Comparison.csv",
+      "exists": true,
+      "bytes": 1914,
+      "sha256": "c3c06d656077f2bf2a4808d928d8d4d13a3f8618ebb2f28b675a4142bcb7edd4"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table6_Statistical_Significance.csv",
+      "exists": true,
+      "bytes": 1023,
+      "sha256": "a4c90f0030085c03dbc9fea76905c5743f0c678792f73663592a4b2a706d0c66"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\tables\\Manuscript_Ready\\Manuscript_Table7_Per_Release_Replication.csv",
+      "exists": true,
+      "bytes": 1188,
+      "sha256": "cf9bddd5907535ad59fa4ace48f4daca6858fea1c789a6487b861413c8e186bb"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig1_Atmospheric_Histories.png",
+      "exists": true,
+      "bytes": 368912,
+      "sha256": "437120469041eb7f0eafd930ae677314bd060f61f67817646da1e3dca77bf5d0"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig2_Design_Matrix_Performance.png",
+      "exists": true,
+      "bytes": 350587,
+      "sha256": "fc021501c7d180f8144f6d60f0445cf263fe69b000422b35fdaa84b576dba986"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig3_USGS_Benchmark_Parity.png",
+      "exists": true,
+      "bytes": 367616,
+      "sha256": "7fe1c3d30bf5c65e1b704d5e80fd91f38d267fb9fcd881f6f9dc001fac356065"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig4_Real_USGS_Graph_Benchmark.png",
+      "exists": true,
+      "bytes": 248374,
+      "sha256": "29897d3348bbef0e5c397c97095345431b23594d969d9f93b71c27f782ad81c0"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig5_Age_Class_Diagnostics.png",
+      "exists": true,
+      "bytes": 380822,
+      "sha256": "de9cac1f4da835264ea55f8815b5ac241f719a39ed7c4524b54c983440be65e5"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig6_Cross_Validation_Results.png",
+      "exists": true,
+      "bytes": 715467,
+      "sha256": "168ae9dfdc2bc91eecb160a855a1d28d82eb05bd43de345ac5042cf025f7b999"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Manuscript_Fig7_Residual_Diagnostics.png",
+      "exists": true,
+      "bytes": 549312,
+      "sha256": "ef123f7f1cc3a1b3acd0b277773f014af8fc419bad4b86a168befd162b12eafe"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Suppl_Fig2_Graph_Edge_Properties.png",
+      "exists": true,
+      "bytes": 299311,
+      "sha256": "3636085011cf56e83fa789afe0f7c5273b05e677aa566b7e61932c788d044d40"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Suppl_Fig3_CFC_CV_Performance.png",
+      "exists": true,
+      "bytes": 197206,
+      "sha256": "deba6fcba6b067c0444e6a22227212115d525aaca5ffc4adb6d6367ee10cb1b6"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Suppl_Fig4_Network_Dating_Ambiguity.pdf",
+      "exists": true,
+      "bytes": 35783,
+      "sha256": "4ed01a52d2fdbe4244cc67b7493663e14b612215abfba7793e14d54c37da9656"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Suppl_Fig4_Network_Dating_Ambiguity.png",
+      "exists": true,
+      "bytes": 194014,
+      "sha256": "fe9b270cf7ff3d5633e16098ca3bfe10b54527d9b1d770073121545d4d5872b2"
+    },
+    {
+      "path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\figures\\Manuscript_Ready\\Suppl_Fig4_Network_Dating_Ambiguity.tif",
+      "exists": true,
+      "bytes": 133392,
+      "sha256": "0b2919932e90d8ba0cc8758736a48bd6a47a8195ef5316544a0a55974a470034"
     }
   ]
 }

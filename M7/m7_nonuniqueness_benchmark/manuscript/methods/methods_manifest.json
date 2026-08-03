@@ -3,7 +3,7 @@
   "outline_path": "Outline.md",
   "main_methods_path": "manuscript/sections/02-methods/section.md",
   "supplementary_methods_path": "manuscript/supplementary/Supplementary-Methods.md",
-  "main_word_limit": 1550,
+  "main_word_limit": 2300,
   "word_count_policy": "Prose only; excludes headings, equations, and citation markers.",
   "citation_style": "APA 7",
   "language": "UK English",
@@ -30,7 +30,11 @@
     }
   ],
   "required_artifact_refs": [
-    {"id": "FIG-1", "kind": "figure", "destination": "main"}
+    {
+      "id": "FIG-1",
+      "kind": "figure",
+      "destination": "main"
+    }
   ],
   "required_supplementary_sections": [
     "Independent generator and blinding contract",
@@ -40,7 +44,12 @@
     "Reaction-family bootstrap and thermodynamic constraints",
     "Statistical metric definitions",
     "Decision rules for complementarity, redundancy and negative transfer",
-    "Northern Ghana audit criteria"
+    "Northern Ghana audit criteria",
+    "Strict public-pipeline system acceptance",
+    "Competence-matched sheaf-versus-graph benchmark",
+    "Robust and hybrid sheaf estimator diagnostic",
+    "Generator construct validity and non-transfer boundary",
+    "Post-review precision and practical-magnitude audit"
   ],
   "equations": [
     {
@@ -84,6 +93,13 @@
       "role": "supporting",
       "purpose": "Defines reaction-family support entropy and effective supported families.",
       "evidence_id": "METH-23"
+    },
+    {
+      "id": "EQ-7",
+      "destination": "main",
+      "role": "primary",
+      "purpose": "Defines the directed affine global-section objective used for the matched identity-graph and affine-sheaf comparison.",
+      "evidence_id": "METH-31"
     }
   ]
 }

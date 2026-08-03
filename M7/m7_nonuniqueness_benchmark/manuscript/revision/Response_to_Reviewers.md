@@ -1,549 +1,558 @@
-# Response to Reviewers
+# Response to the 29 July 2026 M7 manuscript review
 
-We thank the independent reviewer. Every numbered Critical, Major, and Minor finding is preserved below and answered individually. Post-hoc analyses are explicitly labelled and do not replace locked primary outputs.
+This response addresses all 36 technical comments against the live manuscript and immutable result records. Post-review analyses are explicitly labelled and do not alter or rerun a locked test. Two classes of submission metadata remain outside technical revision: author declarations, and creation of a versioned public release/DOI. They are recorded as blockers rather than invented.
 
-## M7-R001 (Minor)
+## Resolution summary
 
-**Reviewer comment (verbatim)**
+- Technical/scientific/editorial comments addressed: 32.
+- Technical correction complete but release publication pending: R07 and R35.
+- Structure corrected but author/deposit metadata pending: R25 and R27.
+- Locked confirmatory tests rerun: none.
 
-1. **[Minor]** The title, "Evidence integration reduces groundwater interpretive non-uniqueness only conditionally: an independent benchmark with adverse controls," is accurate but does not signal that the empirical claim is scoped to a single synthetic generator. Every quantitative statement in the Discussion is carefully qualified with "in this generator" or "under the tested conditions," yet the title reads as a general empirical claim about groundwater evidence integration. A reader skimming only the title could reasonably expect a field or multi-generator study. Add a scope cue to the title or subtitle, for example "...only conditionally: an independent, single-generator benchmark with adverse controls," so the title's claim strength matches the paper's own carefully hedged internal standard.
+## M7-20260729-R01 — ADDRESSED
 
-**Response**
+**Reviewer comment**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R002 (Major)
-
-**Reviewer comment (verbatim)**
-
-2. **[Major]** The abstract's second sentence is a single 92-word clause that packs the aim, the generator description, the four-experiment design, and five numeric design parameters into one sentence: "The aim was to determine, in one independent MODFLOW 6/MODPATH 7 generator sharing no code with the inference method evaluated, when integrating evidence is complementary, redundant, or resulted in false confidence; the approach combined four linked experiments with predeclared adverse (permutation) controls, six development and twelve locked test cases, 50,000 age particles per case/regime, 64 reaction bootstraps per case, and a descriptive Ghana audit." Split this into at least two sentences, one stating the aim and one describing the design, so a reader can parse the claim before the method.
+1. **[Major]** The phrase “single-generator groundwater benchmark” is not accurate for the assembled paper. The M7.3 experiments used the MODFLOW 6, MODPATH 7, tracer and chemistry generator described at main-text lines 221 to 242, whereas M7.4 used a separate scalar graph-case generator that imported no HydroSheaf code, as stated at lines 348 to 358 and Supplementary lines 352 to 361. The title, Introduction line 203 and Limitations lines 1134 to 1136 therefore collapse two distinct generator systems and three different locked-test sizes into one. This matters because the claimed scope and independence of the evidence depend on which generator produced which result. Revise the title to refer to “controlled-synthetic benchmarks” or “two controlled-synthetic generator systems,” then identify M7.3 and M7.4/M7.5 separately in the abstract and limitations.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+The title now says controlled-synthetic benchmarks. The abstract, Introduction, Methods and Limitations name the MODFLOW 6/MODPATH 7 M7.3 generator separately from the scalar affine M7.4/M7.5 generator and prohibit cross-generator or field transfer of either result.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/00-abstract/section.md`
+- `manuscript/sections/02-methods/section.md`
+- `manuscript/sections/04-discussion/section.md`
 
-## M7-R003 (Minor)
+## M7-20260729-R02 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-3. **[Minor]** Within that same sentence, tense shifts mid-list: "when integrating evidence is complementary, redundant, or resulted in false confidence" mixes present tense ("is complementary, redundant") with past tense ("resulted"). Rewrite as a consistent present-tense list, for example "...is complementary, redundant, or produces false confidence."
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R004 (Minor)
-
-**Reviewer comment (verbatim)**
-
-4. **[Minor]** The abstract summarizes three of the four linked experiments in quantitative detail (evidence integration, age inference, reaction recovery) but reduces the fourth, the Northern Ghana audit, to the single clause "a descriptive Ghana audit," without stating its conclusion. Since Objective 4 is presented in the Introduction with equal weight to the other three objectives, add one clause to the abstract stating what the audit found supportable versus non-identifiable, matching the balance already given to the other three experiments.
+2. **[Minor]** The abstract reports the important positive, null and adverse findings, but it compresses seven audits and several estimands into one dense paragraph. At lines 8 to 26, the evidence-panel results, age results, reaction results, M7.4 representation test and M7.5 estimator test arrive without an explicit primary-versus-secondary hierarchy. A reader can miss that M7.4 rejected overall benefit against the claim-bearing comparator and that M7.5 also failed its complete three-outcome gate. Divide the abstract into purpose, design, primary representation result, follow-up result and scope conclusion, and use the words “failed the prespecified complete gate” for both M7.4 and M7.5.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+The abstract was split into purpose, design, primary representation result, follow-up estimator result and scope conclusion. It now states explicitly that both M7.4 and M7.5 failed their prespecified complete gates.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/00-abstract/section.md`
 
-## M7-R005 (Major)
+## M7-20260729-R03 — ADDRESSED_BY_CLAIM_RESTRICTION
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-1. **[Major]** The claim "A systematic search did not identify a groundwater benchmark that combines all three of an external, code-independent truth generator, a locked development/test split, and predeclared adverse controls" is the paper's central novelty claim, but no search protocol is disclosed anywhere in the manuscript or supplement: no databases, search terms, date range, or inclusion criteria are given. A claim phrased as "a systematic search did not identify" implies a documented, reproducible search process. Either report the search protocol (databases searched, query terms, date cutoff) in a short methods note, or soften the language to "to our knowledge, no published groundwater benchmark combines..." so the strength of the claim matches the evidence given for it.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R006 (Major)
-
-**Reviewer comment (verbatim)**
-
-2. **[Major]** The literature review leans heavily on foundational sources from 2001 to 2017 (Beven and Freer 2001; Beven 2006; Neuman 2003; Linde et al. 2006; Langevin et al. 2017; Pollock 2016) with essentially no engagement with 2022-2026 work on multi-evidence groundwater characterization. A search performed for this review surfaced directly relevant recent literature not discussed, including Jung et al. (2025, *WIREs Water*) on emerging challenges in tracer-aided modeling and a 2023 *HESS* paper comparing metamodeling algorithms for estimating groundwater age distributions from hydrochemistry. Add at least two to three citations from the last three to four years that engage current data-fusion practice in groundwater science, so the stated literature gap is demonstrated against the current state of the field rather than against a decade-old baseline.
+1. **[Major]** The originality claim at main-text lines 102 to 109 is not supported by a reproducible literature search. `manuscript/methods/literature_search.json` records general web queries but no bibliographic databases, search dates by database, returned counts, deduplication, inclusion criteria or screening record for the claim that no groundwater benchmark combined an external generator, a locked split and adverse controls. The claim may be correct, but the current evidence cannot establish its completeness. Either replace it with a narrower statement that the authors did not identify such a benchmark in a targeted, non-systematic search, or archive a reproducible search across at least Web of Science or Scopus, Crossref, Google Scholar and a preprint index, with queries, dates, counts and screened records.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+The unsupported exhaustive novelty claim was withdrawn. The manuscript now describes a targeted, non-systematic search, and the search record stores dated queries, sources, inclusion logic and screened items without claiming bibliographic completeness.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/01-introduction/section.md`
+- `manuscript/methods/literature_search.json`
+- `manuscript/LITERATURE.bib`
 
-## M7-R007 (Minor)
+## M7-20260729-R04 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-3. **[Minor]** The sentence "posterior inference over directed graph structure, the problem underlying this study's topology-conditioning experiment, has been developed extensively in the Bayesian network and causal-discovery literature using Markov-chain and generative-flow approaches to sample plausible graphs under uncertainty" carries no citation at all, despite explicitly positioning the paper's importance-sampling design choice against this body of work. Add at least one representative citation for this claim (a structure-learning MCMC paper or a GFlowNet-for-Bayesian-network paper) so the comparison is checkable rather than asserted.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R008 (Minor)
-
-**Reviewer comment (verbatim)**
-
-4. **[Minor]** The Introduction motivates Northern Ghana with a single clause, "where groundwater is a primary potable resource drawn from a geologically unevenly distributed resource base [@macdonald2012africa]," but never describes the basement-complex hydrogeological setting that the audited workbook actually samples, nor explains why this specific dataset (rather than another African aquifer dataset) was chosen for Objective 4. A short characterization of the setting would help readers judge whether the audit's identifiability conclusions plausibly generalize to comparable data-limited monitoring programmes elsewhere.
+2. **[Major]** The objective structure obscures which experiments were confirmatory. Main-text lines 159 to 190 list five objectives, but objective five contains M7.4 and a second fresh-seed diagnostic, while the manuscript later describes seven linked audits. M7.3, the public-pipeline run, M7.4 and M7.5 also used different generators, case counts, primary outcomes and claim gates. This makes it difficult to distinguish the original scientific questions from later estimator diagnosis. Add a one-page design table at the end of the Introduction that maps each audit to its generator, development and test counts, primary comparator, primary metrics, lock point, multiplicity family and permitted claim.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+A main-text design-and-claim table now maps all seven audits to generator, development/test counts, comparator, primary metrics, lock/multiplicity family and permitted claim.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `tables/publication/table1_benchmark_design.md`
+- `manuscript/Manuscript-Final-Revised.md`
 
-## M7-R009 (Minor)
+## M7-20260729-R05 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-5. **[Minor]** Objective 4 is stated as "to separate supportable component diagnostics from non-identifiable field claims," which already asserts the outcome (that some claims will be found non-identifiable) inside the objective statement rather than posing an open question. Rephrase as a neutral question, for example "to determine which integrated interpretations the available Northern Ghana evidence can support," consistent with how Objectives 1 to 3 are phrased as open questions rather than pre-stated conclusions.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R010 (Major)
-
-**Reviewer comment (verbatim)**
-
-1. **[Major]** The case-block bootstrap PR-AUC contrasts reported in Table 3 and Supplementary Table S2 do not reconcile transparently with the native panel PR-AUC values reported in Table 2 and Supplementary Table S1. Direct subtraction of Table 2's native panel values gives HAC minus HA = 0.4805 - 0.1114 = 0.3691, but Table 3 reports this same contrast ("native chemistry added") as a case-block bootstrap mean difference of 0.447, a gap of 0.078, roughly 17% of the headline effect. The direct estimate does fall inside the reported 95% interval [0.3575, 0.5401], so this is not evidence of an error, but neither the main-text Methods nor the Supplementary Methods states whether case-block PR-AUC contrasts are computed as the mean of twelve per-case PR-AUC differences (each derived from as few as nine true edges per case) or as the paired difference of a pooled, case-resampled PR-AUC. These are materially different estimators for a metric this sensitive to class imbalance and small-sample variance. State explicitly, with a formula, how PR-AUC is computed within each bootstrap replicate, and consider reporting the direct pooled-native contrast alongside the case-block bootstrap contrast so a reader checking Table 2 against Table 3 is not left to wonder why the two do not match.
+3. **[Minor]** The practical significance is framed more strongly than the decision analysis supports. Lines 198 to 203 acknowledge that translation to a field decision protocol remains future work, yet the surrounding text says the benchmark identifies which evidence was “worth collecting.” No value-of-information threshold, cost function or field decision loss was defined. Replace “worth collecting” with “improved the prespecified synthetic-benchmark outcomes,” and reserve collection recommendations for a future study that defines measurement cost and decision consequences.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+The phrase 'worth collecting' was removed. Collection recommendations are reserved for a future value-of-information study with measurement costs and decision losses.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/01-introduction/section.md`
+- `manuscript/sections/04-discussion/section.md`
 
-## M7-R011 (Major)
+## M7-20260729-R06 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-2. **[Major]** The "50% partial true graph" topology condition is operationally defined in Supplementary Methods as "every second true edge in generator order," which, applied to nine true edges per case, yields five retained edges (Supplementary Table S3 reports `n_assumed_edges = 5` throughout), that is 55.6% of edges rather than 50%. Either rename the condition to reflect its actual edge fraction or change the selection rule so that it withholds exactly half the edges; as written, a reader checking Table S3 against the main text will find the label does not match the implementation.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R012 (Major)
-
-**Reviewer comment (verbatim)**
-
-3. **[Major]** The importance-sampling effective-sample-size stability rule (ESS >= 400 of 50,000 particles) is explicitly flagged in the Limitations as "adopted by analogy" and "not derived independently for this specific importance-sampling context." This single threshold determines which 8 of 12 locked test cases are excluded from interpretation under the reversed/weak-tracer condition, and the resulting exclusion underwrites one of the paper's headline claims, that reversed topology "destabilised inference outright under a weak" tracer regime. Given how much interpretive weight rests on this one, self-described unvalidated cutoff, run and report a brief sensitivity check (for example ESS thresholds of 200, 400, and 1000) showing that the same qualitative pattern of case failures holds, rather than relying on a single untested value for a claim this central to Experiment 2.
+1. **[Critical]** The current M7.5 runner does not match the confirmatory lock. `m7_robust_hybrid_confirmatory.lock.json`, line 6, requires SHA-256 `a0ef13bde5391af62698927211cb4e701123affebb108d331795ce8596e2e191`; the current `scripts/run_m7_robust_hybrid_sheaf.py` hashes to `994e36954775c0577dd6f7a7655e9cf6d90d4cec2463a2cf4fc19891d8af7c12`. Direct execution stops at source line 150 with `Confirmatory-bound artifact changed: runner_sha256`. Stored output hashes remain intact, but the exact code that passed the one-time lock is not recoverable from the present checkout. Recover the exact locked runner from backup or an earlier task snapshot and archive it under its content hash. If it cannot be recovered, state that the stored outputs are an unverifiable locked-run record, create a new protocol and confirmatory lock, and run one new test set with previously unused seeds.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+The exact one-time M7.5 runner was recovered from the archived task session. Its SHA-256 is a0ef13bde5391af62698927211cb4e701123affebb108d331795ce8596e2e191, exactly matching the confirmatory lock. The source and recovery manifest are archived under that content hash. No locked test was rerun.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `scripts/run_m7_robust_hybrid_sheaf.py`
+- `provenance/source_archive/a0ef13bde5391af62698927211cb4e701123affebb108d331795ce8596e2e191/manifest.json`
 
-## M7-R013 (Minor)
+## M7-20260729-R07 — TECHNICAL_CORRECTION_COMPLETE_RELEASE_PENDING
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-4. **[Minor]** The evidence-fusion logistic regression is fitted with "an L2 penalty of unit strength" with no stated justification and no reported sensitivity to this choice. With only six development cases available to fit the model, regularization strength can materially affect coefficients that are then frozen and applied unchanged to all twelve locked test cases. Report either the fitted coefficients themselves or a small sensitivity sweep across L2 strengths performed on development data only, so readers can judge how much of the locked-test result depends on this specific, otherwise unmotivated hyperparameter choice.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R014 (Minor)
-
-**Reviewer comment (verbatim)**
-
-5. **[Minor]** Several constants central to the adverse-control and decision-rule framework, the conflict-diagnostic threshold (0.50), the topology potential's order scale (5 years), and the reaction-noise level (3%), are candidly reported in Limitations as "fixed by predeclaration rather than validated by a sensitivity analysis across alternative values." This disclosure is appropriate, but given the conflict diagnostic is reported to have zero sensitivity at its one tested value (Supplementary Table S5 shows a conflict fraction of exactly 0 under all four conditions, including joint misspecification), a demonstration that it also fails at two or three alternative thresholds would make a materially stronger case that the heuristic itself, not just this one threshold choice, is the problem.
+2. **[Critical]** The software availability statement is factually wrong for M7.4 and M7.5. Main-text lines 1249 to 1259 say the later protocols, runners, tests and result generators are held in the repository at protocol-freeze commit `d336e87`. Both M7.4 and M7.5 manifests instead record Git revision `53beb46034d5230c1a061341a5cf2175d9af858e`, and the M7.4/M7.5 protocol, runner and result files are absent even from that commit and from the current remote `main`. The recorded revision therefore cannot recreate either later experiment. Commit the complete M7.4/M7.5 protocol, code, tests, manifests and immutable outputs, tag a release, deposit that release in a persistent repository, and cite separate M7.3 and M7.4/M7.5 freeze identifiers in the manuscript.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+The false commit-level reconstruction claim was removed and replaced with experiment-specific run identifiers, recorded historical revisions, current file hashes and an explicit statement that the historical commits do not contain M7.4/M7.5. The complete local package is assembled. A versioned commit/tag and persistent DOI remain submission actions because this revision task does not authorise repository publication or create a repository DOI.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/06-availability-statements/section.md`
+- `manuscript/artifact_registry.json`
+- `provenance/source_archive`
 
-## M7-R015 (Minor)
+## M7-20260729-R08 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-6. **[Minor]** The main-text "Reaction-family bootstrap under evidence panels" subsection does not repeat that reaction-mechanism scoring uses "Hydrosheaf's own sparse linear reaction-inversion solver" (stated only in Supplementary Methods), even though the paper's central credibility claim throughout is that "the generator shares no code with the inference method it evaluates." A reader working from the main text alone could momentarily wonder whether the reaction solver sits inside the independent generator or the evaluated inference method. Add a one-clause reminder in the main-text paragraph so the code-independence boundary is unambiguous without a trip to the supplement.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R016 (Critical)
-
-**Reviewer comment (verbatim)**
-
-1. **[Critical]** Table 4, as assembled in `Manuscript-Final.md`, is missing six of the eighteen rows present in its own canonical source file, `tables/publication/table4_topology_age_contrasts.csv` / `.md`. All three "³H only, Partial true − none" rows (Age MAE -0.057 [-0.074, -0.040]; 95% coverage 0.000 [-0.021, 0.021]; 95% interval width -0.456 [-0.489, -0.422]) and all three "³H only, Reversed − complete true" rows (Age MAE 0.024 [-0.889, 0.888]; 95% coverage -0.056 [-0.090, -0.021]; 95% interval width -3.394 [-5.777, -1.069]) are absent from the printed table. This directly contradicts the Results text, which states that the tritium-only reversed-versus-complete-true MAE contrast "carried a 95% interval of [-0.889, 0.888]... and is reported for completeness in Table 4." It is not currently reported there. This was confirmed by a direct row-count comparison between the assembled manuscript and its own source CSV, not inferred. Regenerate Table 4 in the assembled manuscript from the canonical source file, and verify the row count (18) matches before resubmission.
+3. **[Major]** The paper needs to separate the construct validity of its two generator systems. M7.3 used a flow, tracer and chemistry generator, whereas M7.4/M7.5 used scalar affine graph cases in four planted scenarios. Both are legitimate capability tests, but success in the scalar generator does not validate performance in the MODFLOW-based generator, and neither validates a field aquifer. Add a methods subsection that names the two generator systems, states which objectives each can test, and defines the non-transfer boundary between them.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+A construct-validity subsection distinguishes the two generators, the questions each can test and the explicit non-transfer boundary: scalar-case success is not MODFLOW-system validation, and neither generator constitutes field validation.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/02-methods/section.md`
+- `manuscript/supplementary/Supplementary-Methods.md`
 
-## M7-R017 (Critical)
+## M7-20260729-R09 — ADDRESSED_POST_REVIEW
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-2. **[Critical]** The interval-width contrast dropped from Table 4, reversed versus complete-true topology under the weak tracer regime, is -3.394 years [95% CI -5.777, -1.069], meaning the diagnostically unstable reversed-topology condition produces *narrower*, not wider, age intervals than the correct topology under the same regime. This is a striking, directly on-theme illustration of the paper's own central argument, that a destabilised or misspecified inference can manufacture false confidence rather than merely noise, and it is the age-inference mirror image of the entropy-reduction-under-permutation pattern that Experiment 1 treats as the paper's core contribution. As things stand this number appears nowhere in the Results, Discussion, or Conclusion. Report it explicitly alongside the MAE and coverage figures for this condition, and interpret it: a falsely narrow interval under a diagnostically failed reweighting is arguably the single most on-theme number the age-topology experiment produced, and its absence weakens the paper's own argument.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R018 (Major)
-
-**Reviewer comment (verbatim)**
-
-3. **[Major]** Table 7, captioned as a table that "synthesises the classification of every tested contrast across the four experiments," is likewise truncated relative to its canonical source, `tables/publication/table7_summary_decision_table.csv`, which contains fifteen data rows. The assembled manuscript's Table 7 stops after twelve rows, omitting the carbonate weathering and precipitation non-identifiability row from Experiment 3 and both Northern Ghana audit summary rows from Experiment 4. As currently rendered, Table 7 does not synthesise "every tested contrast across the four experiments," since Experiment 4, one of the paper's four explicit objectives, does not appear in it at all. Regenerate this table from its canonical source alongside Table 4, and audit every other multi-row table in the assembled manuscript for the same defect before resubmission: two of the seven main tables checked here were found truncated, and the cause has not yet been diagnosed, so the remaining five should not be assumed correct without an explicit row-count check against their own source files.
+4. **[Major]** No prospective sample-size or precision rationale is reported for six development cases and twelve locked M7.3 cases, 64 M7.4 test cases or 128 M7.5 test cases. Bootstrap intervals quantify the realized uncertainty but do not show why these sample sizes were adequate to detect a scientifically relevant difference. This is especially important because several findings rest near zero and the M7.3 exact tests are discrete at 12 blocks. Add a simulation-based precision analysis using development-only effect distributions, state the minimum difference of interest for each primary metric, and report the probability that each locked design would exclude the prespecified null or non-inferiority margin.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+A labelled post-review simulation study used development-only planning inputs, 20,000 replicates and prespecified minimum differences for PR-AUC, Brier, log loss, age MAE, interval width, coverage and modal accuracy. The attainable precision/power results are reported in Supplementary Table S12 and are not presented as prospective preregistration.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `scripts/post_review_statistical_audit.py`
+- `results/post_review_audit_20260730`
+- `tables/publication/tableS12_precision_power.md`
 
-## M7-R019 (Major)
+## M7-20260729-R10 — ADDRESSED_POST_REVIEW
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-4. **[Major]** The overall modal-family accuracy improvement from the core to enhanced chemistry panel, 0.556 to 0.611, is explicitly reported with "no case-block interval... predeclared" for this specific contrast, yet it is quoted as a positive finding in the Abstract, Discussion, and Conclusion. Every other headline contrast in this paper carries a predeclared case-block bootstrap interval with multiplicity correction; this one does not, despite being treated with comparable rhetorical weight. Either compute and report a post-hoc case-block bootstrap interval for this contrast, explicitly labelled as post-hoc in the same way Supplementary Table S6 is labelled, or stop presenting the 0.556-to-0.611 change with the same confidence as the paper's other, interval-backed results.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R020 (Minor)
-
-**Reviewer comment (verbatim)**
-
-5. **[Minor]** The Statistical reporting subsection does not state that headline metrics in Tables 2 and 3 are rounded to three decimal places from four-decimal underlying values reported in Supplementary Tables S1 and S2. This is handled consistently, but stating it once explicitly would save a careful reader the trouble of reconciling apparent small rounding differences between the main and supplementary tables.
+5. **[Major]** M7.3 received an explicit 24-test Benjamini-Hochberg analysis, but the M7.4 and M7.5 scenario claims rely on unadjusted percentile intervals drawn from much larger contrast matrices. Supplementary Table S7 contains 120 rows and Table S9 contains 560 rows. Prespecified directions reduce researcher discretion but do not remove family-wise selection risk when multiple scenarios and metrics are interpreted. Define the exact confirmatory family for M7.4 and M7.5, then provide simultaneous bootstrap intervals or adjusted permutation tests for the scenario statements that are retained in the abstract, results and conclusion.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+All 120 published M7.4 contrasts and all 560 published M7.5 contrasts were placed in separate full families. Shared case-block bootstrap resampling with 10,000 replicates and max-z simultaneous 95% intervals was applied. Only findings surviving those families remain inferentially supported.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `scripts/post_review_statistical_audit.py`
+- `tables/publication/tableS10_m7_4_multiplicity_adjusted.md`
+- `tables/publication/tableS11_m7_5_multiplicity_adjusted.md`
 
-## M7-R021 (Major)
+## M7-20260729-R11 — ADDRESSED_BY_CLAIM_RESTRICTION
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-1. **[Major]** The paragraph beginning "A rival explanation deserves consideration before this null result is attributed to age evidence in general" cites "a related result from the same programme's earlier confirmatory audit" as corroborating evidence for a feature-design-bottleneck interpretation of the age null result, but gives no checkable pointer to that result, no document name, section, or reference. Since this is used as substantive supporting evidence for interpreting a null finding rather than as incidental colour, it needs a precise citation, at minimum an internal cross-reference such as "see the M7.2 supporting-validation audit" with an actual document identifier, or, better, that finding should be published formally so it can be cited by DOI.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R022 (Major)
-
-**Reviewer comment (verbatim)**
-
-2. **[Major]** The Discussion connects the chemistry and hydraulics complementarity results to the joint-inversion literature (Linde et al. 2006) but never engages the multi-tracer age literature already cited in the Introduction (Visser et al. 2013) to interpret why age specifically failed to add topology-ranking value while still contributing meaningfully to age-uncertainty reduction elsewhere in the same benchmark. The paper reports both roles of the age evidence (weak for topology, useful for age itself) without reconciling them against what the tracer literature would predict about the information content of a single engineered age-cost feature. A short paragraph tying these two results together would sharpen the section's central argument.
+6. **[Major]** The reaction-family experiment uses the same six-family vocabulary for generation and scoring. Supplementary lines 172 to 186 show that predicted reactions were mapped to the six planted process families, while the generator planted those same archetypes. Code independence prevents leakage, but a shared ontology can inflate recovery for well-separated families and does not test out-of-dictionary chemistry. Add a mechanism-mismatch sensitivity that perturbs stoichiometry, mineral assemblage and reaction combinations outside the scoring dictionary, or restrict the claim to discrimination among the six planted archetypes.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+No unplanned mechanism-mismatch experiment was added. Instead, every reaction claim is restricted to discrimination among the six planted archetypes, under the two tested indicator panels and the tested noise model; out-of-dictionary chemistry is explicitly unevaluated.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/02-methods/section.md`
+- `manuscript/sections/03-results/section.md`
+- `manuscript/sections/04-discussion/section.md`
 
-## M7-R023 (Minor)
+## M7-20260729-R12 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-3. **[Minor]** The subsection "Entropy reduction without calibration is a detectable form of false confidence" restates, at the same numeric precision, values already given in the Results (permuted age entropy -0.0207 and PR-AUC -0.075; permuted hydraulics entropy -0.0482 and log loss +0.0745; joint misspecification entropy -0.0706 and PR-AUC -0.139). This is a legitimate rhetorical device, but it makes the subsection read as a Results recap rather than new interpretation. Consider trimming the repeated numbers to a single sentence with a table cross-reference and foregrounding the genuinely new content, the observation that this pattern is "an expected consequence... under a proper scoring rule" and what that implies for practice.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R024 (Minor)
-
-**Reviewer comment (verbatim)**
-
-4. **[Minor]** The Limitations section is written as one dense, five-sentence paragraph, with each sentence covering an entirely distinct limitation (single generator geometry; model-conditioned truth; the untested conflict-diagnostic threshold; the descriptive Ghana audit; unvalidated fixed constants). Given how much interpretive weight several of these carry, particularly the ESS-threshold caveat already discussed under Methodology, split this into five short labelled points so a critical reader can scan the paper's boundaries without parsing one long block of text.
+7. **[Minor]** The Supplementary Methods describe unweighted logistic regression as “the only choice consistent with reporting calibration honestly.” That statement is too absolute. Weighting changes the fitted target and can harm raw calibration, but weighted estimators can still be assessed and recalibrated on an untouched development fold. Rewrite this as a prespecified design choice, report the class prevalence in each generator, and explain why the unweighted target matched the intended probability estimand.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+The absolute statement about unweighted logistic regression was replaced with a prespecified estimand rationale. Candidate-edge class prevalence is reported for each generator, and the text explains why the unweighted target matches the intended per-candidate probability estimand.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/02-methods/section.md`
+- `manuscript/supplementary/Supplementary-Methods.md`
 
-## M7-R025 (Critical)
+## M7-20260729-R13 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-1. **[Critical]** As detailed under Results above, two of the manuscript's seven main tables, Table 4 and Table 7, are missing rows relative to their own canonical source files, and Table 7's own caption claim is false as currently rendered. This is fundamentally a table-production defect and must be fixed by regenerating both tables from source, with row counts re-verified against the canonical CSVs for every table, main and supplementary, before submission.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R026 (Major)
-
-**Reviewer comment (verbatim)**
-
-2. **[Major]** Figure 5's caption, which appears twice in the manuscript (once as image alt text, once as the formal caption), references "the companion M6 evidence-tier ablation" in panel c without any definition, citation, or cross-reference anywhere else in the manuscript, supplementary materials, or bibliography. A reader encountering this as a standalone submission, which is how a *Water Resources Research* reviewer or reader would encounter it, has no way to know that "M6" refers to a sibling manuscript in the same internal research programme. Either cite the M6 work formally, for example as an in-preparation or companion manuscript reference, or rewrite the panel-c description in self-contained terms that do not depend on an internal project codename.
+1. **[Major]** The statement at main-text lines 856 to 865 that M7.5 passed its execution and provenance gate cannot remain unqualified while the current runner fails the confirmatory hash. The stored case tables support the numerical contrasts, but the present archive does not support the stronger provenance statement. Suspend that sentence until the exact runner is restored, or revise it to state that the stored manifest reports a pass but the current source archive does not verify the runner hash.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+Because the exact runner was recovered and its hash verified against the lock, the provenance statement now names the recovered hash and source archive. It also states explicitly that the stored locked test was not rerun.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/03-results/section.md`
+- `provenance/source_archive/a0ef13bde5391af62698927211cb4e701123affebb108d331795ce8596e2e191/manifest.json`
 
-## M7-R027 (Minor)
+## M7-20260729-R14 — ADDRESSED_POST_REVIEW
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-3. **[Minor]** Figure S1's caption is commendably explicit that "this is not a geographic map and must not be presented on a Ghana or other geographic basemap," a good practice that protects against the synthetic domain being mistaken for a real field site. Figure 5, by contrast, visually combines the synthetic-benchmark branch and the real Northern Ghana branch in one "claim boundary" figure (per its own caption, describing panels a and b as Ghana evidence maps and panels c and d as a companion synthetic ablation and a truth-free hold-forward test) without the same explicit visual or caption cue distinguishing which panels are synthetic-benchmark-derived and which are Ghana-audit-derived. Add that distinction to Figure 5 for the same reason it was added to Figure S1.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R028 (Minor)
-
-**Reviewer comment (verbatim)**
-
-4. **[Minor]** None of the five main figure captions state the sample sizes or replicate counts underlying the panels directly (for example, that Figure 2's panels derive from twelve locked test cases, 827 candidate edges, and 10,000 bootstrap replicates), even though this information appears in the body text. Since figures are frequently read independently of the surrounding prose, add n and replicate counts directly to each caption so every figure is self-contained.
+2. **[Major]** Statistical precision is not paired with practical magnitude. Complete topology reduced mean absolute age error by 0.062 years relative to a 2.764-year baseline and by 0.164 years relative to a 4.750-year baseline, approximately 2.2% and 3.5%. Interval-width reductions were also small relative to the baseline widths. Similarly, the M7.5 PR-AUC difference of 0.0200 is about 3.1% of the edge-local mean, while the complete calibration gate failed. Add relative effects, baseline dispersion and a prespecified minimum practically important difference to the Results, then state whether each result cleared that threshold.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+Results now pair absolute effects with relative changes and post-review practical margins. The small topology-age changes and the M7.5 overall PR-AUC change are explicitly classified by whether they clear those margins; the M7.5 complete calibration gate remains failed.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/03-results/section.md`
+- `tables/publication/tableS12_precision_power.md`
 
-## M7-R029 (Minor)
+## M7-20260729-R15 — ADDRESSED_POST_REVIEW
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-1. **[Minor]** The bibliography contains twelve entries, none published after 2021 in a substantive Introduction or Discussion role (Vehtari et al. 2021 is cited only in Supplementary Methods for an unrelated multi-chain MCMC diagnostic). As noted under Introduction, a search performed for this review surfaced directly relevant 2023-2025 literature on tracer-hydrochemistry integration and age metamodeling that is not discussed. Add two to three citations from the last three to four years to demonstrate the literature landscape has been surveyed up to submission, not only through foundational sources from the 2000s and 2010s.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R030 (Minor)
-
-**Reviewer comment (verbatim)**
-
-2. **[Minor]** Self-citation rate cannot currently be assessed because author identity has not yet been established in the manuscript (the Author Contributions section is a placeholder). When author names are finalized, the appropriate citation to the M5/M6 companion manuscripts, currently referenced only informally as "M6" in a figure caption, should be added as a proper citation rather than left as an internal codename, both to resolve the Tables and Figures issue above and to allow a reviewer to independently verify the boundary between this paper's contribution and its companions'.
+3. **[Major]** The incompatible-cycle and noisy/missing findings at lines 892 to 900 are presented as supported scenario gains without multiplicity control across the full scenario-metric matrix. These are useful diagnostic observations, but their confirmatory status is weaker than the prose implies. Apply the family correction requested under Methodology, or relabel these findings as prespecified exploratory diagnostics and remove them from the abstract until corrected intervals are available.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+Scenario statements were reclassified using the simultaneous full-family intervals. The incompatible-cycle conflict-localisation signal survives; the noisy/missing overall gain and M7.5 scenario ranking-gain claims do not and were withdrawn as supported general gains.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/03-results/section.md`
+- `tables/publication/tableS10_m7_4_multiplicity_adjusted.md`
+- `tables/publication/tableS11_m7_5_multiplicity_adjusted.md`
 
-## M7-R031 (Minor)
+## M7-20260729-R16 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-3. **[Minor]** The reference list is appropriately diverse for a computational hydrogeology benchmark, spanning USGS technical reports, *Water Resources Research*, *Journal of Hydrology*, *Groundwater*, *Bayesian Analysis*, and a machine-learning conference proceeding, with no evidence of clustering around a small reciprocal-citation group. This is a genuine strength and is noted here because a references critique should record what works, not only what needs to change.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R032 (Major)
-
-**Reviewer comment (verbatim)**
-
-1. **[Major]** As already flagged under Abstract, the second sentence of the abstract is a 92-word run-on with an internal tense shift. This is the single most consequential editorial issue in the manuscript because it is the first substantive sentence a reader or editor encounters. A revised version might read: "The aim was to determine, in one independent MODFLOW 6/MODPATH 7 generator that shares no code with the inference method evaluated, when integrating hydraulic, age, and chemical evidence is complementary, redundant, or produces false confidence. The approach combined four linked experiments with predeclared adverse (permutation) controls, six development and twelve locked test cases, 50,000 age particles per case and regime, 64 reaction bootstraps per case, and a descriptive Ghana audit." This preserves every detail while giving the reader two entry points instead of one.
+4. **[Major]** The heading “Carbonate reactions remain non-identifiable regardless of panel richness” and related discussion extend beyond the tested panels. The study compared one core and one enhanced indicator set under one reaction dictionary and one noise model. The zero recovery is a valid finding for those conditions, but it does not establish non-identifiability regardless of isotopic, mineralogical or thermodynamic measurements. Rename the subsection “Carbonate reactions were not recovered under either tested indicator panel” and replace every broader formulation with the same boundary.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+The heading now reads 'Carbonate reactions were not recovered under either tested indicator panel.' All broader 'regardless of panel richness' or universal non-identifiability language was removed.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/03-results/section.md`
+- `manuscript/sections/04-discussion/section.md`
 
-## M7-R033 (Minor)
+## M7-20260729-R17 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-2. **[Minor]** The manuscript leans repeatedly on the word "guardrail" as a governing metaphor (the abstract's "candidate cross-layer integration guardrail," the Discussion's "this guardrail's reliability," repeated references to "the adverse-control framework" and "the guardrails"). `DECISIONS.md` records that a prior revision round already reduced repeated "central guardrail finding" phrasing once; the current text would benefit from a further pass varying this vocabulary (for example alternating "decision rule," "safeguard," and "check") in a technical manuscript that is already dense with domain terminology.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R034 (Minor)
-
-**Reviewer comment (verbatim)**
-
-3. **[Minor]** Some paragraphs run very long relative to the rest of the manuscript's paragraph rhythm. The Introduction's "Current integration practice assumes more evidence helps" paragraph covers four distinct literatures (joint inversion, multi-tracer dating, Bayesian model averaging, equifinality) in roughly 230 words as a single block, and the Discussion's "Evidence integration is conditional, not additive" opening paragraph runs to over 300 words. Both would read more easily split at their natural topic boundaries, for example one paragraph per literature strand in the Introduction.
+5. **[Major]** Figure 5 mixes the M7 Ghana audit with a companion M6 field-transfer experiment. The caption discloses this, but placing the M6 tier ablation inside an M7 result figure invites readers to treat all four panels as evidence from the same protocol. Move the M6 panel to a clearly labelled contextual figure in the Supplement, or present it in a boxed comparison with its own protocol, sample, outcome and citation. The M7 field claim must rest only on the truth-free Ghana scope audit and hold-forward analysis.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+Figure 5 was rebuilt as an M7-only Ghana supportability figure. The M6 tier-ablation panel was removed; the field claim now rests only on the truth-free Ghana scope and hold-forward audit.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `figures/publication/figure5_ghana_supportability_boundary_m7_only.png`
+- `scripts/make_m7_3_publication_assets.py`
+- `manuscript/sections/03-results/section.md`
 
-## M7-R035 (Minor)
+## M7-20260729-R18 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-4. **[Minor]** UK spelling conventions are applied consistently throughout ("standardised," "characterised," "predeclared," "programme"), and no counterexamples were found in this review's read of the main text. This is a genuine strength worth recording, since an editorial critique should note what is working as well as what needs correction.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R036 (Major)
-
-**Reviewer comment (verbatim)**
-
-1. **[Major]** The paper's claimed novelty rests on combining three elements, an external code-independent truth generator, a locked development/test split, and predeclared adverse controls, and this combination does appear to be a genuine gap: the literature search performed for this review did not surface a directly competing benchmark with this specific structure. However, as already noted under Introduction, the "systematic search did not identify" framing is not backed by a disclosed search protocol, which weakens confidence in exactly how carefully this gap claim was checked. Strengthening that disclosure would directly strengthen the paper's claim to novelty, since a benchmark paper's contribution lives or dies on how rigorously "no one has done this" was verified.
+6. **[Minor]** The public-pipeline table reports the same selected F1 value, 0.4222, for all four arms, despite large changes in probability scores and log loss. Candidate recall is also 0.9815 rather than complete. These observations suggest that the selected threshold was insensitive in six cases and that the system result is conditional on candidate generation. Add thresholds and confusion counts for each arm, explain the identical F1 result, and state explicitly that the system audit tested scoring only on the candidates that were recovered.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+The public-pipeline audit now reports the threshold and TP/FP/FN counts for every arm, explains the identical selected F1 values, distinguishes conditional from end-to-end recall and states that all generated candidates were selected, so the audit did not identify a useful scalar selection threshold.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/03-results/section.md`
+- `tables/publication/tableS13_public_pipeline_selection.md`
 
-## M7-R037 (Minor)
+## M7-20260729-R19 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-2. **[Minor]** Permutation-based adverse controls, preserving a feature's marginal distribution while destroying its case-specific correspondence to truth, are a well-established general technique (feature scrambling for interpretability testing, permutation importance) applied here to a new domain rather than a new statistical device, and the manuscript itself implicitly acknowledges this by describing the entropy-versus-skill divergence under permutation as "an expected consequence... under a proper scoring rule" rather than a surprising discovery. The genuinely novel contribution is narrower and more specific than "adverse controls" alone: it is the three-way complementary/redundant/negative-transfer decision rule tied to paired discrimination-and-calibration checks, applied within a locked, code-independent groundwater benchmark. Section 8 credit should rest explicitly on that decision-rule layer in the framing, not on the permutation mechanism itself.
-
-**Response**
-
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
-
-**Location and change**
-
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
-
-## M7-R038 (Major)
-
-**Reviewer comment (verbatim)**
-
-3. **[Major]** Every headline finding in this paper is either negative, conditional, or directionally expected: age adds nothing to topology ranking beyond a robust entropy reduction; carbonate reactions are never recovered under either chemistry panel; the predeclared conflict diagnostic never fires under any tested condition; and the four "positive" findings (chemistry helps topology ranking, hydraulics helps calibration, correct topology helps age estimation, an enhanced panel helps some but not all reactions) are all directionally unsurprising. This is scientifically legitimate; a well-executed negative or conditional result is a real contribution, and the paper is admirably honest about this rather than overselling it. But the Significance paragraph explicitly defers the paper's most actionable payoff, translating these metrics into a field decision protocol, to future work. State more concretely what changes for a practicing hydrogeologist as a direct result of this paper's specific numbers, beyond the general instruction to test one's own pairing before assuming it helps.
+7. **[Minor]** The conclusion says the sheaf layer “has therefore earned a bounded scientific-workflow role” at lines 1203 to 1205. “Earned” is evaluative language rather than a test result. Replace it with: “The experiments support use of the sheaf layer as a prespecified model of non-identity relations and as a global-compatibility diagnostic under the tested scalar scenarios, with global fallback when endpoint evidence is missing.”
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+The evaluative 'earned' sentence was replaced verbatim with the requested bounded statement about non-identity relations, global-compatibility diagnosis and missing-endpoint fallback under the tested scalar scenarios.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `manuscript/sections/05-conclusion/section.md`
 
-## M7-R039 (Minor)
+## M7-20260729-R20 — ADDRESSED
 
-**Reviewer comment (verbatim)**
+**Reviewer comment**
 
-4. **[Minor]** Every quantitative claim in this paper is scoped, appropriately and repeatedly, to "this generator." That honesty is a genuine integrity strength, but it caps how far the paper's contribution can be judged generalizable: a reader cannot yet know whether "age is redundant for topology ranking" would replicate under a second, differently parameterized synthetic generator, let alone in the field. A second, even small-scale, replication generator (fewer cases, one alternative aquifer geometry) would substantially strengthen the claim to a generalizable methodological contribution rather than a demonstration on one worked example.
+1. **[Major]** Figure 5 combines data and claims from two modules, as described above. Its provenance is disclosed in the caption and artifact registry, but the visual grouping still implies a common experiment. Separate the M6 panel or mark it inside the panel title and legend as external companion evidence, including the independent sample size and protocol identifier.
 
 **Response**
 
-Agreed. We revised the routed source and reassembled the manuscript. Where the comment requested a new numerical check, the analysis was run against locked outputs and archived separately; where metadata depend on the submitting authors or a future repository deposit, the document retains an explicit completion item rather than inventing information.
+The combined-module visual was removed. Figure 5 and its caption now contain only M7 evidence and explicitly distinguish synthetic supportability context from the truth-free Ghana audit.
 
-**Location and change**
+**Verification evidence**
 
-See the corresponding revised section, regenerated figure/table numbering map, and the entry with this ID in `change_log.json`.
+- `figures/publication/figure5_ghana_supportability_boundary_m7_only.png`
+- `figures/publication/figure_source_manifest.csv`
+
+## M7-20260729-R21 — ADDRESSED
+
+**Reviewer comment**
+
+2. **[Minor]** The Word render is clean, but the main paper contains seven figures and nine tables in 30 pages. Table 7 spans three pages and interrupts the transition to the representation results. Retain the design table, the primary M7.3 decision table, Table 8 and Table 9 in the main paper, and move detailed metric tables to the Supplement, where the complete CSVs are already cited.
+
+**Response**
+
+The main paper now has four tables: the design map, a compact M7.3 decision table, M7.4 means and M7.5 means. Detailed metric tables were moved to the 13-table Supplement.
+
+**Verification evidence**
+
+- `manuscript/Manuscript-Final-Revised.md`
+- `manuscript/supplementary/Supplementary-Information.md`
+
+## M7-20260729-R22 — ADDRESSED
+
+**Reviewer comment**
+
+3. **[Minor]** Figures 6 and 7 are legible at full-page width but their four-panel labels and several axis labels become small in the 30-page Word layout. Increase label and tick sizes for final journal dimensions, and include the intended printed width in the figure-generation manifest so that legibility can be checked automatically.
+
+**Response**
+
+Figures 6 and 7 were regenerated for 7.08-inch journal width with a minimum 8-point label size. Those dimensions are recorded in the figure-source manifest and were checked in the Word and LibreOffice renders.
+
+**Verification evidence**
+
+- `scripts/make_m7_sheaf_vs_graph_assets.py`
+- `scripts/make_m7_robust_hybrid_assets.py`
+- `figures/publication/figure_source_manifest.csv`
+
+## M7-20260729-R23 — ADDRESSED_WITH_TARGETED_SCOPE
+
+**Reviewer comment**
+
+1. **[Major]** Eighteen unique references are too few to support the paper’s broad positioning across groundwater joint inversion, age dating, reactive transport, probabilistic calibration, graph inference and sheaf methods. The present search record is strongest for software documentation and selected method citations but weak for competing groundwater graph or structured-residual approaches. Expand the literature review using the reproducible search requested above, and add the closest non-sheaf alternatives rather than only mathematical sheaf sources and one recent neural-network preprint.
+
+**Response**
+
+The Introduction and Discussion now include recent 2022-2025 tracer, hydrochemistry, groundwater-age and machine-learning work, plus non-sheaf structured alternatives such as graph regularisation, Gaussian-process smoothing, flow-network inversion and residual diagnostics. The search is disclosed as targeted rather than exhaustive.
+
+**Verification evidence**
+
+- `manuscript/sections/01-introduction/section.md`
+- `manuscript/sections/04-discussion/section.md`
+- `manuscript/LITERATURE.bib`
+- `manuscript/methods/literature_search.json`
+
+## M7-20260729-R24 — ADDRESSED
+
+**Reviewer comment**
+
+2. **[Minor]** Davis and Goadrich are cited at main-text lines 416 to 420 and Supplementary lines 231 to 236 as showing that PR-AUC is more informative under imbalance. The paper’s primary statement concerns precision-recall curves under highly skewed data and the relation between ROC and PR spaces, not an unconditional ranking of scalar AUC summaries. Change the wording to “precision-recall curves can give a more informative view under class imbalance,” and retain ROC-AUC as the manuscript already does.
+
+**Response**
+
+The Davis-and-Goadrich wording now states that precision-recall curves can give a more informative view under class imbalance; ROC-AUC remains reported.
+
+**Verification evidence**
+
+- `manuscript/sections/02-methods/section.md`
+- `manuscript/supplementary/Supplementary-Methods.md`
+
+## M7-20260729-R25 — EXTERNAL_AUTHOR_METADATA_PENDING
+
+**Reviewer comment**
+
+1. **[Major]** The declarations are submission blockers. Main-text lines 1213 to 1222 contain placeholders for author contributions and competing interests; lines 1233 to 1240 and 1257 to 1260 contain data and software DOI placeholders. There is no funding statement. Replace every placeholder with final contributor roles, competing-interest and funding declarations, dataset DOI, software DOI, licence and versioned release before submission.
+
+**Response**
+
+The section is correctly structured and the licence and available technical identifiers are stated. Author CRediT roles, funding, competing interests, dataset DOI, software DOI and final versioned release are retained as explicit submission blockers because they require author declarations or external deposits and must not be fabricated.
+
+**Verification evidence**
+
+- `manuscript/sections/06-availability-statements/section.md`
+
+## M7-20260729-R26 — ADDRESSED
+
+**Reviewer comment**
+
+2. **[Minor]** Main-text line 318 reads, “The reaction solver was evaluated inference, not part of the synthetic generator.” The sentence is ungrammatical and obscures an important independence claim. Replace it with: “The reaction solver was the inference method under evaluation and was not part of the synthetic generator.”
+
+**Response**
+
+The sentence was replaced with: 'The reaction solver was the inference method under evaluation and was not part of the synthetic generator.'
+
+**Verification evidence**
+
+- `manuscript/sections/02-methods/section.md`
+
+## M7-20260729-R27 — ADDRESSED_STRUCTURE_METADATA_PENDING
+
+**Reviewer comment**
+
+3. **[Minor]** “Open Research” at line 1211 contains authorship, interests, data and code statements rather than only open-research material. Rename the section “Declarations and open research,” and order it as author contributions, funding, competing interests, data availability and code availability.
+
+**Response**
+
+The section is now titled 'Declarations and open research' and is ordered as author contributions, funding, competing interests, data availability and code availability. Only the author-supplied metadata listed under R25 remains open.
+
+**Verification evidence**
+
+- `manuscript/sections/06-availability-statements/section.md`
+
+## M7-20260729-R28 — ADDRESSED
+
+**Reviewer comment**
+
+4. **[Major]** The current `Manuscript-Final.docx` fails LibreOffice headless conversion with `libpng error: Write Error`, although all seven embedded PNGs can be read and Microsoft Word exports a complete 30-page PDF. The supplement exports to 17 pages in Word. This is an interoperability defect in the submission package, not a scientific flaw. Rebuild both DOCX files from clean source, test them in Word and LibreOffice, and keep the package only when both applications produce complete PDFs without repair prompts or conversion errors.
+
+**Response**
+
+Both DOCX files were rebuilt from clean Markdown with citation processing. Microsoft Word exported complete 33- and 22-page PDFs; LibreOffice exported complete 31- and 21-page PDFs without the former libpng failure or repair prompt. All 55 Word-rendered pages were visually inspected.
+
+**Verification evidence**
+
+- `manuscript/Manuscript-Final-Revised-20260730.docx`
+- `manuscript/supplementary/Supplementary-Information-Revised-20260730.docx`
+
+## M7-20260729-R29 — ADDRESSED
+
+**Reviewer comment**
+
+1. **[Major]** The contribution is real but narrower than the manuscript’s software-level framing sometimes suggests. M7.4 shows exact identity-limit nesting, information in native affine maps relative to permuted maps, and better planted-conflict localisation. It does not show overall benefit against the edge-local comparator. M7.5 shows ranking gains in two planted scenarios but fails the complete calibration gate. Frame the contribution as a falsifiable benchmark and a conditional representation result, not as validation of HydroSheaf as a whole.
+
+**Response**
+
+The title, abstract, Discussion and Conclusion now frame M7 as a falsifiable controlled-synthetic benchmark and conditional representation result. They explicitly reject validation of HydroSheaf as a whole or a general superiority claim.
+
+**Verification evidence**
+
+- `manuscript/sections/00-abstract/section.md`
+- `manuscript/sections/04-discussion/section.md`
+- `manuscript/sections/05-conclusion/section.md`
+
+## M7-20260729-R30 — ADDRESSED
+
+**Reviewer comment**
+
+2. **[Major]** Development selected a local weight of 1.0 for both M7.5 hybrid arms, as reported at lines 856 to 860. The selected method therefore did not combine local and global residuals when both endpoints were observed. Its added capability was global fallback for missing endpoints plus map-sensitive conflict information. Use “local-first/global-fallback estimator” consistently and avoid presenting it as evidence that a general local/global blend is superior.
+
+**Response**
+
+The selected M7.5 method is called local-first/global-fallback throughout explanatory prose. The paper states that development selected local weight 1.0, so this test is not evidence for a general local/global blend.
+
+**Verification evidence**
+
+- `manuscript/sections/03-results/section.md`
+- `manuscript/sections/04-discussion/section.md`
+- `manuscript/sections/05-conclusion/section.md`
+
+## M7-20260729-R31 — ADDRESSED
+
+**Reviewer comment**
+
+3. **[Major]** The study has no independent cross-generator replication of the M7.4/M7.5 representation result and no field truth for topology, age or reaction mechanisms. This does not erase the contribution, but it limits its likely impact to a method and capability paper. State that the next claim-bearing step is replication under a different generator family or a field dataset with independently measured connectivity, and do not infer temporal, three-dimensional, vadose-zone, vector-stalk or active-learning performance from M7.
+
+**Response**
+
+Limitations now identify independent replication under another generator family or field data with independently measured connectivity as the next claim-bearing step. They explicitly prohibit inference to temporal, three-dimensional, vadose-zone, vector-stalk or active-learning performance.
+
+**Verification evidence**
+
+- `manuscript/sections/04-discussion/section.md`
+
+## M7-20260729-R32 — ADDRESSED
+
+**Reviewer comment**
+
+1. **[Major]** The title, Introduction line 203 and Limitations lines 1134 to 1136 say or imply one generator and a fixed twelve-case locked test, while Methods lines 348 to 390 describe a separate scalar generator with 64 and 128 locked cases. Revise every scope statement to distinguish M7.3 from M7.4/M7.5.
+
+**Response**
+
+All scope statements now distinguish the six-development/twelve-test M7.3 generator from the 64-case M7.4 and 128-case M7.5 scalar generator tests.
+
+**Verification evidence**
+
+- `manuscript/sections/00-abstract/section.md`
+- `manuscript/sections/01-introduction/section.md`
+- `manuscript/sections/04-discussion/section.md`
+
+## M7-20260729-R33 — ADDRESSED
+
+**Reviewer comment**
+
+2. **[Major]** Introduction line 207 says “seven linked audits,” whereas Conclusion line 1180 says “six linked audits.” There are seven if the four original experiments, public-pipeline audit, M7.4 and M7.5 are counted. Use seven throughout and enumerate them once.
+
+**Response**
+
+The paper now uses seven audits consistently and enumerates them in the Introduction and design table.
+
+**Verification evidence**
+
+- `manuscript/sections/01-introduction/section.md`
+- `tables/publication/table1_benchmark_design.md`
+- `manuscript/sections/05-conclusion/section.md`
+
+## M7-20260729-R34 — ADDRESSED
+
+**Reviewer comment**
+
+3. **[Critical]** Results line 856 reports that the M7.5 provenance gate passed, but the current runner fails the confirmatory lock. Restore the exact source or qualify the statement until a new locked run is completed.
+
+**Response**
+
+The exact M7.5 source was restored and independently hash-checked against the confirmatory lock. The Results report the matching hash and no-rerun status.
+
+**Verification evidence**
+
+- `scripts/run_m7_robust_hybrid_sheaf.py`
+- `manuscript/sections/03-results/section.md`
+
+## M7-20260729-R35 — FACTUAL_CORRECTION_COMPLETE_RELEASE_PENDING
+
+**Reviewer comment**
+
+4. **[Critical]** Code availability cites commit `d336e87` for M7.4/M7.5, while both later manifests report `53beb460...` and neither commit contains the later files. Replace the single commit claim with accurate, experiment-specific release identifiers.
+
+**Response**
+
+The false single-commit claim was replaced with experiment-specific run identifiers, the distinct M7.3 freeze commit, the historical M7.4/M7.5 manifest revision and an explicit warning that the latter revision does not contain the files. The final commit/tag/DOI must be inserted only after release publication.
+
+**Verification evidence**
+
+- `manuscript/sections/06-availability-statements/section.md`
+
+## M7-20260729-R36 — ADDRESSED
+
+**Reviewer comment**
+
+5. **[Minor]** The manuscript calls the M7.5 arm a hybrid while reporting a selected local weight of 1.0. The methods explain the missing-endpoint fallback, but figure and table labels do not. Rename the selected arm in explanatory prose or add “selected local weight = 1.0” to Figure 7 and Table 9 captions.
+
+**Response**
+
+Figure 7 and main Table 4 state that the selected nominal hybrid had local weight 1.0 and is therefore local-first/global-fallback. Machine-readable arm names are retained only where necessary to preserve provenance.
+
+**Verification evidence**
+
+- `manuscript/Manuscript-Final-Revised.md`
+- `figures/publication/figure_source_manifest.csv`

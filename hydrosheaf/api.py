@@ -26,6 +26,7 @@ from .temporal import TemporalEdgeResult, TemporalNode
 from .temporal.temporal_edge_fit import fit_temporal_edge
 from .nuclear.nuclides import get_nuclide
 from .models.latent import identify_latent_endmembers
+from .sheaf.topology_refine import refine_edges_with_sheaf
 
 from .vadose.contracts import (
     VadoseForcingSample,
@@ -36,6 +37,42 @@ from .vadose.contracts import (
 from .vadose.run import build_vadose_edge_priors
 
 logger = get_logger("api")
+
+
+class PipelineStageError(RuntimeError):
+    """Raised when an explicitly required pipeline stage cannot complete."""
+
+    def __init__(self, stage: str, message: str):
+        self.stage = str(stage)
+        super().__init__(f"Pipeline stage '{self.stage}' did not complete: {message}")
+
+
+_PIPELINE_STAGES = (
+    "latent_endmembers",
+    "temporal",
+    "nuclear_age",
+    "sheaf_refinement",
+    "network_fit",
+)
+
+
+def _stage_record(
+    status: str,
+    *,
+    requested: bool,
+    detail: str = "",
+    error: Optional[BaseException] = None,
+) -> Dict[str, object]:
+    record: Dict[str, object] = {
+        "status": status,
+        "requested": bool(requested),
+    }
+    if detail:
+        record["detail"] = detail
+    if error is not None:
+        record["error_type"] = type(error).__name__
+        record["error"] = str(error)
+    return record
 
 
 def infer_network_ages_bayesian(*args: Any, **kwargs: Any) -> Any:
@@ -167,31 +204,97 @@ def fit_network_pipeline(
     temporal_nodes: Optional[Mapping[str, TemporalNode]] = None,
     temporal_hydraulic_params: Optional[Mapping[str, Dict[str, float]]] = None,
     phreeqc_results: Optional[Mapping[str, Mapping[str, object]]] = None,
+    sheaf_refinement_enabled: bool = False,
+    nuclear_inference_options: Optional[Mapping[str, object]] = None,
+    strict_stage_completion: bool = False,
+    required_stages: Optional[Iterable[str]] = None,
 ) -> Tuple[List[EdgeResult], Dict[str, object]]:
-    """Run a connected pipeline with optional physics priors and temporal fits."""
+    """Run the connected inference pipeline and report explicit stage status.
+
+    ``strict_stage_completion`` converts a requested optional-stage skip or
+    failure into :class:`PipelineStageError`. ``sheaf_refinement_enabled`` is
+    opt-in for backward compatibility; when age evidence is enabled, nuclear
+    posteriors are attached before candidate edges are sheaf-refined.
+    """
+    requested = {
+        "latent_endmembers": bool(
+            getattr(config, "latent_endmembers_enabled", False)
+        ),
+        "temporal": temporal_nodes is not None,
+        "nuclear_age": bool(getattr(config, "sheaf_age_enabled", False)),
+        "sheaf_refinement": bool(
+            sheaf_refinement_enabled
+            or getattr(config, "topology_posterior_enabled", False)
+        ),
+        "network_fit": True,
+    }
+    if required_stages is None:
+        required = {name for name, is_requested in requested.items() if is_requested}
+    else:
+        required = {str(name) for name in required_stages}
+        unknown = required - set(_PIPELINE_STAGES)
+        if unknown:
+            raise ValueError(f"Unknown required pipeline stages: {sorted(unknown)}")
+        not_requested = required - {
+            name for name, is_requested in requested.items() if is_requested
+        }
+        if not_requested:
+            raise ValueError(
+                "Required pipeline stages were not requested: "
+                f"{sorted(not_requested)}"
+            )
+
+    stage_status = {
+        name: _stage_record("not_requested", requested=is_requested)
+        for name, is_requested in requested.items()
+    }
+
+    def _fail_stage(stage: str, message: str, exc: Optional[BaseException] = None) -> None:
+        stage_status[stage] = _stage_record(
+            "failed", requested=True, detail=message, error=exc
+        )
+        posterior_fail_closed = bool(
+            stage == "sheaf_refinement"
+            and getattr(config, "topology_posterior_enabled", False)
+        )
+        if (strict_stage_completion and stage in required) or posterior_fail_closed:
+            raise PipelineStageError(stage, message) from exc
+
     if getattr(config, "strict_input_validation", False):
         validate_required_inputs(samples, config)
     elif auto_disable_missing:
         config = auto_disable_missing_modules(samples, config)
-        
+
+    # Never mutate a caller-owned list when virtual nodes or inferred age fields
+    # are added for downstream stages.
+    pipeline_samples: object = samples
+    if isinstance(samples, list):
+        pipeline_samples = [
+            dict(sample) if isinstance(sample, Mapping) else sample for sample in samples
+        ]
+
     # Latent Endmembers (Ultra Upgrade)
     virtual_nodes = []
-    if getattr(config, "latent_endmembers_enabled", False):
+    if requested["latent_endmembers"]:
         try:
-            # We assume samples is a list of dicts. If it's a dataframe, this might fail.
-            # But the contract usually expects list of mappings.
-            sample_list = _sample_list(samples)
+            sample_list = _sample_list(pipeline_samples)
             virtual_nodes = identify_latent_endmembers(
-                sample_list, 
-                config.ion_order, 
+                sample_list,
+                config.ion_order,
                 n_endmembers=getattr(config, "latent_endmembers_count", 2)
             )
-            # We must inject these into the samples object used by fit_network
-            # But fit_network takes 'samples'. If it's a list, we append.
-            if isinstance(samples, list):
-                samples.extend(virtual_nodes)
+            if isinstance(pipeline_samples, list):
+                pipeline_samples.extend(virtual_nodes)
+            else:
+                pipeline_samples = sample_list + list(virtual_nodes)
+            stage_status["latent_endmembers"] = _stage_record(
+                "completed",
+                requested=True,
+                detail=f"identified {len(virtual_nodes)} virtual nodes",
+            )
             logger.info(f"Injected {len(virtual_nodes)} latent virtual nodes.")
         except Exception as e:
+            _fail_stage("latent_endmembers", str(e), e)
             logger.warning(f"Latent endmember identification failed: {e}")
 
     built_edges = build_edges(edges)
@@ -206,7 +309,7 @@ def fit_network_pipeline(
         # For 'fit_network_pipeline', edges are usually already provided.
         # So we append edges from virtual nodes to all real nodes?
         # That's O(N_virtual * N_real). Acceptable for small N_virtual.
-        sample_list = _sample_list(samples)
+        sample_list = _sample_list(pipeline_samples)
         for vn in virtual_nodes:
             uid = vn["site_id"]
             for s in sample_list:
@@ -226,32 +329,41 @@ def fit_network_pipeline(
     residence_time_overrides: Optional[Dict[str, float]] = None
     graph = None
     if temporal_nodes is not None:
-
-        temporal_results, residence_time_overrides = fit_temporal_edges(
-            temporal_nodes,
-            built_edges,
-            config,
-            hydraulic_params_by_edge=temporal_hydraulic_params,
-        )
-
-    results = fit_network(
-        samples,
-        built_edges,
-        config,
-        phreeqc_results=phreeqc_results,
-        residence_time_overrides=residence_time_overrides,
-    )
-    if temporal_results:
-        attach_temporal_results(results, temporal_results)
+        try:
+            temporal_results, residence_time_overrides = fit_temporal_edges(
+                temporal_nodes,
+                built_edges,
+                config,
+                hydraulic_params_by_edge=temporal_hydraulic_params,
+            )
+            stage_status["temporal"] = _stage_record(
+                "completed",
+                requested=True,
+                detail=f"fit {len(temporal_results)} temporal edges",
+            )
+        except Exception as exc:
+            _fail_stage("temporal", str(exc), exc)
+            logger.warning("Temporal inference failed and was skipped: %s", exc)
 
     # 3. Nuclear Aging (Network-Enhanced Bayesian)
     nuclear_results = None
-    if getattr(config, "sheaf_age_enabled", False):
+    if requested["nuclear_age"]:
         # Build DiGraph for the aging solver
         import networkx as nx
         graph = nx.DiGraph()
         for edge in built_edges:
-            graph.add_edge(edge.u, edge.v, length_m=edge.attrs.get("length_m", 1.0))
+            graph.add_nodes_from((edge.u, edge.v))
+            # When topology is what the sheaf is about to infer, conditioning
+            # node ages on every candidate edge is circular and candidate
+            # cycles can invalidate the DAG age model. Infer local ages on an
+            # edge-free graph first; retain the legacy graph-conditioned path
+            # when sheaf refinement is not requested.
+            if not sheaf_refinement_enabled:
+                graph.add_edge(
+                    edge.u,
+                    edge.v,
+                    length_m=edge.attrs.get("length_m", 1.0),
+                )
         
         # Prepare observations
         node_obs = {}
@@ -259,7 +371,7 @@ def fit_network_pipeline(
         # Nuclear Tracer: default to Tritium if not specified
         tracer_name = getattr(config, "residence_time_tracer", "3H")
         
-        sample_list = _sample_list(samples)
+        sample_list = _sample_list(pipeline_samples)
         sample_map = {}
         for sample in sample_list:
             node_id = sample.get("site_id") or sample.get("sample_id")
@@ -288,26 +400,135 @@ def fit_network_pipeline(
                 
                 nuclide = get_nuclide(tracer_name)
                 if nuclide:
+                    inference_options = dict(nuclear_inference_options or {})
+                    reserved_options = {
+                        "graph",
+                        "node_observations",
+                        "node_sigmas",
+                        "sample_date",
+                        "nuclide",
+                        "model_type",
+                    }
+                    invalid_options = reserved_options & set(inference_options)
+                    if invalid_options:
+                        raise ValueError(
+                            "nuclear_inference_options cannot override: "
+                            f"{sorted(invalid_options)}"
+                        )
                     nuclear_results = infer_network_ages_bayesian(
                         graph,
                         node_obs,
                         {}, # sigmas auto-calculated if empty
                         sample_date,
                         nuclide=nuclide,
-                        model_type=getattr(config, "nuclear_model", "PFM")
+                        model_type=getattr(config, "nuclear_model", "PFM"),
+                        **inference_options,
+                    )
+                    if not isinstance(nuclear_results, Mapping) or not any(
+                        node_id in nuclear_results for node_id in node_obs
+                    ):
+                        raise RuntimeError(
+                            "age inference returned no node posterior results"
+                        )
+                    stage_status["nuclear_age"] = _stage_record(
+                        "completed",
+                        requested=True,
+                        detail=f"inferred ages for {len(node_obs)} observed nodes",
+                    )
+                else:
+                    raise RuntimeError(
+                        f"unknown residence-time tracer '{tracer_name}'"
                     )
             except Exception as exc:
+                _fail_stage("nuclear_age", str(exc), exc)
                 logger.warning(
                     "Nuclear aging inference failed and was skipped: %s",
                     exc,
                     exc_info=True,
                 )
+        else:
+            message = f"no numeric observations for tracer '{tracer_name}'"
+            stage_status["nuclear_age"] = _stage_record(
+                "skipped", requested=True, detail=message
+            )
+            if strict_stage_completion and "nuclear_age" in required:
+                raise PipelineStageError("nuclear_age", message)
+
+    if requested["sheaf_refinement"]:
+        try:
+            sheaf_samples = [
+                dict(row) if isinstance(row, Mapping) else row
+                for row in _sample_list(pipeline_samples)
+            ]
+            if requested["nuclear_age"]:
+                if nuclear_results is None:
+                    raise RuntimeError(
+                        "age evidence was requested but nuclear inference did not complete"
+                    )
+                for row in sheaf_samples:
+                    if not isinstance(row, dict):
+                        continue
+                    node_id = row.get("site_id") or row.get("sample_id")
+                    posterior = (
+                        nuclear_results.get(node_id)
+                        if isinstance(nuclear_results, Mapping)
+                        else None
+                    )
+                    if not isinstance(posterior, Mapping):
+                        continue
+                    if "mean_age_years" in posterior:
+                        row["mean_age_years"] = posterior["mean_age_years"]
+                    if "std_age_years" in posterior:
+                        row["mean_age_std_years"] = posterior["std_age_years"]
+                    if "tracer_identifiable" in posterior:
+                        row["tracer_identifiable"] = posterior[
+                            "tracer_identifiable"
+                        ]
+            refined_edges = refine_edges_with_sheaf(
+                sheaf_samples,
+                built_edges,
+                config,
+            )
+            if not refined_edges:
+                raise RuntimeError("sheaf refinement returned no edges")
+            built_edges = refined_edges
+            stage_status["sheaf_refinement"] = _stage_record(
+                "completed",
+                requested=True,
+                detail=f"retained {len(built_edges)} refined edges",
+            )
+        except Exception as exc:
+            _fail_stage("sheaf_refinement", str(exc), exc)
+            logger.warning("Sheaf refinement failed: %s", exc)
+
+    try:
+        results = fit_network(
+            pipeline_samples,
+            built_edges,
+            config,
+            phreeqc_results=phreeqc_results,
+            residence_time_overrides=residence_time_overrides,
+        )
+        stage_status["network_fit"] = _stage_record(
+            "completed",
+            requested=True,
+            detail=f"fit {len(results)} edges",
+        )
+    except Exception as exc:
+        _fail_stage("network_fit", str(exc), exc)
+        raise
+    if temporal_results:
+        attach_temporal_results(results, temporal_results)
 
     extras = {
         "edges": built_edges,
         "temporal_results": temporal_results,
         "residence_time_overrides": residence_time_overrides or {},
         "nuclear_results": nuclear_results,
-        "graph": locals().get("graph") # pass graph for plotting
+        "graph": graph,
+        "stage_status": stage_status,
+        "strict_stage_completion": bool(strict_stage_completion),
+        "required_stages": sorted(required),
+        "virtual_nodes": virtual_nodes,
     }
     return results, extras

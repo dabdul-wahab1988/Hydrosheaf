@@ -6,4 +6,4 @@
 | Check | Result | Detail |
 |---|---|---|
 | Change log covers every text revision | PASS | missing=[] |
-| Change log satisfies contract | PASS | count=39 |
+| Change log satisfies contract | PASS | count=36 |

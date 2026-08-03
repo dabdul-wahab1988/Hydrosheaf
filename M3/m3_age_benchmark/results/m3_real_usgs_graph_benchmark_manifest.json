@@ -1,8 +1,14 @@
 {
-  "run_utc": "2026-07-27T13:05:44.897692+00:00",
-  "pointwise_results": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_phase4_screened_full_results.csv",
-  "scenario": "screened_dgm_gases",
-  "n_nodes": 1346,
+  "schema_version": "1.0",
+  "run_utc": "2026-07-28T06:41:37.387764+00:00",
+  "pointwise_results": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_results.csv",
+  "pointwise_results_sha256": "af5e690edf51bab2181116d6bd0e2d9ee3972cf16c5d419f3367b0aa4c8e16fe",
+  "scenario": "tracerlpm_strict_parity",
+  "scope": "reportable coordinate-bearing scalar ages only",
+  "reference_interpretation": "USGS model-derived age; not field-observed truth",
+  "n_nodes": 329,
   "n_benchmark_rows": 28,
-  "n_edge_rows": 5474
+  "n_edge_rows": 1245,
+  "python_version": "3.14.6",
+  "script_sha256": "26eaa8f4930d1716061b965326a7569d9dcb8ac87b7d45a2e3cd28b84729392b"
 }

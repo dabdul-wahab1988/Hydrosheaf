@@ -1,0 +1,6 @@
+source_release,release_capability,mode,N,finite_metrics,median_abs_log10_error,log10_rmse,log10_r2,within_factor_2
+"National public-supply (Jurgens et al., 2022a)",coordinates + reported LPM: all scenarios,USGS reported-configuration parity emulation,329,329,0.0279315237049435,0.27688225670835664,0.9371472775458198,0.8753799392097265
+"National public-supply (Jurgens et al., 2022a)",coordinates + reported LPM: all scenarios,Reported-output-constrained sensitivity (not independent validation),289,289,0.0216129727521297,0.1963574882594095,0.9697798090103715,0.916955017301038
+"National public-supply (Jurgens et al., 2022a)",coordinates + reported LPM: all scenarios,Hydrosheaf model selection,309,309,0.1304459561533824,0.6097900410447316,0.7639091246269438,0.6731391585760518
+"National public-supply (Jurgens et al., 2022a)",coordinates + reported LPM: all scenarios,Screened young-gas correction,66,66,0.13606703002244863,0.39545740622503917,-2.617954777370539,0.696969696969697
+"National public-supply (Jurgens et al., 2022a)",coordinates + reported LPM: all scenarios,Reported-model parity,66,66,0.13606703002244863,0.39545740622503917,-2.6179547773705383,0.696969696969697

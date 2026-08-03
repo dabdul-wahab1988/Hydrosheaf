@@ -23,6 +23,15 @@ INDICATOR_IONS = {
     "iron_reduction": ["Fe", "HCO3"],
 }
 
+
+def _sample_float(sample: Mapping[str, object], key: str) -> float | None:
+    try:
+        value = float(sample.get(key))
+    except (TypeError, ValueError):
+        return None
+    return value if math.isfinite(value) else None
+
+
 def _vector_from_coeffs(coeffs: Mapping[str, float], ion_order: Iterable[str]) -> List[float]:
     return [float(coeffs.get(ion, 0.0)) for ion in ion_order]
 
@@ -30,7 +39,7 @@ def _vector_from_coeffs(coeffs: Mapping[str, float], ion_order: Iterable[str]) -
 def build_reaction_dictionary(
     config: Config,
     pre_si_mask: Optional[Mapping[str, float]] = None,
-    sample: Optional[Mapping[str, float]] = None,
+    sample: Optional[Mapping[str, object]] = None,
     dynamic_denit_scale: float = 1.0,
 ) -> Tuple[List[List[float]], List[str], List[bool], List[float]]:
     ion_order = config.ion_order or DEFAULT_ION_ORDER
@@ -83,23 +92,27 @@ def build_reaction_dictionary(
 
         # Check Concentration Logic Gate
         if config.honest_modeling and sample is not None:
-            so4_val = float(sample.get("SO4") or 0.0)
-            cl_val = float(sample.get("Cl") or 0.0)
-            f_val = float(sample.get("F") or 0.0)
-            
+            so4_val = _sample_float(sample, "SO4")
+            cl_val = _sample_float(sample, "Cl")
+            f_val = _sample_float(sample, "F")
+
             if name.lower() in ["gypsum", "anhydrite"]:
-                if so4_val < 0.208:
+                if so4_val is not None and so4_val < 0.208:
                     logger.debug(f"Logic Gate: Pruning '{name}' (SO4 < 0.208 mmol/L)")
                     continue
-                if config.geologic_bias == "crystalline" and so4_val > 0.52:
+                if (
+                    config.geologic_bias == "crystalline"
+                    and so4_val is not None
+                    and so4_val > 0.52
+                ):
                     logger.debug(f"Logic Gate: Pruning '{name}' in crystalline setting (SO4 > 0.52 mmol/L)")
                     continue
             elif name.lower() in ["halite", "sylvite"]:
-                if cl_val < 0.564:
+                if cl_val is not None and cl_val < 0.564:
                     logger.debug(f"Logic Gate: Pruning '{name}' (Cl < 0.564 mmol/L)")
                     continue
             elif name.lower() == "fluorite":
-                if f_val < 0.026:
+                if f_val is not None and f_val < 0.026:
                     logger.debug(f"Logic Gate: Pruning '{name}' (F < 0.026 mmol/L)")
                     continue
 
@@ -119,10 +132,11 @@ def build_reaction_dictionary(
     add_denit = True
     no3src_scale = 1.0
     if sample is not None:
-        if sample.get("NO3", 0.0) < 0.16:
+        no3_value = _sample_float(sample, "NO3")
+        if no3_value is not None and no3_value < 0.16:
             add_denit = False
             logger.debug("Logic Gate: Pruning 'denit' (NO3 < 0.16 mmol/L)")
-        if sample.get("NO3", 0.0) > 0.8:
+        if no3_value is not None and no3_value > 0.8:
             no3src_scale = 0.1
             logger.debug("Logic Gate: Forcing 'NO3src' selection (NO3 > 0.8 mmol/L)")
 
@@ -140,10 +154,11 @@ def build_reaction_dictionary(
     # Redox coverage is added only when its diagnostic aqueous species are
     # measured.  Concentration gates use upstream observations only, avoiding
     # downstream-label leakage in predictive applications.
-    no3_value = float((sample or {}).get("NO3") or 0.0)
-    so4_value = float((sample or {}).get("SO4") or 0.0)
+    no3_value = _sample_float(sample, "NO3") if sample is not None else None
+    so4_value = _sample_float(sample, "SO4") if sample is not None else None
     redox_compatible = (
         sample is None
+        or no3_value is None
         or no3_value <= float(config.redox_no3_max_mmol_l)
     )
     if (
@@ -152,6 +167,7 @@ def build_reaction_dictionary(
         and redox_compatible
         and (
             sample is None
+            or so4_value is None
             or so4_value >= float(config.redox_so4_min_mmol_l)
         )
     ):

@@ -1,94 +1,116 @@
-{
-  "items": [
-    {
-      "comment_id": "M7-R001",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R002",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R005",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R006",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R010",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R012",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R013",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R014",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R015",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R016",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R019",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R024",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R028",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R030",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    },
-    {
-      "comment_id": "M7-R032",
-      "status": "PASS",
-      "evidence": "results/m7_3_locked/review_sensitivity.csv",
-      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
-    }
-  ]
-}
+[
+  {
+    "comment_id": "M7-20260729-R04",
+    "status": "PASS",
+    "review_resolution_status": "ADDRESSED",
+    "summary": "A main-text design-and-claim table now maps all seven audits to generator, development/test counts, comparator, primary metrics, lock/multiplicity family and permitted claim.",
+    "evidence": [
+      "tables/publication/table1_benchmark_design.md",
+      "manuscript/Manuscript-Final-Revised.md"
+    ],
+    "locked_test_rerun": false
+  },
+  {
+    "comment_id": "M7-20260729-R06",
+    "status": "PASS",
+    "review_resolution_status": "ADDRESSED",
+    "summary": "The exact one-time M7.5 runner was recovered from the archived task session. Its SHA-256 is a0ef13bde5391af62698927211cb4e701123affebb108d331795ce8596e2e191, exactly matching the confirmatory lock. The source and recovery manifest are archived under that content hash. No locked test was rerun.",
+    "evidence": [
+      "scripts/run_m7_robust_hybrid_sheaf.py",
+      "provenance/source_archive/a0ef13bde5391af62698927211cb4e701123affebb108d331795ce8596e2e191/manifest.json"
+    ],
+    "locked_test_rerun": false
+  },
+  {
+    "comment_id": "M7-20260729-R09",
+    "status": "PASS",
+    "review_resolution_status": "ADDRESSED_POST_REVIEW",
+    "summary": "A labelled post-review simulation study used development-only planning inputs, 20,000 replicates and prespecified minimum differences for PR-AUC, Brier, log loss, age MAE, interval width, coverage and modal accuracy. The attainable precision/power results are reported in Supplementary Table S12 and are not presented as prospective preregistration.",
+    "evidence": [
+      "scripts/post_review_statistical_audit.py",
+      "results/post_review_audit_20260730",
+      "tables/publication/tableS12_precision_power.md"
+    ],
+    "locked_test_rerun": false
+  },
+  {
+    "comment_id": "M7-20260729-R10",
+    "status": "PASS",
+    "review_resolution_status": "ADDRESSED_POST_REVIEW",
+    "summary": "All 120 published M7.4 contrasts and all 560 published M7.5 contrasts were placed in separate full families. Shared case-block bootstrap resampling with 10,000 replicates and max-z simultaneous 95% intervals was applied. Only findings surviving those families remain inferentially supported.",
+    "evidence": [
+      "scripts/post_review_statistical_audit.py",
+      "tables/publication/tableS10_m7_4_multiplicity_adjusted.md",
+      "tables/publication/tableS11_m7_5_multiplicity_adjusted.md"
+    ],
+    "locked_test_rerun": false
+  },
+  {
+    "comment_id": "M7-20260729-R14",
+    "status": "PASS",
+    "review_resolution_status": "ADDRESSED_POST_REVIEW",
+    "summary": "Results now pair absolute effects with relative changes and post-review practical margins. The small topology-age changes and the M7.5 overall PR-AUC change are explicitly classified by whether they clear those margins; the M7.5 complete calibration gate remains failed.",
+    "evidence": [
+      "manuscript/sections/03-results/section.md",
+      "tables/publication/tableS12_precision_power.md"
+    ],
+    "locked_test_rerun": false
+  },
+  {
+    "comment_id": "M7-20260729-R15",
+    "status": "PASS",
+    "review_resolution_status": "ADDRESSED_POST_REVIEW",
+    "summary": "Scenario statements were reclassified using the simultaneous full-family intervals. The incompatible-cycle conflict-localisation signal survives; the noisy/missing overall gain and M7.5 scenario ranking-gain claims do not and were withdrawn as supported general gains.",
+    "evidence": [
+      "manuscript/sections/03-results/section.md",
+      "tables/publication/tableS10_m7_4_multiplicity_adjusted.md",
+      "tables/publication/tableS11_m7_5_multiplicity_adjusted.md"
+    ],
+    "locked_test_rerun": false
+  },
+  {
+    "comment_id": "M7-20260729-R18",
+    "status": "PASS",
+    "review_resolution_status": "ADDRESSED",
+    "summary": "The public-pipeline audit now reports the threshold and TP/FP/FN counts for every arm, explains the identical selected F1 values, distinguishes conditional from end-to-end recall and states that all generated candidates were selected, so the audit did not identify a useful scalar selection threshold.",
+    "evidence": [
+      "manuscript/sections/03-results/section.md",
+      "tables/publication/tableS13_public_pipeline_selection.md"
+    ],
+    "locked_test_rerun": false
+  },
+  {
+    "comment_id": "M7-20260729-R22",
+    "status": "PASS",
+    "review_resolution_status": "ADDRESSED",
+    "summary": "Figures 6 and 7 were regenerated for 7.08-inch journal width with a minimum 8-point label size. Those dimensions are recorded in the figure-source manifest and were checked in the Word and LibreOffice renders.",
+    "evidence": [
+      "scripts/make_m7_sheaf_vs_graph_assets.py",
+      "scripts/make_m7_robust_hybrid_assets.py",
+      "figures/publication/figure_source_manifest.csv"
+    ],
+    "locked_test_rerun": false
+  },
+  {
+    "comment_id": "M7-20260729-R28",
+    "status": "PASS",
+    "review_resolution_status": "ADDRESSED",
+    "summary": "Both DOCX files were rebuilt from clean Markdown with citation processing. Microsoft Word exported complete 33- and 22-page PDFs; LibreOffice exported complete 31- and 21-page PDFs without the former libpng failure or repair prompt. All 55 Word-rendered pages were visually inspected.",
+    "evidence": [
+      "manuscript/Manuscript-Final-Revised-20260730.docx",
+      "manuscript/supplementary/Supplementary-Information-Revised-20260730.docx"
+    ],
+    "locked_test_rerun": false
+  },
+  {
+    "comment_id": "M7-20260729-R34",
+    "status": "PASS",
+    "review_resolution_status": "ADDRESSED",
+    "summary": "The exact M7.5 source was restored and independently hash-checked against the confirmatory lock. The Results report the matching hash and no-rerun status.",
+    "evidence": [
+      "scripts/run_m7_robust_hybrid_sheaf.py",
+      "manuscript/sections/03-results/section.md"
+    ],
+    "locked_test_rerun": false
+  }
+]

@@ -1,0 +1,693 @@
+{"kind":"deck","id":"pr/6gf3df","name":"Deck"}
+{"kind":"layout","layoutId":"f1c9436f-ed07-4941-bab9-e54a7cfc7c62","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"057dc259-2c2c-44d4-9b29-d1b6e93f1c43","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/muh51s","slide":1,"title":"UNIVERSITY OF GHANA · SCHOOL OF NUCLEAR AND ALLIED SCIENCES","textShapes":8}
+{"kind":"textbox","id":"sh/tc7upsrm","slide":1,"text":"UNIVERSITY OF GHANA · SCHOOL OF NUCLEAR AND ALLIED SCIENCES","textPreview":"UNIVERSITY OF GHANA · SCHOOL OF NUCLEAR AND ALLIED SCIENCES","textChars":59,"textLines":1,"bbox":[42,35,1000,26]}
+{"kind":"textbox","id":"sh/69gbud8v","slide":1,"text":"HydroSheaf","textPreview":"HydroSheaf","textChars":10,"textLines":1,"bbox":[42,150,760,92]}
+{"kind":"textbox","id":"sh/7apcni9g","slide":1,"text":"Graph-constrained environmental and nuclear tracer modelling with inverse hydrogeochemistry for diagnosing groundwater residence time and evolution in data-limited semi-arid aquifers: development and application of HydroSheaf","textPreview":"Graph-constrained environmental and nuclear tracer modelling with inverse hydrogeochemistry for diagnosing groundwater residence time and...","textChars":225,"textLines":1,"bbox":[42,250,1120,142]}
+{"kind":"shape","id":"sh/gfid0nqx","slide":1,"bbox":[42,411,1196,2]}
+{"kind":"textbox","id":"sh/hgrutsri","slide":1,"text":"PhD viva defence · Dickson Abdul-Wahab · 11004418","textPreview":"PhD viva defence · Dickson Abdul-Wahab · 11004418","textChars":49,"textLines":1,"bbox":[42,447,900,36]}
+{"kind":"textbox","id":"sh/udgvyx8r","slide":1,"text":"August 2026","textPreview":"August 2026","textChars":11,"textLines":1,"bbox":[42,494,300,28]}
+{"kind":"shape","id":"sh/fepcr29c","slide":1,"bbox":[985,42,250,34]}
+{"kind":"textbox","id":"sh/wjeto3qt","slide":1,"text":"30-MINUTE DEFENCE","textPreview":"30-MINUTE DEFENCE","textChars":17,"textLines":1,"bbox":[995,49,230,20]}
+{"kind":"textbox","id":"sh/xknuh8re","slide":1,"text":"One-sentence thesis","textPreview":"One-sentence thesis","textChars":19,"textLines":1,"bbox":[840,555,350,22]}
+{"kind":"textbox","id":"sh/tkfqdkfy","slide":1,"text":"Integration is scientifically useful only when it exposes—not hides—non-uniqueness.","textPreview":"Integration is scientifically useful only when it exposes—not hides—non-uniqueness.","textChars":83,"textLines":1,"bbox":[840,586,360,78]}
+{"kind":"notes","id":"nt/muh51s","slide":1,"text":"Timing: 0:00–0:35\n\nOpen with the central scientific position, not the software inventory. HydroSheaf asks whether uncertain age, connectivity and chemical evidence can be combined without hiding non-uniqueness. State that universal predictive superiority is not the thesis claim.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\draftbychapter\\PhDChapter1_refined.docx\n[/Sources]"}
+{"kind":"slide","id":"sl/b7zjwm","slide":2,"title":"OPENING TENSION","textShapes":14}
+{"kind":"textbox","id":"sh/vux4buxw","slide":2,"text":"OPENING TENSION","textPreview":"OPENING TENSION","textChars":15,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/gvq54zyh","slide":2,"text":"A good fit can still describe the wrong aquifer","textPreview":"A good fit can still describe the wrong aquifer","textChars":47,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/hwzmd4f2","slide":2,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/m5o3ypgf","slide":2,"text":"Problem","textPreview":"Problem","textChars":7,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/76x47uh0","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"textbox","id":"sh/876l0zyl","slide":2,"text":"Three plausible answers","textPreview":"Three plausible answers","textChars":23,"textLines":1,"bbox":[42,174,360,36]}
+{"kind":"shape","id":"sh/tsfm94zq","slide":2,"bbox":[42,225,535,92]}
+{"kind":"shape","id":"sh/q18natgj","slide":2,"bbox":[42,225,8,2]}
+{"kind":"textbox","id":"sh/r2h4jex4","slide":2,"text":"Residence time","textPreview":"Residence time","textChars":14,"textLines":1,"bbox":[70,239,180,28]}
+{"kind":"textbox","id":"sh/b25kby54","slide":2,"text":"Several age distributions reproduce the same tracer signal","textPreview":"Several age distributions reproduce the same tracer signal","textChars":58,"textLines":1,"bbox":[250,238,300,56]}
+{"kind":"shape","id":"sh/q1wjitoj","slide":2,"bbox":[42,343,535,92]}
+{"kind":"shape","id":"sh/d4n2d8na","slide":2,"bbox":[42,343,8,2]}
+{"kind":"textbox","id":"sh/c3e1k36p","slide":2,"text":"Connectivity","textPreview":"Connectivity","textChars":12,"textLines":1,"bbox":[70,357,180,28]}
+{"kind":"textbox","id":"sh/zqpkfi5g","slide":2,"text":"Several directed graphs explain sparse hydraulic and chemical patterns","textPreview":"Several directed graphs explain sparse hydraulic and chemical patterns","textChars":70,"textLines":1,"bbox":[250,356,300,56]}
+{"kind":"shape","id":"sh/ypwjmdov","slide":2,"bbox":[42,461,535,92]}
+{"kind":"shape","id":"sh/ls72h8n6","slide":2,"bbox":[42,461,8,2]}
+{"kind":"textbox","id":"sh/0ry1on61","slide":2,"text":"Reactions","textPreview":"Reactions","textChars":9,"textLines":1,"bbox":[70,475,180,28]}
+{"kind":"textbox","id":"sh/nupkji5c","slide":2,"text":"Several mineral pathways reproduce nearly identical concentrations","textPreview":"Several mineral pathways reproduce nearly identical concentrations","textChars":66,"textLines":1,"bbox":[250,474,300,56]}
+{"kind":"shape","id":"sh/mtgjqdor","slide":2,"bbox":[650,176,548,390]}
+{"kind":"textbox","id":"sh/ip0nih8z","slide":2,"text":"The hidden error","textPreview":"The hidden error","textChars":16,"textLines":1,"bbox":[690,214,465,42]}
+{"kind":"textbox","id":"sh/jqt4bmpk","slide":2,"text":"Narrow uncertainty\n≠\ncorrect interpretation","textPreview":"Narrow uncertainty | ≠ | correct interpretation","textChars":43,"textLines":3,"bbox":[690,295,465,142]}
+{"kind":"textbox","id":"sh/kr25krq5","slide":2,"text":"The thesis therefore evaluates discrimination, calibration, identifiability and adverse controls—not residual fit alone.","textPreview":"The thesis therefore evaluates discrimination, calibration, identifiability and adverse controls—not residual fit alone.","textChars":120,"textLines":1,"bbox":[700,472,445,70]}
+{"kind":"notes","id":"nt/b7zjwm","slide":2,"text":"Timing: 0:35–1:55\n\nExplain the shared inverse-problem structure. The same observation can support several ages, graphs or reaction pathways. The key danger is false certainty: an integrated model can become more confident while becoming less correct. This motivates the evaluation criteria used throughout the thesis.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M5\\m5_inverse_reaction_benchmark\\docs\\m5_results_summary.md\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\docs\\m7_3_results.md\n[/Sources]"}
+{"kind":"slide","id":"sl/skwaf0","slide":3,"title":"SCIENTIFIC GAP","textShapes":13}
+{"kind":"textbox","id":"sh/mp4be5gr","slide":3,"text":"SCIENTIFIC GAP","textPreview":"SCIENTIFIC GAP","textChars":14,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/9cfu9kfi","slide":3,"text":"The unknowns are coupled—but usually inferred separately","textPreview":"The unknowns are coupled—but usually inferred separately","textChars":56,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/8r6tgfyx","slide":3,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/vexcbuxo","slide":3,"text":"Problem","textPreview":"Problem","textChars":7,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/adobipw3","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/xgfud4fe","slide":3,"bbox":[90,210,300,230]}
+{"kind":"textbox","id":"sh/wf6tkze9","slide":3,"text":"AGE","textPreview":"AGE","textChars":3,"textLines":1,"bbox":[114,236,252,40]}
+{"kind":"textbox","id":"sh/bitszqx4","slide":3,"text":"Tracer history and mixing","textPreview":"Tracer history and mixing","textChars":25,"textLines":1,"bbox":[125,305,230,68]}
+{"kind":"shape","id":"sh/qhkb6lgz","slide":3,"bbox":[460,210,300,230]}
+{"kind":"textbox","id":"sh/czyd43e1","slide":3,"text":"TOPOLOGY","textPreview":"TOPOLOGY","textChars":8,"textLines":1,"bbox":[484,236,252,40]}
+{"kind":"textbox","id":"sh/d07ux8vm","slide":3,"text":"Directed flow paths","textPreview":"Directed flow paths","textChars":19,"textLines":1,"bbox":[495,305,230,68]}
+{"kind":"shape","id":"sh/qxgv2twv","slide":3,"bbox":[830,210,300,230]}
+{"kind":"textbox","id":"sh/rypcvydg","slide":3,"text":"CHEMISTRY","textPreview":"CHEMISTRY","textChars":9,"textLines":1,"bbox":[854,236,252,40]}
+{"kind":"textbox","id":"sh/03id83ex","slide":3,"text":"Reaction families and extents","textPreview":"Reaction families and extents","textChars":29,"textLines":1,"bbox":[865,305,230,68]}
+{"kind":"textbox","id":"sh/14ru18vi","slide":3,"text":"↔","textPreview":"↔","textChars":1,"textLines":1,"bbox":[397,290,60,50]}
+{"kind":"textbox","id":"sh/e1gv6dw7","slide":3,"text":"↔","textPreview":"↔","textChars":1,"textLines":1,"bbox":[767,290,60,50]}
+{"kind":"shape","id":"sh/z2pczids","slide":3,"bbox":[215,492,850,92]}
+{"kind":"textbox","id":"sh/g7etwjet","slide":3,"text":"HydroSheaf asks whether locally plausible relations compose into a globally compatible groundwater interpretation.","textPreview":"HydroSheaf asks whether locally plausible relations compose into a globally compatible groundwater interpretation.","textChars":114,"textLines":1,"bbox":[255,515,770,50]}
+{"kind":"notes","id":"nt/skwaf0","slide":3,"text":"Timing: 1:55–3:00\n\nAge constrains plausible travel direction, topology conditions which samples can be compared, and chemistry constrains processes along edges. Existing workflows often estimate these sequentially and treat upstream outputs as fixed. HydroSheaf formalises their relations and propagates incompatibility instead of silently resolving it.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\draftbychapter\\PhDChapter1_refined.docx\n[/Sources]"}
+{"kind":"slide","id":"sl/cwv393","slide":4,"title":"AIM AND QUESTIONS","textShapes":13}
+{"kind":"textbox","id":"sh/5wv2hsza","slide":4,"text":"AIM AND QUESTIONS","textPreview":"AIM AND QUESTIONS","textChars":17,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/itkj6x0z","slide":4,"text":"One aim, four answerable questions","textPreview":"One aim, four answerable questions","textChars":34,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/jutkf2h4","slide":4,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/szmlc7i1","slide":4,"text":"Research design","textPreview":"Research design","textChars":15,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/t0v2lczm","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/6x4jax0v","slide":4,"bbox":[42,160,1196,92]}
+{"kind":"textbox","id":"sh/rydkj2hg","slide":4,"text":"Develop, benchmark and apply HydroSheaf to jointly diagnose residence-time distributions, directed flow paths and hydrogeochemical evolution.","textPreview":"Develop, benchmark and apply HydroSheaf to jointly diagnose residence-time distributions, directed flow paths and hydrogeochemical evolut...","textChars":141,"textLines":1,"bbox":[76,183,1128,46]}
+{"kind":"shape","id":"sh/gn6lg7ix","slide":4,"bbox":[42,285,570,120]}
+{"kind":"textbox","id":"sh/1of2pczi","slide":4,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[64,309,68,48]}
+{"kind":"textbox","id":"sh/9oz2xk76","slide":4,"text":"Can component methods recover known or reference behaviour?","textPreview":"Can component methods recover known or reference behaviour?","textChars":59,"textLines":1,"bbox":[144,307,438,68]}
+{"kind":"shape","id":"sh/8nqlof6l","slide":4,"bbox":[650,285,570,120]}
+{"kind":"textbox","id":"sh/n2hkvap0","slide":4,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[672,309,68,48]}
+{"kind":"textbox","id":"sh/m183m5of","slide":4,"text":"When does one evidence stream add information to another?","textPreview":"When does one evidence stream add information to another?","textChars":57,"textLines":1,"bbox":[752,307,438,68]}
+{"kind":"shape","id":"sh/xsjm1kn2","slide":4,"bbox":[42,433,570,120]}
+{"kind":"textbox","id":"sh/wralsf6h","slide":4,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[64,457,68,48]}
+{"kind":"textbox","id":"sh/vqh4zapc","slide":4,"text":"What does affine sheaf structure add beyond weighted graphs?","textPreview":"What does affine sheaf structure add beyond weighted graphs?","textChars":60,"textLines":1,"bbox":[144,455,438,68]}
+{"kind":"shape","id":"sh/ap83q5or","slide":4,"bbox":[650,433,570,120]}
+{"kind":"textbox","id":"sh/dwf2p07y","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[672,457,68,48]}
+{"kind":"textbox","id":"sh/cv6lgv6d","slide":4,"text":"What can available Ghana data support—and what remains unknowable?","textPreview":"What can available Ghana data support—and what remains unknowable?","textChars":66,"textLines":1,"bbox":[752,455,438,68]}
+{"kind":"notes","id":"nt/cwv393","slide":4,"text":"Timing: 3:00–4:00\n\nState the aim and use four self-describing questions. Do not introduce internal milestone labels. Explain that the objectives are operationalised through component checks, integration experiments, representation tests and field supportability analysis.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\draftbychapter\\PhDChapter1_refined.docx\n[/Sources]"}
+{"kind":"slide","id":"sl/tswqc1","slide":5,"title":"WHAT IS NEW","textShapes":16}
+{"kind":"textbox","id":"sh/dcbihsny","slide":5,"text":"WHAT IS NEW","textPreview":"WHAT IS NEW","textChars":11,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/q9kz6d47","slide":5,"text":"The novelty is the coupling and the validation logic","textPreview":"The novelty is the coupling and the validation logic","textChars":52,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/rat0fi5s","slide":5,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/472h43m1","slide":5,"text":"Contribution","textPreview":"Contribution","textChars":12,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/58bid8nm","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"textbox","id":"sh/i50z2d4b","slide":5,"text":"Inherited foundations","textPreview":"Inherited foundations","textChars":21,"textLines":1,"bbox":[42,172,500,34]}
+{"kind":"shape","id":"sh/36t0by5w","slide":5,"bbox":[42,220,500,52]}
+{"kind":"textbox","id":"sh/o3m1g7ml","slide":5,"text":"Tracer dating and lumped-parameter models","textPreview":"Tracer dating and lumped-parameter models","textChars":41,"textLines":1,"bbox":[62,234,460,26]}
+{"kind":"shape","id":"sh/p4vipcn6","slide":5,"bbox":[42,290,500,52]}
+{"kind":"textbox","id":"sh/tc3qd4ny","slide":5,"text":"Directed weighted graphs","textPreview":"Directed weighted graphs","textChars":24,"textLines":1,"bbox":[62,304,460,26]}
+{"kind":"shape","id":"sh/8bupkzmt","slide":5,"bbox":[42,360,500,52]}
+{"kind":"textbox","id":"sh/7alobu58","slide":5,"text":"Sheaf-theoretic compatibility","textPreview":"Sheaf-theoretic compatibility","textChars":29,"textLines":1,"bbox":[62,374,460,26]}
+{"kind":"shape","id":"sh/6pc7ipon","slide":5,"bbox":[42,430,500,52]}
+{"kind":"textbox","id":"sh/lo369kn2","slide":5,"text":"PHREEQC inverse modelling","textPreview":"PHREEQC inverse modelling","textChars":25,"textLines":1,"bbox":[62,444,460,26]}
+{"kind":"shape","id":"sh/knapgf6h","slide":5,"bbox":[42,500,500,52]}
+{"kind":"textbox","id":"sh/jm1o7a5w","slide":5,"text":"MODFLOW / MODPATH reference transport","textPreview":"MODFLOW / MODPATH reference transport","textChars":37,"textLines":1,"bbox":[62,514,460,26]}
+{"kind":"textbox","id":"sh/yls7epob","slide":5,"text":"Thesis contributions","textPreview":"Thesis contributions","textChars":20,"textLines":1,"bbox":[675,172,500,34]}
+{"kind":"shape","id":"sh/5knqlon6","slide":5,"bbox":[675,220,500,52]}
+{"kind":"textbox","id":"sh/4jepsjml","slide":5,"text":"Groundwater-specific executable coupling","textPreview":"Groundwater-specific executable coupling","textChars":40,"textLines":1,"bbox":[695,234,460,26]}
+{"kind":"shape","id":"sh/onm9onux","slide":5,"bbox":[675,290,500,52]}
+{"kind":"textbox","id":"sh/povaxsvi","slide":5,"text":"Uncertainty and identifiability as outputs","textPreview":"Uncertainty and identifiability as outputs","textChars":42,"textLines":1,"bbox":[695,304,460,26]}
+{"kind":"shape","id":"sh/2l4rmdcr","slide":5,"bbox":[675,360,500,52]}
+{"kind":"textbox","id":"sh/3mdsvidc","slide":5,"text":"Adverse controls for false confidence","textPreview":"Adverse controls for false confidence","textChars":37,"textLines":1,"bbox":[695,374,460,26]}
+{"kind":"shape","id":"sh/gjm9knu1","slide":5,"bbox":[675,430,500,52]}
+{"kind":"textbox","id":"sh/1kvat8vm","slide":5,"text":"Locked claim-decision protocols","textPreview":"Locked claim-decision protocols","textChars":31,"textLines":1,"bbox":[695,444,460,26]}
+{"kind":"shape","id":"sh/ehkridcv","slide":5,"bbox":[675,500,500,52]}
+{"kind":"textbox","id":"sh/fitsridg","slide":5,"text":"Field evidence-ceiling diagnostics","textPreview":"Field evidence-ceiling diagnostics","textChars":34,"textLines":1,"bbox":[695,514,460,26]}
+{"kind":"notes","id":"nt/tswqc1","slide":5,"text":"Timing: 4:00–5:00\n\nBe explicit: the thesis does not claim to invent tracer dating, graph modelling, sheaf theory or inverse hydrogeochemistry. The contribution is their formal, executable, groundwater-specific coupling with uncertainty propagation, adverse controls and claim rules. This is a defensible methodological novelty.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\draftbychapter\\PhDChapter1_refined.docx\n[/Sources]"}
+{"kind":"slide","id":"sl/d9iuhp","slide":6,"title":"MECHANISM","textShapes":16}
+{"kind":"textbox","id":"sh/9ojetwfi","slide":6,"text":"MECHANISM","textPreview":"MECHANISM","textChars":9,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/ml8vyhw7","slide":6,"text":"A sheaf represents how evidence changes across an edge","textPreview":"A sheaf represents how evidence changes across an edge","textChars":54,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/nmhwrmxs","slide":6,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/wbad4be9","slide":6,"text":"Method","textPreview":"Method","textChars":6,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/xcjexwfu","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/a9sv21w3","slide":6,"bbox":[42,166,530,430]}
+{"kind":"textbox","id":"sh/va1wv6xo","slide":6,"text":"Weighted graph","textPreview":"Weighted graph","textChars":14,"textLines":1,"bbox":[72,194,470,36]}
+{"kind":"textbox","id":"sh/kfux8be5","slide":6,"text":"NODE A","textPreview":"NODE A","textChars":6,"textLines":1,"bbox":[90,314,145,40]}
+{"kind":"textbox","id":"sh/5g3e1gfq","slide":6,"text":"NODE B","textPreview":"NODE B","textChars":6,"textLines":1,"bbox":[385,314,145,40]}
+{"kind":"shape","id":"sh/d0zyhwfa","slide":6,"bbox":[92,274,140,118]}
+{"kind":"shape","id":"sh/czqxobep","slide":6,"bbox":[387,274,140,118]}
+{"kind":"textbox","id":"sh/ryhgf6x4","slide":6,"text":"——  w  ——","textPreview":"——  w  ——","textChars":9,"textLines":1,"bbox":[236,318,150,32]}
+{"kind":"textbox","id":"sh/qx8fm1wj","slide":6,"text":"One scalar edge weight says how strongly nodes are related.","textPreview":"One scalar edge weight says how strongly nodes are related.","textChars":59,"textLines":1,"bbox":[84,455,445,74]}
+{"kind":"shape","id":"sh/1ojylgv6","slide":6,"bbox":[620,166,618,430]}
+{"kind":"textbox","id":"sh/03axsbe1","slide":6,"text":"Affine sheaf","textPreview":"Affine sheaf","textChars":12,"textLines":1,"bbox":[650,194,558,36]}
+{"kind":"textbox","id":"sh/z21gj6dg","slide":6,"text":"M7 evidence: static scalar affine test","textPreview":"M7 evidence: static scalar affine test","textChars":38,"textLines":1,"bbox":[675,235,508,24]}
+{"kind":"shape","id":"sh/e1sfq1wv","slide":6,"bbox":[675,283,155,110]}
+{"kind":"shape","id":"sh/h8fe9cf2","slide":6,"bbox":[1023,283,155,110]}
+{"kind":"textbox","id":"sh/g76xgreh","slide":6,"text":"xᵤ","textPreview":"xᵤ","textChars":2,"textLines":1,"bbox":[686,313,133,42]}
+{"kind":"textbox","id":"sh/8baxwrmd","slide":6,"text":"xᵥ","textPreview":"xᵥ","textChars":2,"textLines":1,"bbox":[1034,313,133,42]}
+{"kind":"textbox","id":"sh/tcjypwny","slide":6,"text":"xᵥ ≈ αₑxᵤ + bₑ","textPreview":"xᵥ ≈ αₑxᵤ + bₑ","textChars":14,"textLines":1,"bbox":[838,317,178,38]}
+{"kind":"textbox","id":"sh/69sfuh47","slide":6,"text":"Edge-specific gain and offset; global inconsistency localises conflict.","textPreview":"Edge-specific gain and offset; global inconsistency localises conflict.","textChars":71,"textLines":1,"bbox":[675,430,508,60]}
+{"kind":"textbox","id":"sh/7a1gnm5s","slide":6,"text":"Multivariate vector-stalk performance remains unvalidated.","textPreview":"Multivariate vector-stalk performance remains unvalidated.","textChars":58,"textLines":1,"bbox":[675,511,508,32]}
+{"kind":"notes","id":"nt/d9iuhp","slide":6,"text":"Timing: 5:00–6:20\n\nUse the simplest mathematical distinction. A weighted graph assigns a scalar relation to an edge. The M7 representation benchmark tested static scalar affine relations with edge-specific gain and offset, global compatibility and conflict localisation. The wider framework can represent multivariate stalks, but that capability was not validated here. Do not imply that representation automatically improves every prediction.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\hydrosheaf\\sheaf\\directed_section.py\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\docs\\m7_sheaf_vs_graph_results.md\n[/Sources]"}
+{"kind":"slide","id":"sl/ez4ica","slide":7,"title":"LOCKED EVALUATION","textShapes":19}
+{"kind":"textbox","id":"sh/ylgz6lgz","slide":7,"text":"LOCKED EVALUATION","textPreview":"LOCKED EVALUATION","textChars":17,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/l87y10fq","slide":7,"text":"Claims were matched to an evidence ladder","textPreview":"Claims were matched to an evidence ladder","textChars":41,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/knyh8vy5","slide":7,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/7apg3axw","slide":7,"text":"Validation","textPreview":"Validation","textChars":10,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/69gza5gb","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/tcry5kfm","slide":7,"bbox":[42,154,1196,72]}
+{"kind":"textbox","id":"sh/8byhcfyh","slide":7,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[58,169,52,38]}
+{"kind":"textbox","id":"sh/ne5gr6hc","slide":7,"text":"Unit and conversion verification","textPreview":"Unit and conversion verification","textChars":32,"textLines":1,"bbox":[127,167,390,30]}
+{"kind":"textbox","id":"sh/2dwfy1gr","slide":7,"text":"Does the implementation reproduce its declared input?","textPreview":"Does the implementation reproduce its declared input?","textChars":53,"textLines":1,"bbox":[535,169,670,34]}
+{"kind":"shape","id":"sh/8ne9cfyx","slide":7,"bbox":[42,246,1196,72]}
+{"kind":"textbox","id":"sh/9onq5kzi","slide":7,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[58,261,52,38]}
+{"kind":"textbox","id":"sh/m1wrapg7","slide":7,"text":"Reference emulation","textPreview":"Reference emulation","textChars":19,"textLines":1,"bbox":[127,259,390,30]}
+{"kind":"textbox","id":"sh/nm583ahs","slide":7,"text":"Does it agree with an established public workflow?","textPreview":"Does it agree with an established public workflow?","textChars":50,"textLines":1,"bbox":[535,261,670,34]}
+{"kind":"shape","id":"sh/wry9gzy9","slide":7,"bbox":[42,338,1196,72]}
+{"kind":"textbox","id":"sh/xs7a94zu","slide":7,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[58,353,52,38]}
+{"kind":"textbox","id":"sh/apwrepg3","slide":7,"text":"Controlled known-truth benchmarks","textPreview":"Controlled known-truth benchmarks","textChars":33,"textLines":1,"bbox":[127,351,390,30]}
+{"kind":"textbox","id":"sh/vq587uho","slide":7,"text":"Can it recover planted topology, age and reactions?","textPreview":"Can it recover planted topology, age and reactions?","textChars":51,"textLines":1,"bbox":[535,353,670,34]}
+{"kind":"shape","id":"sh/cvu94vy5","slide":7,"bbox":[42,430,1196,72]}
+{"kind":"textbox","id":"sh/dw3qx0za","slide":7,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[58,445,52,38]}
+{"kind":"textbox","id":"sh/dsv61wre","slide":7,"text":"Field transfer and supportability","textPreview":"Field transfer and supportability","textChars":33,"textLines":1,"bbox":[127,443,390,30]}
+{"kind":"textbox","id":"sh/srmp8rat","slide":7,"text":"What do real data permit without known truth?","textPreview":"What do real data permit without known truth?","textChars":45,"textLines":1,"bbox":[535,445,670,34]}
+{"kind":"shape","id":"sh/rqdozm98","slide":7,"bbox":[42,522,1196,72]}
+{"kind":"textbox","id":"sh/6p476hsn","slide":7,"text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[58,537,52,38]}
+{"kind":"textbox","id":"sh/1gf65wra","slide":7,"text":"Matched end-to-end field truth","textPreview":"Matched end-to-end field truth","textChars":30,"textLines":1,"bbox":[127,535,390,30]}
+{"kind":"textbox","id":"sh/0fmpcbqp","slide":7,"text":"Still missing: age + repeated heads + chemistry + connectivity","textPreview":"Still missing: age + repeated heads + chemistry + connectivity","textChars":62,"textLines":1,"bbox":[535,537,670,34]}
+{"kind":"notes","id":"nt/ez4ica","slide":7,"text":"Timing: 6:20–7:40\n\nDefine a locked test: the generator and decision rules are fixed using development data; the held-out cases are opened once for the confirmatory comparison. Emphasise that different evidence tiers support different claims. Synthetic known truth and field transfer are complementary, but neither substitutes for matched field truth.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\manuscript\\revision\\FINAL_VERIFICATION_20260730.md\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\draftbychapter\\PhDChapter1_refined.docx\n[/Sources]"}
+{"kind":"slide","id":"sl/5cit1u","slide":8,"title":"COMPONENT VERIFICATION","textShapes":14}
+{"kind":"textbox","id":"sh/zqp0ne5k","slide":8,"text":"COMPONENT VERIFICATION","textPreview":"COMPONENT VERIFICATION","textChars":22,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/0ry1gjm5","slide":8,"text":"Foundations: recover capability before testing novelty","textPreview":"Foundations: recover capability before testing novelty","textChars":54,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/ls7iponq","slide":8,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/mtgjit4b","slide":8,"text":"Results","textPreview":"Results","textChars":7,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/nu90re5w","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/8fi1kjmh","slide":8,"bbox":[42,170,350,132]}
+{"kind":"shape","id":"sh/9gritonm","slide":8,"bbox":[42,170,8,132]}
+{"kind":"textbox","id":"sh/ah0jmt47","slide":8,"text":"100","textPreview":"100","textChars":3,"textLines":1,"bbox":[62,186,316,50]}
+{"kind":"textbox","id":"sh/vi90vy5s","slide":8,"text":"controlled transport–reaction realisations","textPreview":"controlled transport–reaction realisations","textChars":42,"textLines":1,"bbox":[62,242,316,42]}
+{"kind":"shape","id":"sh/3adk3apg","slide":8,"bbox":[414,170,350,132]}
+{"kind":"shape","id":"sh/i94ja5ov","slide":8,"bbox":[414,170,8,132]}
+{"kind":"textbox","id":"sh/5cv2507m","slide":8,"text":"0.058","textPreview":"0.058","textChars":5,"textLines":1,"bbox":[434,186,316,50]}
+{"kind":"textbox","id":"sh/4bmlcf61","slide":8,"text":"median transport absolute error","textPreview":"median transport absolute error","textChars":31,"textLines":1,"bbox":[434,242,316,42]}
+{"kind":"shape","id":"sh/v6dkzqp4","slide":8,"bbox":[786,170,350,132]}
+{"kind":"shape","id":"sh/u5kj6loz","slide":8,"bbox":[786,170,8,132]}
+{"kind":"textbox","id":"sh/h8v2107a","slide":8,"text":"0.112","textPreview":"0.112","textChars":5,"textLines":1,"bbox":[806,186,316,50]}
+{"kind":"textbox","id":"sh/g7m18v6p","slide":8,"text":"median reaction error","textPreview":"median reaction error","textChars":21,"textLines":1,"bbox":[806,242,316,42]}
+{"kind":"shape","id":"sh/f2xkbupo","slide":8,"bbox":[42,344,550,220]}
+{"kind":"textbox","id":"sh/e1o3ipo3","slide":8,"text":"What this establishes","textPreview":"What this establishes","textChars":21,"textLines":1,"bbox":[72,372,490,34]}
+{"kind":"textbox","id":"sh/axsnat8b","slide":8,"text":"• controlled recovery is operational\n• MODPATH archives can be converted into reference graphs\n• PHREEQC-compatible proxy executed; live PHREEQC validated later","textPreview":"• controlled recovery is operational | • MODPATH archives can be converted into reference graphs | • PHREEQC-compatible proxy executed; l...","textChars":160,"textLines":3,"bbox":[72,424,478,110]}
+{"kind":"shape","id":"sh/by143y9w","slide":8,"bbox":[620,344,578,220]}
+{"kind":"textbox","id":"sh/cza5cjqh","slide":8,"text":"What this does not establish","textPreview":"What this does not establish","textChars":28,"textLines":1,"bbox":[650,372,518,34]}
+{"kind":"textbox","id":"sh/x0j65orm","slide":8,"text":"F1 = 1.00 for archive conversion is verification of conversion—not perfect inference of an unknown topology.","textPreview":"F1 = 1.00 for archive conversion is verification of conversion—not perfect inference of an unknown topology.","textChars":108,"textLines":1,"bbox":[650,424,510,100]}
+{"kind":"notes","id":"nt/5cit1u","slide":8,"text":"Timing: 7:40–8:35\n\nThe early controlled benchmark checked whether the framework could recover planted transport and reaction behaviour. M2 used a PHREEQC-compatible deterministic proxy; the later reaction benchmark supplied the live-PHREEQC evidence. The perfect 174-edge MODPATH result is deliberately labelled conversion verification, not unknown-topology inference.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M2\\m2_benchmark\\docs\\m2_results_summary.md\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M5\\m5_inverse_reaction_benchmark\\docs\\m5_results_summary.md\n[/Sources]"}
+{"kind":"slide","id":"sl/z5vuax","slide":9,"title":"RESIDENCE TIME","textShapes":25}
+{"kind":"textbox","id":"sh/tgb294vi","slide":9,"text":"RESIDENCE TIME","textPreview":"RESIDENCE TIME","textChars":14,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/6dk3ypwr","slide":9,"text":"Age inference closely reproduced reported configurations—but weak topology added no value","textPreview":"Age inference closely reproduced reported configurations—but weak topology added no value","textChars":89,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/retk7udc","slide":9,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/4bilwfe1","slide":9,"text":"Results","textPreview":"Results","textChars":7,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/5cr25kvm","slide":9,"text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/ip03u5wv","slide":9,"bbox":[42,160,250,132]}
+{"kind":"shape","id":"sh/ja9k3adg","slide":9,"bbox":[42,160,8,132]}
+{"kind":"textbox","id":"sh/wnilsfep","slide":9,"text":"329","textPreview":"329","textChars":3,"textLines":1,"bbox":[62,176,216,50]}
+{"kind":"textbox","id":"sh/hor21kva","slide":9,"text":"strict reportable fits","textPreview":"strict reportable fits","textChars":22,"textLines":1,"bbox":[62,232,216,42]}
+{"kind":"shape","id":"sh/9sn2t87m","slide":9,"bbox":[312,160,250,132]}
+{"kind":"shape","id":"sh/orel0361","slide":9,"bbox":[312,160,8,132]}
+{"kind":"textbox","id":"sh/nq5krypg","slide":9,"text":"0.0279","textPreview":"0.0279","textChars":6,"textLines":1,"bbox":[332,176,216,50]}
+{"kind":"textbox","id":"sh/mpw3ydov","slide":9,"text":"median |Δ log₁₀ age|","textPreview":"median |Δ log₁₀ age|","textChars":20,"textLines":1,"bbox":[332,232,216,42]}
+{"kind":"shape","id":"sh/1on2p87q","slide":9,"bbox":[582,160,250,132]}
+{"kind":"shape","id":"sh/0nelw365","slide":9,"bbox":[582,160,8,132]}
+{"kind":"textbox","id":"sh/zm5knypk","slide":9,"text":"0.937","textPreview":"0.937","textChars":5,"textLines":1,"bbox":[602,176,216,50]}
+{"kind":"textbox","id":"sh/elc3utoz","slide":9,"text":"R² against reported configuration","textPreview":"R² against reported configuration","textChars":33,"textLines":1,"bbox":[602,232,216,42]}
+{"kind":"shape","id":"sh/dk32lo7e","slide":9,"bbox":[852,160,250,132]}
+{"kind":"shape","id":"sh/cju1sj6t","slide":9,"bbox":[852,160,8,132]}
+{"kind":"textbox","id":"sh/43yl83ep","slide":9,"text":"87.5%","textPreview":"87.5%","textChars":5,"textLines":1,"bbox":[872,176,216,50]}
+{"kind":"textbox","id":"sh/54721ofa","slide":9,"text":"within factor two","textPreview":"within factor two","textChars":17,"textLines":1,"bbox":[872,232,216,42]}
+{"kind":"shape","id":"sh/i1g36twj","slide":9,"bbox":[42,330,1196,228]}
+{"kind":"textbox","id":"sh/32pkzyx4","slide":9,"text":"Topology stress test","textPreview":"Topology stress test","textChars":20,"textLines":1,"bbox":[72,360,300,34]}
+{"kind":"textbox","id":"sh/wzel4jet","slide":9,"text":"Weak hydraulic proxy","textPreview":"Weak hydraulic proxy","textChars":20,"textLines":1,"bbox":[72,410,245,26]}
+{"kind":"textbox","id":"sh/h072dofe","slide":9,"text":"−0.00135 RMSE","textPreview":"−0.00135 RMSE","textChars":13,"textLines":1,"bbox":[335,410,175,26]}
+{"kind":"textbox","id":"sh/udw329wn","slide":9,"text":"factor-two agreement worsened","textPreview":"factor-two agreement worsened","textChars":29,"textLines":1,"bbox":[535,410,340,26]}
+{"kind":"shape","id":"sh/ve5kbex8","slide":9,"bbox":[950,406,210,34]}
+{"kind":"textbox","id":"sh/0vilgnex","slide":9,"text":"NO ROBUST GAIN","textPreview":"NO ROBUST GAIN","textChars":14,"textLines":1,"bbox":[960,413,190,20]}
+{"kind":"textbox","id":"sh/1wrm98fi","slide":9,"text":"Wrong direction","textPreview":"Wrong direction","textChars":15,"textLines":1,"bbox":[72,458,245,26]}
+{"kind":"textbox","id":"sh/b2dwv6lw","slide":9,"text":"+0.1008 RMSE","textPreview":"+0.1008 RMSE","textChars":12,"textLines":1,"bbox":[335,458,175,26]}
+{"kind":"textbox","id":"sh/a14fm1kb","slide":9,"text":"clear negative transfer","textPreview":"clear negative transfer","textChars":23,"textLines":1,"bbox":[535,458,340,26]}
+{"kind":"shape","id":"sh/x4fexg32","slide":9,"bbox":[950,454,210,34]}
+{"kind":"textbox","id":"sh/w36xob2h","slide":9,"text":"HARMFUL","textPreview":"HARMFUL","textChars":7,"textLines":1,"bbox":[960,461,190,20]}
+{"kind":"textbox","id":"sh/j6xwzqls","slide":9,"text":"Random graph","textPreview":"Random graph","textChars":12,"textLines":1,"bbox":[72,506,245,26]}
+{"kind":"textbox","id":"sh/y5ofqlkn","slide":9,"text":"+0.6550 RMSE","textPreview":"+0.6550 RMSE","textChars":12,"textLines":1,"bbox":[335,506,175,26]}
+{"kind":"textbox","id":"sh/l8fy1g3y","slide":9,"text":"severe negative transfer","textPreview":"severe negative transfer","textChars":24,"textLines":1,"bbox":[535,506,340,26]}
+{"kind":"shape","id":"sh/k76xsv2d","slide":9,"bbox":[950,502,210,34]}
+{"kind":"textbox","id":"sh/zatwnmlo","slide":9,"text":"HARMFUL","textPreview":"HARMFUL","textChars":7,"textLines":1,"bbox":[960,509,190,20]}
+{"kind":"notes","id":"nt/z5vuax","slide":9,"text":"Timing: 8:35–10:25\n\nThis is close agreement with a reported TracerLPM/USGS configuration, not formal equivalence and not error-free field-age truth. HydroSheaf reproduced the reported outputs closely on 329 strict fits. It did not need to beat TracerLPM; the test asked whether topology supplied independent information. The weak proxy failed the locked improvement rule, while wrong and random graphs demonstrated negative transfer.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\M3_FINAL_ACCURACY_AUDIT.md\n[/Sources]"}
+{"kind":"slide","id":"sl/295ddh","slide":10,"title":"DIRECTED CONNECTIVITY","textShapes":10}
+{"kind":"textbox","id":"sh/uto7atcj","slide":10,"text":"DIRECTED CONNECTIVITY","textPreview":"DIRECTED CONNECTIVITY","textChars":21,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/hwfq58va","slide":10,"text":"Topology skill was conditional, not perfect","textPreview":"Topology skill was conditional, not perfect","textChars":43,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/gv6pc3up","slide":10,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/3yx87idg","slide":10,"text":"Results","textPreview":"Results","textChars":7,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/2xo7edcv","slide":10,"text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/4zqpgnul","slide":10,"bbox":[770,162,430,160]}
+{"kind":"textbox","id":"sh/j2dovedw","slide":10,"text":"Head-gradient inference","textPreview":"Head-gradient inference","textChars":23,"textLines":1,"bbox":[800,185,370,30]}
+{"kind":"textbox","id":"sh/i14729cb","slide":10,"text":"P 0.49  ·  R 0.84  ·  F1 0.62","textPreview":"P 0.49  ·  R 0.84  ·  F1 0.62","textChars":29,"textLines":1,"bbox":[800,242,370,40]}
+{"kind":"shape","id":"sh/87uxs7up","slide":10,"bbox":[770,342,430,112]}
+{"kind":"textbox","id":"sh/983e1cbu","slide":10,"text":"Independent scenarios","textPreview":"Independent scenarios","textChars":21,"textLines":1,"bbox":[800,362,370,28]}
+{"kind":"textbox","id":"sh/m5cvqhcj","slide":10,"text":"1 perfect · 3 with FP/FN · 2 scale mismatches","textPreview":"1 perfect · 3 with FP/FN · 2 scale mismatches","textChars":45,"textLines":1,"bbox":[800,404,370,30]}
+{"kind":"shape","id":"sh/76lwz2t4","slide":10,"bbox":[770,474,430,112]}
+{"kind":"textbox","id":"sh/wbexwrul","slide":10,"text":"Guardrail","textPreview":"Guardrail","textChars":9,"textLines":1,"bbox":[800,494,370,28]}
+{"kind":"textbox","id":"sh/hcne5wb6","slide":10,"text":"Model-conditioned MODPATH topology ≠ field connectivity truth","textPreview":"Model-conditioned MODPATH topology ≠ field connectivity truth","textChars":61,"textLines":1,"bbox":[800,536,370,36]}
+{"kind":"image","id":"im/wruxczux","slide":10,"name":"","alt":"MODPATH particle paths and reference graph","bbox":[42,150,690,500]}
+{"kind":"notes","id":"nt/295ddh","slide":10,"text":"Timing: 10:25–12:00\n\nExplain the difference between reference construction and independent inference. The headline publication figure gives a model-conditioned head-gradient diagnostic around P 0.49, R 0.84 and F1 0.62, with negative controls near zero. Independent scenario performance varies with evidence and scale. This is conditional topology skill against MODPATH-derived reference transitions, not independently measured field connectivity.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\docs\\02_figures.md\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\docs\\m4_results_summary.md\n[/Sources]"}
+{"kind":"slide","id":"sl/mpeh1d","slide":11,"title":"INVERSE HYDROGEOCHEMISTRY","textShapes":10}
+{"kind":"textbox","id":"sh/1wrupcjm","slide":11,"text":"INVERSE HYDROGEOCHEMISTRY","textPreview":"INVERSE HYDROGEOCHEMISTRY","textChars":25,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/et0vux0v","slide":11,"text":"Low residuals did not identify unique reaction mechanisms","textPreview":"Low residuals did not identify unique reaction mechanisms","textChars":57,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/fu9cn21g","slide":11,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/oz2d07ix","slide":11,"text":"Results","textPreview":"Results","textChars":7,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/p0betcji","slide":11,"text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/nytcr21c","slide":11,"bbox":[845,162,350,132]}
+{"kind":"shape","id":"sh/wn2d4ri9","slide":11,"bbox":[845,162,8,132]}
+{"kind":"textbox","id":"sh/xobexwje","slide":11,"text":"185.78","textPreview":"185.78","textChars":6,"textLines":1,"bbox":[865,178,316,50]}
+{"kind":"textbox","id":"sh/5sb2l4be","slide":11,"text":"mean feasible PHREEQC models / scenario","textPreview":"mean feasible PHREEQC models / scenario","textChars":39,"textLines":1,"bbox":[865,234,316,42]}
+{"kind":"shape","id":"sh/4r21szut","slide":11,"bbox":[845,314,350,132]}
+{"kind":"shape","id":"sh/3q9kjud8","slide":11,"bbox":[845,314,8,132]}
+{"kind":"textbox","id":"sh/ip0jqpcn","slide":11,"text":"6.79","textPreview":"6.79","textChars":4,"textLines":1,"bbox":[865,330,316,50]}
+{"kind":"textbox","id":"sh/dwb2poba","slide":11,"text":"mean minimal models / scenario","textPreview":"mean minimal models / scenario","textChars":30,"textLines":1,"bbox":[865,386,316,42]}
+{"kind":"shape","id":"sh/sv21wju5","slide":11,"bbox":[845,466,350,130]}
+{"kind":"textbox","id":"sh/rutknetk","slide":11,"text":"Primary guarded result","textPreview":"Primary guarded result","textChars":22,"textLines":1,"bbox":[868,486,305,28]}
+{"kind":"textbox","id":"sh/qtkju9cz","slide":11,"text":"Phase F1 0.563\nEquivalence-class F1 0.609\nFDR 0.361","textPreview":"Phase F1 0.563 | Equivalence-class F1 0.609 | FDR 0.361","textChars":51,"textLines":3,"bbox":[868,525,305,58]}
+{"kind":"image","id":"im/7ypsvmps","slide":11,"name":"","alt":"Low residual chemical fits can recover incorrect reaction pathways","bbox":[42,145,770,505]}
+{"kind":"notes","id":"nt/mpeh1d","slide":11,"text":"Timing: 12:00–14:00\n\nUse the figure to show that concentration reconstruction can be excellent while the recovered pathway is wrong. Conventional inverse PHREEQC produced many feasible and minimal models. The defensible output is family or equivalence-class support, not unique mineral truth. This result changes the reporting target from a single best pathway to a constrained ensemble.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M5\\m5_inverse_reaction_benchmark\\docs\\m5_results_summary.md\n[/Sources]"}
+{"kind":"slide","id":"sl/43vej5","slide":12,"title":"FIELD SUPPORTABILITY","textShapes":11}
+{"kind":"textbox","id":"sh/lkbqt0fe","slide":12,"text":"FIELD SUPPORTABILITY","textPreview":"FIELD SUPPORTABILITY","textChars":20,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/yx07y5gn","slide":12,"text":"Ghana field transfer identified the evidence ceiling","textPreview":"Ghana field transfer identified the evidence ceiling","textChars":52,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/jy98rax8","slide":12,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/8n2p4fe5","slide":12,"text":"Results","textPreview":"Results","textChars":7,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/tobqxkfa","slide":12,"text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/7mt8vaxk","slide":12,"bbox":[850,162,350,132]}
+{"kind":"shape","id":"sh/grm98fe1","slide":12,"bbox":[850,162,8,132]}
+{"kind":"textbox","id":"sh/hsvq1kfm","slide":12,"text":"294 / 320","textPreview":"294 / 320","textChars":9,"textLines":1,"bbox":[870,178,316,50]}
+{"kind":"textbox","id":"sh/dk7etczy","slide":12,"text":"Northern Ghana quantitative records","textPreview":"Northern Ghana quantitative records","textChars":35,"textLines":1,"bbox":[870,234,316,42]}
+{"kind":"shape","id":"sh/cjydk7yd","slide":12,"bbox":[850,314,350,132]}
+{"kind":"shape","id":"sh/bypwr2hs","slide":12,"bbox":[850,314,8,132]}
+{"kind":"textbox","id":"sh/qxwvixg7","slide":12,"text":"52%","textPreview":"52%","textChars":3,"textLines":1,"bbox":[870,330,316,50]}
+{"kind":"textbox","id":"sh/lo7exczu","slide":12,"text":"wells lose identifiability without Sr/SiO₂","textPreview":"wells lose identifiability without Sr/SiO₂","textChars":42,"textLines":1,"bbox":[870,386,316,42]}
+{"kind":"shape","id":"sh/0nydo7y9","slide":12,"bbox":[850,466,350,132]}
+{"kind":"textbox","id":"sh/zmpwv2h4","slide":12,"text":"The warning","textPreview":"The warning","textChars":11,"textLines":1,"bbox":[875,488,300,28]}
+{"kind":"textbox","id":"sh/ylgvmhgj","slide":12,"text":"Mean fit score stayed ≈68–71 while process labels flipped in 35.6% of wells.","textPreview":"Mean fit score stayed ≈68–71 while process labels flipped in 35.6% of wells.","textChars":76,"textLines":1,"bbox":[875,528,300,56]}
+{"kind":"shape","id":"sh/hsnulszq","slide":12,"bbox":[850,610,350,34]}
+{"kind":"textbox","id":"sh/gredcny5","slide":12,"text":"Predeclared evidence gate; not observed field truth","textPreview":"Predeclared evidence gate; not observed field truth","textChars":51,"textLines":1,"bbox":[862,618,326,18]}
+{"kind":"image","id":"im/bmh8va9s","slide":12,"name":"","alt":"Evidence-tier ablation showing identifiability collapse after removing strontium and silica","bbox":[42,145,780,505]}
+{"kind":"notes","id":"nt/43vej5","slide":12,"text":"Timing: 14:00–16:00\n\nThe Ghana result is not exact age, flow-path or reaction validation. It is an operational evidence-ceiling diagnosis under a predeclared gate, with a synthetic check supporting the direction of the result. Removing strontium and silica moved about 52 percent of wells to non-identifiable, while fit metrics and bootstrap stability remained high. This shows why conventional good-fit criteria can conceal loss of mechanistic resolution.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M6\\m6_field_transfer_benchmark\\docs\\m6_results_summary.md\n[/Sources]"}
+{"kind":"slide","id":"sl/dw1cfh","slide":13,"title":"CONDITIONAL INTEGRATION","textShapes":13}
+{"kind":"textbox","id":"sh/72p03i50","slide":13,"text":"CONDITIONAL INTEGRATION","textPreview":"CONDITIONAL INTEGRATION","textChars":23,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/83yhcnml","slide":13,"text":"Only chemistry delivered a robust topology-ranking gain","textPreview":"Only chemistry delivered a robust topology-ranking gain","textChars":55,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/947i5sn6","slide":13,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/u5gzex4r","slide":13,"text":"Results","textPreview":"Results","textChars":7,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/v6p07i5c","slide":13,"text":"13","textPreview":"13","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/h8ri9sni","slide":13,"bbox":[860,150,338,126]}
+{"kind":"textbox","id":"sh/a9wz2ton","slide":13,"text":"CHEMISTRY ADDED · SURVIVES CORRECTION","textPreview":"CHEMISTRY ADDED · SURVIVES CORRECTION","textChars":37,"textLines":1,"bbox":[882,170,294,22]}
+{"kind":"textbox","id":"sh/ba5gvy58","slide":13,"text":"+0.447 PR-AUC","textPreview":"+0.447 PR-AUC","textChars":13,"textLines":1,"bbox":[882,207,294,32]}
+{"kind":"shape","id":"sh/vepc7a9o","slide":13,"bbox":[860,292,338,126]}
+{"kind":"textbox","id":"sh/udgvy5sj","slide":13,"text":"HYDRAULICS ADDED","textPreview":"HYDRAULICS ADDED","textChars":16,"textLines":1,"bbox":[882,312,294,22]}
+{"kind":"textbox","id":"sh/hg7e9kru","slide":13,"text":"+0.0091 PR-AUC","textPreview":"+0.0091 PR-AUC","textChars":14,"textLines":1,"bbox":[882,347,294,32]}
+{"kind":"textbox","id":"sh/gfyd0fa9","slide":13,"text":"not multiplicity-significant (adjusted p = 0.070)","textPreview":"not multiplicity-significant (adjusted p = 0.070)","textChars":49,"textLines":1,"bbox":[882,384,294,20]}
+{"kind":"shape","id":"sh/7a5c3a9s","slide":13,"bbox":[860,434,338,126]}
+{"kind":"textbox","id":"sh/69wvu5s7","slide":13,"text":"AGE ADDED","textPreview":"AGE ADDED","textChars":9,"textLines":1,"bbox":[882,454,294,22]}
+{"kind":"textbox","id":"sh/tc7u5kry","slide":13,"text":"−0.0060 PR-AUC","textPreview":"−0.0060 PR-AUC","textChars":14,"textLines":1,"bbox":[882,489,294,32]}
+{"kind":"textbox","id":"sh/8bydwfad","slide":13,"text":"not multiplicity-significant (adjusted p = 0.070)","textPreview":"not multiplicity-significant (adjusted p = 0.070)","textChars":49,"textLines":1,"bbox":[882,526,294,20]}
+{"kind":"textbox","id":"sh/j65czq9w","slide":13,"text":"Added data ≠ added information","textPreview":"Added data ≠ added information","textChars":30,"textLines":1,"bbox":[860,584,338,32]}
+{"kind":"image","id":"im/dcjml0fu","slide":13,"name":"","alt":"Incremental contribution of hydraulics chemistry and age to topology ranking","bbox":[42,145,790,505]}
+{"kind":"notes","id":"nt/dw1cfh","slide":13,"text":"Timing: 16:00–17:50\n\nIn the independent generator, chemistry added strong topology-ranking information and its PR-AUC gain survived family-wise correction. The +0.0091 hydraulic PR-AUC contrast did not survive correction, although Brier and log-loss improvements did. The −0.0060 age ranking contrast also did not survive correction and supplies no evidence of positive value. The conclusion is conditional complementarity, not that every stream always helps.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\docs\\m7_3_results.md\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\manuscript\\sections\\03-results\\section.md\n[/Sources]"}
+{"kind":"slide","id":"sl/4ea6k3","slide":14,"title":"DIRECTION OF INFORMATION","textShapes":11}
+{"kind":"textbox","id":"sh/sbil8zm1","slide":14,"text":"DIRECTION OF INFORMATION","textPreview":"DIRECTION OF INFORMATION","textChars":24,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/7a94zu5g","slide":14,"text":"Correct topology reduced age non-uniqueness—especially with weak tracers","textPreview":"Correct topology reduced age non-uniqueness—especially with weak tracers","textChars":72,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/69g36p4v","slide":14,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/h0rm54ni","slide":14,"text":"Results","textPreview":"Results","textChars":7,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/gzilczmx","slide":14,"text":"14","textPreview":"14","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/ud03ap4r","slide":14,"bbox":[860,170,338,132]}
+{"kind":"shape","id":"sh/x472t0ne","slide":14,"bbox":[860,170,8,132]}
+{"kind":"textbox","id":"sh/w3yl0vmt","slide":14,"text":"−0.0619 y","textPreview":"−0.0619 y","textChars":9,"textLines":1,"bbox":[880,186,304,50]}
+{"kind":"textbox","id":"sh/ad4r6dsn","slide":14,"text":"MAE: correct graph vs no graph, two tracers","textPreview":"MAE: correct graph vs no graph, two tracers","textChars":43,"textLines":1,"bbox":[880,242,304,42]}
+{"kind":"shape","id":"sh/byd8fit8","slide":14,"bbox":[860,322,338,132]}
+{"kind":"shape","id":"sh/wzm983at","slide":14,"bbox":[860,322,8,132]}
+{"kind":"textbox","id":"sh/x0fqh8be","slide":14,"text":"−0.1642 y","textPreview":"−0.1642 y","textChars":9,"textLines":1,"bbox":[880,338,304,50]}
+{"kind":"textbox","id":"sh/y1oradsz","slide":14,"text":"MAE: correct graph vs no graph, ³H only","textPreview":"MAE: correct graph vs no graph, ³H only","textChars":39,"textLines":1,"bbox":[880,394,304,42]}
+{"kind":"shape","id":"sh/j2x8jitk","slide":14,"bbox":[860,474,338,120]}
+{"kind":"textbox","id":"sh/k369cnap","slide":14,"text":"Wrong direction","textPreview":"Wrong direction","textChars":15,"textLines":1,"bbox":[884,494,290,26]}
+{"kind":"textbox","id":"sh/l4fqlsra","slide":14,"text":"Reversed topology increased error and created negative transfer.","textPreview":"Reversed topology increased error and created negative transfer.","textChars":64,"textLines":1,"bbox":[884,534,290,48]}
+{"kind":"textbox","id":"sh/65orexsv","slide":14,"text":"Practical MAE change: 2.24% and 3.46% of baseline","textPreview":"Practical MAE change: 2.24% and 3.46% of baseline","textChars":49,"textLines":1,"bbox":[860,612,338,22]}
+{"kind":"image","id":"im/6tcbi90b","slide":14,"name":"","alt":"Age error and uncertainty under correct partial absent and reversed topology","bbox":[42,145,790,505]}
+{"kind":"notes","id":"nt/4ea6k3","slide":14,"text":"Timing: 17:50–19:10\n\nThis experiment reverses the direction of conditioning. Correct topology produced statistically precise but practically small MAE improvements: 2.24 and 3.46 percent of their baselines; practical planning margins were post-review diagnostics. Reversed topology harmed inference. The result supports correct topology as useful information while warning against treating an estimated graph as known.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\docs\\m7_3_results.md\n[/Sources]"}
+{"kind":"slide","id":"sl/tbo9xe","slide":15,"title":"SHEAF VERSUS GRAPH","textShapes":11}
+{"kind":"textbox","id":"sh/pszyh43y","slide":15,"text":"SHEAF VERSUS GRAPH","textPreview":"SHEAF VERSUS GRAPH","textChars":18,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/2p8fm947","slide":15,"text":"The sheaf adds representation and conflict localisation—not universal superiority","textPreview":"The sheaf adds representation and conflict localisation—not universal superiority","textChars":81,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/nqhgfe5s","slide":15,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/0nqxkzmh","slide":15,"text":"Results","textPreview":"Results","textChars":7,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/1ozyd4n2","slide":15,"text":"15","textPreview":"15","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/fmxgbu5w","slide":15,"bbox":[860,156,338,120]}
+{"kind":"textbox","id":"sh/sz6xgfm5","slide":15,"text":"VS IDENTITY GRAPH","textPreview":"VS IDENTITY GRAPH","textChars":17,"textLines":1,"bbox":[884,176,290,22]}
+{"kind":"textbox","id":"sh/dkfy9knq","slide":15,"text":"+0.0854 PR-AUC","textPreview":"+0.0854 PR-AUC","textChars":14,"textLines":1,"bbox":[884,214,290,32]}
+{"kind":"shape","id":"sh/pkn6p076","slide":15,"bbox":[860,292,338,120]}
+{"kind":"textbox","id":"sh/4je5wv6l","slide":15,"text":"NATIVE VS PERMUTED MAPS","textPreview":"NATIVE VS PERMUTED MAPS","textChars":23,"textLines":1,"bbox":[884,312,290,22]}
+{"kind":"textbox","id":"sh/3i5onapg","slide":15,"text":"+0.0909 PR-AUC","textPreview":"+0.0909 PR-AUC","textChars":14,"textLines":1,"bbox":[884,350,290,32]}
+{"kind":"shape","id":"sh/2hwnu5ov","slide":15,"bbox":[860,428,338,120]}
+{"kind":"textbox","id":"sh/hgn6l07a","slide":15,"text":"VS STRONG EDGE-LOCAL GRAPH","textPreview":"VS STRONG EDGE-LOCAL GRAPH","textChars":26,"textLines":1,"bbox":[884,448,290,22]}
+{"kind":"textbox","id":"sh/gve5sv6p","slide":15,"text":"+0.0097 · CI crosses 0","textPreview":"+0.0097 · CI crosses 0","textChars":22,"textLines":1,"bbox":[884,486,290,32]}
+{"kind":"shape","id":"sh/vu5ojqp4","slide":15,"bbox":[860,574,338,34]}
+{"kind":"textbox","id":"sh/utcnqloj","slide":15,"text":"GENERAL SUPERIORITY: NOT ESTABLISHED","textPreview":"GENERAL SUPERIORITY: NOT ESTABLISHED","textChars":36,"textLines":1,"bbox":[870,581,318,20]}
+{"kind":"image","id":"im/3adsje9w","slide":15,"name":"","alt":"Locked comparison of affine sheaf and competence-matched graph baselines","bbox":[42,145,790,505]}
+{"kind":"notes","id":"nt/tbo9xe","slide":15,"text":"Timing: 19:10–21:30\n\nThis is the centrepiece. The affine sheaf beats the identity Laplacian and permuted-map control, and exactly nests the identity limit. Against the stronger edge-local weighted graph, the overall difference is small and the simultaneous interval crosses zero; log loss is worse in the original estimator. The supported contribution is scalar edge-specific transformations, global compatibility and conflict localisation, especially in incompatible-cycle scenarios.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\docs\\m7_sheaf_vs_graph_results.md\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\M7_SHEAF_VS_GRAPH_CLAIM_DECISION.md\n[/Sources]"}
+{"kind":"slide","id":"sl/nhvkk2","slide":16,"title":"ESTIMATOR DIAGNOSTIC","textShapes":10}
+{"kind":"textbox","id":"sh/mp0za1kr","slide":16,"text":"ESTIMATOR DIAGNOSTIC","textPreview":"ESTIMATOR DIAGNOSTIC","textChars":20,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/9cby5gj2","slide":16,"text":"The local-first estimator did not earn general superiority","textPreview":"The local-first estimator did not earn general superiority","textChars":58,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/ob2hcb2h","slide":16,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/zm9gzm10","slide":16,"text":"Results","textPreview":"Results","textChars":7,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/el0z61kf","slide":16,"text":"16","textPreview":"16","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/0nih8r2l","slide":16,"bbox":[860,160,338,150]}
+{"kind":"textbox","id":"sh/jitgbq14","slide":16,"text":"LOCKED TEST: 128 CASES","textPreview":"LOCKED TEST: 128 CASES","textChars":22,"textLines":1,"bbox":[884,182,290,20]}
+{"kind":"textbox","id":"sh/yhkzilkj","slide":16,"text":"+0.0200 PR-AUC","textPreview":"+0.0200 PR-AUC","textChars":14,"textLines":1,"bbox":[884,222,290,34]}
+{"kind":"textbox","id":"sh/0ritkjqp","slide":16,"text":"simultaneous CI [−0.0055, 0.0454]","textPreview":"simultaneous CI [−0.0055, 0.0454]","textChars":33,"textLines":1,"bbox":[884,266,290,24]}
+{"kind":"shape","id":"sh/1srato7a","slide":16,"bbox":[860,330,338,150]}
+{"kind":"textbox","id":"sh/epgbi98j","slide":16,"text":"COMPLETE GATE","textPreview":"COMPLETE GATE","textChars":13,"textLines":1,"bbox":[884,352,290,20]}
+{"kind":"textbox","id":"sh/zqpsrep4","slide":16,"text":"Brier: inconclusive\nLog loss: inconclusive","textPreview":"Brier: inconclusive | Log loss: inconclusive","textChars":42,"textLines":2,"bbox":[884,392,290,58]}
+{"kind":"shape","id":"sh/cny9gzqd","slide":16,"bbox":[860,520,338,34]}
+{"kind":"textbox","id":"sh/do7ap47y","slide":16,"text":"CONDITIONAL METHOD · NOT UNIVERSAL WINNER","textPreview":"CONDITIONAL METHOD · NOT UNIVERSAL WINNER","textChars":41,"textLines":1,"bbox":[870,527,318,20]}
+{"kind":"image","id":"im/krqdk3ud","slide":16,"name":"","alt":"Fresh locked test of local-first and robust global estimators","bbox":[42,145,790,505]}
+{"kind":"notes","id":"nt/nhvkk2","slide":16,"text":"Timing: 21:30–22:45\n\nThe development stage selected a local-first/global-fallback estimator and it was tested once on 128 fresh locked cases. The PR-AUC point estimate was higher, but its family-wise simultaneous interval crossed zero; Brier score and log loss also failed the all-outcome superiority gate. Leave-one-edge-out robust global weighting worsened calibration. Therefore retain an estimator diagnostic, not a general superiority claim.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\manuscript\\sections\\03-results\\section.md\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\M7_ROBUST_HYBRID_CLAIM_DECISION.md\n[/Sources]"}
+{"kind":"slide","id":"sl/9y6638","slide":17,"title":"WHAT DID NOT WORK","textShapes":19}
+{"kind":"textbox","id":"sh/9wzyh83q","slide":17,"text":"WHAT DID NOT WORK","textPreview":"WHAT DID NOT WORK","textChars":17,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/mtoz6dkz","slide":17,"text":"The failures define the scientific boundary","textPreview":"The failures define the scientific boundary","textChars":43,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/7uhgfylk","slide":17,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/kr6h4329","slide":17,"text":"Synthesis","textPreview":"Synthesis","textChars":9,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/lsfyd83e","slide":17,"text":"17","textPreview":"17","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/ypoz2tk3","slide":17,"bbox":[42,158,1196,72]}
+{"kind":"textbox","id":"sh/zqxgbylo","slide":17,"text":"Weak graph prior for age","textPreview":"Weak graph prior for age","textChars":24,"textLines":1,"bbox":[68,173,300,30]}
+{"kind":"shape","id":"sh/4nahgn2d","slide":17,"bbox":[390,175,215,34]}
+{"kind":"textbox","id":"sh/5ojips3y","slide":17,"text":"NO ROBUST GAIN","textPreview":"NO ROBUST GAIN","textChars":14,"textLines":1,"bbox":[400,182,195,20]}
+{"kind":"textbox","id":"sh/103axk3y","slide":17,"text":"Topology did not contain independent age information","textPreview":"Topology did not contain independent age information","textChars":52,"textLines":1,"bbox":[635,173,560,32]}
+{"kind":"shape","id":"sh/0za94z2d","slide":17,"bbox":[42,252,1196,72]}
+{"kind":"textbox","id":"sh/zy1svuls","slide":17,"text":"Old-water prior","textPreview":"Old-water prior","textChars":15,"textLines":1,"bbox":[68,267,300,30]}
+{"kind":"shape","id":"sh/exsr2pk7","slide":17,"bbox":[390,269,215,34]}
+{"kind":"textbox","id":"sh/dwjqtk3m","slide":17,"text":"WITHDRAWN","textPreview":"WITHDRAWN","textChars":9,"textLines":1,"bbox":[400,276,195,20]}
+{"kind":"textbox","id":"sh/cba90f2h","slide":17,"text":"RMSE 1.310; R² 0.004","textPreview":"RMSE 1.310; R² 0.004","textChars":20,"textLines":1,"bbox":[635,267,560,32]}
+{"kind":"shape","id":"sh/ra18ralw","slide":17,"bbox":[42,346,1196,72]}
+{"kind":"textbox","id":"sh/q9sry5kb","slide":17,"text":"Carbonate reaction families","textPreview":"Carbonate reaction families","textChars":27,"textLines":1,"bbox":[68,361,300,30]}
+{"kind":"shape","id":"sh/xsna5o36","slide":17,"bbox":[390,363,215,34]}
+{"kind":"textbox","id":"sh/wre9cj2l","slide":17,"text":"NOT RECOVERED","textPreview":"NOT RECOVERED","textChars":13,"textLines":1,"bbox":[400,370,195,20]}
+{"kind":"textbox","id":"sh/gnmlo7et","slide":17,"text":"0/36 scored edges per tested panel","textPreview":"0/36 scored edges per tested panel","textChars":34,"textLines":1,"bbox":[635,361,560,32]}
+{"kind":"shape","id":"sh/hof2xcfe","slide":17,"bbox":[42,440,1196,72]}
+{"kind":"textbox","id":"sh/ul43mhw3","slide":17,"text":"Overall sheaf > edge-local graph","textPreview":"Overall sheaf > edge-local graph","textChars":32,"textLines":1,"bbox":[68,455,300,30]}
+{"kind":"shape","id":"sh/fmdkvmxo","slide":17,"bbox":[390,457,215,34]}
+{"kind":"textbox","id":"sh/sjmlk7ex","slide":17,"text":"GATE FAILED","textPreview":"GATE FAILED","textChars":11,"textLines":1,"bbox":[400,464,195,20]}
+{"kind":"textbox","id":"sh/tkv2tcfi","slide":17,"text":"Ranking gain did not extend to calibration","textPreview":"Ranking gain did not extend to calibration","textChars":42,"textLines":1,"bbox":[635,455,560,32]}
+{"kind":"shape","id":"sh/6h43ixwr","slide":17,"bbox":[42,534,1196,72]}
+{"kind":"textbox","id":"sh/7idkr2xc","slide":17,"text":"Active learning","textPreview":"Active learning","textChars":15,"textLines":1,"bbox":[68,549,300,30]}
+{"kind":"shape","id":"sh/kf21gne1","slide":17,"bbox":[390,551,215,34]}
+{"kind":"textbox","id":"sh/5gb2psf6","slide":17,"text":"NOT VALIDATED","textPreview":"NOT VALIDATED","textChars":13,"textLines":1,"bbox":[400,558,195,20]}
+{"kind":"textbox","id":"sh/nqt4zih8","slide":17,"text":"0 recommendations from 0 scored edges","textPreview":"0 recommendations from 0 scored edges","textChars":37,"textLines":1,"bbox":[635,549,560,32]}
+{"kind":"notes","id":"nt/9y6638","slide":17,"text":"Timing: 22:45–23:35\n\nPresent the negative results as scientific findings. The weak graph prior did not improve age inference; the old-water prior was withdrawn; carbonate families were not recovered under either tested indicator panel, which does not prove universal non-identifiability; the general sheaf-superiority gate failed; and active learning has not produced a claim-bearing evaluation.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\M3_FINAL_ACCURACY_AUDIT.md\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\docs\\m7_3_results.md\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\HYDROSHEAF_REMAINING_CAPABILITIES_DECISION_20260728.md\n[/Sources]"}
+{"kind":"slide","id":"sl/5eb60q","slide":18,"title":"CLAIM LEDGER","textShapes":26}
+{"kind":"textbox","id":"sh/98fqxozi","slide":18,"text":"CLAIM LEDGER","textPreview":"CLAIM LEDGER","textChars":12,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/m547m90r","slide":18,"text":"What the thesis supports—and does not support","textPreview":"What the thesis supports—and does not support","textChars":45,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/n6d8vehc","slide":18,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/03mpkzil","slide":18,"text":"Synthesis","textPreview":"Synthesis","textChars":9,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/14v6t4z6","slide":18,"text":"18","textPreview":"18","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"textbox","id":"sh/e147i90v","slide":18,"text":"SUPPORTED","textPreview":"SUPPORTED","textChars":9,"textLines":1,"bbox":[42,160,360,30]}
+{"kind":"shape","id":"sh/z2doruh0","slide":18,"bbox":[42,204,550,48]}
+{"kind":"textbox","id":"sh/kzqpw3i5","slide":18,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[58,215,32,24]}
+{"kind":"textbox","id":"sh/l0zq58zq","slide":18,"text":"Close agreement with reported age-model configurations","textPreview":"Close agreement with reported age-model configurations","textChars":54,"textLines":1,"bbox":[98,216,465,24]}
+{"kind":"shape","id":"sh/dgvapc3m","slide":18,"bbox":[42,269,550,48]}
+{"kind":"textbox","id":"sh/sfmtg7m1","slide":18,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[58,280,32,24]}
+{"kind":"textbox","id":"sh/redsn2lg","slide":18,"text":"Conditional topology and evidence value","textPreview":"Conditional topology and evidence value","textChars":39,"textLines":1,"bbox":[98,281,465,24]}
+{"kind":"shape","id":"sh/qdkbex4v","slide":18,"bbox":[42,334,550,48]}
+{"kind":"textbox","id":"sh/5cbals3a","slide":18,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[58,345,32,24]}
+{"kind":"textbox","id":"sh/4r2tcnm5","slide":18,"text":"Reaction equivalence-class reporting","textPreview":"Reaction equivalence-class reporting","textChars":36,"textLines":1,"bbox":[98,346,465,24]}
+{"kind":"shape","id":"sh/3qtsjilk","slide":18,"bbox":[42,399,550,48]}
+{"kind":"textbox","id":"sh/ipkbax4z","slide":18,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[58,410,32,24]}
+{"kind":"textbox","id":"sh/p8fuxw3u","slide":18,"text":"Affine-map and conflict-localisation value","textPreview":"Affine-map and conflict-localisation value","textChars":42,"textLines":1,"bbox":[98,411,465,24]}
+{"kind":"shape","id":"sh/o76tor29","slide":18,"bbox":[42,464,550,48]}
+{"kind":"textbox","id":"sh/83y5gzeh","slide":18,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[58,475,32,24]}
+{"kind":"textbox","id":"sh/947m94f2","slide":18,"text":"Ghana measurement-value diagnosis","textPreview":"Ghana measurement-value diagnosis","textChars":33,"textLines":1,"bbox":[98,476,465,24]}
+{"kind":"textbox","id":"sh/m1w3epwr","slide":18,"text":"NOT ESTABLISHED","textPreview":"NOT ESTABLISHED","textChars":15,"textLines":1,"bbox":[650,160,430,30]}
+{"kind":"shape","id":"sh/72547uxc","slide":18,"bbox":[650,204,548,48]}
+{"kind":"textbox","id":"sh/kzelcfel","slide":18,"text":"×","textPreview":"×","textChars":1,"textLines":1,"bbox":[666,215,32,24]}
+{"kind":"textbox","id":"sh/l0nm5kf6","slide":18,"text":"Universal superiority over strong baselines","textPreview":"Universal superiority over strong baselines","textChars":43,"textLines":1,"bbox":[706,216,465,24]}
+{"kind":"shape","id":"sh/yxw3a5wf","slide":18,"bbox":[650,269,548,48]}
+{"kind":"textbox","id":"sh/zy543ax0","slide":18,"text":"×","textPreview":"×","textChars":1,"textLines":1,"bbox":[666,280,32,24]}
+{"kind":"textbox","id":"sh/cvel8fe9","slide":18,"text":"Exact Ghana ages, paths or mineral truth","textPreview":"Exact Ghana ages, paths or mineral truth","textChars":40,"textLines":1,"bbox":[706,281,465,24]}
+{"kind":"shape","id":"sh/xwnm1kfu","slide":18,"bbox":[650,334,548,48]}
+{"kind":"textbox","id":"sh/f6l4rahw","slide":18,"text":"×","textPreview":"×","textChars":1,"textLines":1,"bbox":[666,345,32,24]}
+{"kind":"textbox","id":"sh/e5cni50b","slide":18,"text":"End-to-end field validation","textPreview":"End-to-end field validation","textChars":27,"textLines":1,"bbox":[706,346,465,24]}
+{"kind":"shape","id":"sh/1s3mt0z2","slide":18,"bbox":[650,399,548,48]}
+{"kind":"textbox","id":"sh/07u5kvih","slide":18,"text":"×","textPreview":"×","textChars":1,"textLines":1,"bbox":[666,410,32,24]}
+{"kind":"textbox","id":"sh/nulovahs","slide":18,"text":"Validated vector-stalk / 3-D / temporal / vadose claims","textPreview":"Validated vector-stalk / 3-D / temporal / vadose claims","textChars":55,"textLines":1,"bbox":[706,411,465,24]}
+{"kind":"shape","id":"sh/2tcnm507","slide":18,"bbox":[650,464,548,48]}
+{"kind":"textbox","id":"sh/pwn6xkzy","slide":18,"text":"×","textPreview":"×","textChars":1,"textLines":1,"bbox":[666,475,32,24]}
+{"kind":"textbox","id":"sh/ove5ofid","slide":18,"text":"Excellent active-learning performance","textPreview":"Excellent active-learning performance","textChars":37,"textLines":1,"bbox":[706,476,465,24]}
+{"kind":"notes","id":"nt/5eb60q","slide":18,"text":"Timing: 23:35–24:35\n\nUse the claim ledger to answer the research questions directly. The thesis supports controlled and conditional integration claims, plus field supportability diagnostics. It does not support universal superiority, exact Ghana truth, complete field validation or untested capability claims. This slide prevents overclaiming under viva pressure.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\draftbychapter\\PhDChapter1_refined.docx\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\manuscript\\revision\\FINAL_VERIFICATION_20260730.md\n[/Sources]"}
+{"kind":"slide","id":"sl/6bn9hm","slide":19,"title":"ANSWER TO THE THESIS","textShapes":16}
+{"kind":"textbox","id":"sh/0zeloj6x","slide":19,"text":"ANSWER TO THE THESIS","textPreview":"ANSWER TO THE THESIS","textChars":20,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/zy5kfe5c","slide":19,"text":"Four contributions to knowledge","textPreview":"Four contributions to knowledge","textChars":31,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/exw3m9or","slide":19,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/dwn2d4n6","slide":19,"text":"Contribution","textPreview":"Contribution","textChars":12,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/cbulkz6l","slide":19,"text":"19","textPreview":"19","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/ralkbe50","slide":19,"bbox":[42,166,570,178]}
+{"kind":"textbox","id":"sh/q9c3i9of","slide":19,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[64,186,65,45]}
+{"kind":"textbox","id":"sh/p83294na","slide":19,"text":"FORMALISATION","textPreview":"FORMALISATION","textChars":13,"textLines":1,"bbox":[147,191,420,25]}
+{"kind":"textbox","id":"sh/47ulgz6p","slide":19,"text":"A groundwater-specific graph/sheaf representation linking age, flow and reactions","textPreview":"A groundwater-specific graph/sheaf representation linking age, flow and reactions","textChars":81,"textLines":1,"bbox":[147,236,420,78]}
+{"kind":"shape","id":"sh/qhsb6dof","slide":19,"bbox":[650,166,570,178]}
+{"kind":"textbox","id":"sh/rilszip0","slide":19,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[672,186,65,45]}
+{"kind":"textbox","id":"sh/sjut836l","slide":19,"text":"DIAGNOSTICS","textPreview":"DIAGNOSTICS","textChars":11,"textLines":1,"bbox":[755,191,420,25]}
+{"kind":"textbox","id":"sh/dk3a1876","slide":19,"text":"Identifiability, calibration and conflict localisation as primary outputs","textPreview":"Identifiability, calibration and conflict localisation as primary outputs","textChars":73,"textLines":1,"bbox":[755,236,420,78]}
+{"kind":"shape","id":"sh/idsb2toj","slide":19,"bbox":[42,378,570,178]}
+{"kind":"textbox","id":"sh/3e1svyp4","slide":19,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[64,398,65,45]}
+{"kind":"textbox","id":"sh/4fat436p","slide":19,"text":"EVIDENCE LOGIC","textPreview":"EVIDENCE LOGIC","textChars":14,"textLines":1,"bbox":[147,403,420,25]}
+{"kind":"textbox","id":"sh/5gjax87a","slide":19,"text":"Locked tests, adverse controls and explicit claim-decision gates","textPreview":"Locked tests, adverse controls and explicit claim-decision gates","textChars":64,"textLines":1,"bbox":[147,448,420,78]}
+{"kind":"shape","id":"sh/up8ryto7","slide":19,"bbox":[650,378,570,178]}
+{"kind":"textbox","id":"sh/vqhsryps","slide":19,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[672,398,65,45]}
+{"kind":"textbox","id":"sh/zidgjq1o","slide":19,"text":"FIELD DESIGN","textPreview":"FIELD DESIGN","textChars":12,"textLines":1,"bbox":[755,403,420,25]}
+{"kind":"textbox","id":"sh/yh4zal03","slide":19,"text":"Evidence-ceiling and measurement-value diagnosis for data-limited aquifers","textPreview":"Evidence-ceiling and measurement-value diagnosis for data-limited aquifers","textChars":74,"textLines":1,"bbox":[755,448,420,78]}
+{"kind":"notes","id":"nt/6bn9hm","slide":19,"text":"Timing: 24:35–25:35\n\nSummarise the contribution at the level of knowledge, not software features. First, a formal groundwater representation. Second, diagnostics that expose non-uniqueness. Third, a falsifiable evaluation logic. Fourth, a field-data design contribution that identifies which missing measurements block interpretation.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\draftbychapter\\PhDChapter1_refined.docx\n[/Sources]"}
+{"kind":"slide","id":"sl/jekqlc","slide":20,"title":"THE DEFENSIBLE CONCLUSION","textShapes":6}
+{"kind":"textbox","id":"sh/qdofy5w7","slide":20,"text":"THE DEFENSIBLE CONCLUSION","textPreview":"THE DEFENSIBLE CONCLUSION","textChars":25,"textLines":1,"bbox":[42,38,600,24]}
+{"kind":"textbox","id":"sh/d0zet0vy","slide":20,"text":"HydroSheaf does not promise one correct aquifer story.","textPreview":"HydroSheaf does not promise one correct aquifer story.","textChars":54,"textLines":1,"bbox":[42,150,1110,74]}
+{"kind":"textbox","id":"sh/cfqx0ved","slide":20,"text":"It tests whether cross-domain relations compose globally, quantifies when they add information, and exposes when plausible integration becomes confidently wrong.","textPreview":"It tests whether cross-domain relations compose globally, quantifies when they add information, and exposes when plausible integration be...","textChars":161,"textLines":1,"bbox":[42,256,1080,160]}
+{"kind":"shape","id":"sh/z2hwvad4","slide":20,"bbox":[42,495,1196,108]}
+{"kind":"textbox","id":"sh/e18f25wj","slide":20,"text":"NEXT CLAIM-BEARING TEST","textPreview":"NEXT CLAIM-BEARING TEST","textChars":23,"textLines":1,"bbox":[70,517,290,22]}
+{"kind":"textbox","id":"sh/14zyxkvu","slide":20,"text":"Independent replication with a different generator—or matched field data containing age tracers, repeated heads, chemistry and independently measured connectivity.","textPreview":"Independent replication with a different generator—or matched field data containing age tracers, repeated heads, chemistry and independen...","textChars":163,"textLines":1,"bbox":[385,517,810,58]}
+{"kind":"textbox","id":"sh/03qx4fe9","slide":20,"text":"Thank you","textPreview":"Thank you","textChars":9,"textLines":1,"bbox":[42,657,300,24]}
+{"kind":"notes","id":"nt/jekqlc","slide":20,"text":"Timing: 25:35–27:00\n\nReturn to the opening tension. HydroSheaf’s contribution is not universal superiority. It is a reproducible way to represent cross-domain relations, test global compatibility, measure incremental information and expose confident error. End with the decisive next validation: a different independent generator or a matched field dataset with connectivity truth. This leaves approximately three minutes of contingency within a 30-minute slot.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\manuscript\\sections\\05-conclusion\\section.md\n[/Sources]"}
+{"kind":"slide","id":"sl/pbjb96","slide":21,"title":"SHEAF VERSUS GRAPH","textShapes":17}
+{"kind":"textbox","id":"sh/18r6l8nu","slide":21,"text":"SHEAF VERSUS GRAPH","textPreview":"SHEAF VERSUS GRAPH","textChars":18,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/e5gnadoj","slide":21,"text":"Backup · What exactly does the sheaf add?","textPreview":"Backup · What exactly does the sheaf add?","textChars":41,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/f6pojy54","slide":21,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/obipgnml","slide":21,"text":"Examiner backup","textPreview":"Examiner backup","textChars":15,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/pcr6psn6","slide":21,"text":"21","textPreview":"21","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/290ned4f","slide":21,"bbox":[42,170,372,322]}
+{"kind":"textbox","id":"sh/3a9oni50","slide":21,"text":"IDENTITY GRAPH","textPreview":"IDENTITY GRAPH","textChars":14,"textLines":1,"bbox":[64,194,328,28]}
+{"kind":"textbox","id":"sh/4fy5kj6h","slide":21,"text":"Scalar similarity","textPreview":"Scalar similarity","textChars":17,"textLines":1,"bbox":[72,260,312,36]}
+{"kind":"textbox","id":"sh/5g76donm","slide":21,"text":"One shared coordinate system","textPreview":"One shared coordinate system","textChars":28,"textLines":1,"bbox":[72,330,312,42]}
+{"kind":"textbox","id":"sh/l4zeh0by","slide":21,"text":"Baseline limit","textPreview":"Baseline limit","textChars":14,"textLines":1,"bbox":[72,410,312,44]}
+{"kind":"shape","id":"sh/036dovat","slide":21,"bbox":[447,170,372,322]}
+{"kind":"textbox","id":"sh/zixwfqt8","slide":21,"text":"EDGE-LOCAL GRAPH","textPreview":"EDGE-LOCAL GRAPH","textChars":16,"textLines":1,"bbox":[469,194,328,28]}
+{"kind":"textbox","id":"sh/yhovmlsn","slide":21,"text":"Flexible edge score","textPreview":"Flexible edge score","textChars":19,"textLines":1,"bbox":[477,260,312,36]}
+{"kind":"textbox","id":"sh/98zel0ba","slide":21,"text":"Strong local comparator","textPreview":"Strong local comparator","textChars":23,"textLines":1,"bbox":[477,330,312,42]}
+{"kind":"textbox","id":"sh/87qxsvap","slide":21,"text":"No global map consistency","textPreview":"No global map consistency","textChars":25,"textLines":1,"bbox":[477,410,312,44]}
+{"kind":"shape","id":"sh/n6hwjqt4","slide":21,"bbox":[852,170,372,322]}
+{"kind":"textbox","id":"sh/m58fq5sj","slide":21,"text":"AFFINE SHEAF","textPreview":"AFFINE SHEAF","textChars":12,"textLines":1,"bbox":[874,194,328,28]}
+{"kind":"textbox","id":"sh/xcjepkr6","slide":21,"text":"Edge-specific Aₑ and bₑ","textPreview":"Edge-specific Aₑ and bₑ","textChars":23,"textLines":1,"bbox":[882,260,312,36]}
+{"kind":"textbox","id":"sh/wbaxwfal","slide":21,"text":"Global compatibility residuals","textPreview":"Global compatibility residuals","textChars":30,"textLines":1,"bbox":[882,330,312,42]}
+{"kind":"textbox","id":"sh/gfihsjix","slide":21,"text":"Conflict localisation","textPreview":"Conflict localisation","textChars":21,"textLines":1,"bbox":[882,410,312,44]}
+{"kind":"shape","id":"sh/hgrylozi","slide":21,"bbox":[42,525,1196,85]}
+{"kind":"textbox","id":"sh/udgzq90r","slide":21,"text":"Examiner answer: the sheaf adds relation-specific transformations and global conflict localisation; it did not establish general superiority over the strongest edge-local comparator.","textPreview":"Examiner answer: the sheaf adds relation-specific transformations and global conflict localisation; it did not establish general superior...","textChars":182,"textLines":1,"bbox":[70,548,1140,46]}
+{"kind":"notes","id":"nt/pbjb96","slide":21,"text":"Timing: Backup\n\nUse only if asked what the sheaf layer contributes beyond an ordinary weighted graph. Lead with representation, nesting and conflict localisation. Then volunteer the null overall comparison with the strong edge-local graph to show command of the limitation.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\docs\\m7_sheaf_vs_graph_results.md\n[/Sources]"}
+{"kind":"slide","id":"sl/jttamm","slide":22,"title":"AGE BENCHMARK","textShapes":10}
+{"kind":"textbox","id":"sh/7i98z6t0","slide":22,"text":"AGE BENCHMARK","textPreview":"AGE BENCHMARK","textChars":13,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/8jipsbul","slide":22,"text":"Backup · Why HydroSheaf did not need to beat TracerLPM","textPreview":"Backup · Why HydroSheaf did not need to beat TracerLPM","textChars":54,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/9krq1gb6","slide":22,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/ul07ulcr","slide":22,"text":"Examiner backup","textPreview":"Examiner backup","textChars":15,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/v6983qtc","slide":22,"text":"22","textPreview":"22","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/w7ipwbux","slide":22,"bbox":[42,168,560,380]}
+{"kind":"textbox","id":"sh/h8bq5gb2","slide":22,"text":"QUESTION ACTUALLY TESTED","textPreview":"QUESTION ACTUALLY TESTED","textChars":24,"textLines":1,"bbox":[70,194,500,22]}
+{"kind":"textbox","id":"sh/apg7ihcn","slide":22,"text":"Can HydroSheaf reproduce the reported configuration—and does topology add independent information?","textPreview":"Can HydroSheaf reproduce the reported configuration—and does topology add independent information?","textChars":98,"textLines":1,"bbox":[70,245,500,100]}
+{"kind":"textbox","id":"sh/bapormts","slide":22,"text":"Answer: close agreement achieved; incremental graph value not established.","textPreview":"Answer: close agreement achieved; incremental graph value not established.","textChars":74,"textLines":1,"bbox":[70,403,500,66]}
+{"kind":"shape","id":"sh/z29kv6hk","slide":22,"bbox":[638,168,560,380]}
+{"kind":"textbox","id":"sh/y10jm1gz","slide":22,"text":"QUESTION NOT TESTED","textPreview":"QUESTION NOT TESTED","textChars":19,"textLines":1,"bbox":[666,194,500,22]}
+{"kind":"textbox","id":"sh/l4r2xgza","slide":22,"text":"Which model is closer to the unknown true groundwater-age distribution?","textPreview":"Which model is closer to the unknown true groundwater-age distribution?","textChars":71,"textLines":1,"bbox":[666,245,500,100]}
+{"kind":"textbox","id":"sh/03i1oby5","slide":22,"text":"The public reference outputs are emulation targets—not error-free truth.","textPreview":"The public reference outputs are emulation targets—not error-free truth.","textChars":72,"textLines":1,"bbox":[666,403,500,66]}
+{"kind":"notes","id":"nt/jttamm","slide":22,"text":"Timing: Backup\n\nExplain that the benchmark target and scientific truth are not the same thing. HydroSheaf need not replace TracerLPM. The key negative result is that the available graph proxy did not add independent age information and harmful graphs could be detected.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\M3_FINAL_ACCURACY_AUDIT.md\n[/Sources]"}
+{"kind":"slide","id":"sl/pefnnf","slide":23,"title":"REPRODUCIBILITY","textShapes":20}
+{"kind":"textbox","id":"sh/n2lwjqx0","slide":23,"text":"REPRODUCIBILITY","textPreview":"REPRODUCIBILITY","textChars":15,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/o3udsvel","slide":23,"text":"Backup · What a locked test means","textPreview":"Backup · What a locked test means","textChars":33,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/p43el0f6","slide":23,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/a5wvu5wb","slide":23,"text":"Examiner backup","textPreview":"Examiner backup","textChars":15,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/b65wnaxw","slide":23,"text":"23","textPreview":"23","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/c7edwfeh","slide":23,"bbox":[42,210,270,250]}
+{"kind":"textbox","id":"sh/x8nepkf2","slide":23,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[64,232,55,42]}
+{"kind":"textbox","id":"sh/q9svi1g7","slide":23,"text":"DEVELOP","textPreview":"DEVELOP","textChars":7,"textLines":1,"bbox":[64,300,226,26]}
+{"kind":"textbox","id":"sh/ra1cb6xs","slide":23,"text":"Tune on declared development cases","textPreview":"Tune on declared development cases","textChars":34,"textLines":1,"bbox":[64,352,226,70]}
+{"kind":"textbox","id":"sh/zmh8v2pw","slide":23,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[312,310,32,35]}
+{"kind":"shape","id":"sh/el8rmx8r","slide":23,"bbox":[344,210,270,250]}
+{"kind":"textbox","id":"sh/18zaxs72","slide":23,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[366,232,55,42]}
+{"kind":"textbox","id":"sh/0nq9onqh","slide":23,"text":"FREEZE","textPreview":"FREEZE","textChars":6,"textLines":1,"bbox":[366,300,226,26]}
+{"kind":"textbox","id":"sh/rih8rip0","slide":23,"text":"Generator, code, seeds, primary metrics and decision rules","textPreview":"Generator, code, seeds, primary metrics and decision rules","textChars":58,"textLines":1,"bbox":[366,352,226,70]}
+{"kind":"textbox","id":"sh/qhorid8f","slide":23,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[614,310,32,35]}
+{"kind":"shape","id":"sh/dkzqts76","slide":23,"bbox":[646,210,270,250]}
+{"kind":"textbox","id":"sh/cjq9knql","slide":23,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[668,232,55,42]}
+{"kind":"textbox","id":"sh/3ex8nyp4","slide":23,"text":"OPEN ONCE","textPreview":"OPEN ONCE","textChars":9,"textLines":1,"bbox":[668,300,226,26]}
+{"kind":"textbox","id":"sh/idored8j","slide":23,"text":"Evaluate untouched locked cases","textPreview":"Evaluate untouched locked cases","textChars":31,"textLines":1,"bbox":[668,352,226,70]}
+{"kind":"textbox","id":"sh/6p4rqtsb","slide":23,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[916,310,32,35]}
+{"kind":"shape","id":"sh/7qdszytw","slide":23,"bbox":[948,210,270,250]}
+{"kind":"textbox","id":"sh/8b69s3ah","slide":23,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[970,232,55,42]}
+{"kind":"textbox","id":"sh/tcfa18bm","slide":23,"text":"DECIDE","textPreview":"DECIDE","textChars":6,"textLines":1,"bbox":[970,300,226,26]}
+{"kind":"textbox","id":"sh/udoruds7","slide":23,"text":"Apply the frozen gate, including negative outcomes","textPreview":"Apply the frozen gate, including negative outcomes","textChars":50,"textLines":1,"bbox":[970,352,226,70]}
+{"kind":"shape","id":"sh/vexs3its","slide":23,"bbox":[210,505,860,76]}
+{"kind":"textbox","id":"sh/gf6twnad","slide":23,"text":"Locked comparisons were not rerun; practical planning margins were post-review diagnostics.","textPreview":"Locked comparisons were not rerun; practical planning margins were post-review diagnostics.","textChars":91,"textLines":1,"bbox":[240,528,800,36]}
+{"kind":"notes","id":"nt/pefnnf","slide":23,"text":"Timing: Backup\n\nA locked test protects the confirmatory comparison from iterative tuning. Distinguish this from preregistration: the protocol was Git-locked before test access, but not externally preregistered. Minimum important differences and planning margins were introduced post-review and were not prespecified. Also distinguish local auditability from a completed public release.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\manuscript\\revision\\FINAL_VERIFICATION_20260730.md\n[/Sources]"}
+{"kind":"slide","id":"sl/vz9yxj","slide":24,"title":"EVIDENCE MATRIX","textShapes":35}
+{"kind":"textbox","id":"sh/uh4filsn","slide":24,"text":"EVIDENCE MATRIX","textPreview":"EVIDENCE MATRIX","textChars":15,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/h4ved0be","slide":24,"text":"Backup · No single field dataset contains all three truths","textPreview":"Backup · No single field dataset contains all three truths","textChars":58,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/gjmxkvat","slide":24,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/36xwfatk","slide":24,"text":"Examiner backup","textPreview":"Examiner backup","textChars":15,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/254fm5sz","slide":24,"text":"24","textPreview":"24","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/p8feh0ba","slide":24,"bbox":[42,170,281,58]}
+{"kind":"textbox","id":"sh/476xova5","slide":24,"text":"DATASET","textPreview":"DATASET","textChars":7,"textLines":1,"bbox":[50,190,265,20]}
+{"kind":"shape","id":"sh/jatw36t0","slide":24,"bbox":[327,170,196,58]}
+{"kind":"textbox","id":"sh/i9kva1sf","slide":24,"text":"AGE TRACERS","textPreview":"AGE TRACERS","textChars":11,"textLines":1,"bbox":[335,190,180,20]}
+{"kind":"shape","id":"sh/43yp03ul","slide":24,"bbox":[527,170,246,58]}
+{"kind":"textbox","id":"sh/547qtob6","slide":24,"text":"REPEATED HYDRAULICS","textPreview":"REPEATED HYDRAULICS","textChars":19,"textLines":1,"bbox":[535,190,230,20]}
+{"kind":"shape","id":"sh/i1g7ytcv","slide":24,"bbox":[777,170,196,58]}
+{"kind":"textbox","id":"sh/32p8ryt0","slide":24,"text":"CHEMISTRY","textPreview":"CHEMISTRY","textChars":9,"textLines":1,"bbox":[785,190,180,20]}
+{"kind":"shape","id":"sh/srip43ux","slide":24,"bbox":[977,170,256,58]}
+{"kind":"textbox","id":"sh/dsrqx8bi","slide":24,"text":"CONNECTIVITY TRUTH","textPreview":"CONNECTIVITY TRUTH","textChars":18,"textLines":1,"bbox":[985,190,240,20]}
+{"kind":"shape","id":"sh/q5g72tcr","slide":24,"bbox":[42,234,281,58]}
+{"kind":"textbox","id":"sh/rq98vytc","slide":24,"text":"Public age archive","textPreview":"Public age archive","textChars":18,"textLines":1,"bbox":[50,252,265,24]}
+{"kind":"shape","id":"sh/8vepsjud","slide":24,"bbox":[327,234,196,58]}
+{"kind":"textbox","id":"sh/twn6l4vy","slide":24,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[335,252,180,24]}
+{"kind":"shape","id":"sh/9sfmp0n2","slide":24,"bbox":[527,234,246,58]}
+{"kind":"textbox","id":"sh/8r65wvmh","slide":24,"text":"direct heads unavailable","textPreview":"direct heads unavailable","textChars":24,"textLines":1,"bbox":[535,252,230,24]}
+{"kind":"shape","id":"sh/nqx4nq5w","slide":24,"bbox":[777,234,196,58]}
+{"kind":"textbox","id":"sh/mponu54b","slide":24,"text":"not used","textPreview":"not used","textChars":8,"textLines":1,"bbox":[785,252,180,24]}
+{"kind":"shape","id":"sh/xwz6tkny","slide":24,"bbox":[977,234,256,58]}
+{"kind":"textbox","id":"sh/wvq50fmd","slide":24,"text":"—","textPreview":"—","textChars":1,"textLines":1,"bbox":[985,252,240,24]}
+{"kind":"shape","id":"sh/vuxora5s","slide":24,"bbox":[42,302,281,58]}
+{"kind":"textbox","id":"sh/atony547","slide":24,"text":"MODFLOW / MODPATH","textPreview":"MODFLOW / MODPATH","textChars":17,"textLines":1,"bbox":[50,320,265,24]}
+{"kind":"shape","id":"sh/5kz6xkna","slide":24,"bbox":[327,302,196,58]}
+{"kind":"textbox","id":"sh/kjq54fmp","slide":24,"text":"modelled","textPreview":"modelled","textChars":8,"textLines":1,"bbox":[335,320,180,24]}
+{"kind":"shape","id":"sh/it0b2xgv","slide":24,"bbox":[527,302,246,58]}
+{"kind":"textbox","id":"sh/3u9cbihg","slide":24,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[535,320,230,24]}
+{"kind":"shape","id":"sh/4vit4ny1","slide":24,"bbox":[777,302,196,58]}
+{"kind":"textbox","id":"sh/5wrudsz6","slide":24,"text":"—","textPreview":"—","textChars":1,"textLines":1,"bbox":[785,320,180,24]}
+{"kind":"shape","id":"sh/qx0b6xgr","slide":24,"bbox":[977,302,256,58]}
+{"kind":"textbox","id":"sh/ritcf2hc","slide":24,"text":"model-conditioned","textPreview":"model-conditioned","textChars":17,"textLines":1,"bbox":[985,320,240,24]}
+{"kind":"shape","id":"sh/sj2t87yx","slide":24,"bbox":[42,370,281,58]}
+{"kind":"textbox","id":"sh/dkbuhczi","slide":24,"text":"Northern Ghana","textPreview":"Northern Ghana","textChars":14,"textLines":1,"bbox":[50,388,265,24]}
+{"kind":"shape","id":"sh/elkbahg3","slide":24,"bbox":[327,370,196,58]}
+{"kind":"textbox","id":"sh/fmtcjmho","slide":24,"text":"—","textPreview":"—","textChars":1,"textLines":1,"bbox":[335,388,180,24]}
+{"kind":"shape","id":"sh/nipsn29s","slide":24,"bbox":[527,370,246,58]}
+{"kind":"textbox","id":"sh/mhgbux87","slide":24,"text":"—","textPreview":"—","textChars":1,"textLines":1,"bbox":[535,388,230,24]}
+{"kind":"shape","id":"sh/94rupcri","slide":24,"bbox":[777,370,196,58]}
+{"kind":"textbox","id":"sh/83ytw7qd","slide":24,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[785,388,180,24]}
+{"kind":"shape","id":"sh/v69crm9o","slide":24,"bbox":[977,370,256,58]}
+{"kind":"textbox","id":"sh/a50byh83","slide":24,"text":"—","textPreview":"—","textChars":1,"textLines":1,"bbox":[985,388,240,24]}
+{"kind":"shape","id":"sh/x8rutw7u","slide":24,"bbox":[42,438,281,58]}
+{"kind":"textbox","id":"sh/w7it0rq9","slide":24,"text":"Talensi / Lower Anayari","textPreview":"Talensi / Lower Anayari","textChars":23,"textLines":1,"bbox":[50,456,265,24]}
+{"kind":"shape","id":"sh/ra5sfi9k","slide":24,"bbox":[327,438,196,58]}
+{"kind":"textbox","id":"sh/q9wbmd8z","slide":24,"text":"—","textPreview":"—","textChars":1,"textLines":1,"bbox":[335,456,180,24]}
+{"kind":"shape","id":"sh/gfupwj6x","slide":24,"bbox":[527,438,246,58]}
+{"kind":"textbox","id":"sh/hg3qpo7i","slide":24,"text":"—","textPreview":"—","textChars":1,"textLines":1,"bbox":[535,456,230,24]}
+{"kind":"shape","id":"sh/uds7utor","slide":24,"bbox":[777,438,196,58]}
+{"kind":"textbox","id":"sh/fel8nepc","slide":24,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[785,456,180,24]}
+{"kind":"shape","id":"sh/srapsj6l","slide":24,"bbox":[977,438,256,58]}
+{"kind":"textbox","id":"sh/tsjqlo76","slide":24,"text":"—","textPreview":"—","textChars":1,"textLines":1,"bbox":[985,456,240,24]}
+{"kind":"shape","id":"sh/6ps7q9of","slide":24,"bbox":[42,506,281,58]}
+{"kind":"textbox","id":"sh/7q18jep0","slide":24,"text":"Controlled integration generator","textPreview":"Controlled integration generator","textChars":32,"textLines":1,"bbox":[50,524,265,24]}
+{"kind":"shape","id":"sh/cne94365","slide":24,"bbox":[327,506,196,58]}
+{"kind":"textbox","id":"sh/donqx87a","slide":24,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[335,524,180,24]}
+{"kind":"shape","id":"sh/l4jqh8fu","slide":24,"bbox":[527,506,246,58]}
+{"kind":"textbox","id":"sh/03apo3y9","slide":24,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[535,524,230,24]}
+{"kind":"shape","id":"sh/z218fyho","slide":24,"bbox":[777,506,196,58]}
+{"kind":"textbox","id":"sh/y1s7mtg3","slide":24,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[785,524,180,24]}
+{"kind":"shape","id":"sh/d0jqdozi","slide":24,"bbox":[977,506,256,58]}
+{"kind":"textbox","id":"sh/czqpk3yx","slide":24,"text":"✓ planted","textPreview":"✓ planted","textChars":9,"textLines":1,"bbox":[985,524,240,24]}
+{"kind":"textbox","id":"sh/byh8byhc","slide":24,"text":"Therefore: controlled known-truth integration + field supportability, not end-to-end field validation.","textPreview":"Therefore: controlled known-truth integration + field supportability, not end-to-end field validation.","textChars":102,"textLines":1,"bbox":[42,600,1196,34]}
+{"kind":"notes","id":"nt/vz9yxj","slide":24,"text":"Timing: Backup\n\nAnswer directly: no, the thesis does not contain one field dataset with matched age, repeated heads, chemistry and independent connectivity. The validation strategy triangulates controlled known truth, component reference checks and field transfer. The missing matched field test remains future work.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\draftbychapter\\PhDChapter1_refined.docx\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\docs\\m7_3_results.md\n[/Sources]"}
+{"kind":"slide","id":"sl/bni0cf","slide":25,"title":"ADVERSE CONTROLS","textShapes":20}
+{"kind":"textbox","id":"sh/y9czid47","slide":25,"text":"ADVERSE CONTROLS","textPreview":"ADVERSE CONTROLS","textChars":16,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/lcnids3y","slide":25,"text":"Backup · Reduced uncertainty can mean confident error","textPreview":"Backup · Reduced uncertainty can mean confident error","textChars":53,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/kbuhknmd","slide":25,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/7y50f2lo","slide":25,"text":"Examiner backup","textPreview":"Examiner backup","textChars":15,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/mdwjmx4j","slide":25,"text":"25","textPreview":"25","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/90nihs3u","slide":25,"bbox":[42,190,372,310]}
+{"kind":"textbox","id":"sh/8ze1o7m9","slide":25,"text":"PERMUTED AGE","textPreview":"PERMUTED AGE","textChars":12,"textLines":1,"bbox":[66,220,324,28]}
+{"kind":"textbox","id":"sh/v250j2l0","slide":25,"text":"MORE CERTAIN","textPreview":"MORE CERTAIN","textChars":12,"textLines":1,"bbox":[66,298,324,24]}
+{"kind":"textbox","id":"sh/u1wjqx4f","slide":25,"text":"Entropy −0.0207","textPreview":"Entropy −0.0207","textChars":15,"textLines":1,"bbox":[66,338,324,38]}
+{"kind":"textbox","id":"sh/436503md","slide":25,"text":"BUT WORSE","textPreview":"BUT WORSE","textChars":9,"textLines":1,"bbox":[66,407,324,24]}
+{"kind":"textbox","id":"sh/p4zmt83y","slide":25,"text":"PR-AUC −0.0754","textPreview":"PR-AUC −0.0754","textChars":14,"textLines":1,"bbox":[66,447,324,32]}
+{"kind":"shape","id":"sh/21onyd47","slide":25,"bbox":[447,190,372,310]}
+{"kind":"textbox","id":"sh/32x4rils","slide":25,"text":"PERMUTED HYDRAULICS","textPreview":"PERMUTED HYDRAULICS","textChars":19,"textLines":1,"bbox":[471,220,324,28]}
+{"kind":"textbox","id":"sh/crq54nm9","slide":25,"text":"MORE CERTAIN","textPreview":"MORE CERTAIN","textChars":12,"textLines":1,"bbox":[471,298,324,24]}
+{"kind":"textbox","id":"sh/dszmxs3u","slide":25,"text":"Entropy −0.0482","textPreview":"Entropy −0.0482","textChars":15,"textLines":1,"bbox":[471,338,324,38]}
+{"kind":"textbox","id":"sh/qp8n2d4j","slide":25,"text":"BUT WORSE","textPreview":"BUT WORSE","textChars":9,"textLines":1,"bbox":[471,407,324,24]}
+{"kind":"textbox","id":"sh/rqh4vil4","slide":25,"text":"Log loss +0.0745","textPreview":"Log loss +0.0745","textChars":16,"textLines":1,"bbox":[471,447,324,32]}
+{"kind":"shape","id":"sh/0vq58nml","slide":25,"bbox":[852,190,372,310]}
+{"kind":"textbox","id":"sh/1wj61s36","slide":25,"text":"JOINT MISSPECIFICATION","textPreview":"JOINT MISSPECIFICATION","textChars":22,"textLines":1,"bbox":[876,220,324,28]}
+{"kind":"textbox","id":"sh/9cfmlsva","slide":25,"text":"MORE CERTAIN","textPreview":"MORE CERTAIN","textChars":12,"textLines":1,"bbox":[876,298,324,24]}
+{"kind":"textbox","id":"sh/8b65snep","slide":25,"text":"Entropy −0.0706","textPreview":"Entropy −0.0706","textChars":15,"textLines":1,"bbox":[876,338,324,38]}
+{"kind":"textbox","id":"sh/nad4jid4","slide":25,"text":"BUT WORSE","textPreview":"BUT WORSE","textChars":9,"textLines":1,"bbox":[876,407,324,24]}
+{"kind":"textbox","id":"sh/m94nqxwj","slide":25,"text":"PR-AUC −0.139","textPreview":"PR-AUC −0.139","textChars":13,"textLines":1,"bbox":[876,447,324,32]}
+{"kind":"shape","id":"sh/xgfmpcv6","slide":25,"bbox":[200,545,880,72]}
+{"kind":"textbox","id":"sh/wf65w7el","slide":25,"text":"Calibration and discrimination must accompany entropy or interval width.","textPreview":"Calibration and discrimination must accompany entropy or interval width.","textChars":72,"textLines":1,"bbox":[230,567,820,32]}
+{"kind":"notes","id":"nt/bni0cf","slide":25,"text":"Timing: Backup\n\nThis is one of the strongest results. Permuting evidence can reduce entropy while worsening discrimination and calibration. Therefore narrow intervals or low entropy are not validation. HydroSheaf includes adverse controls specifically to detect this failure mode.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\docs\\m7_3_results.md\n[/Sources]"}
+{"kind":"slide","id":"sl/sd9srk","slide":26,"title":"CAPABILITY STATUS","textShapes":10}
+{"kind":"textbox","id":"sh/29gv25wj","slide":26,"text":"CAPABILITY STATUS","textPreview":"CAPABILITY STATUS","textChars":17,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/pcredkfa","slide":26,"text":"Backup · Active learning is implemented, not yet validated","textPreview":"Backup · Active learning is implemented, not yet validated","textChars":58,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/obix4fep","slide":26,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/be9wfaxg","slide":26,"text":"Examiner backup","textPreview":"Examiner backup","textChars":15,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/qd0f6pwv","slide":26,"text":"26","textPreview":"26","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/dgrehkf6","slide":26,"bbox":[42,170,560,380]}
+{"kind":"textbox","id":"sh/cfix8fel","slide":26,"text":"CURRENT STATUS","textPreview":"CURRENT STATUS","textChars":14,"textLines":1,"bbox":[70,196,500,24]}
+{"kind":"textbox","id":"sh/zi9wjuxc","slide":26,"text":"0 recommendations\nfrom 0 scored edges","textPreview":"0 recommendations | from 0 scored edges","textChars":37,"textLines":2,"bbox":[70,265,500,100]}
+{"kind":"shape","id":"sh/yh0fapwr","slide":26,"bbox":[145,410,350,34]}
+{"kind":"textbox","id":"sh/0z25gzud","slide":26,"text":"NOT A CLAIM-BEARING RESULT","textPreview":"NOT A CLAIM-BEARING RESULT","textChars":26,"textLines":1,"bbox":[155,417,330,20]}
+{"kind":"shape","id":"sh/10bmp4vy","slide":26,"bbox":[638,170,560,380]}
+{"kind":"textbox","id":"sh/ex0nepc7","slide":26,"text":"WHAT WOULD EARN STATUS","textPreview":"WHAT WOULD EARN STATUS","textChars":22,"textLines":1,"bbox":[666,196,500,24]}
+{"kind":"textbox","id":"sh/fyt4nuds","slide":26,"text":"1  Jacobian-aware value of information\n2  explicit costs and decision loss\n3  prospective locked comparison\n4  independent replication","textPreview":"1  Jacobian-aware value of information | 2  explicit costs and decision loss | 3  prospective locked comparison | 4  independent replication","textChars":134,"textLines":4,"bbox":[684,260,465,190]}
+{"kind":"textbox","id":"sh/on25kju9","slide":26,"text":"Do not call the current method ‘excellent active learning’ in the viva.","textPreview":"Do not call the current method ‘excellent active learning’ in the viva.","textChars":71,"textLines":1,"bbox":[42,596,1196,30]}
+{"kind":"notes","id":"nt/sd9srk","slide":26,"text":"Timing: Backup\n\nIf challenged, be candid. The capability exists in code, but the current report contains no scored edges and no recommendations. It does not consume candidate-time Jacobians for transport-time selection. It belongs in future work until a prospective cost-aware benchmark demonstrates value.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M4\\m4_topology_benchmark\\results\\active_learning_report.md\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\HYDROSHEAF_REMAINING_CAPABILITIES_DECISION_20260728.md\n[/Sources]"}
+{"kind":"slide","id":"sl/3tr3kr","slide":27,"title":"AUDITABILITY","textShapes":16}
+{"kind":"textbox","id":"sh/xgzqdkjy","slide":27,"text":"AUDITABILITY","textPreview":"AUDITABILITY","textChars":12,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/ado7i5k7","slide":27,"text":"Backup · Reproducibility status","textPreview":"Backup · Reproducibility status","textChars":31,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/vex8ba1s","slide":27,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/k3q9of29","slide":27,"text":"Examiner backup","textPreview":"Examiner backup","textChars":15,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/54zqhkju","slide":27,"text":"27","textPreview":"27","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/ih8rmpkj","slide":27,"bbox":[42,166,570,108]}
+{"kind":"shape","id":"sh/j2h8fa14","slide":27,"bbox":[64,189,130,34]}
+{"kind":"textbox","id":"sh/s7a9szil","slide":27,"text":"PASS","textPreview":"PASS","textChars":4,"textLines":1,"bbox":[74,196,110,20]}
+{"kind":"textbox","id":"sh/t8jql4j6","slide":27,"text":"Locked-case separation","textPreview":"Locked-case separation","textChars":22,"textLines":1,"bbox":[212,190,370,55]}
+{"kind":"shape","id":"sh/9kvudc7a","slide":27,"bbox":[650,166,570,108]}
+{"kind":"shape","id":"sh/ojmtk765","slide":27,"bbox":[672,189,130,34]}
+{"kind":"textbox","id":"sh/nidcb2pk","slide":27,"text":"PASS","textPreview":"PASS","textChars":4,"textLines":1,"bbox":[682,196,110,20]}
+{"kind":"textbox","id":"sh/2h4bixoz","slide":27,"text":"Frozen hashes and artifact regeneration gates","textPreview":"Frozen hashes and artifact regeneration gates","textChars":45,"textLines":1,"bbox":[820,190,370,55]}
+{"kind":"shape","id":"sh/xovuhc7m","slide":27,"bbox":[42,301,570,108]}
+{"kind":"shape","id":"sh/wnmto761","slide":27,"bbox":[64,324,130,34]}
+{"kind":"textbox","id":"sh/bmdcf2pg","slide":27,"text":"PASS","textPreview":"PASS","textChars":4,"textLines":1,"bbox":[74,331,110,20]}
+{"kind":"textbox","id":"sh/al4bmxov","slide":27,"text":"10,000-resample post-review audit","textPreview":"10,000-resample post-review audit","textChars":33,"textLines":1,"bbox":[212,325,370,55]}
+{"kind":"shape","id":"sh/dsbu5s7i","slide":27,"bbox":[650,301,570,108]}
+{"kind":"shape","id":"sh/sr2tcn6x","slide":27,"bbox":[672,324,130,34]}
+{"kind":"textbox","id":"sh/4v6tsnet","slide":27,"text":"PASS","textPreview":"PASS","textChars":4,"textLines":1,"bbox":[682,331,110,20]}
+{"kind":"textbox","id":"sh/5wfulsfy","slide":27,"text":"14 focused tests","textPreview":"14 focused tests","textChars":16,"textLines":1,"bbox":[820,325,370,55]}
+{"kind":"shape","id":"sh/it4bqdwn","slide":27,"bbox":[42,436,570,108]}
+{"kind":"shape","id":"sh/judcjix8","slide":27,"bbox":[64,459,130,34]}
+{"kind":"textbox","id":"sh/sz6dwnep","slide":27,"text":"PENDING","textPreview":"PENDING","textChars":7,"textLines":1,"bbox":[74,466,110,20]}
+{"kind":"textbox","id":"sh/t0fupsfa","slide":27,"text":"Versioned public release and persistent identifiers","textPreview":"Versioned public release and persistent identifiers","textChars":51,"textLines":1,"bbox":[212,460,370,55]}
+{"kind":"shape","id":"sh/6xobuxwj","slide":27,"bbox":[650,436,570,108]}
+{"kind":"shape","id":"sh/ryxcn2x4","slide":27,"bbox":[672,459,130,34]}
+{"kind":"textbox","id":"sh/g3qd07el","slide":27,"text":"PENDING","textPreview":"PENDING","textChars":7,"textLines":1,"bbox":[682,466,110,20]}
+{"kind":"textbox","id":"sh/1ozutcf6","slide":27,"text":"CRediT, funding and conflict-of-interest declarations","textPreview":"CRediT, funding and conflict-of-interest declarations","textChars":53,"textLines":1,"bbox":[820,460,370,55]}
+{"kind":"notes","id":"nt/3tr3kr","slide":27,"text":"Timing: Backup\n\nState precisely that the analysis is locally auditable and the locked-test controls passed. Do not overstate external reproducibility until the exact code and data snapshot has a retrievable versioned release with persistent identifiers and the authorship declarations are complete.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\manuscript\\revision\\FINAL_VERIFICATION_20260730.md\n[/Sources]"}
+{"kind":"slide","id":"sl/dpjwoj","slide":28,"title":"RAPID RESPONSES","textShapes":14}
+{"kind":"textbox","id":"sh/szylwryp","slide":28,"text":"RAPID RESPONSES","textPreview":"RAPID RESPONSES","textChars":15,"textLines":1,"bbox":[42,24,730,24]}
+{"kind":"textbox","id":"sh/ryp4nmx4","slide":28,"text":"Backup · Five one-sentence viva answers","textPreview":"Backup · Five one-sentence viva answers","textChars":39,"textLines":1,"bbox":[42,52,1160,72]}
+{"kind":"shape","id":"sh/qxg3uhgj","slide":28,"bbox":[42,125,1196,2]}
+{"kind":"textbox","id":"sh/14rmtwf6","slide":28,"text":"Examiner backup","textPreview":"Examiner backup","textChars":15,"textLines":1,"bbox":[42,676,820,18]}
+{"kind":"textbox","id":"sh/03yl0ryl","slide":28,"text":"28","textPreview":"28","textChars":2,"textLines":1,"bbox":[1185,671,50,20]}
+{"kind":"shape","id":"sh/f2p4rmx0","slide":28,"bbox":[42,150,1196,78]}
+{"kind":"textbox","id":"sh/e1g3yhgf","slide":28,"text":"Why is this a PhD?","textPreview":"Why is this a PhD?","textChars":18,"textLines":1,"bbox":[62,167,280,28]}
+{"kind":"textbox","id":"sh/psrmxgf2","slide":28,"text":"It contributes a falsifiable integration formalism, evidence logic and field supportability diagnosis—not merely software.","textPreview":"It contributes a falsifiable integration formalism, evidence logic and field supportability diagnosis—not merely software.","textChars":122,"textLines":1,"bbox":[360,164,840,46]}
+{"kind":"shape","id":"sh/o7i54beh","slide":28,"bbox":[42,248,1196,78]}
+{"kind":"textbox","id":"sh/uxozuxg3","slide":28,"text":"Did it beat TracerLPM?","textPreview":"Did it beat TracerLPM?","textChars":22,"textLines":1,"bbox":[62,265,280,28]}
+{"kind":"textbox","id":"sh/vyxg32ho","slide":28,"text":"It closely reproduced reported configurations; graph value was not established and harmful topology was detectable.","textPreview":"It closely reproduced reported configurations; graph value was not established and harmful topology was detectable.","textChars":115,"textLines":1,"bbox":[360,262,840,46]}
+{"kind":"shape","id":"sh/gz6hw7y9","slide":28,"bbox":[42,346,1196,78]}
+{"kind":"textbox","id":"sh/h0fy5czu","slide":28,"text":"What does the sheaf add?","textPreview":"What does the sheaf add?","textChars":24,"textLines":1,"bbox":[62,363,280,28]}
+{"kind":"textbox","id":"sh/i1ozyxgf","slide":28,"text":"Edge-specific transformations and global conflict localisation, conditionally—not universal superiority.","textPreview":"Edge-specific transformations and global conflict localisation, conditionally—not universal superiority.","textChars":104,"textLines":1,"bbox":[360,360,840,46]}
+{"kind":"shape","id":"sh/32hg72hk","slide":28,"bbox":[42,444,1196,78]}
+{"kind":"textbox","id":"sh/43qh07y5","slide":28,"text":"Is Ghana validated?","textPreview":"Is Ghana validated?","textChars":19,"textLines":1,"bbox":[62,461,280,28]}
+{"kind":"textbox","id":"sh/54zy9czq","slide":28,"text":"No end-to-end truth; the field result identifies evidence ceilings and priority measurements.","textPreview":"No end-to-end truth; the field result identifies evidence ceilings and priority measurements.","textChars":93,"textLines":1,"bbox":[360,458,840,46]}
+{"kind":"shape","id":"sh/y54fmdgv","slide":28,"bbox":[42,542,1196,78]}
+{"kind":"textbox","id":"sh/j6dgvihg","slide":28,"text":"What is the decisive next test?","textPreview":"What is the decisive next test?","textChars":31,"textLines":1,"bbox":[62,559,280,28]}
+{"kind":"textbox","id":"sh/na9w3ex8","slide":28,"text":"Independent replication under another generator or matched field connectivity truth.","textPreview":"Independent replication under another generator or matched field connectivity truth.","textChars":84,"textLines":1,"bbox":[360,556,840,46]}
+{"kind":"notes","id":"nt/dpjwoj","slide":28,"text":"Timing: Backup\n\nUse these as concise first answers, then expand only if the examiner requests evidence. The strongest defence style is direct claim, exact result, limitation, and implication.\n\n[Sources]\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\draftbychapter\\PhDChapter1_refined.docx\n- C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M7\\m7_nonuniqueness_benchmark\\manuscript\\revision\\FINAL_VERIFICATION_20260730.md\n[/Sources]"}

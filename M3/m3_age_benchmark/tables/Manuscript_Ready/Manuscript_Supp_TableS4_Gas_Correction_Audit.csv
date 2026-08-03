@@ -1,5 +1,0 @@
-age_class,n,median_delta_log10_error,mean_delta_log10_error,raw_improved_fraction,raw_degraded_fraction,raw_gained_factor_2,raw_lost_factor_2,any_gas_value_changed_fraction,median_changed_gas_fields
-intermediate_50_1000,369,0.0,-0.038494956292288,0.1002710027100271,0.048780487804878,9,4,0.0,0.0
-modern_le_50,532,0.0,-0.0848598305740402,0.244360902255639,0.1221804511278195,32,4,0.0,0.0
-old_1000_30000,545,0.0,0.0,0.0,0.0,0,0,0.0,0.0
-very_old_gt_30000,205,0.0,0.0,0.0,0.0,0,0,0.0,0.0

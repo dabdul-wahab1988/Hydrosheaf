@@ -1,0 +1,319 @@
+{
+  "schema_version": "1.0",
+  "note": "Display numbers are assigned at assembly; artifact IDs are immutable.",
+  "artifacts": [
+    {
+      "id": "FIG-1",
+      "kind": "figure",
+      "destination": "main",
+      "path": "manuscript/artifacts/figures/FIG-1_site_map.png",
+      "generator": "M3.1/analysis/r/fig01_site_map.R",
+      "inputs": [
+        "site_locations.csv"
+      ],
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "caption": "Geographic distribution of the 1,272 USGS national public-supply sites used in the M3.1 benchmark, coloured by aquifer lithology group, with the N = 329 strict reportable subset marked.",
+      "technical_description": "Site coordinates and AqGroup/StudyUnit labels joined from Table_1_Sites.txt (USGS national public-supply release) by site_id; reportability flag taken from the tracerlpm_strict_parity scenario of the regenerated design matrix. State boundaries from geoBoundaries (CC BY 4.0) via the geobounds R package, cached offline.",
+      "interpretation": "New in M3.1; M3 had no map figure. Shows the benchmark spans six lithology groups and the continental United States, and that the reportable subset (dots) is a geographically broad, non-clustered sample of the full site set (crosses), i.e. reportability is not concentrated in one region or aquifer type.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-2",
+      "kind": "figure",
+      "destination": "main",
+      "path": "manuscript/artifacts/figures/FIG-2_atmospheric_histories.png",
+      "generator": "M3.1/analysis/r/fig02_atmospheric_histories.R",
+      "inputs": [
+        "atmospheric_input_histories.csv"
+      ],
+      "objective_ids": [
+        "OBJ-2"
+      ],
+      "caption": "Atmospheric input histories of tritium, sulfur hexafluoride and chlorofluorocarbon-12 used for young-groundwater residence-time interpretation.",
+      "technical_description": "Recharge-year vs. input-concentration curves generated directly from hydrosheaf.nuclear.input_history.build_default_tritium_input and hydrosheaf.nuclear.multi_tracer.build_atmospheric_tracer_input (current codebase), the same functions the benchmark pipeline uses for tracer prediction.",
+      "interpretation": "Carried over from M3 Figure 1. Shows why the tracer suite must be interpreted jointly: distinct timing and shape give each tracer complementary and non-redundant age sensitivity.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-3",
+      "kind": "figure",
+      "destination": "main",
+      "path": "manuscript/artifacts/figures/FIG-3_design_matrix_performance.png",
+      "generator": "M3.1/analysis/r/fig03_design_matrix_performance.R",
+      "inputs": [
+        "Manuscript_Table2_Design_Matrix_Performance.csv"
+      ],
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-2"
+      ],
+      "caption": "Active design-matrix reference agreement and reportability across scenarios, regenerated from current HEAD.",
+      "technical_description": "Median absolute log10 reference discrepancy and within-factor-2 agreement per scenario, point size scaled to the number of identifiable reportable fits. Only scenarios with at least one reportable fit are shown; withdrawn scenarios (hierarchical old-water prior, raw-gas ablation, old-tracer-only) are excluded by the pipeline itself, not by this figure.",
+      "interpretation": "Carried over from M3 Figure 2; regenerated numbers are unchanged from the M3 lock to 15 significant figures (DECISIONS.md D2). Lower discrepancy does not imply field-validated true-age accuracy.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-4",
+      "kind": "figure",
+      "destination": "main",
+      "path": "manuscript/artifacts/figures/FIG-4_strict_parity_scatter.png",
+      "generator": "M3.1/analysis/r/fig04_strict_parity_scatter.R",
+      "inputs": [
+        "strict_parity_scatter.csv"
+      ],
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Strict reported-configuration emulation against model-derived USGS reference ages, N = 329 reportable subset.",
+      "technical_description": "Log-log scatter of Hydrosheaf emulated age vs. USGS reference age, coloured by age class; dashed lines mark a factor-of-two band. Regenerated from the current-HEAD tracerlpm_strict_parity scenario.",
+      "interpretation": "Carried over from M3 Figure 3. Evaluates reference-workflow agreement, not independently known groundwater ages; agreement is tightest for old/intermediate water and weakest for modern (<=50 yr) water.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-5",
+      "kind": "figure",
+      "destination": "main",
+      "path": "manuscript/artifacts/figures/FIG-5_graph_benchmark.png",
+      "generator": "M3.1/analysis/r/fig05_graph_benchmark.R",
+      "inputs": [
+        "Manuscript_Table4_Real_USGS_Graph_Benchmark.csv"
+      ],
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Graph-age effects on the N = 329 strict reportable nodes: change in RMSE against change in within-factor-2 agreement, one point per candidate family or negative control at each non-zero prior strength.",
+      "technical_description": "Joint-decision scatter (redesigned from M3's small-multiples Figure 4 because a shared-scale RMSE-only view hid the numerically tiny hydraulic-proxy effect). Dashed lines mark zero change on each axis; a robust improvement requires both axes favourable simultaneously.",
+      "interpretation": "Only the hydraulic-proxy family approaches the origin (smallest RMSE change, -0.00135 log10 at weak strength), and even there within-factor-2 agreement still falls (0.875 to 0.869), so it fails the pre-declared joint rule. Every other candidate and both negative controls fall further into the worse-on-both region; wrong-direction and randomised controls are the most harmful, confirming the model responds to imposed topology without validating any candidate as a true flow path.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-6",
+      "kind": "figure",
+      "destination": "main",
+      "path": "manuscript/artifacts/figures/FIG-6_tracer_withholding.png",
+      "generator": "M3.1/analysis/r/fig06_tracer_withholding.R",
+      "inputs": [
+        "tracer_withholding_summary.csv"
+      ],
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Leakage-guarded target-tracer withholding for 3H, SF6 and 14C: RMSE for the single-node baseline against three candidate/negative-control graphs.",
+      "technical_description": "RMSE computed in Python from per-row cross-validation exports (err = true_val - predicted, RMSE = sqrt(mean(err^2))) over reportable withheld fits only; native tracer units. CFC-11/CFC-12 (zero eligible graph edges) shown separately in Supplementary Figure S3.",
+      "interpretation": "Carried over from M3 Figure 6; regenerated cross-validation results are byte-for-byte identical to the M3 lock for all five tracers (DECISIONS.md D2). No candidate graph shows a meaningful predictive gain over the single-node baseline for any tracer.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-7",
+      "kind": "figure",
+      "destination": "main",
+      "path": "manuscript/artifacts/figures/FIG-7_infeasibility_audit.png",
+      "generator": "M3.1/analysis/r/fig07_infeasibility_audit.R",
+      "inputs": [
+        "infeasibility_pairwise.csv",
+        "infeasibility_by_conditioning_size.csv"
+      ],
+      "objective_ids": [
+        "OBJ-4"
+      ],
+      "caption": "Exploratory set-valued compatibility audit (development-stage): pairwise tracer infeasibility rates and the rise of local infeasibility with conditioning-set size.",
+      "technical_description": "New in M3.1. Pairwise rates and minimal-infeasible-subset sizes from m3_infeasibility_diagnostics.json at sigma multiplier k=6 (matching docs/m3_identified_ttd_infeasibility_audit_20260731.md Finding 4); conditioning-size table transcribed from that document's Finding 1 and cross-checked against the underlying development CSV's n_conditioning_tracers value counts (exact match: 594/1,626/768/303/138).",
+      "interpretation": "Development-stage/exploratory diagnostic, not the scalar benchmark reported elsewhere in this paper. 27.85% of eligible folds admit no feasible transit-time distribution; the pattern concentrates on within-family tracer pairs (the three CFCs against each other; 3H against 3H/3He) rather than being diffuse. Seven candidate explanations were tested and none accounts for it (Supplementary Information S7); no cause is attributed here.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S2",
+      "kind": "figure",
+      "destination": "supplementary",
+      "path": "manuscript/artifacts/figures/FIG-S2_edge_geometry.png",
+      "generator": "M3.1/analysis/r/figS2_edge_geometry.R",
+      "inputs": [
+        "edge_geometry.csv"
+      ],
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Spatial-distance and vertical-depth-difference distributions for graph edges in the N = 329 strict reportable-node benchmark, by graph family.",
+      "technical_description": "Boxplots of distance_km (pseudo-log scale, handles zero-distance co-located pairs) and depth_diff_m (linear scale, 170 edges with missing depth metadata excluded from that panel only) per family.",
+      "interpretation": "Carried over from M3 Supplementary Figure S2. Diagnoses hypothesised edge geometry, not verified flow connections.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S3",
+      "kind": "figure",
+      "destination": "supplementary",
+      "path": "manuscript/artifacts/figures/FIG-S3_cfc_withholding.png",
+      "generator": "M3.1/analysis/r/figS3_cfc_withholding.R",
+      "inputs": [
+        "tracer_withholding_summary.csv"
+      ],
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "CFC-11 and CFC-12 target-withheld RMSE after the reportability guard.",
+      "technical_description": "Same computation as FIG-6, restricted to CFC-11 (4/28 reportable/eligible) and CFC-12 (6/16).",
+      "interpretation": "Carried over from M3 Supplementary Figure S3. No reportable CFC node formed an eligible graph edge, so near-identical bars across variants indicate a non-estimable graph comparison, not equivalence.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-S4",
+      "kind": "figure",
+      "destination": "supplementary",
+      "path": "manuscript/artifacts/figures/FIG-S4_network_dating_demo.png",
+      "generator": "M3.1/analysis/r/figS4_network_dating_demo.R",
+      "inputs": [
+        "m3_network_dating_demo.csv",
+        "m3_network_dating_demo_summary.csv"
+      ],
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Controlled-synthetic network-dating ambiguity and recovery diagnostic.",
+      "technical_description": "Adapted from M3/m3_age_benchmark/scripts/plot_m3_network_dating_demo.R onto the M3.1 theme; underlying data unchanged since generation (no dependency touched since, DECISIONS.md D2b).",
+      "interpretation": "Carried over from M3 Supplementary Figure S4. Capability demonstration using known simulated ages; not field validation and does not justify a general graph-improvement claim.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-1",
+      "kind": "table",
+      "destination": "main",
+      "path": "manuscript/artifacts/data/Manuscript_Table1_Nuclear_Tracer_Physics.csv",
+      "generator": "M3.1/m3_age_benchmark/scripts/make_publication_tables.py",
+      "objective_ids": [
+        "OBJ-2"
+      ],
+      "caption": "Nuclear and dissolved-gas tracer properties used to benchmark groundwater residence-time inference.",
+      "technical_description": "Static reference table of decay/process scale, target age range, unit and benchmark role for 3H, 3H/3He, 14C, 4He, SF6 and CFC-11/12/113.",
+      "interpretation": "Unchanged from M3 Table 1.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-2",
+      "kind": "table",
+      "destination": "main",
+      "path": "manuscript/artifacts/data/display/Table2_display.csv",
+      "generator": "M3.1/analysis/python/build_display_tables.py (relabels/rounds Manuscript_Table2_Design_Matrix_Performance.csv; no value is altered)",
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Active design-matrix performance on the national release, regenerated from current HEAD.",
+      "technical_description": "Per-scenario N, reportable N, median absolute log10 error, log10 RMSE, log10 R2, within-factor-2/10. Canonical full-precision source: manuscript/artifacts/data/Manuscript_Table2_Design_Matrix_Performance.csv.",
+      "interpretation": "Numerically unchanged from the M3 lock for every headline scenario (DECISIONS.md D2).",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-3",
+      "kind": "table",
+      "destination": "main",
+      "path": "manuscript/artifacts/data/display/Table3_display.csv",
+      "generator": "M3.1/analysis/python/build_display_tables.py (relabels/rounds Manuscript_Table3_Paired_Ablation_Effects.csv; no value is altered)",
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Paired ablation and sensitivity effects on reportable common rows.",
+      "technical_description": "Paired N, median/mean delta absolute log10 error, improved fraction, within-factor-2 gained/lost, per scenario against its paired baseline. Canonical full-precision source: manuscript/artifacts/data/Manuscript_Table3_Paired_Ablation_Effects.csv.",
+      "interpretation": "Unchanged from M3 Table 3. Small supports and shared provenance limit causal interpretation.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-4",
+      "kind": "table",
+      "destination": "main",
+      "path": "manuscript/artifacts/data/display/Table4_display.csv",
+      "generator": "M3.1/analysis/python/build_display_tables.py (relabels/rounds Manuscript_Table4_Real_USGS_Graph_Benchmark.csv; no value is altered)",
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Graph-age benchmark on the 329 strict reportable nodes.",
+      "technical_description": "Per graph-family/strength: nodes, edges, single vs. graph RMSE and within-factor-2, violation counts, robust-improvement flag. Canonical full-precision source: manuscript/artifacts/data/Manuscript_Table4_Real_USGS_Graph_Benchmark.csv.",
+      "interpretation": "The hydraulic_proxy_constrained rows are byte-for-byte identical to the M3 lock; other rows show small numeric drift from parallel floating-point ordering that does not change any robust-improvement classification (DECISIONS.md D2).",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-5",
+      "kind": "table",
+      "destination": "main",
+      "path": "manuscript/artifacts/data/display/Table5_display.csv",
+      "generator": "M3.1/analysis/python/build_display_tables.py (relabels/rounds Manuscript_Table5_Mode_Comparison.csv; no value is altered)",
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Modelling-mode comparison on unequal full-available supports and the N = 40 common support.",
+      "technical_description": "Per mode/support: N, finite metrics, median absolute log10 error, log10 RMSE, log10 R2, within-factor-2. Canonical full-precision source: manuscript/artifacts/data/Manuscript_Table5_Mode_Comparison.csv.",
+      "interpretation": "Unchanged from M3 Table 5. Full-available rows are descriptive and must not be ranked across unequal supports.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-6",
+      "kind": "table",
+      "destination": "main",
+      "path": "manuscript/artifacts/data/display/Table6_display.csv",
+      "generator": "M3.1/analysis/python/build_display_tables.py (relabels/rounds Manuscript_Table6_Statistical_Significance.csv; no value is altered)",
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Paired comparison of reported-configuration emulation and reported-output-constrained fraction sensitivity.",
+      "technical_description": "Paired Wilcoxon signed-rank test, paired t-test, and bootstrap difference-in-MAE/RMSE with 95% confidence intervals. Canonical full-precision source: manuscript/artifacts/data/Manuscript_Table6_Statistical_Significance.csv.",
+      "interpretation": "Unchanged from M3 Table 6. Statistical differences quantify closer agreement with shared-provenance products; they do not establish independent true-age accuracy.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S1",
+      "kind": "table",
+      "destination": "supplementary",
+      "path": "manuscript/supplementary/TAB-S1_reproducibility_inventory.md",
+      "generator": "hand-authored from source-release documentation (unchanged since M3)",
+      "objective_ids": [
+        "OBJ-2"
+      ],
+      "caption": "Reproducibility inventory: source-data tables, variables, filtering rules and row-count trace.",
+      "technical_description": "Static provenance table, not derived from a script.",
+      "interpretation": "Unchanged from M3 Supplementary Table S1.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S2",
+      "kind": "table",
+      "destination": "supplementary",
+      "path": "manuscript/artifacts/data/Manuscript_Supp_TableS2_Age_Class_Performance.csv",
+      "generator": "M3.1/m3_age_benchmark/scripts/make_publication_tables.py",
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Age-stratified reference-workflow agreement for strict reported-configuration emulation.",
+      "technical_description": "Per age class: N, median absolute log10 error, log10 RMSE, within-factor-2/10, median proxy coherence.",
+      "interpretation": "Unchanged from M3 Supplementary Table S2.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S3",
+      "kind": "table",
+      "destination": "supplementary",
+      "path": "manuscript/artifacts/data/Manuscript_Supp_TableS3_Old_Groundwater_Diagnostics.csv",
+      "generator": "M3.1/m3_age_benchmark/scripts/make_publication_tables.py",
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Diagnostic 14C-4He agreement categories for all harmonised rows.",
+      "technical_description": "Per old-water status category: N, median 14C age, median 4He age, median constraint gap.",
+      "interpretation": "Unchanged from M3 Supplementary Table S3. Not independent age validation.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-S4",
+      "kind": "table",
+      "destination": "supplementary",
+      "path": "manuscript/supplementary/TAB-S4_infeasibility_explanations.md",
+      "generator": "hand-authored from docs/m3_cfc_reconciliation_step1_20260731.md",
+      "objective_ids": [
+        "OBJ-4"
+      ],
+      "caption": "Status of seven candidate explanations tested for the tracer-infeasibility signature.",
+      "technical_description": "Transcribed verdict table; underlying numeric tests documented in Supplementary Information S7.",
+      "interpretation": "New in M3.1. None of the seven explanations accounts for the observed infeasibility; the cause is reported as unresolved.",
+      "validation_status": "PASS"
+    }
+  ]
+}

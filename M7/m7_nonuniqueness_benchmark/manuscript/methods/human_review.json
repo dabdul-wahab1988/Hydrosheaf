@@ -1,15 +1,15 @@
 {
   "schema_version": "1.0",
   "status": "PASS",
-  "reviewed_on": "2026-07-24",
+  "reviewed_on": "2026-07-29",
   "checks": {
     "technical_fidelity": {
       "status": "PASS",
-      "evidence": "Every Methods statement was traced to a specific function, line range, or locked document in the M7 package (scripts/m7_3_analysis.py, docs/m7_3_protocol.md, docs/m7_3_results.md, results/m7_3_locked/manifest.json) before drafting; no procedure, parameter, or outcome was inferred without a source anchor recorded in methods_evidence.csv."
+      "evidence": "Every Methods statement was traced to a specific function, source anchor, protocol or immutable run artifact in the M7.3, public-pipeline, M7.4 and M7.5 packages; METH-29 through METH-39 record the system, sheaf-versus-graph and robust/hybrid evidence."
     },
     "main_supplement_split": {
       "status": "PASS",
-      "evidence": "Main Methods retains only the design of the four linked experiments, primary evidence-fusion equation, and top-level decision-rule statement; full derivations (age posterior, importance-weight update, entropy, ECE, reaction-support entropy), permutation-seeding detail, and the full decision-rule specification were moved to Supplementary Methods per methods-writing.md allocation rules."
+      "evidence": "Main Methods retains the linked design, primary fusion and affine-section equations, and M7.4/M7.5 claim rules; detailed public-pipeline stages, competence matching, two-stage locks, LOO weighting, group cross-fitting and both calibration regimes are in Supplementary Methods."
     },
     "expert_clarity": {
       "status": "PASS",
@@ -29,11 +29,11 @@
     },
     "equation_accuracy": {
       "status": "PASS",
-      "evidence": "All six declared equations (EQ-1 through EQ-6) were transcribed directly from the corresponding function implementations in scripts/m7_3_analysis.py (fit_evidence_models/predict_evidence_model, local_age_probability_grid, topology_age_sensitivity weight update, normalized_binary_entropy, expected_calibration_error, reaction_support_summary) and checked term-by-term against the code before insertion."
+      "evidence": "EQ-1 through EQ-6 were retained from the verified M7.3 implementation; EQ-7 was checked term-by-term against hydrosheaf/sheaf/directed_section.py and the matched graph/sheaf runner, including identity-map specialisation."
     },
     "reproducibility": {
       "status": "PASS",
-      "evidence": "Software, seeds, particle/bootstrap counts and convergence thresholds reported in Methods and Supplementary Methods were checked against results/m7_3_locked/manifest.json and README.md replay instructions."
+      "evidence": "Software, seeds, particle/bootstrap counts, identity tolerances, model budgets and exclusions were checked against the M7.3 manifest, RUN-M7-SYSTEM-20260728-01, RUN-M7-SHEAF-VS-GRAPH-20260729-01, the two-stage RUN-M7-ROBUST-HYBRID-SHEAF-20260729-01 locks, and README regeneration instructions."
     }
   }
 }

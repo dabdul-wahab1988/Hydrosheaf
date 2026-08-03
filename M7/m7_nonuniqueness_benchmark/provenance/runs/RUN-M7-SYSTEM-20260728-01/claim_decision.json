@@ -1,0 +1,15 @@
+{
+  "system_acceptance_passed": true,
+  "incremental_full_sheaf_claim_allowed": false,
+  "global_section_contribution": {
+    "left": "full_sheaf",
+    "right": "local_age",
+    "metric": "pr_auc",
+    "n_cases": 6,
+    "mean_difference": 0.058647723305,
+    "ci95_low": 0.038642990151,
+    "ci95_high": 0.077707024954
+  },
+  "allowed_claim": "The strict public pipeline is evaluated as a controlled-synthetic system execution and ablation result; no incremental topology-superiority claim is allowed.",
+  "guardrail": "Controlled-synthetic system acceptance is not field validation and does not establish general HydroSheaf superiority."
+}

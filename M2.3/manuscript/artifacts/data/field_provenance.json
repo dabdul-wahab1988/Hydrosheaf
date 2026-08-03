@@ -1,0 +1,35 @@
+{
+  "generated_by": "M2.3/analysis/python/derive_field_evidence.py",
+  "sources": [
+    {
+      "path": "data/FieldData/NorthenGhana/NorthernGhana.xlsx",
+      "sha256": "55ca931f98ba2424d0711697b4b80b18b9a12b97c91f4738aa45f78b318aae0e"
+    },
+    {
+      "path": "data/FieldData/LowerAnayari/manu.csv",
+      "sha256": "9362a641950c22aa6a2e4a7d0b5429da13c6cbe97acc8e03389dcc1d0baa7e05"
+    },
+    {
+      "path": "data/FieldData/Talensi_MiningArea/talensi.csv",
+      "sha256": "540091fcfdf2603056702e9514e41bbaa14d8384f977734f8f076e96d9a8dce8"
+    }
+  ],
+  "charge_balance_definition": "100*(sum cations meq/L - sum anions meq/L)/(sum cations + sum anions)",
+  "quality_tiers": {
+    "quantitative": "|CBE| <= 5%",
+    "screening": "5% < |CBE| <= 10%",
+    "exploratory": "|CBE| > 10%"
+  },
+  "note": "Charge balance uses only the ions measured in each dataset; Talensi lacks fluoride so its balance omits that species.",
+  "applied_corrections": [
+    {
+      "dataset": "Talensi",
+      "field": "Longitude",
+      "issue": "All 63 longitudes stored as positive (east) although Talensi District lies near 0.8 degrees west; every sample plotted outside Ghana as delivered.",
+      "correction": "Sign negated in the derivation script.",
+      "verification": "After correction all 63 samples fall inside the Ghana national boundary and within the Upper East Region polygon (geoBoundaries).",
+      "source_file_modified": false
+    }
+  ],
+  "northern_ghana_seasonal_status": "The workbook presents Dry and Wet sheets for the same 160 wells. The author confirmed that the chemistry is real but the seasonal separation was reconstructed rather than independently sampled. Static water level is identical in 160 of 160 wells across the two sheets. The Dry sheet is therefore treated as the primary measured panel, the Wet sheet is excluded from inference, and no seasonal change or repeated-head result is reported (DECISION D2)."
+}
