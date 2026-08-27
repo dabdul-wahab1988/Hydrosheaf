@@ -58,7 +58,9 @@ def parse_val(v):
 
 
 def load_samples(csv, id_col):
-    df = pd.read_csv(ROOT / "data" / csv)
+    candidates = [ROOT / "data" / "FieldData" / csv, ROOT / "data" / csv]
+    path = next((c for c in candidates if c.is_file()), candidates[0])
+    df = pd.read_csv(path)
     samples = {}
     for _, row in df.iterrows():
         sid = str(row.get(id_col))
@@ -102,6 +104,10 @@ def run_site(site, cfg, n_trials=30):
 
 
 def main():
+    # analyze_sensitivity_mc draws from the global numpy RNG, so the PSI matrix
+    # (and Figure 7) drifts between runs unless the seed is fixed. Same seed as
+    # scripts/analysis/run_edge_psi.py.
+    np.random.seed(20260820)
     all_rows = []
     for site, cfg in SITES.items():
         print(f"Processing {site} (minerals: {cfg['minerals']})...")

@@ -1,0 +1,5 @@
+baseline,independent,n_reference_edges,n_inferred_edges,tp,fp,fn,precision,recall,f1
+head_gradient_downhill_k2,True,174.0,302.0,147.0,155.0,27.0,0.4867549668874172,0.8448275862068966,0.6176470588235294
+distance_knn_k2,True,174.0,306.0,0.0,306.0,174.0,0.0,0.0,0.0
+elevation_drop_all_pairs,True,174.0,452.0,147.0,305.0,27.0,0.3252212389380531,0.8448275862068966,0.46964856230031954
+conservative_tracer_ordering,True,174.0,,,,,,,

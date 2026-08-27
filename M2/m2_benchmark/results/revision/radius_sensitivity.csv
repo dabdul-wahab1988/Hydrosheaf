@@ -1,0 +1,9 @@
+site,radius_km,n_candidates,n_retained,n_primary,n_lateral,jaccard_vs_5km
+Manu,3.0,265,117,12,105,0.442
+Manu,5.0,422,121,21,100,1.0
+Manu,7.5,480,123,45,78,0.671
+Manu,10.0,485,123,50,73,0.616
+Talensi,3.0,89,85,78,7,0.291
+Talensi,5.0,150,137,131,6,1.0
+Talensi,7.5,177,151,143,8,0.258
+Talensi,10.0,192,162,152,10,0.182

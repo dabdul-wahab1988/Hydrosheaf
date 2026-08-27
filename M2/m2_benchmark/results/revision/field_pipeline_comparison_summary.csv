@@ -1,0 +1,5 @@
+site,mode,n_candidates,n_retained,rejected,median_chemistry_r2,sheaf_refinement_stage,downhill,uphill,flat,reciprocal_edges,sheaf_h0_dim,sheaf_h1_dim,sheaf_obstruction_energy,sheaf_cycle_count,sheaf_cycle_obstruction_max,leverage_max,leverage_median
+Manu,as_run,82,82,0,0.6002652537771093,not_requested,0,0,82,66,,,,,,,
+Manu,documented,422,121,301,0.5318850358560414,completed,21,0,100,52,0.0,800.0,0.2951454826694264,56.0,0.005686783672077321,0.06471480614846528,0.0017937443101155304
+Talensi,as_run,126,126,0,0.765592716073928,not_requested,62,61,3,82,,,,,,,
+Talensi,documented,150,137,13,0.8247211658159506,completed,131,0,6,4,10.0,760.0,0.1279582581143251,74.0,0.0029586074226037127,0.01666937182539649,0.0007437531473585002

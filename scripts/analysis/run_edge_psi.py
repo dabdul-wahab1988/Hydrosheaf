@@ -21,8 +21,28 @@ def parse_val(val):
     except:
         return 0.0
 
+def resolve_field_csv(csv_file: str) -> Path:
+    """Resolve the field sample CSV under the canonical data locations.
+
+    Revision fix (CAGEO-D-26-00847): the submitted pipeline expected
+    ``data/<site>/<file>`` while the canonical field inputs live under
+    ``data/FieldData/<site>/<file>`` (see run_m2_field_benchmarks.py).
+    Both locations are tried so the script works regardless of layout.
+    """
+    candidates = [
+        ROOT / "data" / "FieldData" / csv_file,
+        ROOT / "data" / csv_file,
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    raise FileNotFoundError(
+        f"field sample CSV not found; tried: {[str(c) for c in candidates]}"
+    )
+
+
 def process_site(site_name, csv_file, active_minerals, n_trials=30, max_edges=None):
-    df_samples = pd.read_csv(ROOT / "data" / csv_file)
+    df_samples = pd.read_csv(resolve_field_csv(csv_file))
     samples = {}
     ions = ['Ca', 'Mg', 'Na', 'K', 'HCO3', 'Cl', 'SO4', 'NO3', 'F', 'Fe']
 
@@ -117,7 +137,12 @@ def main():
     parser = argparse.ArgumentParser(description="Generate M2 field edge process-stability probabilities.")
     parser.add_argument("--trials", type=int, default=30, help="Monte Carlo trials per edge.")
     parser.add_argument("--max-edges-per-site", type=int, default=None, help="Optional smoke-test edge limit per site.")
+    parser.add_argument("--seed", type=int, default=20260820,
+                        help="RNG seed. analyze_sensitivity_mc draws from the global "
+                             "numpy RNG, so PSI values -- and hence the reported family "
+                             "distribution -- drift between runs unless this is fixed.")
     args = parser.parse_args()
+    np.random.seed(args.seed)
 
     manu_res = process_site(
         "Manu",

@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import csv
 import math
+import os
+import re
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Union
 
@@ -22,14 +25,146 @@ class SiteInputContext:
     aquifer_group: str = ""
     recharge_temperature_c: float | None = None
     elevation_m: float | None = None
+    # The national USGS release records the tritium input as a 2-degree by
+    # 5-degree quadrangle label in Table 4.  Keeping that label with the site
+    # context allows the primary benchmark to use the same public input family
+    # instead of silently substituting a nearest-station reconstruction.
+    tritium_input_source: str | None = None
+
+
+USGS_QUADRANGLE_HISTORY_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "M3.1"
+    / "m3_age_benchmark"
+    / "external"
+    / "usgs_tritium_deposition_2023"
+    / "Table_2_TritiumInQuadrangles.csv"
+)
+
+
+def _normalise_quadrangle_label(value: Any) -> str:
+    """Normalise the label spelling used by USGS Table 4 and Table 2."""
+    text = str(value or "").strip()
+    if not text or text.lower() in {"nan", "none", "na"}:
+        return ""
+    return re.sub(r"\s+", "", text.replace(",", "_"))
+
+
+def _quadrangle_from_coordinates(latitude: float | None, longitude: float | None) -> str:
+    """Return the USGS quadrangle label containing a CONUS coordinate."""
+    if latitude is None or longitude is None:
+        return ""
+    try:
+        lat = float(latitude)
+        lon_w = abs(float(longitude))
+    except (TypeError, ValueError):
+        return ""
+    if not (math.isfinite(lat) and math.isfinite(lon_w)):
+        return ""
+
+    lat_bins = [
+        (49.0, 47.0), (47.0, 45.0), (45.0, 43.0), (43.0, 41.0),
+        (41.0, 39.0), (39.0, 37.0), (37.0, 35.0), (35.0, 33.0),
+        (33.0, 31.0), (31.0, 29.0), (29.0, 27.0),
+    ]
+    lon_bins = [
+        (125.0, 120.0), (120.0, 115.0), (115.0, 110.0),
+        (110.0, 105.0), (105.0, 100.0), (100.0, 95.0),
+        (95.0, 90.0), (90.0, 85.0), (85.0, 80.0), (80.0, 75.0),
+        (75.0, 70.0), (70.0, 65.0),
+    ]
+    lat_label = ""
+    if lat >= 49.0:
+        lat_label = "49-47"
+    elif lat < 27.0:
+        lat_label = "<27"
+    else:
+        for upper, lower in lat_bins:
+            if lower <= lat < upper:
+                lat_label = f"{int(upper)}-{int(lower)}"
+                break
+    lon_label = ""
+    if lon_w >= 125.0:
+        lon_label = "125-120"
+    elif lon_w < 65.0:
+        lon_label = "<65"
+    else:
+        for west, east in lon_bins:
+            if east <= lon_w < west:
+                lon_label = f"{int(west)}-{int(east)}"
+                break
+    return f"{lat_label}_{lon_label}" if lat_label and lon_label else ""
+
+
+@lru_cache(maxsize=1)
+def _load_usgs_quadrangle_histories() -> dict[str, InputHistory]:
+    """Load the public USGS monthly quadrangle histories once per process."""
+    histories: dict[str, dict[str, list[float]]] = {}
+    if not USGS_QUADRANGLE_HISTORY_PATH.exists():
+        return {}
+    with USGS_QUADRANGLE_HISTORY_PATH.open("r", encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        quadrangles = [
+            name for name in (reader.fieldnames or [])
+            if name not in {"Date", "Year", "Month"}
+        ]
+        for name in quadrangles:
+            histories[name] = {"years": [], "values": []}
+        for row in reader:
+            try:
+                year = float(row.get("Year", ""))
+                month = float(row.get("Month", ""))
+            except (TypeError, ValueError):
+                continue
+            target_year = year + (month - 0.5) / 12.0
+            for name in quadrangles:
+                try:
+                    value = float(row.get(name, ""))
+                except (TypeError, ValueError):
+                    continue
+                if math.isfinite(value):
+                    histories[name]["years"].append(target_year)
+                    histories[name]["values"].append(value)
+
+    out: dict[str, InputHistory] = {}
+    for name, data in histories.items():
+        if not data["years"]:
+            continue
+        years = np.asarray(data["years"], dtype=float)
+        values = np.asarray(data["values"], dtype=float)
+        # The USGS release begins in August 1953.  A fixed pre-bomb background
+        # is preferable to endpoint clamping for older age-grid nodes; the
+        # background is negligible after tritium decay and is documented in the
+        # run manifest as part of the input-history contract.
+        pre_years = np.arange(1850.0, years.min(), 1.0 / 12.0)
+        pre_values = np.full(pre_years.shape, 4.0, dtype=float)
+        out[name] = InputHistory(
+            np.concatenate([pre_years, years]),
+            np.concatenate([pre_values, values]),
+            sigma=np.zeros(len(pre_years) + len(years), dtype=float),
+        )
+    return out
+
+
+def _usgs_quadrangle_history(context: SiteInputContext) -> tuple[InputHistory | None, str]:
+    """Resolve the exact USGS quadrangle history named by a site or its coordinates."""
+    histories = _load_usgs_quadrangle_histories()
+    if not histories:
+        return None, ""
+    source = _normalise_quadrangle_label(context.tritium_input_source)
+    if source not in histories:
+        source = _quadrangle_from_coordinates(context.latitude, context.longitude)
+    history = histories.get(source)
+    return history, source
 
 
 def build_site_tracer_histories(context: SiteInputContext) -> dict[str, InputHistory]:
     """Return site-aware tracer input histories.
 
-    Prefer the nearest WISER tritium station when the bundled North America
-    workbook is available, then fall back to deterministic latitude-region
-    histories. Gas histories remain compact atmospheric histories, but are
+    The primary M3.1 benchmark uses the USGS 2-degree by 5-degree quadrangle
+    history named in Table 4.  Setting ``HYDROSHEAF_TRITIUM_HISTORY_MODE=wiser``
+    explicitly selects the prior nearest-WISER reconstruction for sensitivity
+    analysis.  Gas histories remain compact atmospheric histories, but are
     adjusted by broad latitude band to avoid treating southern/tropical
     recharge as identical to the Northern Hemisphere reference curve.
     """
@@ -40,27 +175,26 @@ def build_site_tracer_histories(context: SiteInputContext) -> dict[str, InputHis
     elif lat is not None and abs(lat) <= 23.5:
         region = "tropical"
 
-    tritium_history: InputHistory
-    try:
-        from .wiser_loader import WISER_NA
+    tritium_history: InputHistory | None = None
+    mode = os.environ.get("HYDROSHEAF_TRITIUM_HISTORY_MODE", "usgs_quadrangle").strip().lower()
+    if mode != "wiser":
+        tritium_history, _ = _usgs_quadrangle_history(context)
+    if tritium_history is None:
+        try:
+            from .wiser_loader import WISER_NA
 
-        if WISER_NA is not None and context.latitude is not None and context.longitude is not None:
-            tritium_history = WISER_NA.get_nearest_input_history(
-                context.latitude,
-                context.longitude,
-                "Tritium",
-            )
-            # Most WISER North America stations stop reporting decades before
-            # the benchmark sampling years; without an explicit continuation
-            # np.interp would clamp every later recharge year to the station's
-            # last observed (often bomb-era) value.  See
-            # extend_history_to_present().
-            tritium_history = extend_history_to_present(tritium_history, region)
-            tritium_history = _compact_history(tritium_history)
-        else:
-            raise ValueError("nearest WISER lookup requires bundled data and coordinates")
-    except Exception:
-        tritium_history = build_default_tritium_input(region)
+            if WISER_NA is not None and context.latitude is not None and context.longitude is not None:
+                tritium_history = WISER_NA.get_nearest_input_history(
+                    context.latitude,
+                    context.longitude,
+                    "Tritium",
+                )
+                tritium_history = extend_history_to_present(tritium_history, region)
+                tritium_history = _compact_history(tritium_history)
+            else:
+                raise ValueError("nearest WISER lookup requires bundled data and coordinates")
+        except Exception:
+            tritium_history = build_default_tritium_input(region)
 
     histories: dict[str, InputHistory] = {
         "3H": tritium_history,
@@ -76,6 +210,14 @@ def site_input_history_metadata(context: SiteInputContext) -> dict[str, str]:
     """Return metadata tags describing which histories were selected."""
     lat = context.latitude
     region = _history_region(context)
+    mode = os.environ.get("HYDROSHEAF_TRITIUM_HISTORY_MODE", "usgs_quadrangle").strip().lower()
+    _, source = _usgs_quadrangle_history(context) if mode != "wiser" else (None, "")
+    if source:
+        return {
+            "input_history_mode": "usgs_quadrangle",
+            "input_history_region": source,
+            "input_history_source": "USGS Table 2 quadrangle histories (Michel et al. 2018; Jurgens 2023 extension)",
+        }
     try:
         from .wiser_loader import WISER_NA
 

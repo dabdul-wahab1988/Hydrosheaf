@@ -1150,6 +1150,7 @@ def fit_lpm_model(
     history_paths: Optional[Iterable[str]] = None,
     max_age_years: Optional[float] = None,
     age_steps: int = 90,
+    age_profile_objective_window: float = 4.0,
     use_helium4: bool = False,
     initial_c14_pmc: float = 100.0,
     refine: bool = False,
@@ -1260,7 +1261,7 @@ def fit_lpm_model(
         )
 
     objective, params, residuals = best
-    profile_threshold = float(objective) + 4.0
+    profile_threshold = float(objective) + max(float(age_profile_objective_window), 0.0)
     near_optimal_ages = [
         age for candidate_objective, age in grid_profile
         if candidate_objective <= profile_threshold
@@ -1353,6 +1354,7 @@ def fit_lpm_models(
     history_paths: Optional[Iterable[str]] = None,
     max_age_years: Optional[float] = None,
     age_steps: int = 90,
+    age_profile_objective_window: float = 4.0,
     use_helium4: bool = False,
     initial_c14_pmc: float = 100.0,
     refine: bool = False,
@@ -1372,6 +1374,7 @@ def fit_lpm_models(
             history_paths=history_paths,
             max_age_years=max_age_years,
             age_steps=age_steps,
+            age_profile_objective_window=age_profile_objective_window,
             use_helium4=use_helium4,
             initial_c14_pmc=initial_c14_pmc,
             refine=refine,

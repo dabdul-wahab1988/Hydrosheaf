@@ -1,0 +1,8 @@
+| Edge ID              | From node | To node | Distance (km) | Elevation/head relation | Process stability (PSI) | Age consistency     | Chemical match R2 | Dominant reaction | Status                        |
+| -------------------- | --------- | ------- | ------------- | ----------------------- | ----------------------- | ------------------- | ----------------- | ----------------- | ----------------------------- |
+| Talensi_TGW49->TGW36 | TGW49     | TGW36   | 3.19          | downgradient            | 1.00                    | field tracer absent | 1.00              | redox process     | screening-level demonstration |
+| Talensi_TGW34->TGW19 | TGW34     | TGW19   | 4.62          | downgradient            | 1.00                    | field tracer absent | 1.00              | nitrate input     | screening-level demonstration |
+| Talensi_TGW42->TGW45 | TGW42     | TGW45   | 3.36          | downgradient            | 1.00                    | field tracer absent | 1.00              | nitrate input     | screening-level demonstration |
+| Talensi_TGW3->TGW8   | TGW3      | TGW8    | 4.93          | downgradient            | 1.00                    | field tracer absent | 1.00              | redox process     | screening-level demonstration |
+| Talensi_TGW32->TGW12 | TGW32     | TGW12   | 4.68          | downgradient            | 1.00                    | field tracer absent | 1.00              | nitrate input     | screening-level demonstration |
+| Talensi_TGW44->TGW45 | TGW44     | TGW45   | 2.70          | downgradient            | 1.00                    | field tracer absent | 1.00              | nitrate input     | screening-level demonstration |

@@ -1,0 +1,3 @@
+mode,independent_validation,n_reference_edges,n_inferred_edges,tp,fp,fn,precision,recall,f1,interpretation
+no_prior_head_gradient,True,174.0,302.0,147.0,155.0,27.0,0.4867549668874172,0.8448275862068966,0.6176470588235294,"Independent heuristic inference (elevation-as-head, downhill, k=2). High recall with substantial overconnection: FP exceeds TP, so inferred edges are screening-level hypotheses."
+prior_assisted_ingestion,False,174.0,174.0,174.0,0.0,0.0,1.0,1.0,1.0,MODPATH physics-prior ingestion fidelity only (E2 report); not independent topology inference.

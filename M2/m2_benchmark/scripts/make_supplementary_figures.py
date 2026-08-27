@@ -88,6 +88,20 @@ def _load_public_age_validation() -> tuple[pd.DataFrame, str]:
     return pd.DataFrame(), ""
 
 
+def _canonical_public_age_log10_r2() -> float:
+    """Return the canonical identifiability-gated log10 R2 from M3."""
+    summary = M3_RESULT_DIR / "m3_tracerlpm_parity_agefractions_full_summary.csv"
+    if not summary.exists():
+        return float("nan")
+    try:
+        df = pd.read_csv(summary)
+        if "log10_r2" not in df.columns or df.empty:
+            return float("nan")
+        return float(pd.to_numeric(df["log10_r2"], errors="coerce").iloc[0])
+    except Exception:
+        return float("nan")
+
+
 def plot_s1_age_parity() -> None:
     """Figure S1: Regional Residence-Time Validation (USGS Dataset)."""
     df, source_label = _load_public_age_validation()
@@ -110,7 +124,9 @@ def plot_s1_age_parity() -> None:
     log_ref = np.log10(df_clean["plot_reference_age_years"])
     log_inf = np.log10(df_clean["plot_hydrosheaf_age_years"])
 
-    r2_global = np.corrcoef(log_ref, log_inf)[0,1]**2
+    r2_global = _canonical_public_age_log10_r2()
+    if pd.isna(r2_global):
+        r2_global = np.corrcoef(log_ref, log_inf)[0, 1] ** 2
     metric_log = pd.to_numeric(
         df_clean.get("log10_error", pd.Series(np.nan, index=df_clean.index)),
         errors="coerce",
@@ -160,7 +176,7 @@ def plot_s1_age_parity() -> None:
     ax_main.tick_params(labelsize=FONT_TICK)
 
     stats_text = (f"N = {len(df_clean)} ({metric_log.notna().sum()} finite log errors)\n"
-                  f"Global $R^2 = {r2_global:.2f}$\n"
+                  f"log10 $R^2 = {r2_global:.3f}$\n"
                   f"Median |log10 err| = {median_log:.2f}\n"
                   f"Within factor 2 = {within_factor_2:.1f}%\n"
                   f"Within factor 10 = {within_factor_10:.1f}%")

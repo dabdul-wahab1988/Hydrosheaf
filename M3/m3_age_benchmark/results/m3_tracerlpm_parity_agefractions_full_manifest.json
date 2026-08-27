@@ -1,0 +1,24 @@
+{
+  "run_utc": "2026-08-19T14:42:45.290054+00:00",
+  "config": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\configs\\design_matrix.yaml",
+  "output": "M3\\m3_age_benchmark\\results\\m3_tracerlpm_parity_agefractions_full.csv",
+  "summary": "M3\\m3_age_benchmark\\results\\m3_tracerlpm_parity_agefractions_full_summary.csv",
+  "pairwise": "M3\\m3_age_benchmark\\results\\m3_tracerlpm_parity_agefractions_full_pairwise_deltas.csv",
+  "qa": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\docs\\m3_tracerlpm_parity_agefractions_full_qa.md",
+  "primary_pointwise_output": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_usgs_benchmark_results.csv",
+  "primary_pointwise_scenario": "tracerlpm_parity_agefractions",
+  "max_rows": null,
+  "age_steps": 90,
+  "scenario_ids": [
+    "tracerlpm_parity_agefractions"
+  ],
+  "include_withdrawn": false,
+  "configured_withdrawn_scenarios": [
+    {
+      "scenario_id": "tracerlpm_parity_hier_oldwater",
+      "reason": "Full corrected rerun regressed (log10 RMSE 1.310; R2 0.004), and the pooled priors were estimated from the evaluation data without held-out calibration."
+    }
+  ],
+  "n_output_rows": 1272,
+  "pairwise_baseline": "parity_reported_corrected"
+}

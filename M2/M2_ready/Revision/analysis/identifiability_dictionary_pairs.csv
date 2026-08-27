@@ -1,0 +1,11 @@
+reaction_a,reaction_b,abs_cosine
+calcite,dolomite,0.949
+calcite,sulfate_reduction,0.8
+dolomite,sulfate_reduction,0.843
+NO3src,denit,0.707
+CaNa_exch,NaCa_exch,1.0
+CaNa_exch,MgNa_exch,0.8
+CaNa_exch,NaMg_exch,0.8
+NaCa_exch,MgNa_exch,0.8
+NaCa_exch,NaMg_exch,0.8
+MgNa_exch,NaMg_exch,1.0

@@ -1,0 +1,6 @@
+metric,value
+n_edges_checked,13.0
+violation_fraction_mean,0.1515384615384615
+severe_violation_fraction_mean,0.02384615384615385
+violations_with_overlapping_intervals_fraction,0.8426395939086294
+age_order_consistency_index,0.8484615384615385
