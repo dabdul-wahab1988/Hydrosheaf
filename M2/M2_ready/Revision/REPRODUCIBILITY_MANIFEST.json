@@ -1,0 +1,62 @@
+{
+  "status": "public-source-only",
+  "created_utc": "2026-08-27",
+  "analysis_commit": "463e1ce",
+  "analysis_branch": "codex/m3-correctness",
+  "public_origin_contains_analysis_commit": false,
+  "public_release_branch": "codex/m2-revision-public",
+  "public_release_base_commit": "edeb5e616d2a41258865073f1735465e3e5da68c",
+  "public_release_commit": "4c1b662d3410271f025aafd6c8be46afde6f4771",
+  "public_release_url": "https://github.com/dabdul-wahab1988/Hydrosheaf/tree/codex/m2-revision-public",
+  "note": "The revised M2 source-only package is publicly published on public_release_branch at public_release_commit. The exact analysis history commit 463e1ce remains local because its M4/data history contains regular Git blobs above GitHub's 100 MiB limit. Reviewer-private files, stale backups, QA renders, and ignored raw field inputs are excluded; a persistent DOI remains to be assigned.",
+  "files": [
+    {
+      "path": "M2/M2_ready/Revision/Manuscript-Final-Revised.md",
+      "sha256": "d54293106c5978e9abbf46a2e55a6d4648412c3632f599f47fdbd6b8c55f33bb"
+    },
+    {
+      "path": "M2/M2_ready/Revision/Manuscript-Final-Revised.docx",
+      "sha256": "e3e77dc6c4e94b76ae74b4d9bc2ecb5fe0535bd828065a372cbc78a61840e628"
+    },
+    {
+      "path": "M2/M2_ready/Revision/Manuscript-Colored-Changes.docx",
+      "sha256": "42919af1d80860ae27ddf17f75f99790f3bc7da63b9a7279f96579481b0b87b5"
+    },
+    {
+      "path": "M2/M2_ready/Revision/Supplementary-Information-Revised.md",
+      "sha256": "39e339f3d5626254cdc96809400c0154e78efea03ca1d7a54f3ae4e2c2656994"
+    },
+    {
+      "path": "M2/M2_ready/Revision/Supplementary-Information-Revised.docx",
+      "sha256": "8d7ebc9b2fe701203734ef88d7d1c6d112cba64c1bc77a75c5430c6040c39504"
+    },
+    {
+      "path": "M2/M2_ready/Revision/Response_to_Reviewers.md",
+      "sha256": "70748fdd96369d8cdc3399c29b849562970ea9a58d43ba13c2f340f2510729a3"
+    },
+    {
+      "path": "M2/M2_ready/Revision/metric_audit.md",
+      "sha256": "4de66c9c5fae83290ae9a2ebd7f31654e841ba384d07e1cc405b665833136189"
+    },
+    {
+      "path": "M2/M2_ready/Revision/figures/Manuscript_Supp_FigS1_Public_Age_Validation.png",
+      "sha256": "02bcc3d36eb71e400fbc4e980eb09382db0fad9d3546d26e111ac2b500910505"
+    },
+    {
+      "path": "M2/m2_benchmark/results/revision/radius_sensitivity.csv",
+      "sha256": "3dcd7d1ec2e3e4bf9901ff59e6c27c432141b1816597fd7d6ecb08c486807c92"
+    },
+    {
+      "path": "M2/m2_benchmark/scripts/revision/radius_sensitivity.py",
+      "sha256": "36e6293f729ce9151ca296803102ec7fb34df071de74e05f88ccc9dab97ccfe8"
+    },
+    {
+      "path": "M2/m2_benchmark/scripts/make_supplementary_figures.py",
+      "sha256": "df9902584c79588a1d03fd130120ee4ae5176d716e32d89bf86e622a039654fb"
+    },
+    {
+      "path": "hydrosheaf/sheaf/cohomology.py",
+      "sha256": "b43213e11a812d85be567aee63a00f227098cc3239d3fbf0527b1f8d7095ed87"
+    }
+  ]
+}
