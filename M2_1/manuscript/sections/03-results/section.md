@@ -1,0 +1,56 @@
+## 3. Results
+
+### 3.1 Implemented package and validation surface
+
+The installed package loaded successfully as HydroSheaf version 0.5.1. The available modules contained a public network-inference pipeline and domain tools for graph construction, transport, temporal processing, nuclear tracers, PHREEQC-compatible reaction blocks, sheaf-style topology refinement and active learning. The validation tools contained the age and reaction specialist candidate generators, RAPM calibration, calibrated intervals, discrepancy calibration, discrete model averaging, kinetic benchmarking, prospective policy evaluation, generator-quality audits and programme-level gates. These components were therefore present in software rather than existing only in manuscript plans. Benchmark protocols, historical analyses and evidence archives were kept distinct from the reusable package code.
+
+The locked integration execution gate was PASS. All required stages were complete, no runtime errors were recorded, the independent generator-quality audit was PASS, stress-test records were complete, and the external MODFLOW 6/MODPATH 7 execution gate was PASS. The run contained 12 development and six held-out cases from three independent generator families. Eighteen generator-quality records reported no blocker or major finding. The provenance record retained source hashes and the generating revision, but also recorded that source changes had not yet been committed, which limited the strength of the reproduction claim.
+
+The component boundaries were visible in the import and artifact audits. Age and reaction comparators had independent candidate-generation entry points; calibration, discrepancy and model-averaging outputs were stored separately from the public network pipeline; and the kinetic adapter exposed prediction and parameter-identification statuses as different fields. There was no top-level topology-superiority result in this run. The prior-assisted topology diagnostic was not pooled with the independent specialist comparisons because its prior came from a model-generated path structure. This separation prevented a software inventory from being mistaken for evidence that every component had already met a general benchmark.
+
+**Table 1. Locked controlled-synthetic performance summary.** Metrics are reported under the declared component-specific contracts; the claim scope is bounded to the tested generators and observation mechanisms.
+
+| Component | Locked rows or cases | Locked status | Primary result | Qualification |
+|---|---|---|---|
+| Age | 58 truth rows | PASS | Coverage 0.9655; specialist mean absolute error 4.2396 years versus baseline 7.6548 | Calibrated intervals; held-out generators and family stratification |
+| Reaction family | 142 records | PASS | Log loss 0.8964 versus baseline 2.8520; coverage 0.7394 | Maximum classwise expected calibration error 0.2710; false commitment 0.0385 |
+| Kinetics | 6 cases | PASS | Predictive root-mean-square error 0.1191; interval coverage 1.0000 | Overall identification 0.1667; independent surface area required for k×A identification |
+| Integrated decision | 6 cases | Bounded PASS; general-superiority claim withheld | Utility per cost 1.4778 versus random 0.2464 and specialist −0.0039 | ABSTAIN: no general-superiority claim |
+
+**Figure 1. HydroSheaf evidence-to-claim flow.** The rendered figure and its source diagram are supplied with the manuscript package. It shows the path from observations through independent candidate generation, specialist scoring, calibration, discrepancy-aware averaging, prospective utility and the final claim gate. A PASS or bounded PASS produces a provenance-linked report; WEAK or ABSTAIN produces a limitation and next-measurement record.
+
+### 3.2 Age component
+
+The calibrated age gate passed on the locked cases. Coverage including abstention was 0.9655, mean interval width was 18.64 years and relative width was 0.5445. Selective risk was 2.10 years at an acceptance rate of 0.9655. The competence-matched specialist MAE was 4.24 years compared with 7.65 years for the baseline, and the baseline non-inferiority condition was retained. Held-out generator and family-stratified checks passed. These results support calibrated synthetic age inference under the declared atmospheric-history, tracer and observation mechanisms. They do not show that an age distribution inferred from the Ghanaian field isotope columns is correct, because those columns do not contain environmental age tracers.
+
+### 3.3 Reaction-family component
+
+The reaction gate was evaluated on 142 locked specialist records. The RAPM/on-off layer reduced multiclass log loss to 0.8964 from 2.8520 for the competence-matched baseline. Coverage was 0.7394, maximum classwise expected calibration error was 0.2710, selective risk was 0.2190 and false commitment was 0.0385. Held-out generator and mechanism-stratified requirements passed. The result was consequently stronger than the earlier fixed-comparator diagnostic, but its estimand remained reaction-family classification under a declared dictionary and evidence contract. It did not establish a unique mineral reaction, prove a causal source, or establish universal superiority to PHREEQC or other specialist reaction-path tools.
+
+### 3.4 Kinetic component
+
+The held-out kinetic gate passed for predictive performance. Predictive root-mean-square error was 0.1191, reported parameter error was 0.0781 and calibrated interval coverage was 1.0. Conditional identification was 1.0 among cases supplied with an independent surface-area observation, but overall identification was only 0.1667 and the parameter-abstention rate was 0.8333. This pattern was the intended scientific output: the production adapter could predict the response and recover parameters when an independent measurement broke the structural confounding, while it refused to report unrestricted (k) and (A) values when only their product was identified. Additional residence-time observations alone did not remove the `k×A` confounding.
+
+### 3.5 Discrepancy, model averaging and integrated decision utility
+
+The integrated run recorded calibrated discrepancy, converged model averaging, complete independent post-measurement outcomes and zero observed false commitment under the locked gate. HydroSheaf's mean cost-adjusted utility per cost was 1.4778, compared with 0.2464 for the uniform random policy and −0.0039 for the strongest specialist comparator. The paired 95% lower bounds for the HydroSheaf difference were 0.9941 versus random and 1.2208 versus the specialist. These values indicated positive bounded utility on the six locked synthetic cases under the declared simulator, action costs and benefit function. Because the six locked cases were the resampling units, these lower bounds were descriptive within-run intervals and not population-level uncertainty intervals.
+
+The result was not converted into a universal superiority statement. The prospective benchmark therefore retained an abstention from a general-superiority claim, because a positive utility contrast under six generator-realised cases is not a general comparison with all groundwater-inference engines. The correct result was a bounded prospective synthetic decision diagnostic. Model-averaging artefacts also retained both the simplex KKT residual and the raw unconstrained gradient diagnostic. KKT and objective criteria passed the run's convergence contract, while the raw gradient norm was 0.786 against a nominal raw-gradient tolerance of (10^{-5}). This was not treated as evidence of perfect optimisation; it was retained as a follow-up diagnostic and the integrated claim was kept bounded.
+
+### 3.6 Field-data application and evidence ceiling
+
+The real-data inventory contained 320 Northern Ghana seasonal records from 160 repeated wells, 41 Lower Anayari records and 63 Talensi records. Northern Ghana had 294 quantitative, 19 screening and seven exploratory records after independent charge-balance screening. Lower Anayari had no blank cells and one censored fluoride value. Talensi had nine missing redox-potential values and no fluoride, strontium or silica. None of the three datasets contained environmental age tracers, screen intervals, independently verified directed connectivity or reaction truth.
+
+The field chemistry workflow generated 82 Lower Anayari and 126 Talensi candidate edge records, 208 in total. The overall median chemistry R², or coefficient of determination, was approximately 0.713, with site medians of 0.600 and 0.766. These were in-sample candidate-edge chemistry closures, not held-out prediction and not proof of physical connectivity. The broader field-transfer audit showed the same evidence ceiling. In Northern Ghana, all 160 wells were reported as partially identifiable at the maximum chemistry tier, with approximately 7.1 reaction alternatives retained on average rather than a single best fit. Removing strontium and silica increased the non-identifiable fraction from 0.6% to 51.9%, while the mean resolution score changed little. Three internally generated edge sets differed by total-variation distances of 0.12 and 0.05 from the chemistry-neighbour reference, demonstrating network sensitivity.
+
+**Table 2. Real-data scope and evidence ceiling.** The field records were used for workflow and data-readiness diagnostics, not as independent truth labels.
+
+| Dataset | Records | Main quality finding | Supported use | Not supported |
+|---|---:|---|---|---|
+| Northern Ghana | 320 from 160 wells | 294 quantitative, 19 screening, 7 exploratory | Seasonal chemistry and measurement-value diagnostics | Age validation, exact directed connectivity, unique reaction truth |
+| Lower Anayari | 41 | One censored fluoride value; no blank cells | Sparse chemistry and candidate screening | Field flow truth, age or unique mechanism |
+| Talensi | 63 | Redox potential missing in 9 records; charge-balance limited; no fluoride, strontium or silica | Failure-mode and screening-level transfer | Field flow truth, age or unique mechanism |
+
+The seasonal hold-forward diagnostic found that graph-ridge prediction improved on persistence by 0.173 log1p units, 95% confidence interval [0.158, 0.188], but its advantage over the expanding mean-delta baseline was 0.0051 with interval [−0.0017, 0.0119]. The field application therefore demonstrated ingestion, quality screening, chemistry prediction and measurement-value diagnostics. It did not validate a field flow network, groundwater age, unique reaction mechanism or coupled digital twin.
+
+The field evidence also constrained what could be carried into a future prospective design. The Northern Ghana workbook supplied repeated wet/dry labels but not a timestamped temporal sequence, so the hold-forward result was a seasonal transfer diagnostic rather than a chronological forecast. The Lower Anayari and Talensi edge records were generated from coordinate-neighbour rules and closed against the same chemistry used to fit them; their R² summaries were therefore evidence of numerical fit and candidate sensitivity. The field datasets remained valuable as real-data stress cases because they reveal missing age tracers, omitted surface chemistry variables and charge-balance heterogeneity that a future sampling design must address.

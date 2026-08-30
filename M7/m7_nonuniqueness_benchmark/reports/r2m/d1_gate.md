@@ -5,5 +5,5 @@
 
 | Check | Result | Detail |
 |---|---|---|
-| Revision tasks have unique IDs | PASS | 39 unique IDs |
-| Every comment is preserved with routing | PASS | count=39 |
+| Revision tasks have unique IDs | PASS | 36 unique IDs |
+| Every comment is preserved with routing | PASS | count=36 |

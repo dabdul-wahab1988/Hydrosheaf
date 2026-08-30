@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "searched_on": "2026-08-02",
+  "source_policy": "Primary research, official USGS documentation, and authoritative methodological sources were prioritised.",
+  "searches": [
+    {"source": "web-search", "query": "groundwater age distributions environmental tracer non-uniqueness TracerLPM USGS", "scope": "Age specialist comparator and limits of single-tracer interpretation"},
+    {"source": "web-search", "query": "Kennedy O'Hagan Bayesian calibration model discrepancy", "scope": "Explicit model-discrepancy layer"},
+    {"source": "web-search", "query": "Brynjarsdottir O'Hagan importance model discrepancy inverse problems", "scope": "Bias and over-confidence from ignored model discrepancy"},
+    {"source": "web-search", "query": "Chaloner Verdinelli Bayesian experimental design review", "scope": "Cost-aware next-measurement design"},
+    {"source": "web-search", "query": "Angelopoulos Bates conformal prediction distribution-free uncertainty quantification", "scope": "Calibrated intervals and selective uncertainty"},
+    {"source": "web-search", "query": "Oreskes Shrader-Frechette Belitz validation numerical models Earth sciences", "scope": "Claim boundary for synthetic model evaluation"},
+    {"source": "web-search", "query": "MODFLOW 6 MODPATH 7 USGS documentation", "scope": "Independent hydraulic and particle-tracking truth generator"},
+    {"source": "web-search", "query": "PHREEQC version 3 USGS inverse geochemical calculations", "scope": "Thermodynamic and inverse-geochemical comparator context"}
+  ],
+  "selected_sources": [
+    {"citation_key": "jurgens2012tracerlpm", "supports": ["INTRO-02", "METHOD-03"], "authority": "official USGS documentation", "url": "https://pubs.usgs.gov/tm/4-f3/"},
+    {"citation_key": "visser2013multitracer", "supports": ["INTRO-02"], "authority": "primary research", "url": "https://doi.org/10.1002/2013WR014012"},
+    {"citation_key": "mccallum2015limitations", "supports": ["INTRO-03", "DISC-02"], "authority": "primary research", "url": "https://doi.org/10.1111/gwat.12237"},
+    {"citation_key": "kennedy2001calibration", "supports": ["INTRO-03", "METHOD-05"], "authority": "primary methodological research", "url": "https://doi.org/10.1111/1467-9868.00294"},
+    {"citation_key": "brynjarsdottir2014discrepancy", "supports": ["INTRO-03", "METHOD-05", "DISC-04"], "authority": "primary methodological research", "url": "https://doi.org/10.1088/0266-5611/30/11/114007"},
+    {"citation_key": "chaloner1995design", "supports": ["INTRO-04", "METHOD-07"], "authority": "primary methodological review", "url": "https://doi.org/10.1214/ss/1177009939"},
+    {"citation_key": "angelopoulos2023conformal", "supports": ["METHOD-04", "DISC-02"], "authority": "methodological review", "url": "https://doi.org/10.1561/2200000101"},
+    {"citation_key": "oreskes1994validation", "supports": ["INTRO-03", "DISC-01"], "authority": "primary Earth-science methods paper", "url": "https://doi.org/10.1126/science.263.5147.641"},
+    {"citation_key": "langevin2017modflow6", "supports": ["INTRO-02", "METHOD-06"], "authority": "official USGS documentation", "url": "https://doi.org/10.3133/tm6A55"},
+    {"citation_key": "pollock2016modpath", "supports": ["INTRO-02", "METHOD-06"], "authority": "official USGS documentation", "url": "https://doi.org/10.3133/ofr20161086"},
+    {"citation_key": "parkhurst2013phreeqc", "supports": ["INTRO-02", "METHOD-03"], "authority": "official USGS documentation", "url": "https://doi.org/10.3133/tm6A43"},
+    {"citation_key": "robinson2017sheaves", "supports": ["INTRO-02", "DISC-03"], "authority": "primary research", "url": "https://doi.org/10.1016/j.inffus.2016.12.002"},
+    {"citation_key": "hansen2019spectral", "supports": ["INTRO-02"], "authority": "primary research", "url": "https://doi.org/10.1007/s41468-019-00038-7"}
+  ]
+}

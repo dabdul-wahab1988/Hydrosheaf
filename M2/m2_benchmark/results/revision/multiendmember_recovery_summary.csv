@@ -1,0 +1,14 @@
+metric,value
+n_edges,10.0
+n_realisations,20.0
+true_mixing_fraction_total,0.35
+true_halite_extent_mmolL,0.4
+true_calcite_extent_mmolL,0.2
+mix_model_selected_fraction,0.73125
+evap_model_selected_fraction,0.26875
+median_recovered_f,0.2410095221975184
+median_chemistry_r2,0.9990339170874567
+median_extent_halite_mmolL,0.040509434457862925
+median_extent_calcite_mmolL,0.0
+median_family_evaporite_extent,0.23286598987202078
+median_family_carbonate_extent,0.0

@@ -188,6 +188,8 @@ papers/
 main_Figure*.txt
 
 # Allow tracking synthetic dataset files for test reproducibility
+!data/
+!data/synthetic/
 !data/synthetic/**
 
 # Local scratch and generated archives
@@ -219,6 +221,15 @@ graphify-out/
 !M3/m3_age_benchmark/results/**
 !M3/m3_age_benchmark/tables/
 !M3/m3_age_benchmark/tables/**
+!M3/m3_age_benchmark/figures/Manuscript_Ready/
+!M3/m3_age_benchmark/figures/Manuscript_Ready/*.png
+!M3/m3_age_benchmark/figures/Manuscript_Ready/*.pdf
+!M3/m3_age_benchmark/figures/Manuscript_Ready/*.tif
+!M3/M3_geochemistry/Manucript_3.docx
+!M3/M3_geochemistry/Supplementary_Information_M3.docx
+!M3/M3_geochemistry/Highlights-AGeochemistry.docx
+!M3/M3_geochemistry/Cover Letter-AGeochemistry.docx
+!M3/M3_geochemistry/Graphical Abstract.png
 !M4/m4_topology_benchmark/results/
 !M4/m4_topology_benchmark/results/**
 !M4/m4_topology_benchmark/tables/

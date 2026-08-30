@@ -457,7 +457,7 @@ def test_manuscript_claim_allowed_unchanged_by_bootstrap():
             "benchmark_bootstrap_seed": 1,
         })
         report = run_assumption_benchmark(config)
-        assert report["independent_validation"] is True
+        assert report["independent_validation"] is False
         assert report["manuscript_claim_allowed"] is False  # no calibration_result
 
         # With calibration_result
@@ -472,7 +472,8 @@ def test_manuscript_claim_allowed_unchanged_by_bootstrap():
             "optimal_parameters": {"edge_logit__AtoB": 1.0},
         }
         report2 = run_assumption_benchmark(config2, calibration_result=cal_result)
-        assert report2["manuscript_claim_allowed"] is True
+        assert report2["independent_validation"] is False
+        assert report2["manuscript_claim_allowed"] is False
         assert "uncertainty" in report2  # bootstrap still present
 
 

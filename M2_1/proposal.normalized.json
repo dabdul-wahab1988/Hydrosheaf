@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "manuscript_id": "M2_1",
+  "title": "HydroSheaf: an auditable evidence-integration framework for groundwater age, connectivity and reaction inference under uncertainty",
+  "manuscript_type": "software_and_methods_research_article",
+  "target_journal": "not_locked_generic_research_article",
+  "language": "UK English",
+  "citation_style": "APA 7",
+  "main_word_limit": 6000,
+  "supplementary_methods_word_limit": 3000,
+  "aim": "Document how HydroSheaf was implemented and evaluate its bounded capabilities under independent controlled-synthetic truth and data-limited field measurements.",
+  "primary_question": "Can HydroSheaf integrate connectivity, residence-time, reaction and kinetic evidence while calibrating uncertainty, representing model disagreement, abstaining when evidence is insufficient and producing reproducible decisions?",
+  "objectives": [
+    "Describe the modular package and its auditable evidence contract.",
+    "Evaluate age, reaction and kinetic components against competence-matched specialist baselines.",
+    "Evaluate discrepancy-aware model averaging and truth-blind cost-adjusted next-measurement selection.",
+    "Audit the independent synthetic generators, controls, provenance and reproduction conditions.",
+    "Apply the workflow to real Ghanaian FieldData without treating it as field truth."
+  ],
+  "datasets": [
+    {"id": "synthetic_programme", "path": ".codex_work/programme-validation/RUN-INTEGRATION-FULL-20260802-15", "evidence_tier": "controlled_synthetic_known_truth"},
+    {"id": "field_data", "path": "data/FieldData", "evidence_tier": "real_field_measurements_no_complete_truth"}
+  ],
+  "claim_boundary": [
+    "controlled-synthetic bounded performance only",
+    "no universal superiority claim",
+    "no field validation claim",
+    "parameter identification is abstained when structural confounding remains"
+  ],
+  "run_ids": ["RUN-INTEGRATION-FULL-20260802-15"],
+  "review_workflow": ["r2m_track_b", "manuscript-reviewer_first_pass", "issue_resolution", "final_verification"]
+}

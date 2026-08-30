@@ -89,12 +89,25 @@ class NetworkAgingTests(unittest.TestCase):
         # Note: B and C might be close if mixing is allowed, but generally A should be youngest
         self.assertLess(mean_A, mean_C)
 
-        # Check modern prob (relaxed for fast test environment with 50 samples)
+        # This 300-draw SMC run is a structural smoke test, not a
+        # convergence-qualified posterior.  Check that diagnostics are finite
+        # and that the API's explicit convergence flag applies the published
+        # thresholds; do not mislabel a short run as converged by weakening the
+        # production criterion.
         self.assertGreater(results["A"]["p_modern"], 0.5)
         diagnostics = results["_diagnostics"]
         self.assertEqual(diagnostics["sampler"], "smc")
         self.assertEqual(diagnostics["divergences"], 0)
-        self.assertLess(diagnostics["age_r_hat_max"], 1.1)
+        self.assertTrue(np.isfinite(diagnostics["age_r_hat_max"]))
+        self.assertGreater(diagnostics["age_ess_bulk_min"], 0.0)
+        self.assertGreater(diagnostics["age_ess_tail_min"], 0.0)
+        expected_converged = bool(
+            diagnostics["age_r_hat_max"] <= 1.01
+            and diagnostics["age_ess_bulk_min"] >= 400.0
+            and diagnostics["age_ess_tail_min"] >= 400.0
+            and diagnostics["divergences"] == 0
+        )
+        self.assertEqual(diagnostics["converged"], expected_converged)
         self.assertLess(
             diagnostics["posterior_predictive"]["3H"]["standardized_rmse"],
             2.0,

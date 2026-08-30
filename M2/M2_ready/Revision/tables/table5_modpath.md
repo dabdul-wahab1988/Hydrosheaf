@@ -1,0 +1,4 @@
+| Site/model                                  | Candidate edges | MODPATH reference edges | True positives | False positives | False negatives | Precision | Recall | F1-score | Mode                                            |
+| ------------------------------------------- | --------------- | ----------------------- | -------------- | --------------- | --------------- | --------- | ------ | -------- | ----------------------------------------------- |
+| USGS MODPATH benchmark (no-prior inference) | 302.00          | 174.00                  | 147.00         | 155.00          | 27.00           | 0.49      | 0.84   | 0.62     | independent heuristic inference (head-gradient) |
+| USGS MODPATH benchmark (prior-assisted)     | 174.00          | 174.00                  | 174.00         | 0.00            | 0.00            | 1.00      | 1.00   | 1.00     | physics-prior ingestion fidelity check          |

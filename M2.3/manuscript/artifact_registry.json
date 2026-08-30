@@ -1,0 +1,203 @@
+{
+  "schema_version": "1.0",
+  "note": "Display numbers are assigned at assembly; artifact IDs are immutable.",
+  "artifacts": [
+    {
+      "id": "FIG-1",
+      "kind": "figure",
+      "destination": "main",
+      "path": "M2.3/manuscript/artifacts/figures/FIG-1_architecture.pdf",
+      "generator": "M2.3/analysis/r/fig01_architecture.R",
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Evidence-to-claim architecture of the HydroSheaf framework.",
+      "technical_description": "Layout declared as node and edge tables; no external graph layout engine. Box widths leave a visible surface gap between adjacent boxes in a row.",
+      "interpretation": "Candidate sets survive to the claim gate, which is the design property that permits an abstention rather than a forced resolution.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-2",
+      "kind": "figure",
+      "destination": "main",
+      "path": "M2.3/manuscript/artifacts/figures/FIG-2_field_setting.pdf",
+      "generator": "M2.3/analysis/r/fig02_field_setting.R",
+      "inputs": [
+        "field_samples_derived.csv",
+        "field_meteoric_water_lines.csv",
+        "field_facies_counts.csv",
+        "study_area_boundaries.gpkg"
+      ],
+      "objective_ids": [
+        "OBJ-2"
+      ],
+      "caption": "Location, analytical quality, facies and isotopic character of the three measured datasets.",
+      "technical_description": "Panel (a) is a projected map with administrative boundaries from the geoBoundaries database (CC BY 4.0), cached locally by fetch_boundaries.R so the figure renders offline. Scale bar, north arrow and a locator inset are included. Primary measured panels only. Local meteoric water lines are OLS fits drawn across each dataset's own isotopic range, never extrapolated.",
+      "interpretation": "The three datasets differ in analytical quality by an order of magnitude, and all three show evaporative isotopic enrichment.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-3",
+      "kind": "figure",
+      "destination": "main",
+      "path": "M2.3/manuscript/artifacts/figures/FIG-3_data_availability.pdf",
+      "generator": "M2.3/analysis/r/fig03_data_availability.R",
+      "inputs": [
+        "field_variable_inventory.csv"
+      ],
+      "objective_ids": [
+        "OBJ-2",
+        "OBJ-6"
+      ],
+      "caption": "Variable availability and the resulting evidence ceiling.",
+      "technical_description": "Categorical presence encoding rather than a continuous gradient, because almost every carried variable is fully populated and the informative contrast is absence.",
+      "interpretation": "The absent determinands, not the present ones, fix the field claim boundary.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-4",
+      "kind": "figure",
+      "destination": "main",
+      "path": "M2.3/manuscript/artifacts/figures/FIG-4_synthetic_recovery.pdf",
+      "generator": "M2.3/analysis/r/fig04_synthetic_recovery.R",
+      "inputs": [
+        "synthetic_transport_points.csv",
+        "synthetic_age_points.csv",
+        "synthetic_reaction_points.csv",
+        "synthetic_recovery_summary.csv",
+        "synthetic_age_method_comparison.csv"
+      ],
+      "objective_ids": [
+        "OBJ-3"
+      ],
+      "caption": "Component recovery across 100 synthetic realisations with known truth.",
+      "technical_description": "Panels share a 1:1 reference line. Truth-zero reaction terms are drawn in grey so that leakage is visible against the active terms.",
+      "interpretation": "Transport and residence time are recoverable; point reaction extents are not.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-5",
+      "kind": "figure",
+      "destination": "main",
+      "path": "M2.3/manuscript/artifacts/figures/FIG-5_programme_gates.pdf",
+      "generator": "M2.3/analysis/r/fig05_programme_gates.R",
+      "inputs": [
+        "locked_gate_metrics.csv",
+        "locked_gate_thresholds.csv",
+        "prospective_policy_contrasts.csv"
+      ],
+      "objective_ids": [
+        "OBJ-4"
+      ],
+      "caption": "Locked controlled-synthetic gate results and prospective decision utility.",
+      "technical_description": "Each metric is plotted against its own predeclared threshold on a common axis within the panel. Only contrasts with HydroSheaf as the left policy are shown.",
+      "interpretation": "All component gates met thresholds fixed before scoring; the paired intervals are within-run descriptive summaries.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-6",
+      "kind": "figure",
+      "destination": "main",
+      "path": "M2.3/manuscript/artifacts/figures/FIG-6_external_comparison.pdf",
+      "generator": "M2.3/analysis/r/fig06_external_comparison.R",
+      "inputs": [
+        "public_age_parity_points.csv",
+        "public_age_parity_summary.csv",
+        "topology_comparison.csv"
+      ],
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "caption": "Comparison against published lumped-parameter ages and a particle-tracking topology.",
+      "technical_description": "Uncalibrated and calibrated variants are shown as separate facets and never pooled. Topology modes are likewise faceted and colour-coded by whether the comparison is independent.",
+      "interpretation": "Independent agreement is screening-level; the calibrated panel measures emulation of the reference.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "FIG-7",
+      "kind": "figure",
+      "destination": "main",
+      "path": "M2.3/manuscript/artifacts/figures/FIG-7_field_application.pdf",
+      "generator": "M2.3/analysis/r/fig07_field_application.R",
+      "inputs": [
+        "field_edge_chemistry_points.csv",
+        "field_edge_chemistry_summary.csv",
+        "field_measurement_value.csv"
+      ],
+      "objective_ids": [
+        "OBJ-6"
+      ],
+      "caption": "Field application: in-sample closure, retained alternatives and measurement value.",
+      "technical_description": "The closure axis extends below zero so that edges closing worse than the sample mean remain visible rather than being clipped.",
+      "interpretation": "The field output is a compatible-explanation set and a measurement-design constraint, not a validated mechanism.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-1",
+      "kind": "table",
+      "destination": "main",
+      "path": "M2.3/manuscript/artifacts/TAB-1.md",
+      "generator": "M2.3/analysis/python/build_manuscript.py",
+      "inputs": [
+        "field_dataset_summary.csv"
+      ],
+      "objective_ids": [
+        "OBJ-2"
+      ],
+      "caption": "Inventory of the three measured field datasets.",
+      "technical_description": "Charge-balance error recomputed independently from reported ions; Northern Ghana summarised as its 160-well primary panel.",
+      "interpretation": "Analytical quality, not sample count, is the binding constraint on the field application.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-2",
+      "kind": "table",
+      "destination": "main",
+      "path": "M2.3/manuscript/artifacts/TAB-2.md",
+      "generator": "M2.3/analysis/python/build_manuscript.py",
+      "objective_ids": [
+        "OBJ-1"
+      ],
+      "caption": "Implemented package capabilities and their claim scope.",
+      "technical_description": "Every row names a module present in the installed package.",
+      "interpretation": "Capability and claim scope are recorded together so that a software inventory is not read as an evidence inventory.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-3",
+      "kind": "table",
+      "destination": "main",
+      "path": "M2.3/manuscript/artifacts/TAB-3.md",
+      "generator": "M2.3/analysis/python/build_manuscript.py",
+      "inputs": [
+        "locked_gate_metrics.csv",
+        "locked_gate_thresholds.csv"
+      ],
+      "objective_ids": [
+        "OBJ-4"
+      ],
+      "caption": "Locked gate results against thresholds fixed before scoring.",
+      "technical_description": "Observed values and thresholds are read from the locked run record; pass status is recomputed from the two rather than copied.",
+      "interpretation": "Thresholds are safety floors for a bounded claim, not evidence of optimality.",
+      "validation_status": "PASS"
+    },
+    {
+      "id": "TAB-4",
+      "kind": "table",
+      "destination": "main",
+      "path": "M2.3/manuscript/artifacts/TAB-4.md",
+      "generator": "M2.3/analysis/python/build_manuscript.py",
+      "inputs": [
+        "evidence_discrepancies.csv"
+      ],
+      "objective_ids": [
+        "OBJ-3",
+        "OBJ-5"
+      ],
+      "caption": "Quantities where recomputation disagreed with earlier internal reporting.",
+      "technical_description": "Generated from the discrepancy ledger written by the evidence derivation scripts.",
+      "interpretation": "Publishing the disagreement is a reproducibility statement; in every case the recomputed value stands.",
+      "validation_status": "PASS"
+    }
+  ]
+}

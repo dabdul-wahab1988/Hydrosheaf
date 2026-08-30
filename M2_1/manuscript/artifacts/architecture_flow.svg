@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="640" viewBox="0 0 1600 640" role="img" aria-labelledby="title desc">
+  <title id="title">HydroSheaf evidence-to-claim flow</title>
+  <desc id="desc">Observations enter independent candidate generation, specialist scoring, calibration, discrepancy-aware averaging and prospective decision utility. A claim gate sends supported results to a provenance-linked report and weak or abstained results to a limitation and next-measurement record.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#365a73"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#163042" flood-opacity="0.15"/>
+    </filter>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #163042; }
+      .label { font: 600 20px Arial, sans-serif; fill: #163042; text-anchor: middle; }
+      .small { font: 500 17px Arial, sans-serif; fill: #365a73; text-anchor: middle; }
+      .branch { font: 700 17px Arial, sans-serif; fill: #365a73; }
+      .box { stroke: #365a73; stroke-width: 2.5; rx: 18; filter: url(#shadow); }
+      .mainbox { fill: #e8f2f6; }
+      .gate { fill: #f7e8bd; stroke: #9b6d16; stroke-width: 2.5; filter: url(#shadow); }
+      .pass { fill: #dcefdc; stroke: #3f7046; stroke-width: 2.5; filter: url(#shadow); }
+      .abstain { fill: #f4dddd; stroke: #914849; stroke-width: 2.5; filter: url(#shadow); }
+      .arrow { stroke: #365a73; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .gate-arrow { stroke: #6f5b2a; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="640" fill="#ffffff"/>
+  <text x="800" y="48" class="title" text-anchor="middle">HydroSheaf evidence-to-claim flow</text>
+
+  <rect x="40" y="150" width="190" height="110" class="box mainbox"/>
+  <text x="135" y="195" class="label"><tspan x="135" dy="0">Field or synthetic</tspan><tspan x="135" dy="28">observations</tspan></text>
+
+  <rect x="280" y="150" width="190" height="110" class="box mainbox"/>
+  <text x="375" y="195" class="label"><tspan x="375" dy="0">Candidate</tspan><tspan x="375" dy="28">generation</tspan></text>
+
+  <rect x="520" y="150" width="210" height="110" class="box mainbox"/>
+  <text x="625" y="184" class="label"><tspan x="625" dy="0">Specialist</tspan><tspan x="625" dy="27">topology, age,</tspan><tspan x="625" dy="27">reaction, kinetics</tspan></text>
+
+  <rect x="780" y="150" width="190" height="110" class="box mainbox"/>
+  <text x="875" y="195" class="label"><tspan x="875" dy="0">Calibration and</tspan><tspan x="875" dy="28">selective-risk scoring</tspan></text>
+
+  <rect x="1020" y="150" width="220" height="110" class="box mainbox"/>
+  <text x="1130" y="184" class="label"><tspan x="1130" dy="0">Model discrepancy</tspan><tspan x="1130" dy="27">and convergent</tspan><tspan x="1130" dy="27">averaging</tspan></text>
+
+  <rect x="1290" y="150" width="220" height="110" class="box mainbox"/>
+  <text x="1400" y="184" class="label"><tspan x="1400" dy="0">Prospective</tspan><tspan x="1400" dy="27">decision utility</tspan><tspan x="1400" dy="27">per cost</tspan></text>
+
+  <path d="M 230 205 L 280 205" class="arrow"/>
+  <path d="M 470 205 L 520 205" class="arrow"/>
+  <path d="M 730 205 L 780 205" class="arrow"/>
+  <path d="M 970 205 L 1020 205" class="arrow"/>
+  <path d="M 1240 205 L 1290 205" class="arrow"/>
+  <path d="M 1510 205 L 1540 205 L 1540 360 L 1455 360" class="gate-arrow"/>
+
+  <polygon points="1370,360 1455,420 1370,480 1285,420" class="gate"/>
+  <text x="1370" y="414" class="label"><tspan x="1370" dy="0">Claim</tspan><tspan x="1370" dy="27">gate</tspan></text>
+
+  <path d="M 1285 420 L 1110 420 L 1110 505" class="gate-arrow"/>
+  <text x="1160" y="405" class="branch">WEAK or ABSTAIN</text>
+  <rect x="970" y="505" width="280" height="95" class="box abstain"/>
+  <text x="1110" y="543" class="label"><tspan x="1110" dy="0">Report limitation and</tspan><tspan x="1110" dy="27">next measurement</tspan></text>
+
+  <path d="M 1455 420 L 1510 420 L 1510 505" class="gate-arrow"/>
+  <text x="1465" y="405" class="branch">PASS or bounded PASS</text>
+  <rect x="1330" y="505" width="280" height="95" class="box pass"/>
+  <text x="1470" y="543" class="label"><tspan x="1470" dy="0">Report with</tspan><tspan x="1470" dy="27">provenance</tspan></text>
+
+  <text x="800" y="625" class="small">Each stage preserves uncertainty, discrepancy and abstention status for the final claim boundary.</text>
+</svg>

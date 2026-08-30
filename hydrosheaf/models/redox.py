@@ -1,27 +1,36 @@
 """Redox classification and constraint logic."""
 
+import math
 from typing import Dict, Iterable, Mapping, Tuple
 
 
-def classify_redox(sample: Mapping[str, float]) -> str:
+def _finite(value: object) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def classify_redox(sample: Mapping[str, object]) -> str:
     """
     Classify the redox state of a sample based on Nitrate and Iron.
     Returns: 'oxic', 'reducing', or 'ambiguous'.
     """
-    no3 = sample.get("NO3", 0.0)
-    fe = sample.get("Fe", 0.0)
+    no3 = _finite(sample.get("NO3"))
+    fe = _finite(sample.get("Fe"))
 
     # Thresholds in mmol/L
-    if no3 > 0.05:
+    if no3 is not None and no3 > 0.05:
         return "oxic"
-    elif fe > 0.01:
+    elif fe is not None and fe > 0.01:
         return "reducing"
     else:
         return "ambiguous"
 
 
 def get_redox_constraints(
-    sample_v: Mapping[str, float], labels: Iterable[str]
+    sample_v: Mapping[str, object], labels: Iterable[str]
 ) -> Dict[str, Tuple[float, float]]:
     """
     Determine mineral bounds overrides based on redox state of the downstream sample.

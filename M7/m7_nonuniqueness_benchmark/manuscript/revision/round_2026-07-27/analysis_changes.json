@@ -1,0 +1,94 @@
+{
+  "items": [
+    {
+      "comment_id": "M7-R001",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R002",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R005",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R006",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R010",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R012",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R013",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R014",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R015",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R016",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R019",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R024",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R028",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R030",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    },
+    {
+      "comment_id": "M7-R032",
+      "status": "PASS",
+      "evidence": "results/m7_3_locked/review_sensitivity.csv",
+      "summary": "Reviewer-requested read-only sensitivity or recomputation completed and archived separately from locked primary outputs."
+    }
+  ]
+}

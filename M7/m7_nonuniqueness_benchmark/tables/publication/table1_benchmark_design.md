@@ -1,10 +1,11 @@
-# Table 1 | Locked benchmark design
+# Table 1 | Design and claim map for the seven audits
 
-| Design item | Value | Scope |
-| --- | --- | --- |
-| Development cases | 6 | 5201–5206 |
-| Locked test cases | 12 | 5301–5312 |
-| Age particles | 50000 | per case/regime |
-| Reaction bootstraps | 64 | per test case |
-| Case-block bootstraps | 10000 | independent case resampling |
-| Candidate recall | 1.000 | locked test |
+| Audit | Generator or data | Development / test cases | Claim-bearing comparator | Primary outcomes and gate | Lock and multiplicity | Permitted claim |
+| --- | --- | --- | --- | --- | --- | --- |
+| Multi-evidence integration | Process-based MODFLOW 6/MODPATH 7 plus independent tracer/chemistry | 6 / 12 | HAC versus nested panels and within-case permutations | PR-AUC, Brier, log loss, entropy | Commit d336e87; 24-test BH family | Conditional incremental value of each stream |
+| Topology-conditioned age | Same process-based generator | 6 / 12 | Complete, partial or reversed topology versus none | MAE, interval width, coverage, ESS | Commit d336e87; case-block intervals | Model-conditioned topology effect |
+| Reaction-family recovery | Same process-based generator; six planted archetypes | 6 / 12 | Enhanced versus core indicator panel | Modal accuracy and family support | Commit d336e87; descriptive/post-hoc interval | Discrimination among planted archetypes only |
+| Ghana scope audit | Northern Ghana workbook | Not applicable / 160 wells; 140 complete seasonal pairs | Observed support versus claim requirements | Availability and truth-free hold-forward | Data-scope audit; no truth-bearing multiplicity family | Component diagnostics and non-identifiability map |
+| Public-pipeline execution | Fresh process-based-generator seeds | 0 / 6 | Full sheaf versus hydraulic, local-age and age-permuted arms | Execution plus PR-AUC, Brier, log loss and selected F1 | Protocol lock; predeclared paired contrasts | System execution; no general incremental claim |
+| Sheaf-versus-weighted-graph representation | Independent scalar affine graph generator | 32 / 64 | Affine sheaf versus edge-local, identity and permuted-map arms | Complete discrimination/calibration gate; conflict localisation | Protocol/source locks; all 120 contrasts in one max-z family | Identity nesting, map semantics and conditional conflict localisation |
+| Local-first/global-fallback estimator diagnosis | Same scalar generator; fresh seeds | 64 / 128 | Local-first/global-fallback versus edge-local; original, LOO and permuted controls | Complete PR-AUC/Brier/log-loss gate | Two-stage locks; all 560 contrasts in one max-z family | Estimator diagnosis and missing-endpoint fallback; no superiority claim |

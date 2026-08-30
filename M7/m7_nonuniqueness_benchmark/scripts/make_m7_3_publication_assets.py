@@ -1,8 +1,8 @@
-"""Build the manuscript-ready M7.3 figures and tables.
+"""Build the manuscript-ready process-based integration figures and tables.
 
 The graphics use a compact, colour-blind-safe style suitable for a two-column
-Nature Portfolio manuscript.  Every plotted value is read from the locked
-M7.3 result bundle or from the already locked M6/M7.2 field diagnostics.
+Nature Portfolio manuscript. Every plotted value is read from the locked
+process-based integration bundle or from the supporting field diagnostics.
 """
 
 from __future__ import annotations
@@ -23,7 +23,6 @@ BENCHMARK = REPO_ROOT / "M7" / "m7_nonuniqueness_benchmark"
 RESULTS = BENCHMARK / "results" / "m7_3_locked"
 FIGURES = BENCHMARK / "figures" / "publication"
 TABLES = BENCHMARK / "tables" / "publication"
-M6_RESULTS = REPO_ROOT / "M6" / "m6_field_transfer_benchmark" / "results"
 FIELD_RESULTS = (
     REPO_ROOT
     / "M7"
@@ -643,7 +642,6 @@ def figure5_ghana_boundary() -> None:
     audit = json.loads(
         (RESULTS / "ghana_data_scope_audit.json").read_text(encoding="utf-8")
     )
-    ablation = pd.read_csv(M6_RESULTS / "m6_tier_ablation_transitions.csv")
     field_summary = pd.read_csv(FIELD_RESULTS / "field_prequential_summary.csv")
     field_audit = json.loads(
         (FIELD_RESULTS / "field_prequential_audit.json").read_text(encoding="utf-8")
@@ -722,36 +720,31 @@ def figure5_ghana_boundary() -> None:
         panel_label(ax, chr(ord("a") + panel))
 
     ax = axes[2]
-    tier_order = [
-        "tier0_majors",
-        "tier1_isotopes",
-        "tier2_fluoride",
-        "tier3_sr_sio2",
-        "tier4_full_metadata",
+    coverage_labels = ["Wells", "Complete\npairs", "Seasonal\nobservations"]
+    coverage_values = [
+        audit["n_wells"],
+        field_audit["n_complete_quantitative_pairs"],
+        audit["n_hydrochemistry_rows"],
     ]
-    tier_labels = ["T0", "T1", "T2", "T3", "T4"]
-    ablation = ablation.set_index("tier").loc[tier_order]
-    ax.plot(
-        tier_labels,
-        ablation["frac_non_identifiable"],
-        marker="o",
-        color=RED,
-        lw=1.4,
-        label="Non-identifiable",
+    bars = ax.bar(
+        coverage_labels,
+        coverage_values,
+        color=[BLUE, SKY, GREEN],
+        width=0.68,
     )
-    ax.set_ylim(-0.03, 0.68)
-    ax.set_ylabel("Fraction non-identifiable")
-    ax.set_xlabel("M6 evidence tier")
+    for bar, value in zip(bars, coverage_values):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            value + 7,
+            str(value),
+            ha="center",
+            va="bottom",
+            fontsize=6.4,
+        )
+    ax.set_ylim(0, 360)
+    ax.set_ylabel("Count")
     ax.grid(axis="y")
-    ax.annotate(
-        "Sr/SiO₂ removal",
-        xy=(2.7, 0.30),
-        xytext=(1.45, 0.12),
-        arrowprops={"arrowstyle": "->", "color": RED, "lw": 0.8},
-        color=RED,
-        fontsize=5.8,
-    )
-    ax.set_title("Evidence-tier limitation")
+    ax.set_title("Field-audit coverage")
     panel_label(ax, "c")
 
     ax = axes[3]
@@ -795,7 +788,7 @@ def figure5_ghana_boundary() -> None:
     fig.subplots_adjust(
         hspace=0.48, wspace=0.34, left=0.08, right=0.99, top=0.94, bottom=0.10
     )
-    save_figure(fig, "figure5_ghana_supportability_boundary")
+    save_figure(fig, "figure5_ghana_supportability_boundary_m7_only")
 
 
 def markdown_table(frame: pd.DataFrame) -> str:
@@ -810,7 +803,29 @@ def markdown_table(frame: pd.DataFrame) -> str:
     return "\n".join(lines)
 
 
+# Stems that are authored by hand and must never be produced by a generator.
+#
+# `table1_benchmark_design` is the seven-audit design-and-claim map added in
+# response to reviewer comment M7-20260729-R04 and cited as TAB-1 from both
+# 01-introduction and 03-results.  This script previously wrote an unrelated
+# three-column scale table to the same stem, so any re-run silently replaced the
+# reviewer-requested table and the manuscript still assembled without error.
+# `table2_primary_m7_3_decision` is likewise hand-authored and has no CSV.
+HAND_MAINTAINED_STEMS = frozenset(
+    {
+        "table1_benchmark_design",
+        "table2_primary_m7_3_decision",
+    }
+)
+
+
 def write_table(frame: pd.DataFrame, stem: str, title: str) -> None:
+    if stem in HAND_MAINTAINED_STEMS:
+        raise RuntimeError(
+            f"Refusing to overwrite hand-maintained table {stem!r}. "
+            "It is authored by hand and referenced from the manuscript; "
+            "a generator must write to a different stem."
+        )
     TABLES.mkdir(parents=True, exist_ok=True)
     frame.to_csv(TABLES / f"{stem}.csv", index=False)
     (TABLES / f"{stem}.md").write_text(
@@ -847,7 +862,15 @@ def build_tables() -> None:
         ],
         columns=["Design item", "Value", "Scope"],
     )
-    write_table(design, "table1_benchmark_design", "Table 1 | Locked benchmark design")
+    # Not Table 1.  TAB-1 is the hand-authored seven-audit design-and-claim map
+    # (reviewer M7-20260729-R04).  This is the M7.3 scale record derived from the
+    # locked manifest; it is a provenance artifact and is not cited in the
+    # manuscript body.
+    write_table(
+        design,
+        "table1b_locked_benchmark_scale",
+        "Table 1b | Locked M7.3 benchmark scale",
+    )
 
     native = read_csv("evidence_panel_summary.csv")
     native = native[native["condition"] == "native"][
@@ -942,7 +965,16 @@ def build_tables() -> None:
     reactions = read_csv("reaction_nonuniqueness_summary.csv")
     reactions = reactions[reactions["true_process"] != "ALL"].copy()
     reactions["Panel"] = reactions["tier"].map({"core": "Core", "enhanced": "Enhanced"})
-    reactions["Process"] = reactions["true_process"].str.replace("_", " ").str.title()
+    reactions["Process"] = reactions["true_process"].map(
+        {
+            "carbonate_precipitation": "Carbonate precip.",
+            "carbonate_weathering": "Carbonate weather.",
+            "denitrification": "Denitrif.",
+            "iron_reduction": "Iron reduction",
+            "silicate_weathering": "Silicate weather.",
+            "sulfate_reduction": "Sulfate reduction",
+        }
+    )
     for column in [
         "modal_family_accuracy",
         "mean_true_family_probability",
@@ -1044,8 +1076,8 @@ def write_manifest() -> None:
         ),
         (
             "Figure 5",
-            "figure5_ghana_supportability_boundary",
-            "Ghana audit; M6 tier ablation; M7.2 prequential audit",
+            "figure5_ghana_supportability_boundary_m7_only",
+            "Ghana audit; supporting prequential audit",
             "Objective 6 supportability and non-identifiability",
         ),
     ]
@@ -1063,18 +1095,23 @@ def verify_outputs() -> None:
         "figure2_evidence_integration",
         "figure3_topology_conditions_age",
         "figure4_reaction_nonuniqueness",
-        "figure5_ghana_supportability_boundary",
+        "figure5_ghana_supportability_boundary_m7_only",
     ]:
         for suffix in (".pdf", ".png", ".tif"):
             path = FIGURES / f"{stem}{suffix}"
             if not path.exists() or path.stat().st_size == 0:
                 raise RuntimeError(f"Missing publication figure: {path}")
-    # 11 tables (table1-6, tableS1-5) are produced by this script; table7
-    # (summary decision table) and tableS6 (multiplicity-correction check,
-    # from multiplicity_check.py) are added separately and are expected to
-    # already be present alongside these 11 rather than regenerated here.
-    if len(list(TABLES.glob("table*.csv"))) != 13:
-        raise RuntimeError("Expected 13 publication CSV tables (11 own + table7 + tableS6).")
+    # Verify the M7.3 contract by name rather than by total directory count:
+    # later locked extensions (M7.4 and system-acceptance tables) legitimately
+    # share this publication directory.
+    expected_tables = [f"table{index}" for index in range(1, 8)] + [
+        f"tableS{index}" for index in range(1, 7)
+    ]
+    for stem in expected_tables:
+        path = TABLES / f"{stem}.csv"
+        matching = list(TABLES.glob(f"{stem}_*.csv"))
+        if not path.exists() and not matching:
+            raise RuntimeError(f"Missing required M7.3 publication table: {stem}")
 
 
 def main() -> None:

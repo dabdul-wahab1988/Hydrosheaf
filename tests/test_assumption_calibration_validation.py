@@ -2,6 +2,7 @@
 
 Tests:
 - Calibration and validation label files must be distinct
+- Overlapping edge IDs are not independent without an explicit grouped contract
 - Validation metrics are computed correctly from known edge selections
 - Results JSON includes calibrated params, validation metrics, independent_validation
 - Config-only thresholds are reported but not listed as calibrated params
@@ -362,14 +363,16 @@ def test_validation_report_json_structure():
         assert "calibration_label_file" in report
         assert "validation_label_file" in report
         assert "independent_validation" in report
+        assert "independence_reason" in report
         assert "n_calibration_labels" in report
         assert "n_validation_labels" in report
         assert "n_overlapping_edge_ids" in report
         assert "calibration_phi" in report
         assert "calibration_success" in report
 
-        # independent_validation must be True for separate files
-        assert report["independent_validation"] is True
+        # Separate filenames do not make overlapping labelled edges independent.
+        assert report["independent_validation"] is False
+        assert "overlapping edge IDs" in report["independence_reason"]
 
         # Label counts must be correct
         assert report["n_calibration_labels"] == 3
@@ -389,7 +392,7 @@ def test_validation_report_json_structure():
         assert report_path.exists()
         with open(report_path) as f:
             disk_report = json.load(f)
-        assert disk_report["independent_validation"] is True
+        assert disk_report["independent_validation"] is False
 
 
 def test_config_only_thresholds_in_report_not_calibrated():
@@ -451,8 +454,7 @@ def test_invalid_assumption_params_still_fail_fast():
 
 
 def test_validation_workflow_overlapping_edge_ids_warning():
-    """When calibration and validation labels share edge IDs, the report
-    should capture the overlap count but not error."""
+    """Reversed labels in different files must not pass as independent."""
     with _make_temp_dir() as tmp:
         base = Path(tmp)
         edges_file = base / "edges.csv"
@@ -498,8 +500,91 @@ def test_validation_workflow_overlapping_edge_ids_warning():
         report = run_assumption_calibration_validation(config)
         # Both files share all edge IDs → overlap = 2
         assert report["n_overlapping_edge_ids"] == 2
-        # But independent_validation is still True because files differ
+        assert report["independent_validation"] is False
+        assert "reversed labels" in report["independence_reason"]
+
+
+def test_validation_workflow_non_overlapping_edge_ids_remains_independent():
+    """A genuinely disjoint validation label set remains independent."""
+    with _make_temp_dir() as tmp:
+        files = _build_test_files(tmp)
+        base = Path(tmp)
+        disjoint_val_file = base / "validation_labels_disjoint.csv"
+        _write_csv(
+            disjoint_val_file,
+            [{"edge_id": "BtoD", "observed_present": 1, "weight": 1.0}],
+            ["edge_id", "observed_present", "weight"],
+        )
+        files["val_labels"] = str(disjoint_val_file)
+
+        report = run_assumption_calibration_validation(
+            _make_config(files, str(base / "out")),
+        )
+
+        assert report["n_overlapping_edge_ids"] == 0
         assert report["independent_validation"] is True
+        assert "disjoint" in report["independence_reason"]
+
+
+def test_validation_workflow_explicit_grouped_contract_allows_overlap():
+    """A verified disjoint group assignment is the explicit overlap exception."""
+    with _make_temp_dir() as tmp:
+        files = _build_test_files(tmp)
+        base = Path(tmp)
+        grouped_cal_file = base / "calibration_grouped.csv"
+        grouped_val_file = base / "validation_grouped.csv"
+        grouped_columns = [
+            "edge_id", "observed_present", "weight", "split_group",
+        ]
+        _write_csv(
+            grouped_cal_file,
+            [
+                {"edge_id": "AtoB", "observed_present": 1, "weight": 1.0,
+                 "split_group": "calibration"},
+                {"edge_id": "AtoC", "observed_present": 1, "weight": 1.0,
+                 "split_group": "calibration"},
+                {"edge_id": "BtoC", "observed_present": 0, "weight": 1.0,
+                 "split_group": "calibration"},
+            ],
+            grouped_columns,
+        )
+        _write_csv(
+            grouped_val_file,
+            [
+                {"edge_id": "AtoB", "observed_present": 0, "weight": 1.0,
+                 "split_group": "validation"},
+                {"edge_id": "AtoC", "observed_present": 0, "weight": 1.0,
+                 "split_group": "validation"},
+                {"edge_id": "BtoC", "observed_present": 1, "weight": 1.0,
+                 "split_group": "validation"},
+            ],
+            grouped_columns,
+        )
+        files["cal_labels"] = str(grouped_cal_file)
+        files["val_labels"] = str(grouped_val_file)
+        contract = {
+            "kind": "grouped",
+            "group_column": "split_group",
+            "calibration_groups": ["calibration"],
+            "validation_groups": ["validation"],
+            "allow_overlapping_edge_ids": True,
+        }
+
+        report = run_assumption_calibration_validation(
+            _make_config(
+                files,
+                str(base / "out"),
+                extra_settings={
+                    "grouped_independence_contract": contract,
+                },
+            ),
+        )
+
+        assert report["n_overlapping_edge_ids"] == 3
+        assert report["independent_validation"] is True
+        assert "explicit grouped_independence_contract" in report[
+            "independence_reason"
+        ]
 
 
 def test_validation_workflow_no_empty_cal_observations():

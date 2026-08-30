@@ -12,6 +12,42 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
     "fit_network": (".inference.network_fit", "fit_network"),
     "edge_process_maps": (".inference.network_fit", "edge_process_maps"),
     "infer_edges": (".inference.network_fit", "infer_edges"),
+    "infer_null_aware_edges": (
+        ".inference.network_fit",
+        "infer_null_aware_edges",
+    ),
+    "NullAwareFeatureRow": (
+        ".inference.null_aware",
+        "NullAwareFeatureRow",
+    ),
+    "CalibrationNotFittedError": (
+        ".inference.null_aware",
+        "CalibrationNotFittedError",
+    ),
+    "NullAwareLogisticCalibrator": (
+        ".inference.null_aware",
+        "NullAwareLogisticCalibrator",
+    ),
+    "NullAwareTopologyScorer": (
+        ".inference.null_aware",
+        "NullAwareTopologyScorer",
+    ),
+    "build_null_aware_feature_rows": (
+        ".inference.null_aware",
+        "build_null_aware_feature_rows",
+    ),
+    "build_feature_rows": (
+        ".inference.null_aware",
+        "build_feature_rows",
+    ),
+    "calibration_diagnostics": (
+        ".inference.null_aware",
+        "calibration_diagnostics",
+    ),
+    "score_null_aware_topology": (
+        ".inference.null_aware",
+        "score_null_aware_topology",
+    ),
     "predict_node_ec_tds": (".inference.network_fit", "predict_node_ec_tds"),
     "summarize_network": (".inference.network_fit", "summarize_network"),
     "infer_edges_probabilistic": (".graph.build", "infer_edges_probabilistic"),
@@ -94,6 +130,68 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
     "update_hypothesis_posterior": (
         ".calibration.bayesian_active_learning",
         "update_hypothesis_posterior",
+    ),
+    "tracer_response_kernel": (
+        ".nuclear.joint_lpm",
+        "tracer_response_kernel",
+    ),
+    "AgeFunctional": (".nuclear.ttd_identified", "AgeFunctional"),
+    "IdentifiedBound": (".nuclear.ttd_identified", "IdentifiedBound"),
+    "TracerConstraint": (".nuclear.ttd_identified", "TracerConstraint"),
+    "TtdEvidenceReport": (".nuclear.ttd_identified", "TtdEvidenceReport"),
+    "assess_held_out_tracer": (
+        ".nuclear.ttd_identified",
+        "assess_held_out_tracer",
+    ),
+    "build_tracer_constraints": (
+        ".nuclear.ttd_identified",
+        "build_tracer_constraints",
+    ),
+    "build_tracer_response_matrix": (
+        ".nuclear.ttd_identified",
+        "build_tracer_response_matrix",
+    ),
+    "infer_ttd_evidence": (".nuclear.ttd_identified", "infer_ttd_evidence"),
+    "predict_tracer_bounds": (
+        ".nuclear.ttd_identified",
+        "predict_tracer_bounds",
+    ),
+    "solve_ttd_identified_set": (
+        ".nuclear.ttd_identified",
+        "solve_ttd_identified_set",
+    ),
+    "standard_age_functionals": (
+        ".nuclear.ttd_identified",
+        "standard_age_functionals",
+    ),
+    "CandidateTracerMeasurement": (
+        ".nuclear.ttd_design",
+        "CandidateTracerMeasurement",
+    ),
+    "TracerDesignScenario": (
+        ".nuclear.ttd_design",
+        "TracerDesignScenario",
+    ),
+    "TtdHypothesisEnsemble": (
+        ".nuclear.ttd_design",
+        "TtdHypothesisEnsemble",
+    ),
+    "rank_ttd_measurements": (
+        ".nuclear.ttd_design",
+        "rank_ttd_measurements",
+    ),
+    "select_ttd_measurement_batch": (
+        ".nuclear.ttd_design",
+        "select_ttd_measurement_batch",
+    ),
+    "GraphCompatibilityAudit": (
+        ".nuclear.ttd_graph",
+        "GraphCompatibilityAudit",
+    ),
+    "MassTransportMap": (".nuclear.ttd_graph", "MassTransportMap"),
+    "audit_ttd_graph_compatibility": (
+        ".nuclear.ttd_graph",
+        "audit_ttd_graph_compatibility",
     ),
     # NEW WORKFLOW
     "analyze_dataset": (".workflows.auto", "analyze_dataset"),

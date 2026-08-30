@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "run_id": "RUN-M7-ROBUST-HYBRID-SHEAF-20260729-01",
+  "protocol_frozen_before_implementation": true,
+  "protocol_frozen_utc_date": "2026-07-29",
+  "development_seeds": {
+    "first": 8401,
+    "last": 8464,
+    "count": 64
+  },
+  "locked_test_seeds": {
+    "first": 8501,
+    "last": 8628,
+    "count": 128
+  },
+  "scenario_order": [
+    "identity_limit",
+    "heterogeneous_affine",
+    "incompatible_cycles",
+    "noisy_missing"
+  ],
+  "bootstrap_samples": 10000,
+  "loo_iterations": 3,
+  "hybrid_local_weight_grid": [0.0, 0.25, 0.5, 0.75, 1.0],
+  "logistic_c_grid": [0.1, 1.0, 10.0],
+  "group_folds": 8,
+  "primary_calibration_regime": "separate_crossfit",
+  "secondary_calibration_regime": "shared_calibrator",
+  "primary_contrast": "robust_hybrid_minus_edge_local",
+  "primary_metrics": ["pr_auc", "brier", "log_loss"],
+  "excluded_capabilities": ["temporal_series", "graph_3d", "vadose"],
+  "sha256": {
+    "M7/m7_nonuniqueness_benchmark/M7_ROBUST_HYBRID_SHEAF_PROTOCOL.md": "8056acbfbc9274b11617ccbd04eddf7fceea8eb36f1562838122175982c02bc1",
+    "M7/m7_nonuniqueness_benchmark/scripts/independent_sheaf_graph_generator.py": "cb812447a6372b4aad276c07a65c80bef3e26138205ddb2cb050ba0bbd43ebc1",
+    "M7/m7_nonuniqueness_benchmark/scripts/run_m7_sheaf_vs_graph.py": "8650be2970c26e55ec6c8f4aebfa5eb2fc8b74039b918ef12f44c0ee18d8a279",
+    "hydrosheaf/sheaf/directed_section.py": "bf6b4fe12f3ba3e5b477a897d75079dd946d8e284a18f7b9e68e6f8a16ece857",
+    "hydrosheaf/graph/types.py": "9c1469f2293521f714537df1c9624718481974e6abf99d41d3fe9e3d7c5f8e02"
+  }
+}

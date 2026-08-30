@@ -1,472 +1,486 @@
 {
+  "schema_version": "1.0",
+  "source_review": "manuscript/review/M7_MANUSCRIPT_REVIEW_2026-07-29.md",
+  "locked_utc_date": "2026-07-30",
+  "scope": "All scientific, statistical, computational, provenance, figure, table, language and interoperability comments. Author identities, funding facts, persistent DOI minting and publication deposits remain external inputs/actions.",
   "items": [
     {
-      "comment_id": "M7-R001",
+      "comment_id": "M7-20260729-R01",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R02",
+      "decision": "AGREE",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R03",
+      "decision": "AGREE",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/methods/literature_search.json",
+        "manuscript/LITERATURE.bib"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R04",
+      "decision": "AGREE",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary",
+        "figures/publication",
+        "tables/publication"
       ],
       "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R002",
+      "comment_id": "M7-20260729-R05",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R06",
+      "decision": "AGREE",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "scripts",
+        "provenance"
       ],
       "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R003",
+      "comment_id": "M7-20260729-R07",
+      "decision": "CLARIFY",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "figures/publication",
+        "tables/publication",
+        "scripts",
+        "provenance"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R08",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R004",
+      "comment_id": "M7-20260729-R09",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R005",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary"
       ],
       "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R006",
+      "comment_id": "M7-20260729-R10",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary",
+        "figures/publication",
+        "tables/publication"
       ],
       "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R007",
+      "comment_id": "M7-20260729-R11",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R008",
+      "comment_id": "M7-20260729-R12",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R009",
+      "comment_id": "M7-20260729-R13",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
+        "manuscript/Manuscript-Final-Revised.md",
+        "figures/publication",
+        "tables/publication",
+        "scripts",
+        "provenance"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R010",
+      "comment_id": "M7-20260729-R14",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R15",
+      "decision": "AGREE",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary"
       ],
       "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R011",
+      "comment_id": "M7-20260729-R16",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R012",
+      "comment_id": "M7-20260729-R17",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary",
+        "figures/publication",
+        "tables/publication"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R18",
+      "decision": "AGREE",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "figures/publication",
+        "tables/publication"
       ],
       "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R013",
+      "comment_id": "M7-20260729-R19",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R014",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R015",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R016",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R017",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R018",
+      "comment_id": "M7-20260729-R20",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "figures/publication",
+        "tables/publication"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R21",
+      "decision": "AGREE",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary",
+        "figures/publication",
+        "tables/publication"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R22",
+      "decision": "AGREE",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "figures/publication",
+        "tables/publication"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R23",
+      "decision": "AGREE",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/methods/literature_search.json",
+        "manuscript/LITERATURE.bib"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R24",
+      "decision": "AGREE",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary",
+        "manuscript/methods/literature_search.json",
+        "manuscript/LITERATURE.bib"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R25",
+      "decision": "CLARIFY",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R019",
+      "comment_id": "M7-20260729-R26",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R020",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R021",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "comment_id": "M7-20260729-R27",
+      "decision": "CLARIFY",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R022",
+      "comment_id": "M7-20260729-R28",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md",
+        "manuscript/supplementary"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
+    },
+    {
+      "comment_id": "M7-20260729-R29",
+      "decision": "AGREE",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R023",
+      "comment_id": "M7-20260729-R30",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R024",
+      "comment_id": "M7-20260729-R31",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R025",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R026",
+      "comment_id": "M7-20260729-R32",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R027",
+      "comment_id": "M7-20260729-R33",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R028",
+      "comment_id": "M7-20260729-R34",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
+        "manuscript/Manuscript-Final-Revised.md",
+        "scripts",
+        "provenance"
       ],
-      "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "requires_analysis": false,
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R029",
+      "comment_id": "M7-20260729-R35",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
         "manuscript/Manuscript-Final-Revised.md"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     },
     {
-      "comment_id": "M7-R030",
+      "comment_id": "M7-20260729-R36",
       "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "rationale": "The technical finding is accepted. Where the requested action requires author-supplied declarations or an external repository release, the manuscript will state the verified current status without inventing it.",
       "target_files": [
         "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R031",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
+        "manuscript/Manuscript-Final-Revised.md",
+        "figures/publication",
+        "tables/publication"
       ],
       "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R032",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": true,
-      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R033",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R034",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R035",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R036",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R037",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R038",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
-    },
-    {
-      "comment_id": "M7-R039",
-      "decision": "AGREE",
-      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
-      "target_files": [
-        "manuscript/sections",
-        "manuscript/Manuscript-Final-Revised.md"
-      ],
-      "requires_analysis": false,
-      "evidence_needed": "Current source manuscript and artifact registry",
-      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+      "evidence_needed": "A source diff plus a reproducible audit artifact or render/test record appropriate to the finding.",
+      "acceptance_check": "The response matrix cites a current file or generated artifact, the manuscript statement matches that evidence, and no broader claim remains."
     }
   ]
 }

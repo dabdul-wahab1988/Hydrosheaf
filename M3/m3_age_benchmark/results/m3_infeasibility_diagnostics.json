@@ -1,0 +1,411 @@
+{
+  "diagnostic_id": "m3-identified-ttd-infeasibility-diagnostics",
+  "envelope": {
+    "accounting": {
+      "eligible_folds": 3501,
+      "fold_skips": {
+        "insufficient_conditioning_tracers": 72
+      },
+      "folds_examined": 3429,
+      "folds_skipped": 72,
+      "n_rows": 1272,
+      "reconciled": true,
+      "row_skips": {}
+    },
+    "by_k": {
+      "k=1.96": {
+        "by_tracer": {
+          "14C": {
+            "seen": 2209,
+            "violations": 109
+          },
+          "3H": {
+            "seen": 1998,
+            "violations": 4
+          },
+          "3H/3He": {
+            "seen": 998,
+            "violations": 45
+          },
+          "CFC11": {
+            "seen": 398,
+            "violations": 0
+          },
+          "CFC113": {
+            "seen": 379,
+            "violations": 0
+          },
+          "CFC12": {
+            "seen": 405,
+            "violations": 0
+          },
+          "SF6": {
+            "seen": 1665,
+            "violations": 0
+          }
+        },
+        "folds_examined": 3429,
+        "folds_with_envelope_violation": 158,
+        "sigma_multiplier": 1.96,
+        "total_constraints": 8052,
+        "violating_constraints": 158
+      },
+      "k=6": {
+        "by_tracer": {
+          "14C": {
+            "seen": 2209,
+            "violations": 8
+          },
+          "3H": {
+            "seen": 1998,
+            "violations": 2
+          },
+          "3H/3He": {
+            "seen": 998,
+            "violations": 31
+          },
+          "CFC11": {
+            "seen": 398,
+            "violations": 0
+          },
+          "CFC113": {
+            "seen": 379,
+            "violations": 0
+          },
+          "CFC12": {
+            "seen": 405,
+            "violations": 0
+          },
+          "SF6": {
+            "seen": 1665,
+            "violations": 0
+          }
+        },
+        "folds_examined": 3429,
+        "folds_with_envelope_violation": 41,
+        "sigma_multiplier": 6.0,
+        "total_constraints": 8052,
+        "violating_constraints": 41
+      }
+    }
+  },
+  "n_rows": 1272,
+  "protocol_id": "m3-identified-ttd-development-20260730",
+  "protocol_status": "development",
+  "schema_version": "1.0",
+  "sigma_multipliers": [
+    1.96,
+    6.0
+  ],
+  "source_mode": "national",
+  "subset": {
+    "accounting": {
+      "n_rows": 1272,
+      "panels_examined": 935,
+      "reconciled": true,
+      "row_skips": {
+        "fewer_than_3_constraints": 337
+      },
+      "rows_skipped": 337
+    },
+    "by_k": {
+      "k=1.96": {
+        "minimal_infeasible_subset_combinations": {
+          "14C": 52,
+          "14C+3H": 6,
+          "14C+3H+3H/3He": 1,
+          "14C+3H+CFC11+CFC12": 1,
+          "14C+3H+SF6": 2,
+          "14C+3H/3He": 9,
+          "14C+CFC11": 1,
+          "14C+CFC11+CFC12": 1,
+          "14C+CFC113": 2,
+          "14C+CFC12": 9,
+          "14C+SF6": 26,
+          "3H": 2,
+          "3H+3H/3He": 128,
+          "3H+3H/3He+CFC11": 3,
+          "3H+3H/3He+CFC11+CFC113+CFC12": 1,
+          "3H+3H/3He+SF6": 10,
+          "3H+CFC11": 7,
+          "3H+CFC11+CFC113": 1,
+          "3H+CFC11+CFC12": 4,
+          "3H+CFC113": 1,
+          "3H+CFC113+CFC12": 1,
+          "3H+CFC12": 8,
+          "3H+SF6": 162,
+          "3H/3He": 23,
+          "3H/3He+CFC11": 5,
+          "3H/3He+CFC12": 1,
+          "3H/3He+SF6": 5,
+          "CFC11+CFC113": 11,
+          "CFC11+CFC113+CFC12": 2,
+          "CFC11+CFC12": 15,
+          "CFC113+CFC12": 1
+        },
+        "minimal_infeasible_subset_size_counts": {
+          "1": 77,
+          "2": 397,
+          "3": 25,
+          "4": 1,
+          "5": 1
+        },
+        "pairwise": {
+          "14C+3H": {
+            "infeasible": 62,
+            "seen": 877
+          },
+          "14C+3H/3He": {
+            "infeasible": 83,
+            "seen": 477
+          },
+          "14C+CFC11": {
+            "infeasible": 4,
+            "seen": 106
+          },
+          "14C+CFC113": {
+            "infeasible": 7,
+            "seen": 98
+          },
+          "14C+CFC12": {
+            "infeasible": 15,
+            "seen": 107
+          },
+          "14C+SF6": {
+            "infeasible": 114,
+            "seen": 760
+          },
+          "3H+3H/3He": {
+            "infeasible": 153,
+            "seen": 452
+          },
+          "3H+CFC11": {
+            "infeasible": 7,
+            "seen": 92
+          },
+          "3H+CFC113": {
+            "infeasible": 11,
+            "seen": 86
+          },
+          "3H+CFC12": {
+            "infeasible": 11,
+            "seen": 94
+          },
+          "3H+SF6": {
+            "infeasible": 210,
+            "seen": 737
+          },
+          "3H/3He+CFC11": {
+            "infeasible": 11,
+            "seen": 38
+          },
+          "3H/3He+CFC113": {
+            "infeasible": 9,
+            "seen": 40
+          },
+          "3H/3He+CFC12": {
+            "infeasible": 9,
+            "seen": 41
+          },
+          "3H/3He+SF6": {
+            "infeasible": 63,
+            "seen": 391
+          },
+          "CFC11+CFC113": {
+            "infeasible": 35,
+            "seen": 95
+          },
+          "CFC11+CFC12": {
+            "infeasible": 37,
+            "seen": 104
+          },
+          "CFC113+CFC12": {
+            "infeasible": 24,
+            "seen": 98
+          }
+        },
+        "pairwise_reporting_minimum": 20,
+        "panels_examined": 935,
+        "panels_infeasible": 501,
+        "panels_infeasible_without_minimal_subset": 0,
+        "sigma_multiplier": 1.96,
+        "singleton": {
+          "14C": {
+            "infeasible": 52,
+            "seen": 924
+          },
+          "3H": {
+            "infeasible": 2,
+            "seen": 888
+          },
+          "3H/3He": {
+            "infeasible": 23,
+            "seen": 488
+          },
+          "CFC11": {
+            "infeasible": 0,
+            "seen": 106
+          },
+          "CFC113": {
+            "infeasible": 0,
+            "seen": 98
+          },
+          "CFC12": {
+            "infeasible": 0,
+            "seen": 107
+          },
+          "SF6": {
+            "infeasible": 0,
+            "seen": 771
+          }
+        }
+      },
+      "k=6": {
+        "minimal_infeasible_subset_combinations": {
+          "14C": 3,
+          "14C+3H": 3,
+          "14C+3H+3H/3He": 1,
+          "14C+3H+3H/3He+SF6": 1,
+          "14C+3H+SF6": 1,
+          "14C+3H/3He": 5,
+          "14C+CFC11": 2,
+          "14C+CFC11+CFC12": 2,
+          "14C+CFC12": 7,
+          "14C+SF6": 17,
+          "3H": 1,
+          "3H+3H/3He": 70,
+          "3H+3H/3He+CFC11": 1,
+          "3H+3H/3He+SF6": 3,
+          "3H+CFC11": 4,
+          "3H+CFC11+CFC113": 1,
+          "3H+CFC11+CFC113+CFC12": 1,
+          "3H+CFC11+CFC12": 5,
+          "3H+CFC12": 2,
+          "3H+SF6": 39,
+          "3H/3He": 15,
+          "3H/3He+CFC11": 3,
+          "3H/3He+SF6": 2,
+          "CFC11+CFC113": 11,
+          "CFC11+CFC113+CFC12": 3,
+          "CFC11+CFC12": 22,
+          "CFC113+CFC12": 1
+        },
+        "minimal_infeasible_subset_size_counts": {
+          "1": 19,
+          "2": 188,
+          "3": 17,
+          "4": 2
+        },
+        "pairwise": {
+          "14C+3H": {
+            "infeasible": 7,
+            "seen": 877
+          },
+          "14C+3H/3He": {
+            "infeasible": 26,
+            "seen": 477
+          },
+          "14C+CFC11": {
+            "infeasible": 3,
+            "seen": 106
+          },
+          "14C+CFC113": {
+            "infeasible": 3,
+            "seen": 98
+          },
+          "14C+CFC12": {
+            "infeasible": 11,
+            "seen": 107
+          },
+          "14C+SF6": {
+            "infeasible": 26,
+            "seen": 760
+          },
+          "3H+3H/3He": {
+            "infeasible": 81,
+            "seen": 452
+          },
+          "3H+CFC11": {
+            "infeasible": 4,
+            "seen": 92
+          },
+          "3H+CFC113": {
+            "infeasible": 3,
+            "seen": 86
+          },
+          "3H+CFC12": {
+            "infeasible": 4,
+            "seen": 94
+          },
+          "3H+SF6": {
+            "infeasible": 44,
+            "seen": 737
+          },
+          "3H/3He+CFC11": {
+            "infeasible": 8,
+            "seen": 38
+          },
+          "3H/3He+CFC113": {
+            "infeasible": 6,
+            "seen": 40
+          },
+          "3H/3He+CFC12": {
+            "infeasible": 5,
+            "seen": 41
+          },
+          "3H/3He+SF6": {
+            "infeasible": 33,
+            "seen": 391
+          },
+          "CFC11+CFC113": {
+            "infeasible": 28,
+            "seen": 95
+          },
+          "CFC11+CFC12": {
+            "infeasible": 34,
+            "seen": 104
+          },
+          "CFC113+CFC12": {
+            "infeasible": 19,
+            "seen": 98
+          }
+        },
+        "pairwise_reporting_minimum": 20,
+        "panels_examined": 935,
+        "panels_infeasible": 226,
+        "panels_infeasible_without_minimal_subset": 0,
+        "sigma_multiplier": 6.0,
+        "singleton": {
+          "14C": {
+            "infeasible": 3,
+            "seen": 924
+          },
+          "3H": {
+            "infeasible": 1,
+            "seen": 888
+          },
+          "3H/3He": {
+            "infeasible": 15,
+            "seen": 488
+          },
+          "CFC11": {
+            "infeasible": 0,
+            "seen": 106
+          },
+          "CFC113": {
+            "infeasible": 0,
+            "seen": 98
+          },
+          "CFC12": {
+            "infeasible": 0,
+            "seen": 107
+          },
+          "SF6": {
+            "infeasible": 0,
+            "seen": 771
+          }
+        }
+      }
+    }
+  }
+}

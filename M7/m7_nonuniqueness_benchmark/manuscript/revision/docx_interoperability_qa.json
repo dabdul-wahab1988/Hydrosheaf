@@ -1,0 +1,69 @@
+{
+  "date": "2026-07-30",
+  "word_pdf_pages": {
+    "main": 33,
+    "supplement": 22
+  },
+  "libreoffice_pdf_pages": {
+    "main": 31,
+    "supplement": 21
+  },
+  "visual_pages_inspected": 55,
+  "locked_confirmatory_test_rerun": false,
+  "artifacts": [
+    {
+      "path": "manuscript/Manuscript-Final-Revised-20260730.docx",
+      "exists": true,
+      "bytes": 2376583,
+      "sha256": "27df689ba1edb93e004def5abb3f7b388bacc4310eeff7ceb52e33e1804ae75e"
+    },
+    {
+      "path": "manuscript/Manuscript-Final-Revised.docx",
+      "exists": true,
+      "bytes": 2376583,
+      "sha256": "27df689ba1edb93e004def5abb3f7b388bacc4310eeff7ceb52e33e1804ae75e"
+    },
+    {
+      "path": "manuscript/Manuscript-Final.docx",
+      "exists": true,
+      "bytes": 2376583,
+      "sha256": "27df689ba1edb93e004def5abb3f7b388bacc4310eeff7ceb52e33e1804ae75e"
+    },
+    {
+      "path": "manuscript/supplementary/Supplementary-Information-Revised-20260730.docx",
+      "exists": true,
+      "bytes": 160373,
+      "sha256": "68cf6c28d4b1d6d4949a8026f91348a593eab4aabe416a22a091bc7a0913cf33"
+    },
+    {
+      "path": "manuscript/supplementary/Supplementary-Information.docx",
+      "exists": true,
+      "bytes": 160373,
+      "sha256": "68cf6c28d4b1d6d4949a8026f91348a593eab4aabe416a22a091bc7a0913cf33"
+    },
+    {
+      "path": ".codex_work/word_main_20260730.pdf",
+      "exists": true,
+      "bytes": 1021935,
+      "sha256": "abbfc08ad17b789ec154455730848b2b7424016f697cc41a901f219166e45237"
+    },
+    {
+      "path": ".codex_work/word_supp_20260730.pdf",
+      "exists": true,
+      "bytes": 560260,
+      "sha256": "3f982c9574c22667b5557a1a590312f92857edf2ef872b9f50cba06855bab205"
+    },
+    {
+      "path": ".codex_work/lo_pdf_main4_20260730/Manuscript-Final-Revised-20260730.pdf",
+      "exists": true,
+      "bytes": 1333149,
+      "sha256": "9df39e5545564190f10e64ee64ff9ce9db863718af37ec738c0fb906f7c917bb"
+    },
+    {
+      "path": ".codex_work/lo_pdf_supp4_20260730/Supplementary-Information-Revised-20260730.pdf",
+      "exists": true,
+      "bytes": 875152,
+      "sha256": "5db1fa9d5dcaecff813b55b61470876c7081716d9aa3b5327bce748ed76a609d"
+    }
+  ]
+}

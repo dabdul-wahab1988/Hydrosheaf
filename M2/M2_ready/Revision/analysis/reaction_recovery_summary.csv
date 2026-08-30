@@ -1,0 +1,7 @@
+metric,value
+n_active_rows,2100.0
+n_inactive_rows,4900.0
+active_r2_corr,0.22747051665693135
+active_mae_mmolL,0.37383267553001565
+active_rmse_mmolL,0.6171655589527413
+false_positive_rate_0.05,0.5406122448979592

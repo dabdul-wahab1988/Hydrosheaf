@@ -822,9 +822,37 @@ def refine_edges_with_sheaf(
     config: Config,
 ) -> List[Edge]:
     sample_map = _sample_map(samples)
-    candidate_list = list(candidates)
+    source_candidates = list(candidates)
+    use_posterior = bool(getattr(config, "topology_posterior_enabled", False))
+    if use_posterior:
+        # Posterior selection annotates every candidate with probabilities and
+        # selection status.  Keep those annotations on a private working
+        # universe so rejected edges cannot be mutated in the caller's graph.
+        candidate_list = [
+            Edge(
+                edge_id=edge.edge_id,
+                u=edge.u,
+                v=edge.v,
+                attrs=dict(edge.attrs or {}),
+                type=edge.type,
+            )
+            if isinstance(edge, Edge)
+            else edge
+            for edge in source_candidates
+        ]
+    else:
+        candidate_list = source_candidates
     if not candidate_list:
         return []
+
+    # Reject malformed universes before any scoring or attribute mutation.
+    if getattr(config, "topology_posterior_enabled", False):
+        from ..inference.topology_posterior import validate_unique_edge_ids
+
+        validate_unique_edge_ids(
+            candidate_list,
+            context="topology posterior candidates",
+        )
 
     stats = compute_isotope_stats(sample_map.values(), config)
     node_info = _build_node_info(sample_map, stats, config)
@@ -1052,13 +1080,16 @@ def refine_edges_with_sheaf(
 
     # Bayesian topology posterior
     if getattr(config, "topology_posterior_enabled", False):
-        try:
-            from ..inference.topology_posterior import (
-                attach_posterior_attrs,
-                make_topology_cost_fn,
-                run_topology_posterior,
-            )
+        from ..inference.topology_posterior import (
+            TopologyPosteriorError,
+            attach_posterior_attrs,
+            make_topology_cost_fn,
+            run_topology_posterior,
+            select_posterior_edges,
+            validate_unique_edge_ids,
+        )
 
+        try:
             cost_fn = make_topology_cost_fn(
                 sample_map=sample_map,
                 config=config,
@@ -1071,16 +1102,35 @@ def refine_edges_with_sheaf(
                 cost_fn=cost_fn,
                 config=config,
                 initial_edges=selected,
+                seed=int(getattr(config, "topology_posterior_seed", 42)),
+            )
+            probability_threshold = getattr(
+                config,
+                "topology_posterior_probability_threshold",
+                getattr(config, "topology_posterior_threshold", 0.5),
+            )
+            selected = select_posterior_edges(
+                candidate_edges=candidate_list,
+                posterior_result=posterior_result,
+                max_neighbors=max_neighbors,
+                probability_threshold=float(probability_threshold),
             )
             attach_posterior_attrs(
                 selected_edges=selected,
                 candidate_edges=candidate_list,
                 posterior_result=posterior_result,
-                mode="diagnostic",
+                mode="select",
             )
-        except Exception:
-            logger.warning(
-                "Topology posterior sampling failed; continuing.", exc_info=True
+        except TopologyPosteriorError:
+            raise
+        except Exception as exc:
+            logger.error(
+                "Topology posterior selection failed; no local-sheaf fallback is allowed.",
+                exc_info=True,
             )
+            raise TopologyPosteriorError(
+                "Enabled topology posterior selection did not complete.",
+                cause=exc,
+            ) from exc
 
     return selected

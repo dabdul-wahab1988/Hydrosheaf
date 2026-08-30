@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "run_id": "RUN-M7-ROBUST-HYBRID-SHEAF-20260729-01",
+  "locked_before_test_generation": true,
+  "locked_utc_date": "2026-07-29",
+  "runner_sha256": "a0ef13bde5391af62698927211cb4e701123affebb108d331795ce8596e2e191",
+  "protocol_lock_sha256": "f068147f02db2f64bda4c0cab745478de210a495b3d61c499b0f009b7a76dea0",
+  "frozen_settings_sha256": "38ae498cfae185c339b075a3d6e36757e01c133627f177cf9c37e03e7b47804a",
+  "development_manifest_sha256": "3e5e1f84072899ba816418967a7a39bf86392d667f85e241472521475b3f9f67",
+  "development_selection": {
+    "edge_local": {"C": 0.1, "threshold": 0.30},
+    "identity_graph": {"C": 0.1, "threshold": 0.27},
+    "original_affine_global": {"C": 0.1, "threshold": 0.27},
+    "original_hybrid": {"local_weight": 1.0, "C": 0.1, "threshold": 0.31},
+    "robust_affine_global": {"C": 0.1, "threshold": 0.27},
+    "robust_hybrid": {"local_weight": 1.0, "C": 0.1, "threshold": 0.28}
+  },
+  "locked_test_seeds": {
+    "first": 8501,
+    "last": 8628,
+    "count": 128
+  },
+  "locked_test_execution_limit": 1,
+  "post_lock_code_changes_allowed": false,
+  "post_test_tuning_allowed": false
+}

@@ -167,8 +167,42 @@ def _safe_r2(x: pd.Series, y: pd.Series) -> float:
     return float(np.corrcoef(paired.iloc[:, 0], paired.iloc[:, 1])[0, 1] ** 2)
 
 
+def _resid_r2(x: pd.Series, y: pd.Series) -> float:
+    """Residual-based explained-variance R2 (1 - SS_res/SS_tot); can be negative."""
+    xv = np.asarray(x, dtype=float)
+    yv = np.asarray(y, dtype=float)
+    m = ~(np.isnan(xv) | np.isnan(yv))
+    xv, yv = xv[m], yv[m]
+    if len(xv) < 2:
+        return np.nan
+    ss_res = float(np.sum((xv - yv) ** 2))
+    ss_tot = float(np.sum((xv - xv.mean()) ** 2))
+    if ss_tot <= 1e-12:
+        return np.nan
+    return 1.0 - ss_res / ss_tot
+
+
 def _fmt_metric(value: float, digits: int = 2) -> str:
     return "NA" if pd.isna(value) else f"{value:.{digits}f}"
+
+
+def _canonical_public_age_log10_r2() -> float:
+    """log10 R2 written by the M3 benchmark runner for the canonical scenario.
+
+    The figure otherwise recomputes R2 from the plotted values, which are
+    floored at 0.01 yr for the log axes; that produced 0.97 against the
+    canonical 0.960 quoted in the manuscript text and Tables 2/4.
+    """
+    summary = M3_RESULT_DIR / "m3_tracerlpm_parity_agefractions_full_summary.csv"
+    if not summary.exists():
+        return float("nan")
+    try:
+        df = pd.read_csv(summary)
+    except Exception:
+        return float("nan")
+    if "log10_r2" not in df.columns or df.empty:
+        return float("nan")
+    return float(pd.to_numeric(df["log10_r2"], errors="coerce").iloc[0])
 
 
 def _load_public_age_validation() -> tuple[pd.DataFrame, str]:
@@ -351,6 +385,9 @@ def plot_manuscript_fig3_synthetic_validation() -> None:
     df_a = pd.concat(trans_data).reset_index(drop=True)
     sns.violinplot(data=df_a, x="Parameter", y="Value", ax=ax_a, inner=None, color="#f1f5f9", linewidth=1.5)
     sns.boxplot(data=df_a, x="Parameter", y="Value", ax=ax_a, width=0.15, boxprops={'zorder': 2}, color="white")
+    # seed the global RNG that seaborn's jitter draws from, so the panel is
+    # byte-reproducible across runs (the paper claims full reproducibility)
+    np.random.seed(240504)
     sns.stripplot(data=df_a, x="Parameter", y="Value", ax=ax_a, size=3, alpha=0.3, color="#2563eb", jitter=0.2)
 
     # Plot true values as horizontal markers
@@ -543,8 +580,8 @@ def plot_manuscript_fig3_synthetic_validation() -> None:
         ax_d.set_ylabel(r"Inferred $\Delta \delta^{18}$O Shift (permil)", fontsize=FONT_LABEL, fontweight="bold")
         ax_d.tick_params(labelsize=FONT_TICK)
 
-        r2_iso_all = _safe_r2(df_d["true_shift"], df_d["inf_shift"])
-        r2_iso_edge = _safe_r2(edge_summary["true_shift"], edge_summary["inf_shift_mean"])
+        r2_iso_all = _resid_r2(df_d["true_shift"], df_d["inf_shift"])
+        r2_iso_edge = _resid_r2(edge_summary["true_shift"], edge_summary["inf_shift_mean"])
         mae_iso = np.mean(np.abs(df_d["true_shift"] - df_d["inf_shift"]))
         stats_text = (
             f"Point R² = {_fmt_metric(r2_iso_all)}\n"
@@ -755,11 +792,11 @@ def plot_manuscript_fig5_residence_time_validation() -> None:
         log_true = np.log10(np.maximum(syn["true_mrt_years"], 0.1))
         log_inf = np.log10(np.maximum(syn["network_bayesian_years"], 0.1))
         r2 = np.corrcoef(log_true, log_inf)[0, 1] ** 2
-        mae = np.mean(np.abs(syn["network_bayesian_years"] - syn["true_mrt_years"]))
+        mae = np.median(np.abs(syn["network_bayesian_years"] - syn["true_mrt_years"]))
         ax_syn.text(
             0.05,
             0.95,
-            f"$R^2$ = {r2:.2f}\nMAE = {mae:.1f} y",
+            f"$R^2$ = {r2:.2f}\nMedian AE = {mae:.1f} y",
             transform=ax_syn.transAxes,
             ha="left",
             va="top",
@@ -817,7 +854,13 @@ def plot_manuscript_fig5_residence_time_validation() -> None:
         ax_pub.fill_between(lims, lims / 10, lims * 10, color="#94a3b8", alpha=0.14)
         log_ref = np.log10(pub["plot_reference_age_years"])
         log_inf = np.log10(pub["plot_hydrosheaf_age_years"])
-        r2 = _safe_r2(log_ref, log_inf)
+        # Quote the canonical log10 R2 written by the benchmark runner, so this
+        # annotation matches the manuscript text and Tables 2/4 exactly. Only
+        # fall back to recomputation from the plotted (floored) values when the
+        # scenario summary is unavailable.
+        r2 = _canonical_public_age_log10_r2()
+        if pd.isna(r2):
+            r2 = _safe_r2(log_ref, log_inf)
         metric_log = pd.to_numeric(
             pub.get("log10_error", pd.Series(np.nan, index=pub.index)),
             errors="coerce",

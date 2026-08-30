@@ -54,6 +54,66 @@ campaign should not, on this evidence alone, be assumed to sharpen
 topological interpretation without testing that assumption on the
 practitioner's own data.
 
+### What the sheaf layer contributes beyond an ordinary weighted graph
+
+The direct answer is narrower and more useful than a claim of universal
+superiority. An ordinary weighted graph represents which nodes are connected
+and how strongly, while the tested affine sheaf additionally represents how a
+state at one endpoint is translated to the other through edge-specific gains
+and offsets, and evaluates whether those local translations admit a coherent
+global section [@robinson2017sheaves; @hansen2019spectral]. Exact equality in
+the identity-limit cases confirms the expected nesting: when every restriction
+map is identity, the sheaf introduced no hidden algorithmic advantage over the
+graph Laplacian [@hansen2019learning]. The positive native-versus-identity and
+native-versus-permuted contrasts therefore identify non-identity relation
+structure, rather than simply graph connectivity or solver choice, as the
+source of the gain.
+
+That contribution had two family-wise supported empirical forms. First, native
+affine maps improved overall prediction and calibration over both the identity-
+restriction Laplacian and the permuted-map control. Second, the global-section
+residual localised planted cycle incompatibilities more accurately than the
+edge-local comparator. This provides a defensible role for the sheaf layer as a
+relation and consistency model: it can express edge relations that an identity
+graph cannot, and identify where locally plausible relations fail to compose
+globally.
+
+The strong edge-local comparator prevents this result from being inflated.
+The competence-matched representation benchmark did not improve overall PR-AUC
+or calibration against edge-local after the complete 120-contrast family
+correction. The fresh-seed estimator diagnostic
+clarified rather than erased that result. Development selection placed both
+candidate combinations at local weight 1.0, so global compatibility was used
+only when an endpoint residual was unavailable. The selected method was
+therefore local-first/global-fallback, not evidence that a general local/global
+blend was superior. Its mean overall PR-AUC gain over edge-local was small and
+did not survive the complete 560-contrast correction.
+
+Stronger false-edge downweighting did not provide the anticipated remedy.
+Leave-one-edge-out scoring prevented candidate self-influence but worsened
+Brier score and log loss for the robust global estimator after family-wise
+correction. Separately cross-fitted calibration also did not rescue the three-
+outcome gate. The persistent heterogeneous-affine penalty therefore cannot be
+attributed solely to the original shared calibration or to false edges pulling
+their own fitted section. In this dense candidate generator, aggressive LOO
+downweighting removed useful relational support as well as contamination.
+
+The answer to the research question is consequently conditional but specific.
+Compared with an identity graph, the sheaf contributes edge-specific gains and
+offsets plus a test of whether those relations compose globally. Compared with
+a strong edge-local graph, the supported contribution is a network-level
+conflict signal plus the capability for global fallback when endpoint evidence
+is missing; scenario-specific ranking gains did not survive full-family
+correction. Native maps remained superior to permuted maps, but the method was
+not a uniformly better probability estimator and was worse in the
+representation benchmark's
+heterogeneous-affine stratum. This distinction is consistent with the need for
+strong identity and graph baselines in sheaf learning [@caralt2026necessity]
+and with groundwater graph methods that learn spatial or transport dependencies
+for different predictive tasks [@pang2024agnn; @wu2025groundwatergraph]. The
+recent sheaf source is a preprint, those graph studies do not test the present
+estimand, and the present result remains limited to controlled scalar cases.
+
 ### Topology assumptions change age uncertainty in both directions
 
 The second and third research questions concerned how topology assumptions
@@ -117,7 +177,7 @@ discrimination and calibration checks
 manuscript's own revised age and hydraulics results (above) were held to
 once multiplicity correction was applied.
 
-### Carbonate reactions remain non-identifiable regardless of panel richness
+### Carbonate reactions were not recovered under either tested indicator panel
 
 The third research question also concerned whether an enhanced
 hydrochemical indicator panel resolves reaction-mechanism non-uniqueness
@@ -126,7 +186,10 @@ sulfate reduction, and silicate weathering were recovered reliably under
 both panels, and iron reduction improved materially with the enhanced
 panel (modal accuracy rising from 0.000 to 0.500), but carbonate weathering
 and precipitation were recovered in neither, across all 36 scored
-carbonate edges under each panel. The coexistence of zero accuracy with low
+carbonate edges under each panel. This result is restricted to discrimination
+among the six planted archetypes, the tested stoichiometry and mineral
+assemblage, the 3% noise model, and the core and enhanced panels. The
+coexistence of zero accuracy with low
 family-support entropy for several carbonate rows is a direct illustration
 of the equifinality concern raised for mechanistic model fitting generally
 [@beven2001glue; @beven2006manifesto]: numerical stability and a
@@ -166,16 +229,35 @@ numerically to a field setting without independent verification that the
 generator's chemistry archetypes and topology are representative of that
 setting.
 
+### The auxiliary nuisance experiment narrowed, but did not solve, the M3 mechanism question
+
+The auxiliary controlled-synthetic diagnostic supplied the ground truth that
+the national M3 benchmark lacks, but its result was deliberately narrower than
+an explanation of the USGS data. Severe shared nuisance increased the rate of
+infeasible full nuclear panels, showing that a declared correlated error can
+create additional age-constraint failure under the tested generator. The
+redox-stratified CFC-11 contrast nevertheless failed the CFC-12 specificity
+control: the CFC-12-containing pair contrast was at least as large. The
+selective CFC-11 degradation mechanism was therefore not supported as a
+controlled-synthetic explanation under this implementation.
+
+This negative result is informative but not exhaustive. The diagnostic used an
+analytic nuisance formulation and synthetic redox histories, not the upstream
+USGS DGMETA correction process or co-located field redox measurements. It
+therefore narrows the tested mechanism without resolving the M3 cause. The
+diagnostic remains an auxiliary controlled-synthetic audit and provides no
+field age, topology or correction validation.
+
 ### Limitations
 
-Five limitations bound these conclusions. First, all quantitative
-integration results derive from one generator geometry, one set of
-chemistry archetypes, and a fixed twelve-case locked test set; the specific
-magnitude of each contrast, though not necessarily its qualitative
-direction, may differ in other hydrogeological settings or at a different
-sample size, and every practical-implication statement above is scoped to
-the tested conditions rather than to groundwater evidence integration in
-general. Second, all synthetic truth is model-conditioned, so the
+Eight limitations bound these conclusions. First, the process-based quantitative
+integration results derive from one MODFLOW/MODPATH generator geometry, one
+set of chemistry archetypes and 12 locked cases, while the representation-
+benchmark and estimator-diagnostic results derive from a separate scalar affine
+generator with 64 and 128 locked cases. The second system is not a cross-
+generator replication
+of the first, and every practical statement is scoped to its tested generator.
+Second, all synthetic truth is model-conditioned, so the
 benchmark tests consistency with a known generative process rather than
 field reality, and the strength of a conclusion about, for example,
 carbonate non-identifiability is bounded by how representative the
@@ -202,4 +284,31 @@ potential's order scale, the reaction-noise level) were fixed by
 predeclaration rather than validated by a sensitivity analysis across
 alternative values; whether the qualitative pattern of results is stable
 under alternative reasonable choices for these constants is left for
-future work.
+future work. Sixth, the representation benchmark and estimator diagnostic used
+static scalar stalks
+and controlled affine relations. It did not test temporal, three-dimensional,
+vadose-zone, or field-validated vector-stalk behaviour, and the edge-local
+comparator was deliberately strong but not an exhaustive survey of graph-
+learning methods. The hybrid and LOO grids were finite, the LOO influence rule
+was one specific robust estimator, and active learning was not evaluated in
+these ablations. The representation claim must therefore remain conditional
+on the tested relation family and cannot be extrapolated to general
+superiority of sheaf models in groundwater science.
+
+Seventh, prospective minimum important differences and sample-size
+justifications were not specified before the locked tests. The revision's
+planning margins, relative effects and empirical power simulations are
+explicitly post-review diagnostics, not field decision thresholds and not a
+retroactive basis for claiming adequate confirmatory power. The next claim-
+bearing step is replication with a different generator family or a field
+dataset having independently measured connectivity. No temporal, three-
+dimensional, vadose-zone, vector-stalk or active-learning performance is
+inferred from these results.
+
+Eighth, the auxiliary M7.6 mechanism diagnostic used synthetic redox histories
+and analytic shared-nuisance perturbations rather than the USGS DGMETA
+correction process, co-located field redox observations or laboratory-specific
+measurement covariance. Its negative CFC-11 specificity result therefore
+narrows the tested synthetic explanation without identifying a field cause;
+the accompanying increase in synthetic infeasibility is a mechanism-screening
+diagnostic, not field validation.

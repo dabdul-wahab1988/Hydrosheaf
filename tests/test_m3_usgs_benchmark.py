@@ -67,6 +67,31 @@ def test_m3_fit_age_uses_joint_lpm_canonical_age():
     assert module._fit_age(Fit()) == 12.5
 
 
+def test_m3_fit_identifiability_rejects_underdetermined_misfit_and_broad_profiles():
+    module = _load_m3_module()
+
+    class Fit:
+        converged = True
+        n_tracers = 3
+        effective_n_params = 2
+        rmse_standardized = 1.0
+        age_profile_log10_span = 0.2
+
+    assert module._fit_identifiability(Fit()) == (True, "")
+    Fit.n_tracers = 2
+    assert "residual_degrees" in module._fit_identifiability(Fit())[1]
+    Fit.n_tracers = 3
+    Fit.rmse_standardized = 2.1
+    assert "gross_standardized_misfit" in module._fit_identifiability(Fit())[1]
+    Fit.rmse_standardized = 1.0
+    Fit.age_profile_log10_span = 0.6
+    assert "factor_3" in module._fit_identifiability(Fit())[1]
+    Fit.age_profile_log10_span = 0.2
+    supported, reason = module._fit_identifiability(Fit(), reported_model_supported=False)
+    assert supported is False
+    assert "reported_model_not_supported" in reason
+
+
 def test_m3_loader_adds_corrected_gases_and_helium_calibration():
     if not USGS_INPUT.exists():
         pytest.skip("USGS source tables are not available in this checkout.")
@@ -77,7 +102,24 @@ def test_m3_loader_adds_corrected_gases_and_helium_calibration():
     assert df["he4_accumulation_rate_ccpg_per_year"].notna().sum() > 0
     assert df["he4_source"].notna().sum() > 0
     assert "raw_sf6_pptv" in df.columns
-    assert "raw_tritium_TU" in df.columns
+    assert "raw_sf6_dissolved" in df.columns
+    assert "dgm_sf6_pptv" in df.columns
+    assert not df["raw_gas_atmospheric_equivalent_available"].any()
+    assert df["he4_source"].eq("usgs_lpm_site_solution_rate").any()
+
+
+def test_m3_loader_preserves_reported_lpm_input_scales_and_configuration():
+    if not USGS_INPUT.exists():
+        pytest.skip("USGS source tables are not available in this checkout.")
+    module = _load_m3_module()
+    df = module.load_usgs_national_dataset().set_index("site_id")
+    scales = module._reported_prediction_scale_factors(df.loc["VRPDPAS1-06"])
+
+    assert scales["3H"] == pytest.approx(1.0)
+    assert scales["3H/3He"] == pytest.approx(1.0)
+    assert scales["14C"] == pytest.approx(0.3)
+    assert df.loc["VRPDPAS1-06", "reported_lpm_optimization_parameters"] == "Mean Age, Fraction"
+    assert df.loc["VRPDPAS1-06", "reported_lpm_initial_age_c2_years"] == pytest.approx(75.0)
 
 
 def test_m3_c14_selection_prefers_geochemical_correction():
@@ -145,6 +187,40 @@ def test_m3_design_factors_restore_raw_gases_and_disable_he4():
     assert adjusted["sf6_sigma_pptv"] == 0.3
     assert adjusted["he4_ccpg"] is None
     assert factors["factor_gas_correction_mode"] == "raw"
+    assert factors.get("scenario_supported", True)
+
+
+def test_m3_raw_gas_mode_is_unsupported_without_comparable_atmospheric_values():
+    module = _load_m3_module()
+    row = module.pd.Series({"sf6_pptv": 8.0, "raw_sf6_dissolved": 2.0})
+    adjusted, factors = module._apply_design_factors(
+        {"sf6_pptv": 8.0, "sf6_sigma_pptv": 0.8},
+        row,
+        {"gas_correction_mode": "raw"},
+    )
+    assert adjusted["sf6_pptv"] is None
+    assert factors["gas_correction_comparison_supported"] is False
+    assert factors["scenario_supported"] is False
+
+
+def test_m3_corrected_mode_uses_usgs_table6_dgm_values():
+    module = _load_m3_module()
+    row = module.pd.Series(
+        {
+            "sf6_pptv": 8.0,
+            "sf6_sigma_pptv": 0.8,
+            "dgm_sf6_pptv": 6.0,
+            "dgm_sf6_sigma_pptv": 0.6,
+        }
+    )
+    adjusted, factors = module._apply_design_factors(
+        {"sf6_pptv": 8.0, "sf6_sigma_pptv": 0.8},
+        row,
+        {"gas_correction_mode": "usgs_dgm"},
+    )
+    assert adjusted["sf6_pptv"] == 6.0
+    assert adjusted["sf6_sigma_pptv"] == 0.6
+    assert factors["gas_correction_input_source"] == "usgs_table6_dgm"
 
 
 def test_m3_screened_gas_selector_prefers_raw_for_pathological_corrected_fit():
@@ -197,7 +273,6 @@ def test_m3_young_gas_masking_flags_supersaturated_sf6():
             "sf6_sigma_pptv": 0.2,
         },
         2010.0,
-        12.0,
     )
     assert abs(masked["sf6_weight"] - 0.005) < 1e-6
     assert "SF6" in diag["young_gas_masked_tracers"]
@@ -214,7 +289,6 @@ def test_m3_young_gas_masking_keeps_plausible_sf6():
             "sf6_sigma_pptv": 0.2,
         },
         2010.0,
-        10.0,
     )
     assert masked["sf6_pptv"] == 5.0
     assert diag["young_gas_masked_count"] == 0
@@ -224,14 +298,23 @@ def test_m3_young_gas_conflict_marks_contaminated_mixture():
     module = _load_m3_module()
     masked, diag = module.calculate_tracer_reliability_weights(
         {
+            "tritium_TU": 1.0,
+            "he3_trit_TU": 300.0,
             "sf6_pptv": 7.0,
             "sf6_sigma_pptv": 0.2,
         },
         2010.0,
-        100.0,
     )
     assert masked["sf6_likelihood"] == "contaminated_mixture"
     assert "SF6:contaminated_mixture" in diag["young_gas_likelihood_assignments"]
+
+
+def test_m3_reliability_weighting_api_cannot_accept_reference_age():
+    import inspect
+
+    module = _load_m3_module()
+    signature = inspect.signature(module.calculate_tracer_reliability_weights)
+    assert "reference_age" not in signature.parameters
 
 
 def test_m3_detects_screenable_gas_difference():
@@ -358,6 +441,21 @@ def test_m3_design_matrix_config_loads():
     assert "oldwater_c14_ensemble" in scenario_ids
     assert "oldwater_he4_uncertainty" in scenario_ids
     assert "hydrosheaf_selection_corrected" in scenario_ids
+    scenarios = {scenario["scenario_id"]: scenario for scenario in config["scenarios"]}
+    assert scenarios["tracerlpm_strict_parity"]["reported_input_scaling"] is True
+    assert scenarios["tracerlpm_strict_parity"]["reported_parameter_configuration"] is True
+    assert scenarios["tracerlpm_parity_hier_oldwater"]["enabled"] is False
+    assert scenarios["tracerlpm_parity_hier_oldwater"]["withdrawal_reason"]
+
+
+def test_m3_design_matrix_excludes_withdrawn_scenarios_by_default():
+    module = _load_design_module()
+    config = {
+        "defaults": {"age_steps": 8},
+        "scenarios": [{"scenario_id": "withdrawn", "enabled": False}],
+    }
+    with pytest.raises(ValueError, match="No design-matrix scenarios selected"):
+        module.run_design_matrix(pd.DataFrame(), config)
 
 
 def test_m3_design_matrix_rejects_coarse_full_age_grid():
@@ -399,6 +497,40 @@ def test_m3_design_matrix_pairwise_deltas():
     assert summary.loc[0, "scenario_id"] == "ablation_raw_gases"
     assert summary.loc[0, "median_delta_log10_error"] < 0
     assert summary.loc[0, "gained_factor_2_rows"] == 1
+
+
+def test_m3_design_summaries_exclude_unsupported_gas_rows():
+    module = _load_design_module()
+    results = module.pd.DataFrame(
+        [
+            {
+                "scenario_id": "parity_reported_corrected",
+                "site_id": "A",
+                "scenario_supported": True,
+                "ref_age": 10.0,
+                "est_age_multi": 12.0,
+                "log10_error": 0.1,
+                "within_factor_2": True,
+                "within_factor_10": True,
+                "he4_calibrated": False,
+            },
+            {
+                "scenario_id": "ablation_raw_gases",
+                "site_id": "A",
+                "scenario_supported": False,
+                "ref_age": 10.0,
+                "est_age_multi": 9.0,
+                "log10_error": 0.05,
+                "within_factor_2": True,
+                "within_factor_10": True,
+                "he4_calibrated": False,
+            },
+        ]
+    )
+    summary = module.summarize_results(results)
+    raw = summary[summary["scenario_id"] == "ablation_raw_gases"].iloc[0]
+    assert raw["supported_rows"] == 0
+    assert module.summarize_pairwise_deltas(results).empty
 
 
 def test_m3_design_matrix_companion_paths_follow_custom_output():
@@ -485,6 +617,27 @@ def test_strict_parity_uses_reported_lpm_name():
     assert module._supported_reported_model("dm") == "DM"
     assert module._supported_reported_model("GA") == "GA"
     assert module._supported_reported_model("BMM-DM-DM") == "BMM-DM-DM"
+
+
+def test_reported_bmm_configuration_uses_initial_not_final_parameters():
+    module = _load_m3_module()
+    row = {
+        "reported_lpm_optimization_parameters": "Mean Age, Fraction",
+        "reported_lpm_initial_age_c1_years": 25.0,
+        "reported_lpm_initial_model_param1_c1": 0.01,
+        "reported_lpm_initial_fraction_c1": 0.5,
+        "reported_lpm_initial_age_c2_years": 75.0,
+        "reported_lpm_initial_model_param1_c2": 0.01,
+        # This final value must never enter the configuration helper.
+        "reference_age_years": 40.6,
+    }
+    template, free = module._reported_fit_configuration(row, "BMM-DM-DM")
+
+    assert template["mean_age_1_years"] == 25.0
+    assert template["mean_age_2_years"] == 75.0
+    assert template["dispersion"] == 0.01
+    assert template["dispersion_2"] == 0.01
+    assert free == ("mean_age_1_years", "binary_fraction")
 
 
 def test_unsupported_reported_model_records_fallback():
@@ -728,4 +881,4 @@ def test_figure_primary_results_prefers_strict_parity_scenario():
     spec.loader.exec_module(fig_module)
     # _mode_label_from_df should recognize strict parity
     df = pd.DataFrame({"scenario_id": ["tracerlpm_strict_parity"], "model_strategy": ["reported"]})
-    assert fig_module._mode_label_from_df(df) in ("strict TracerLPM parity", "Strict Parity")
+    assert fig_module._mode_label_from_df(df) == "Reported-Configuration Emulation"

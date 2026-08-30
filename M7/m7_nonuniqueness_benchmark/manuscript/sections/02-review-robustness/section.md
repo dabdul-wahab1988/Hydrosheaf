@@ -30,7 +30,7 @@ its error rate remained condition-dependent; thresholds of 0.30 or higher
 flagged no edges. This confirms that the originally predeclared univariate
 diagnostic is not a reliable standalone safeguard. The 3% reaction-noise level
 and five-year topology order scale remain predeclared fixed settings, not
-validated universal constants, and are retained as explicit single-generator
+validated universal constants, and are retained as explicit process-based-generator
 limitations.
 
 A reviewer-requested case-block bootstrap placed the enhanced-minus-core modal

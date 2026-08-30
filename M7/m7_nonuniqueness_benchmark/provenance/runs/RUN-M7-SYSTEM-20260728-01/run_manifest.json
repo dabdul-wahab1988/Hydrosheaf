@@ -1,0 +1,33 @@
+{
+  "run_id": "RUN-M7-SYSTEM-20260728-01",
+  "status": "PASS",
+  "created_at_utc": "2026-07-28T11:34:47.528073+00:00",
+  "git_revision": "47fbf7ca385b3210547673519ac2b30f910a80d9",
+  "seeds": [
+    6301,
+    6302,
+    6303,
+    6304,
+    6305,
+    6306
+  ],
+  "bootstrap_samples": 5000,
+  "mean_candidate_recall": 0.9814814814814999,
+  "all_requested_stages_completed": true,
+  "all_metrics_finite": true,
+  "generator_independent": true,
+  "excluded_capabilities": [
+    "temporal_series",
+    "graph_3d",
+    "vadose"
+  ],
+  "artifacts": {
+    "case_metrics.csv": "76b806b73a5205c3cf3ca2f5e6873ef15f9f9f37e316613aa7147177bb34bc23",
+    "claim_decision.json": "2799d7c10dcafc60189b544d819cd49983d9e90bde477460b9939376cf3a80a9",
+    "condition_summary.csv": "5b91a6a211a8db94c34e1049dc5888da2806608717dbda7ad934e1478d80b934",
+    "edge_predictions.csv": "18df2539878c4e137fca4fa2c17435c193d0e3bf9fcd3dbc2337023d4cc26baa",
+    "generator_provenance.json": "a03d259026dd19b4967dd58837535264f1e7d3fce3175b0ec41e79c40631ab4d",
+    "paired_bootstrap_contrasts.csv": "38665945b611f9e2b6559eba03a764eb185289f7721dece2070d04ebf2c733f0",
+    "stage_status.json": "1d701861eb882c7cfbce360704583ef15888de45280b0b0fa6c6809a968f8a1f"
+  }
+}

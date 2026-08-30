@@ -1,2 +1,2 @@
-scenario_id,total_rows,metric_rows,finite_estimates,median_abs_log10_error,log10_rmse,within_factor_2,within_factor_10,calibrated_he4_rows,log10_r2
-tracerlpm_parity_agefractions,1272,1249,1249,0.1661339703051094,0.7987682559821025,0.6301040832666133,0.8526821457165733,278,0.6282778051261416
+scenario_id,total_rows,supported_rows,identifiable_rows,evaluated_rows,nonidentifiable_rows,metric_rows,finite_estimates,median_abs_log10_error,log10_rmse,within_factor_2,within_factor_10,calibrated_he4_rows,log10_r2
+tracerlpm_parity_agefractions,1272,1272,356,1272,916,356,356,0.021932645175654297,0.2349444939528015,0.9185393258426966,0.9859550561797753,176,0.9600922212855734

@@ -1,0 +1,472 @@
+{
+  "items": [
+    {
+      "comment_id": "M7-R001",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R002",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R003",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R004",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R005",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R006",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R007",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R008",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R009",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R010",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R011",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R012",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R013",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R014",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R015",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R016",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R017",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R018",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R019",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R020",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R021",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R022",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R023",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R024",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R025",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R026",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R027",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R028",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R029",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R030",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R031",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R032",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": true,
+      "evidence_needed": "results/m7_3_locked/review_sensitivity.csv",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R033",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R034",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R035",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R036",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R037",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R038",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    },
+    {
+      "comment_id": "M7-R039",
+      "decision": "AGREE",
+      "rationale": "The requested correction improves traceability, calibration, wording, or submission readiness without expanding the supported claim scope.",
+      "target_files": [
+        "manuscript/sections",
+        "manuscript/Manuscript-Final-Revised.md"
+      ],
+      "requires_analysis": false,
+      "evidence_needed": "Current source manuscript and artifact registry",
+      "acceptance_check": "The revised source and assembled manuscript address the comment, and any new number is traceable to an archived result table."
+    }
+  ]
+}

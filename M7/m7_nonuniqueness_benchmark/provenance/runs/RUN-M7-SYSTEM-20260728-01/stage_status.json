@@ -1,0 +1,590 @@
+{
+  "6301:hydraulic_only": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "sheaf_refinement": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6301:local_age": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6301:full_sheaf": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6301:age_permuted": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6302:hydraulic_only": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "sheaf_refinement": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6302:local_age": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6302:full_sheaf": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6302:age_permuted": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6303:hydraulic_only": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "sheaf_refinement": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6303:local_age": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6303:full_sheaf": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6303:age_permuted": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6304:hydraulic_only": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "sheaf_refinement": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6304:local_age": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6304:full_sheaf": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6304:age_permuted": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6305:hydraulic_only": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "sheaf_refinement": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6305:local_age": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6305:full_sheaf": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6305:age_permuted": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6306:hydraulic_only": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "sheaf_refinement": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6306:local_age": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6306:full_sheaf": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  },
+  "6306:age_permuted": {
+    "latent_endmembers": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "temporal": {
+      "status": "not_requested",
+      "requested": false
+    },
+    "nuclear_age": {
+      "status": "completed",
+      "requested": true,
+      "detail": "inferred ages for 12 observed nodes"
+    },
+    "sheaf_refinement": {
+      "status": "completed",
+      "requested": true,
+      "detail": "retained 33 refined edges"
+    },
+    "network_fit": {
+      "status": "completed",
+      "requested": true,
+      "detail": "fit 33 edges"
+    }
+  }
+}

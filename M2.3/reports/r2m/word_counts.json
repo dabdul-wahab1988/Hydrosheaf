@@ -1,0 +1,13 @@
+{
+  "main_prose_words": 9117,
+  "per_section": {
+    "00-abstract": 272,
+    "01-introduction": 827,
+    "02-data": 1505,
+    "03-methods": 1756,
+    "04-results": 1940,
+    "05-discussion": 2015,
+    "06-conclusion": 508,
+    "07-statements": 294
+  }
+}

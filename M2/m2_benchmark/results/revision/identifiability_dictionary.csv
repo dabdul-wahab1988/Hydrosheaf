@@ -1,0 +1,7 @@
+metric,value
+n_reactions,14.0
+n_ions,11.0
+rank,8.0
+rank_deficiency,3.0
+condition_number,inf
+n_collinear_pairs_abs_cos_gt_0.7,10.0

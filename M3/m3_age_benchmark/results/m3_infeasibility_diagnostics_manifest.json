@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "run_utc": "2026-07-31T02:10:30.019609+00:00",
+  "diagnostic_id": "m3-identified-ttd-infeasibility-diagnostics",
+  "protocol_id": "m3-identified-ttd-development-20260730",
+  "protocol_status": "development",
+  "claim_authority": "implementation_only",
+  "git_commit": "8a4a3546e995657ad2c35098a5dea5322727bac6",
+  "python_version": "3.14.6",
+  "source_mode": "national",
+  "max_rows": null,
+  "diagnostics": "both",
+  "sigma_multipliers": [
+    1.96,
+    6.0
+  ],
+  "input_hashes": {
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_10_Abbreviations.txt": "6f0769aece0aae6710304acbc282dee65671f782a313893843306c64f583b7c0",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_1_Sites.txt": "9e24224a42bd755c1de9e75b70dbe0f36be905874bb79782cd99172edb2a6aef",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_2_Ages.txt": "fb986203d3f128ed0421db1a48e1ddd1310be2ad8344ebb7a6eb43122347a03a",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_3_Tracers.txt": "22cb17b3b6e3703756d872d3ee68bd5161a40297b9c29da51a9b079839826888",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_4_LPM_ModOut.txt": "bf41827169dbbcf898b5ea8267a7fad96a7a5f152817c15ade1d4108fac35cce",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_5_DissGas_ModOut.txt": "480adf60a1400c2c0e767c0cca5584c8d0cb31fa1a23d6409c4405bcdca68265",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_6_TrcOut.txt": "a4f9a1044b8f33195b27249e9dac1832ffa0093cebb6397865a757c4dbf9d029",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_7_Carbon14.txt": "a5fa25ec95b7d68ead3c75f3b8076b4e1a40da233a786b40f4c12084104ab327",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_8_References.txt": "9ceded5452749d40234d3b9ac2452be9aa27221f78853956e61aa1ea767e07f2",
+    "M2\\m2_benchmark\\external\\usgs_age\\input\\DataForNationalGroundwaterAge_1_1\\Table_9_FieldNames.txt": "fc626c0cd988a69cba3a41ea798fa97272aa6bad408a6e43bd9beb0224a868d2"
+  },
+  "protocol_path": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\configs\\identified_ttd_protocol.yaml",
+  "protocol_sha256": "31ee761d52582082a983d2688e9e88e091cddab837ae3aeb2f59c12907e5b179",
+  "script_sha256": "543cbe05b8be03ad06b2f00d404c9a8fa56847b0517caaa9a325c54eb07f2d6b",
+  "output_path": "M3\\m3_age_benchmark\\results\\m3_infeasibility_diagnostics.json",
+  "output_sha256": "00daa54ce234f2076d84529a3f6da2106e061cab3eee69cd41c445c342d4fa5f",
+  "graph_mode": "disabled_local_only",
+  "claim_boundary": "development diagnostic; quantifies local infeasibility structure only and authorizes no scientific claim",
+  "row_counts": {
+    "envelope": {
+      "n_rows": 1272,
+      "row_skips": {},
+      "eligible_folds": 3501,
+      "folds_examined": 3429,
+      "folds_skipped": 72,
+      "fold_skips": {
+        "insufficient_conditioning_tracers": 72
+      },
+      "reconciled": true
+    },
+    "subset": {
+      "n_rows": 1272,
+      "panels_examined": 935,
+      "rows_skipped": 337,
+      "row_skips": {
+        "fewer_than_3_constraints": 337
+      },
+      "reconciled": true
+    }
+  }
+}

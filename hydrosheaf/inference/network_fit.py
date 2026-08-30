@@ -1,7 +1,7 @@
 """Network-level fitting pipeline."""
 
 import math
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Union
 
 from ..config import Config
 from ..log import get_logger
@@ -417,7 +417,7 @@ def fit_network(
 
 def infer_edges(
     samples: object,
-    max_neighbors: int = 1,
+    max_neighbors: Optional[int] = None,
     allow_uphill: bool = False,
     head_key: str = "hydraulic_head",
     elevation_key: str = "elevation",
@@ -425,7 +425,9 @@ def infer_edges(
     config: Optional[Config] = None,
     edge_attr_overrides: Optional[Mapping[str, Mapping[str, object]]] = None,
     layer_definition: Optional[Dict[str, object]] = None,
-) -> List[Edge]:
+    topology_calibrator: Optional[Any] = None,
+    return_report: bool = False,
+) -> Union[List[Edge], Tuple[List[Edge], Dict[str, Any]]]:
     if isinstance(samples, Mapping):
         samples_iter = list(samples.values())
     elif isinstance(samples, Sequence):
@@ -435,7 +437,7 @@ def infer_edges(
     if method == "simple":
         return infer_edges_from_coordinates(
             samples_iter,
-            max_neighbors=max_neighbors,
+            max_neighbors=1 if max_neighbors is None else max_neighbors,
             allow_uphill=allow_uphill,
             head_key=head_key,
             elevation_key=elevation_key,
@@ -449,6 +451,16 @@ def infer_edges(
             override = edge_attr_overrides.get(edge.edge_id)
             if not override:
                 continue
+            reserved = [
+                str(key)
+                for key in override
+                if str(key).startswith("null_aware_")
+            ]
+            if reserved:
+                raise ValueError(
+                    "edge_attr_overrides cannot mutate reserved null-aware audit fields: "
+                    + ", ".join(sorted(reserved))
+                )
             attrs = dict(edge.attrs or {})
             attrs.update(dict(override))
             edge.attrs = attrs
@@ -505,6 +517,45 @@ def infer_edges(
         )
         return _apply_overrides(inferred)
 
+    if method == "null_aware_sheaf":
+        if topology_calibrator is None and getattr(
+            config, "null_aware_require_calibration", True
+        ):
+            raise ValueError(
+                "method='null_aware_sheaf' requires a fitted "
+                "NullAwareLogisticCalibrator; pass topology_calibrator explicitly."
+            )
+        if (
+            topology_calibrator is not None
+            and getattr(config, "null_aware_require_deployable_calibration", True)
+            and not bool(getattr(topology_calibrator, "deployment_eligible", False))
+        ):
+            raise ValueError(
+                "method='null_aware_sheaf' requires a converged held-out/deployment "
+                "calibrator with independent calibration provenance"
+            )
+        candidate_multiplier = int(
+            getattr(config, "edge_map_candidate_multiplier", 5) or 5
+        )
+        candidate_config = replace(
+            config,
+            edge_max_neighbors=int(config.edge_max_neighbors) * candidate_multiplier,
+            edge_p_min=float(getattr(config, "null_aware_candidate_p_min", 0.0)),
+        )
+        candidate_edges = infer_probabilistic_edges_from_config(candidate_config)
+        selected, report = infer_null_aware_edges(
+            samples_iter,
+            candidate_edges,
+            config,
+            topology_calibrator=topology_calibrator,
+            max_neighbors=(
+                int(config.edge_max_neighbors)
+                if max_neighbors is None
+                else int(max_neighbors)
+            ),
+        )
+        return (selected, report) if return_report else selected
+
     if method == "probabilistic_map":
         config.validate()
         prior_weight = float(getattr(config, "edge_map_prior_weight", 0.0) or 0.0)
@@ -543,6 +594,162 @@ def infer_edges(
         return _apply_overrides(refine_edges_with_sheaf(samples_iter, candidate_edges, config))
 
     return infer_probabilistic_edges_from_config(config)
+
+
+def infer_null_aware_edges(
+    samples: object,
+    candidate_edges: Sequence[Edge],
+    config: Config,
+    *,
+    topology_calibrator: Optional[Any],
+    max_neighbors: Optional[int] = None,
+) -> Tuple[List[Edge], Dict[str, Any]]:
+    """Score and select a frozen candidate universe with calibrated null-aware evidence.
+
+    This is deliberately separate from candidate generation.  Every supplied
+    candidate receives an auditable record, including rejected and abstained
+    edges.  A missing calibrator therefore fails closed rather than turning a
+    heuristic score into a probability claim.
+    """
+    from .null_aware import (
+        DECISION_ABSENT,
+        DECISION_PRESENT,
+        NullAwareLogisticCalibrator,
+        NullAwareTopologyScorer,
+    )
+
+    if topology_calibrator is None:
+        if getattr(config, "null_aware_require_calibration", True):
+            raise ValueError(
+                "null-aware topology requires an explicit fitted calibrator"
+            )
+        topology_calibrator = NullAwareLogisticCalibrator(
+            l2=float(getattr(config, "null_aware_l2", 1.0))
+        )
+    if not isinstance(topology_calibrator, NullAwareLogisticCalibrator):
+        raise TypeError(
+            "topology_calibrator must be a NullAwareLogisticCalibrator"
+        )
+    if (
+        getattr(config, "null_aware_require_deployable_calibration", True)
+        and not topology_calibrator.deployment_eligible
+    ):
+        raise ValueError(
+            "null-aware topology requires a converged held-out/deployment "
+            "calibrator with independent calibration provenance"
+        )
+
+    candidate_list = list(candidate_edges)
+    seen: set[str] = set()
+    for edge in candidate_list:
+        edge_id = str(edge.edge_id)
+        if edge_id in seen:
+            raise ValueError(
+                f"null-aware topology candidate universe contains duplicate edge ID: {edge_id}"
+            )
+        seen.add(edge_id)
+
+    scorer = NullAwareTopologyScorer(
+        topology_calibrator,
+        present_threshold=float(
+            getattr(config, "null_aware_present_threshold", 0.75)
+        ),
+        absent_threshold=float(
+            getattr(config, "null_aware_absent_threshold", 0.25)
+        ),
+    )
+    records = scorer.score_edges(candidate_list, samples, config=config)
+    record_by_id = {str(record["edge_id"]): record for record in records}
+
+    annotated: List[Edge] = []
+    for edge in candidate_list:
+        record = record_by_id[str(edge.edge_id)]
+        attrs = dict(edge.attrs or {})
+        attrs.update(
+            {
+                "null_aware_decision": record["decision"],
+                "null_aware_flow_probability": record["flow_probability"],
+                "null_aware_flow_support_probability": record[
+                    "flow_support_probability"
+                ],
+                "null_aware_null_score": record["null_score"],
+                "null_aware_null_explanation_score": record[
+                    "null_explanation_score"
+                ],
+                "null_aware_calibration_status": record[
+                    "calibration_status"
+                ],
+                "null_aware_missing_channels": list(
+                    record["missing_channels"]
+                ),
+                "null_aware_reason": record["reason"],
+                "null_aware_flow_features": dict(record["flow_features"]),
+                "null_aware_null_features": dict(record["null_features"]),
+            }
+        )
+
+        annotated.append(
+            Edge(
+                edge_id=edge.edge_id,
+                u=edge.u,
+                v=edge.v,
+                attrs=attrs,
+                type=edge.type,
+            )
+        )
+
+    selected = [
+        edge
+        for edge in annotated
+        if record_by_id[str(edge.edge_id)]["decision"] == DECISION_PRESENT
+    ]
+    selected_by_source: Dict[str, List[Edge]] = {}
+    for edge in selected:
+        selected_by_source.setdefault(edge.u, []).append(edge)
+
+    limit = max_neighbors
+    if limit is None:
+        limit = int(getattr(config, "edge_max_neighbors", 0) or 0)
+    selected_limited: List[Edge] = []
+    for source in sorted(selected_by_source):
+        ranked = sorted(
+            selected_by_source[source],
+            key=lambda edge: float(
+                record_by_id[str(edge.edge_id)]["flow_probability"] or 0.0
+            ),
+            reverse=True,
+        )
+        if limit > 0:
+            ranked = ranked[:limit]
+        selected_limited.extend(ranked)
+
+    report = {
+        "method": "null_aware_calibrated_topology",
+        "candidate_count": len(candidate_list),
+        "selected_count": len(selected_limited),
+        "abstained_count": sum(
+            record["decision"] == "ABSTAIN" for record in records
+        ),
+        "absent_count": sum(
+            record["decision"] == DECISION_ABSENT for record in records
+        ),
+        "calibration_status": topology_calibrator.calibration_status,
+        "calibration_fit_scope": topology_calibrator.fit_scope,
+        "calibration_deployment_eligible": topology_calibrator.deployment_eligible,
+        "calibration_provenance": topology_calibrator.calibration_provenance,
+        "candidate_p_min": float(
+            getattr(config, "null_aware_candidate_p_min", 0.0)
+        ),
+        "probability_thresholds": {
+            "present": scorer.present_threshold,
+            "absent": scorer.absent_threshold,
+            "legacy_null_reject_threshold_not_applied": float(
+                getattr(config, "null_aware_null_reject_threshold", 0.8)
+            ),
+        },
+        "records": records,
+    }
+    return selected_limited, report
 
 
 def summarize_network(results: List[EdgeResult]) -> Dict[str, Any]:

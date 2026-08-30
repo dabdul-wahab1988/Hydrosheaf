@@ -5,9 +5,17 @@
       "id": "FIG-1",
       "kind": "figure",
       "path": "figures/publication/figure1_benchmark_and_claim_design.png",
-      "objective_ids": ["OBJ-1", "OBJ-2", "OBJ-3", "OBJ-4"],
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-2",
+        "OBJ-3",
+        "OBJ-4"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["docs/m7_3_protocol.md", "results/m7_3_locked/ghana_data_scope_audit.json"],
+      "inputs": [
+        "docs/m7_3_protocol.md",
+        "results/m7_3_locked/ghana_data_scope_audit.json"
+      ],
       "validation_checks": [
         "schematic matches the locked protocol's four-experiment design",
         "Ghana claim-boundary panel matches ghana_data_scope_audit.json fields"
@@ -17,7 +25,9 @@
       "id": "FIG-2",
       "kind": "figure",
       "path": "figures/publication/figure2_evidence_integration.png",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
       "inputs": [
         "results/m7_3_locked/evidence_panel_summary.csv",
@@ -33,7 +43,9 @@
       "id": "FIG-3",
       "kind": "figure",
       "path": "figures/publication/figure3_topology_conditions_age.png",
-      "objective_ids": ["OBJ-2"],
+      "objective_ids": [
+        "OBJ-2"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
       "inputs": [
         "results/m7_3_locked/topology_age_sensitivity.csv",
@@ -48,9 +60,13 @@
       "id": "FIG-4",
       "kind": "figure",
       "path": "figures/publication/figure4_reaction_nonuniqueness.png",
-      "objective_ids": ["OBJ-3"],
+      "objective_ids": [
+        "OBJ-3"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/reaction_nonuniqueness_summary.csv"],
+      "inputs": [
+        "results/m7_3_locked/reaction_nonuniqueness_summary.csv"
+      ],
       "validation_checks": [
         "values match tables/publication/table5_reaction_nonuniqueness.csv",
         "carbonate weathering/precipitation panels show zero recovery under both panels"
@@ -59,15 +75,19 @@
     {
       "id": "FIG-5",
       "kind": "figure",
-      "path": "figures/publication/figure5_ghana_supportability_boundary.png",
-      "objective_ids": ["OBJ-4"],
+      "path": "figures/publication/figure5_ghana_supportability_boundary_m7_only.png",
+      "objective_ids": [
+        "OBJ-4"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
       "inputs": [
         "results/m7_3_locked/ghana_data_scope_audit.json",
-        "M6/m6_field_transfer_benchmark/docs/m6_results_summary.md"
+        "results/supporting_validation/field_prequential_summary.csv",
+        "results/supporting_validation/field_prequential_audit.json"
       ],
       "validation_checks": [
-        "evidence-to-claim mapping matches tables/publication/table6_ghana_claim_boundary.csv",
+        "all four panels derive only from this study's Ghana scope and truth-free hold-forward audits",
+        "no external field-transfer result is imported",
         "no panel implies field validation of topology, age or reaction truth"
       ]
     },
@@ -75,9 +95,13 @@
       "id": "FIG-S1",
       "kind": "figure",
       "path": "figures/supporting_validation/figure_s1_model_domain_map.png",
-      "objective_ids": ["OBJ-2"],
+      "objective_ids": [
+        "OBJ-2"
+      ],
       "generator": "scripts/make_supporting_model_domain_map.R",
-      "inputs": ["results/supporting_validation/cases/locked_test_4101"],
+      "inputs": [
+        "results/supporting_validation/cases/locked_test_4101"
+      ],
       "validation_checks": [
         "coordinates confirmed as synthetic model-space metres, not geographic",
         "figure caption states it must not be presented on a Ghana or other geographic basemap"
@@ -87,21 +111,37 @@
       "id": "TAB-1",
       "kind": "table",
       "path": "tables/publication/table1_benchmark_design.csv",
-      "objective_ids": ["OBJ-1", "OBJ-2", "OBJ-3", "OBJ-4"],
-      "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/manifest.json"],
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-2",
+        "OBJ-3",
+        "OBJ-4",
+        "OBJ-5"
+      ],
+      "generator": "scripts/assemble_m7_manuscript.py",
+      "inputs": [
+        "docs/m7_3_protocol.md",
+        "M7_SYSTEM_ACCEPTANCE_PROTOCOL.md",
+        "M7_SHEAF_VS_GRAPH_PROTOCOL.md",
+        "M7_ROBUST_HYBRID_SHEAF_PROTOCOL.md",
+        "results/m7_3_locked/ghana_data_scope_audit.json"
+      ],
       "validation_checks": [
-        "case counts, particle counts and bootstrap counts match manifest.json",
-        "candidate recall matches manifest.json (1.000)"
+        "all seven audits are present once",
+        "generator systems, samples, comparators, locks and multiplicity families match source protocols"
       ]
     },
     {
       "id": "TAB-2",
       "kind": "table",
       "path": "tables/publication/table2_native_evidence_panels.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/evidence_panel_summary.csv"],
+      "inputs": [
+        "results/m7_3_locked/evidence_panel_summary.csv"
+      ],
       "validation_checks": [
         "PR-AUC/ROC-AUC/Brier/log-loss/entropy/ECE values match evidence_panel_summary.csv for the native condition"
       ]
@@ -110,9 +150,13 @@
       "id": "TAB-3",
       "kind": "table",
       "path": "tables/publication/table3_evidence_contrasts.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/evidence_case_bootstrap_contrasts.csv"],
+      "inputs": [
+        "results/m7_3_locked/evidence_case_bootstrap_contrasts.csv"
+      ],
       "validation_checks": [
         "mean differences and 95% CIs match evidence_case_bootstrap_contrasts.csv"
       ]
@@ -121,9 +165,13 @@
       "id": "TAB-4",
       "kind": "table",
       "path": "tables/publication/table4_topology_age_contrasts.csv",
-      "objective_ids": ["OBJ-2"],
+      "objective_ids": [
+        "OBJ-2"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/topology_age_bootstrap_contrasts.csv"],
+      "inputs": [
+        "results/m7_3_locked/topology_age_bootstrap_contrasts.csv"
+      ],
       "validation_checks": [
         "MAE/coverage/interval-width contrasts match topology_age_bootstrap_contrasts.csv for both tracer regimes"
       ]
@@ -132,9 +180,13 @@
       "id": "TAB-5",
       "kind": "table",
       "path": "tables/publication/table5_reaction_nonuniqueness.csv",
-      "objective_ids": ["OBJ-3"],
+      "objective_ids": [
+        "OBJ-3"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/reaction_nonuniqueness_summary.csv"],
+      "inputs": [
+        "results/m7_3_locked/reaction_nonuniqueness_summary.csv"
+      ],
       "validation_checks": [
         "per-process modal accuracy, true-family probability and entropy match reaction_nonuniqueness_summary.csv"
       ]
@@ -143,9 +195,13 @@
       "id": "TAB-6",
       "kind": "table",
       "path": "tables/publication/table6_ghana_claim_boundary.csv",
-      "objective_ids": ["OBJ-4"],
+      "objective_ids": [
+        "OBJ-4"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/ghana_data_scope_audit.json"],
+      "inputs": [
+        "results/m7_3_locked/ghana_data_scope_audit.json"
+      ],
       "validation_checks": [
         "availability/status/defensible-use rows match ghana_data_scope_audit.json fields"
       ]
@@ -154,9 +210,13 @@
       "id": "TAB-S1",
       "kind": "table",
       "path": "tables/publication/tableS1_all_evidence_conditions.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/evidence_panel_summary.csv"],
+      "inputs": [
+        "results/m7_3_locked/evidence_panel_summary.csv"
+      ],
       "validation_checks": [
         "all seven panels reported under all four locked conditions (native, age_permuted, hydraulic_permuted, joint_misspecified)"
       ]
@@ -165,9 +225,13 @@
       "id": "TAB-S2",
       "kind": "table",
       "path": "tables/publication/tableS2_case_block_contrasts.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/evidence_case_bootstrap_contrasts.csv"],
+      "inputs": [
+        "results/m7_3_locked/evidence_case_bootstrap_contrasts.csv"
+      ],
       "validation_checks": [
         "all six predeclared contrasts present with paired case-block bootstrap CIs"
       ]
@@ -176,9 +240,13 @@
       "id": "TAB-S3",
       "kind": "table",
       "path": "tables/publication/tableS3_topology_age_sensitivity.csv",
-      "objective_ids": ["OBJ-2"],
+      "objective_ids": [
+        "OBJ-2"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/topology_age_sensitivity.csv"],
+      "inputs": [
+        "results/m7_3_locked/topology_age_sensitivity.csv"
+      ],
       "validation_checks": [
         "per-case, per-regime MAE, coverage, entropy and importance ESS reported"
       ]
@@ -187,9 +255,13 @@
       "id": "TAB-S4",
       "kind": "table",
       "path": "tables/publication/tableS4_reaction_edge_nonuniqueness.csv",
-      "objective_ids": ["OBJ-3"],
+      "objective_ids": [
+        "OBJ-3"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/reaction_edge_nonuniqueness.csv"],
+      "inputs": [
+        "results/m7_3_locked/reaction_edge_nonuniqueness.csv"
+      ],
       "validation_checks": [
         "edgewise modal family, true-family probability and support entropy reported for all scored edges"
       ]
@@ -198,9 +270,13 @@
       "id": "TAB-S5",
       "kind": "table",
       "path": "tables/publication/tableS5_conflict_diagnostics.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "generator": "scripts/make_m7_3_publication_assets.py",
-      "inputs": ["results/m7_3_locked/evidence_conflict_summary.csv"],
+      "inputs": [
+        "results/m7_3_locked/evidence_conflict_summary.csv"
+      ],
       "validation_checks": [
         "predeclared univariate probability-span conflict flag reported including its zero sensitivity outcome"
       ]
@@ -209,7 +285,12 @@
       "id": "TAB-7",
       "kind": "table",
       "path": "tables/publication/table7_summary_decision_table.csv",
-      "objective_ids": ["OBJ-1", "OBJ-2", "OBJ-3", "OBJ-4"],
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-2",
+        "OBJ-3",
+        "OBJ-4"
+      ],
       "generator": "manual synthesis from Tables 3-6 and Supplementary Table S6",
       "inputs": [
         "tables/publication/table3_evidence_contrasts.csv",
@@ -227,13 +308,222 @@
       "id": "TAB-S6",
       "kind": "table",
       "path": "tables/publication/tableS6_multiplicity_correction.csv",
-      "objective_ids": ["OBJ-1"],
+      "objective_ids": [
+        "OBJ-1"
+      ],
       "generator": "scripts/multiplicity_check.py",
-      "inputs": ["results/m7_3_locked/evidence_case_metrics.csv"],
+      "inputs": [
+        "results/m7_3_locked/evidence_case_metrics.csv"
+      ],
       "validation_checks": [
         "exact permutation p-values recomputed directly from per-case paired differences (n=12, 4096 sign permutations)",
         "Benjamini-Hochberg adjusted p reported for the full predeclared family of 24 contrast-by-metric tests",
         "native age and native hydraulics PR-AUC rows correctly flagged as not surviving q=0.05 correction while their entropy (and, for hydraulics, calibration) rows are flagged as surviving"
+      ]
+    },
+    {
+      "id": "FIG-6",
+      "kind": "figure",
+      "path": "figures/publication/figure6_sheaf_vs_weighted_graph.png",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "generator": "scripts/make_m7_sheaf_vs_graph_assets.py",
+      "inputs": [
+        "results/RUN-M7-SHEAF-VS-GRAPH-20260729-01/case_metrics.csv",
+        "results/RUN-M7-SHEAF-VS-GRAPH-20260729-01/paired_bootstrap_contrasts.csv",
+        "tables/publication/tableS10_m7_4_multiplicity_adjusted.csv"
+      ],
+      "validation_checks": [
+        "identity-limit sheaf and graph predictions are exactly equal",
+        "intervals control all 120 published representation-benchmark contrasts as one family",
+        "printed width 7.08 in and minimum label size 8 pt are recorded"
+      ]
+    },
+    {
+      "id": "TAB-8",
+      "kind": "table",
+      "path": "tables/publication/table8_sheaf_vs_weighted_graph.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "generator": "scripts/make_m7_sheaf_vs_graph_assets.py",
+      "inputs": [
+        "results/RUN-M7-SHEAF-VS-GRAPH-20260729-01/case_metrics.csv"
+      ],
+      "validation_checks": [
+        "all four competence-matched models and all 64 locked cases are represented",
+        "metrics are deterministic aggregates of the immutable case table"
+      ]
+    },
+    {
+      "id": "TAB-S7",
+      "kind": "table",
+      "path": "tables/publication/tableS7_sheaf_vs_graph_contrasts.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "generator": "scripts/make_m7_sheaf_vs_graph_assets.py",
+      "inputs": [
+        "results/RUN-M7-SHEAF-VS-GRAPH-20260729-01/paired_bootstrap_contrasts.csv"
+      ],
+      "validation_checks": [
+        "all predeclared overall and scenario-specific comparator contrasts are retained",
+        "conflict-localisation contrasts are restricted to planted incompatible-cycle cases"
+      ]
+    },
+    {
+      "id": "TAB-S8",
+      "kind": "table",
+      "path": "tables/publication/tableS8_public_pipeline_acceptance.csv",
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-5"
+      ],
+      "generator": "scripts/make_m7_sheaf_vs_graph_assets.py",
+      "inputs": [
+        "provenance/runs/RUN-M7-SYSTEM-20260728-01/condition_summary.csv",
+        "provenance/runs/RUN-M7-SYSTEM-20260728-01/paired_bootstrap_contrasts.csv"
+      ],
+      "validation_checks": [
+        "all public-pipeline acceptance conditions are reported",
+        "the failed overall incremental-sheaf decision is retained rather than reframed as a gain"
+      ]
+    },
+    {
+      "id": "FIG-7",
+      "kind": "figure",
+      "path": "figures/publication/figure7_robust_hybrid_sheaf.png",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "generator": "scripts/make_m7_robust_hybrid_assets.py",
+      "inputs": [
+        "results/RUN-M7-ROBUST-HYBRID-SHEAF-20260729-01/locked_test/case_metrics.csv",
+        "results/RUN-M7-ROBUST-HYBRID-SHEAF-20260729-01/locked_test/paired_bootstrap_contrasts.csv",
+        "tables/publication/tableS11_m7_5_multiplicity_adjusted.csv"
+      ],
+      "validation_checks": [
+        "all values trace to immutable locked-test tables",
+        "intervals control all 560 published estimator-diagnostic contrasts as one family",
+        "selected local weight 1.0 is disclosed",
+        "printed width 7.08 in and minimum label size 8 pt are recorded"
+      ]
+    },
+    {
+      "id": "TAB-9",
+      "kind": "table",
+      "path": "tables/publication/table9_robust_hybrid_sheaf.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "generator": "scripts/make_m7_robust_hybrid_assets.py",
+      "inputs": [
+        "results/RUN-M7-ROBUST-HYBRID-SHEAF-20260729-01/locked_test/case_metrics.csv"
+      ],
+      "validation_checks": [
+        "all seven estimator/control arms and 128 locked cases are represented",
+        "only the prespecified separate-crossfit calibration regime is tabulated in the main table"
+      ]
+    },
+    {
+      "id": "TAB-S9",
+      "kind": "table",
+      "path": "tables/publication/tableS9_robust_hybrid_contrasts.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "generator": "scripts/make_m7_robust_hybrid_assets.py",
+      "inputs": [
+        "results/RUN-M7-ROBUST-HYBRID-SHEAF-20260729-01/locked_test/paired_bootstrap_contrasts.csv"
+      ],
+      "validation_checks": [
+        "complete 560-row contrast family retained for both calibration regimes and every scenario",
+        "the heterogeneous-affine adverse log-loss result and failed strict claim are retained"
+      ]
+    },
+    {
+      "id": "TAB-S10",
+      "kind": "table",
+      "path": "tables/publication/tableS10_m7_4_multiplicity_adjusted.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "generator": "scripts/post_review_statistical_audit.py",
+      "inputs": [
+        "results/post_review_audit_20260730/manifest.json"
+      ],
+      "validation_checks": [
+        "10,000 shared case-block bootstrap resamples; one complete published family."
+      ]
+    },
+    {
+      "id": "TAB-S11",
+      "kind": "table",
+      "path": "tables/publication/tableS11_m7_5_multiplicity_adjusted.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "generator": "scripts/post_review_statistical_audit.py",
+      "inputs": [
+        "results/post_review_audit_20260730/manifest.json"
+      ],
+      "validation_checks": [
+        "10,000 shared case-block bootstrap resamples; one complete published family."
+      ]
+    },
+    {
+      "id": "TAB-S12",
+      "kind": "table",
+      "path": "tables/publication/tableS12_precision_and_power.csv",
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-2",
+        "OBJ-3",
+        "OBJ-5"
+      ],
+      "generator": "scripts/post_review_statistical_audit.py",
+      "inputs": [
+        "results/post_review_audit_20260730/manifest.json"
+      ],
+      "validation_checks": [
+        "20,000 empirical simulations with explicitly post-review, non-field-validated margins."
+      ]
+    },
+    {
+      "id": "TAB-S13",
+      "kind": "table",
+      "path": "tables/publication/tableS13_public_pipeline_selection.csv",
+      "objective_ids": [
+        "OBJ-5"
+      ],
+      "generator": "scripts/post_review_statistical_audit.py",
+      "inputs": [
+        "results/post_review_audit_20260730/manifest.json"
+      ],
+      "validation_checks": [
+        "Deterministic audit of all recovered candidates across four pipeline arms."
+      ]
+    },
+    {
+      "id": "TAB-S14",
+      "kind": "table",
+      "path": "tables/publication/tableS14_m7_6_m3_mechanism.csv",
+      "objective_ids": [
+        "OBJ-1",
+        "OBJ-2"
+      ],
+      "generator": "scripts/run_m7_6_benchmark.py",
+      "inputs": [
+        "docs/m7_6_protocol.md",
+        "docs/m7_6_execution_amendment_20260731.md",
+        "results/RUN-M7-6-M3-MECHANISM-20260731-01/m3_mechanism_primary_contrasts.csv",
+        "docs/m7_6_claim_decision_20260731.md"
+      ],
+      "validation_checks": [
+        "10,000 paired case-block bootstrap contrasts reproduce the compact table",
+        "the exact E-added-to-N T2 gate is zero",
+        "CFC-12 specificity failure is retained and no USGS-cause claim is permitted"
       ]
     }
   ]

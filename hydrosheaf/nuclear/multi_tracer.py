@@ -346,7 +346,13 @@ def infer_multi_tracer_age(
         estimates.append(estimate)
 
     if use_helium4:
-        he4_age = infer_helium4_accumulation_age(observations.get("he4_ccpg"))
+        he4_background = _finite_float(observations.get("he4_background_ccpg"))
+        he4_rate = _finite_float(observations.get("he4_accumulation_rate_ccpg_per_year"))
+        he4_age = infer_helium4_accumulation_age(
+            observations.get("he4_ccpg"),
+            background_ccpg=he4_background if he4_background is not None else 4.6e-8,
+            accumulation_rate_ccpg_per_year=he4_rate if he4_rate is not None else 2.0e-11,
+        )
         if he4_age is not None:
             estimates.append(he4_age)
 
@@ -392,29 +398,31 @@ def historical_max_concentration(tracer: str, sample_year: float) -> float:
 def calculate_tracer_reliability_weights(
     observations: Mapping[str, Any],
     sample_year: float,
-    reference_age: float = float("nan"),
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """
     Calculate soft reliability weights for gas tracers based on historical limits
-    and proxy coherence.
+    and proxy coherence derived only from tracer observations.
+
+    Reported/reference ages are deliberately not accepted here: using the
+    evaluation target to decide tracer weights leaks benchmark truth into the
+    inference path.
     """
     out = dict(observations)
     masked: list[str] = []
     reasons: list[str] = []
+    independent_reference_age = float("nan")
+    independent_proxies: list[float] = []
+    age_3h3he = float("nan")
+    tritium = _finite_float(out.get("tritium_TU"))
+    he3 = _finite_float(out.get("he3_trit_TU"))
+    if tritium is not None and he3 is not None and tritium > 0 and he3 >= 0:
+        lambda_y = math.log(2.0) / TRITIUM.half_life_years
+        age_3h3he = math.log1p(he3 / tritium) / lambda_y
 
-    if not math.isfinite(reference_age):
-        independent_proxies: list[float] = []
-        age_3h3he = float("nan")
-        tritium = _finite_float(out.get("tritium_TU"))
-        he3 = _finite_float(out.get("he3_trit_TU"))
-        if tritium is not None and he3 is not None and tritium > 0 and he3 >= 0:
-            lambda_y = math.log(2.0) / TRITIUM.half_life_years
-            age_3h3he = math.log1p(he3 / tritium) / lambda_y
-        
-        if math.isfinite(age_3h3he) and age_3h3he >= 0.5:
-            independent_proxies.append(float(age_3h3he))
-        if independent_proxies:
-            reference_age = float(np.median(independent_proxies))
+    if math.isfinite(age_3h3he) and age_3h3he >= 0.5:
+        independent_proxies.append(float(age_3h3he))
+    if independent_proxies:
+        independent_reference_age = float(np.median(independent_proxies))
 
     gas_specs = [
         ("SF6", "sf6_pptv"),
@@ -445,10 +453,10 @@ def calculate_tracer_reliability_weights(
             pass
 
         if (
-            math.isfinite(reference_age)
-            and reference_age >= 5.0
+            math.isfinite(independent_reference_age)
+            and independent_reference_age >= 5.0
             and math.isfinite(proxy_age)
-            and proxy_age <= max(0.5, reference_age * 0.2)
+            and proxy_age <= max(0.5, independent_reference_age * 0.2)
         ):
             tracer_weight *= 0.1
             if tracer_likelihood == "gaussian":
@@ -465,6 +473,7 @@ def calculate_tracer_reliability_weights(
         "young_gas_masked_tracers": "|".join(masked),
         "young_gas_masked_reason": "|".join(reasons),
         "young_gas_masked_count": len(masked),
+        "young_gas_independent_proxy_age_years": independent_reference_age,
         "young_gas_likelihood_assignments": "|".join(
             f"{tracer}:{out.get(f'{tracer.lower()}_likelihood')}"
             for tracer in masked

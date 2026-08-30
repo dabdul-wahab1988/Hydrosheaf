@@ -1,0 +1,86 @@
+{
+  "schema_version": "2.1",
+  "title": "HydroSheaf: a claim-gated evidence-integration framework for groundwater connectivity, residence-time and reaction inference in data-limited aquifers",
+  "scope": "A software and methods research article for Computers & Geosciences. It documents the implemented HydroSheaf package, characterises the Ghanaian hydrochemical datasets it is applied to, and reports what each component of the framework can and cannot establish under controlled-synthetic tests, external reference comparisons and a real-data application.",
+  "objectives": [
+    {
+      "id": "OBJ-1",
+      "statement": "Describe the implemented software architecture and the evidence-to-claim pipeline that separates candidate generation, specialist scoring, calibration, discrepancy handling and claim gating.",
+      "acceptance_criteria": [
+        "Every reported capability maps to a named package module",
+        "The PASS, WEAK and ABSTAIN decision states are defined operationally"
+      ]
+    },
+    {
+      "id": "OBJ-2",
+      "statement": "Characterise the three Ghanaian hydrochemical datasets so that a reader can judge what inference they support, including variable coverage, analytical quality and isotopic character.",
+      "acceptance_criteria": [
+        "Charge-balance error is computed independently from the reported ions",
+        "Every absent variable that would be required for a stronger claim is listed",
+        "The reconstructed Northern Ghana seasonal attribute is stated explicitly"
+      ]
+    },
+    {
+      "id": "OBJ-3",
+      "statement": "Quantify component recovery under a 100-realisation synthetic benchmark with known truth, separating targets that are recoverable from targets that are not.",
+      "acceptance_criteria": [
+        "Transport, residence-time and reaction-extent recovery are reported separately",
+        "A negative or null recovery result is reported rather than suppressed"
+      ]
+    },
+    {
+      "id": "OBJ-4",
+      "statement": "Report the locked controlled-synthetic programme gates for calibrated age, reaction-family, kinetic and integrated decision performance against predeclared thresholds.",
+      "acceptance_criteria": [
+        "Observed values are reported beside the thresholds fixed before scoring",
+        "Structural non-identifiability is reported as an abstention, not imputed"
+      ]
+    },
+    {
+      "id": "OBJ-5",
+      "statement": "Compare framework output against evidence generated outside the study: published lumped-parameter age estimates and a particle-tracking directed topology.",
+      "acceptance_criteria": [
+        "Held-out uncalibrated agreement is the primary reported comparison",
+        "Calibrated emulation is labelled as emulation and never as agreement",
+        "Prior-assisted topology ingestion is never pooled with independent inference"
+      ]
+    },
+    {
+      "id": "OBJ-6",
+      "statement": "Apply the framework to the measured field datasets and report the resulting evidence ceiling.",
+      "acceptance_criteria": [
+        "Candidate edges are described as screening constructions, not flow paths",
+        "In-sample closure is never described as predictive validation"
+      ]
+    }
+  ],
+  "inputs": [
+    {"id": "DATA-1", "path": "data/FieldData/NorthenGhana/NorthernGhana.xlsx", "provenance": "Author-compiled regional panel; chemistry measured, seasonal separation reconstructed (DECISION D2)"},
+    {"id": "DATA-2", "path": "data/FieldData/LowerAnayari/manu.csv", "provenance": "Published Lower Anayari field study"},
+    {"id": "DATA-3", "path": "data/FieldData/Talensi_MiningArea/talensi.csv", "provenance": "Published Talensi mining-area field study"},
+    {"id": "DATA-4", "path": ".codex_work/programme-validation/RUN-INTEGRATION-FULL-20260802-15", "provenance": "Locked controlled-synthetic programme run"},
+    {"id": "DATA-5", "path": "M2/m2_benchmark/results", "provenance": "100-realisation synthetic recovery benchmark and directed-topology comparison"},
+    {"id": "DATA-6", "path": "M3/m3_age_benchmark/results", "provenance": "Comparison against published lumped-parameter age outputs"}
+  ],
+  "risks": [
+    {"id": "RISK-1", "risk": "A reconstructed data attribute is reported as a measurement.", "mitigation": "The Northern Ghana seasonal panel is excluded from inference and its status is stated in the Data section, the limitations and the availability statement."},
+    {"id": "RISK-2", "risk": "Calibrated emulation of a reference is read as independent agreement.", "mitigation": "Held-out uncalibrated parity is the primary result; the calibrated result is labelled emulation wherever it appears."},
+    {"id": "RISK-3", "risk": "In-sample chemistry closure is read as connectivity validation.", "mitigation": "Candidate edges are described as coordinate-neighbour screening constructions throughout."},
+    {"id": "RISK-4", "risk": "Values are inherited from an earlier manuscript rather than recomputed.", "mitigation": "Every value is regenerated by scripts under M2.3/analysis/python; disagreements are recorded in evidence_discrepancies.csv."},
+    {"id": "RISK-5", "risk": "The locked run was generated from an uncommitted working tree.", "mitigation": "The provenance limitation is stated in Methods, the limitations and the reproducibility statement; a clean rerun is a declared submission action."}
+  ],
+  "quality": {"minimum_test_coverage": 0},
+  "implementation": {
+    "backend_language": "python",
+    "entrypoint": "hydrosheaf",
+    "dependency_lock": "uv.lock",
+    "results_store_profile": "local-csv-exports",
+    "r_consumer_enabled": true,
+    "qgis_consumer_enabled": false
+  },
+  "evidence_ingestion": {"enabled": false},
+  "manuscript_requirements": {
+    "figures": ["FIG-1", "FIG-2", "FIG-3", "FIG-4", "FIG-5", "FIG-6", "FIG-7"],
+    "tables": ["TAB-1", "TAB-2", "TAB-3", "TAB-4"]
+  }
+}

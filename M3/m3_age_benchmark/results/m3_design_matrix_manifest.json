@@ -1,5 +1,5 @@
 {
-  "run_utc": "2026-07-27T13:04:48.850655+00:00",
+  "run_utc": "2026-07-28T04:50:02.292612+00:00",
   "config": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\configs\\design_matrix.yaml",
   "output": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_results.csv",
   "summary": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_summary.csv",
@@ -22,9 +22,15 @@
     "tracer_old_only",
     "tracer_young_only",
     "tracerlpm_parity_agefractions",
-    "tracerlpm_parity_hier_oldwater",
     "tracerlpm_strict_parity"
   ],
-  "n_output_rows": 23030,
+  "include_withdrawn": false,
+  "configured_withdrawn_scenarios": [
+    {
+      "scenario_id": "tracerlpm_parity_hier_oldwater",
+      "reason": "Full corrected rerun regressed (log10 RMSE 1.310; R2 0.004), and the pooled priors were estimated from the evaluation data without held-out calibration."
+    }
+  ],
+  "n_output_rows": 16536,
   "pairwise_baseline": "parity_reported_corrected"
 }

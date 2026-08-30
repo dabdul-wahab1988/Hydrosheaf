@@ -23,6 +23,15 @@ from ..log import get_logger
 logger = get_logger("inference.topology_posterior")
 
 
+class TopologyPosteriorError(RuntimeError):
+    """Raised when an enabled topology-posterior selection cannot complete."""
+
+    def __init__(self, message: str, *, cause: Optional[BaseException] = None):
+        self.status = "failed"
+        self.cause = cause
+        super().__init__(message)
+
+
 def _get_edge_id(e: Any) -> str:
     if hasattr(e, "edge_id"):
         return str(e.edge_id)
@@ -49,6 +58,34 @@ def _get_edge_attrs(e: Any) -> Dict[str, Any]:
     if hasattr(e, "attrs") and e.attrs is not None:
         return dict(e.attrs)
     return {}
+
+
+def validate_unique_edge_ids(
+    edges: Sequence[Any],
+    *,
+    context: str = "edge collection",
+) -> None:
+    """Fail fast when edge IDs cannot represent a one-to-one edge universe.
+
+    The posterior sampler uses edge IDs as its state keys.  Allowing duplicate
+    IDs would silently merge distinct physical edges in probabilities, traces,
+    MAP states, and attributes, so this is an explicit input-contract check.
+    """
+
+    seen: Dict[str, int] = {}
+    duplicates: List[str] = []
+    for index, edge in enumerate(edges):
+        edge_id = _get_edge_id(edge)
+        if edge_id in seen:
+            if edge_id not in duplicates:
+                duplicates.append(edge_id)
+        else:
+            seen[edge_id] = index
+    if duplicates:
+        raise ValueError(
+            f"{context} contains duplicate edge ID(s): "
+            + ", ".join(sorted(duplicates))
+        )
 
 
 def _get_config_float(config: Any, name: str, default: float) -> float:
@@ -571,9 +608,37 @@ def run_topology_posterior(
 
     cost_cache: Dict[str, float] = {}
     universe_list = list(universe)
+    validate_unique_edge_ids(universe_list, context="topology posterior universe")
     edge_ids = [_get_edge_id(edge) for edge in universe_list]
+    universe_by_id = {
+        _get_edge_id(edge): edge
+        for edge in universe_list
+    }
+    if initial_edges is None:
+        base_initial = list(universe_list)
+    else:
+        initial_list = list(initial_edges)
+        validate_unique_edge_ids(initial_list, context="topology posterior initial_edges")
+        unknown_initial = sorted(
+            {
+                _get_edge_id(edge)
+                for edge in initial_list
+                if _get_edge_id(edge) not in universe_by_id
+            }
+        )
+        if unknown_initial:
+            raise ValueError(
+                "topology posterior initial_edges contains IDs outside the universe: "
+                + ", ".join(unknown_initial)
+            )
+        # Use the universe's canonical edge objects.  This prevents an
+        # equivalent-but-detached initial object from carrying a different
+        # attribute payload into the cost function.
+        base_initial = [universe_by_id[_get_edge_id(edge)] for edge in initial_list]
     if not universe_list:
         return {
+            "status": "completed",
+            "selection_status": "not_requested",
             "edge_probabilities": {},
             "edge_log_odds": {},
             "map_edges": [],
@@ -623,9 +688,6 @@ def run_topology_posterior(
                 )
             ),
         )
-    )
-    base_initial = (
-        list(initial_edges) if initial_edges is not None else list(universe_list)
     )
     if constrained and not _satisfies_topology_constraints(
         base_initial, universe_list, config
@@ -849,6 +911,8 @@ def run_topology_posterior(
     )
 
     return {
+        "status": "completed",
+        "selection_status": "not_requested",
         "edge_probabilities": edge_probabilities,
         "edge_log_odds": edge_log_odds,
         "map_edges": [_get_edge_id(e) for e in best_edges],
@@ -1056,47 +1120,65 @@ def select_posterior_edges(
     max_neighbors: Optional[int] = None,
     probability_threshold: Optional[float] = None,
 ) -> List[Any]:
-    probs = posterior_result.get("edge_probabilities", {})
-    map_edge_ids = set(posterior_result.get("map_edges", []))
-
-    if max_neighbors is not None and max_neighbors > 0 and isinstance(probs, Mapping):
-        threshold = (
-            0.0 if probability_threshold is None else float(probability_threshold)
+    candidate_list = list(candidate_edges)
+    validate_unique_edge_ids(candidate_list, context="posterior selection candidates")
+    status = posterior_result.get("status")
+    if status not in {None, "completed"}:
+        raise TopologyPosteriorError(
+            "cannot select topology edges from a posterior result that did not complete"
         )
-        grouped: Dict[str, List[Any]] = {}
-        for edge in candidate_edges:
-            prob = float(probs.get(_get_edge_id(edge), 0.0) or 0.0)
-            if prob < threshold:
-                continue
-            u, _ = _get_edge_u_v(edge)
-            grouped.setdefault(u, []).append(edge)
+    probs = posterior_result.get("edge_probabilities")
+    if not isinstance(probs, Mapping):
+        raise ValueError("posterior_result must contain an edge_probabilities mapping")
+    if max_neighbors is not None and max_neighbors < 0:
+        raise ValueError("max_neighbors must be non-negative or None")
 
-        trimmed: List[Any] = []
-        for edges in grouped.values():
-            ranked = sorted(
-                edges,
-                key=lambda edge: float(probs.get(_get_edge_id(edge), 0.0) or 0.0),
-                reverse=True,
+    threshold = 0.5 if probability_threshold is None else float(probability_threshold)
+    if not math.isfinite(threshold) or not 0.0 <= threshold <= 1.0:
+        raise ValueError("probability_threshold must be finite and between 0 and 1")
+
+    probabilities: Dict[str, float] = {}
+    for edge in candidate_list:
+        edge_id = _get_edge_id(edge)
+        raw_probability = probs.get(edge_id, 0.0)
+        try:
+            probability = float(raw_probability)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"Invalid posterior probability for edge '{edge_id}'"
+            ) from exc
+        if not math.isfinite(probability) or not 0.0 <= probability <= 1.0:
+            raise ValueError(
+                f"Posterior probability for edge '{edge_id}' must be between 0 and 1"
             )
-            trimmed.extend(ranked[:max_neighbors])
-        if trimmed:
-            return trimmed
+        probabilities[edge_id] = probability
 
-    selected = [edge for edge in candidate_edges if _get_edge_id(edge) in map_edge_ids]
-    if selected:
-        return selected
+    grouped: Dict[str, List[Any]] = {}
+    for edge in candidate_list:
+        edge_id = _get_edge_id(edge)
+        if probabilities[edge_id] < threshold:
+            continue
+        u, _ = _get_edge_u_v(edge)
+        grouped.setdefault(u, []).append(edge)
 
-    if isinstance(probs, Mapping):
-        threshold = (
-            0.5 if probability_threshold is None else float(probability_threshold)
+    selected: List[Any] = []
+    for edges in grouped.values():
+        ranked = sorted(
+            edges,
+            key=lambda edge: (
+                -probabilities[_get_edge_id(edge)],
+                _get_edge_id(edge),
+            ),
         )
-        return [
-            edge
-            for edge in candidate_edges
-            if float(probs.get(_get_edge_id(edge), 0.0) or 0.0) >= threshold
-        ]
+        if max_neighbors is not None and max_neighbors > 0:
+            ranked = ranked[:max_neighbors]
+        selected.extend(ranked)
 
-    return []
+    posterior_result["selected_edge_ids"] = [_get_edge_id(edge) for edge in selected]
+    posterior_result["selection_probability_threshold"] = threshold
+    posterior_result["selection_max_neighbors"] = max_neighbors
+    posterior_result["selection_status"] = "selected" if selected else "abstained"
+    return selected
 
 
 def infer_topology_map_edges(
@@ -1127,6 +1209,8 @@ def infer_topology_map_edges(
         Optional DataFrame with ``node_id`` column (``"cell_{int}"`` convention)
         for joining gradients to nodes.
     """
+    candidate_list = list(candidate_edges)
+    validate_unique_edge_ids(candidate_list, context="topology map candidates")
     sample_map = _sample_map(samples)
 
     # --- Pre-compute diagnostics used by the posterior ---
@@ -1167,11 +1251,11 @@ def infer_topology_map_edges(
     ):
         from ..graph.flow_direction import apply_flow_direction_priors
 
-        apply_flow_direction_priors(candidate_edges, sample_map, config, gradient_map)
+        apply_flow_direction_priors(candidate_list, sample_map, config, gradient_map)
     elif getattr(config, "steepest_descent_enabled", False):
         from ..graph.flow_direction import apply_steepest_descent_priors
 
-        apply_steepest_descent_priors(candidate_edges, sample_map, config)
+        apply_steepest_descent_priors(candidate_list, sample_map, config)
 
     # --- Reference distance for backward compat ---
     reference_distance_km = None
@@ -1179,7 +1263,7 @@ def infer_topology_map_edges(
         from ..sheaf.hydraulic_hodge import infer_reference_distance_km
 
         reference_distance_km = infer_reference_distance_km(
-            candidate_edges,
+            candidate_list,
             sample_map,
             config,
         )
@@ -1193,23 +1277,31 @@ def infer_topology_map_edges(
         local_residuals=local_residuals,
     )
     posterior_result = run_topology_posterior(
-        universe=candidate_edges,
+        universe=candidate_list,
         cost_fn=cost_fn,
         config=config,
         initial_edges=initial_edges,
         seed=seed,
     )
     selected = select_posterior_edges(
-        candidate_edges=candidate_edges,
+        candidate_edges=candidate_list,
         posterior_result=posterior_result,
-        max_neighbors=max_neighbors,
-        probability_threshold=probability_threshold,
+        max_neighbors=(
+            int(getattr(config, "edge_max_neighbors", 1))
+            if max_neighbors is None
+            else max_neighbors
+        ),
+        probability_threshold=(
+            float(getattr(config, "topology_posterior_probability_threshold", 0.5))
+            if probability_threshold is None
+            else probability_threshold
+        ),
     )
     attach_posterior_attrs(
         selected_edges=selected,
-        candidate_edges=candidate_edges,
+        candidate_edges=candidate_list,
         posterior_result=posterior_result,
-        mode="diagnostic",
+        mode="select",
     )
     return [edge for edge in selected if isinstance(edge, Edge)], posterior_result
 
@@ -1232,8 +1324,13 @@ def attach_posterior_attrs(
         Output from run_topology_posterior.
     mode : str
         "diagnostic": attach attrs, keep current selection.
-        "select": use MAP edges (not yet implemented as replacement).
+        "select": replace ``selected_edges`` with the edge IDs recorded by
+        the authoritative selector.
     """
+    candidate_list = list(candidate_edges)
+    validate_unique_edge_ids(candidate_list, context="posterior attribute candidates")
+    if mode not in {"diagnostic", "select"}:
+        raise ValueError("mode must be 'diagnostic' or 'select'")
     probs = posterior_result.get("edge_probabilities", {})
     log_odds = posterior_result.get("edge_log_odds", {})
     map_edges = set(posterior_result.get("map_edges", []))
@@ -1242,7 +1339,20 @@ def attach_posterior_attrs(
     ci = posterior_result.get("n_edges_ci95", (0.0, 0.0))
     accept = posterior_result.get("acceptance_rate", 0.0)
 
-    for edge in candidate_edges:
+    if mode == "select":
+        selected_ids = posterior_result.get("selected_edge_ids")
+        if not isinstance(selected_ids, list):
+            raise ValueError(
+                "mode='select' requires selected_edge_ids from select_posterior_edges"
+            )
+        selected_id_set = {str(edge_id) for edge_id in selected_ids}
+        selected_edges[:] = [
+            edge for edge in candidate_list if _get_edge_id(edge) in selected_id_set
+        ]
+    else:
+        selected_id_set = {_get_edge_id(edge) for edge in selected_edges}
+
+    for edge in candidate_list:
         if isinstance(edge, tuple) or not hasattr(edge, "attrs"):
             continue
         attrs = dict(edge.attrs or {})
@@ -1250,6 +1360,7 @@ def attach_posterior_attrs(
         attrs["posterior_edge_probability"] = probs.get(eid)
         attrs["posterior_edge_log_odds"] = log_odds.get(eid)
         attrs["posterior_map_selected"] = eid in map_edges
+        attrs["posterior_selected"] = eid in selected_id_set
         attrs["posterior_topology_entropy"] = entropy
         attrs["posterior_marginal_edge_entropy"] = posterior_result.get(
             "marginal_edge_entropy"
@@ -1260,4 +1371,13 @@ def attach_posterior_attrs(
         attrs["posterior_n_edges_mean"] = n_mean
         attrs["posterior_n_edges_ci95"] = f"{ci[0]:.2f}-{ci[1]:.2f}"
         attrs["posterior_acceptance_rate"] = accept
+        attrs["posterior_selection_status"] = posterior_result.get(
+            "selection_status"
+        )
+        attrs["posterior_selection_probability_threshold"] = posterior_result.get(
+            "selection_probability_threshold"
+        )
+        attrs["posterior_selection_max_neighbors"] = posterior_result.get(
+            "selection_max_neighbors"
+        )
         edge.attrs = attrs

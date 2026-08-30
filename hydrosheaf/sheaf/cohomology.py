@@ -5,8 +5,10 @@ Computes obstruction energies from the affine sheaf section problem:
 
 The quantity of interest is not just H1 (dimension of obstruction space) but the
 *affine obstruction energy*: how much the fitted transport/reaction relations
-fail to close globally.  A non-zero obstruction energy flags a physical
-inconsistency (e.g. a cycle where chemistry cannot be simultaneously satisfied).
+fail to close globally.  h0_dim is the nullity of the homogeneous matrix D,
+not the dimension of an affine solution set unless the affine system is
+consistent.  A non-zero obstruction energy flags a physical inconsistency
+(e.g. a cycle where chemistry cannot be simultaneously satisfied).
 """
 
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
@@ -142,7 +144,9 @@ def compute_cohomology(
     -------
     dict with keys:
         h0_dim : int
-            Dimension of global section space (n_vertex_dofs - rank(D)).
+            Homogeneous nullity, n_vertex_dofs - rank(D). It is the
+            dimension of the affine global-section set only when the affine
+            system is consistent.
         h1_dim : int
             Dimension of first cohomology (n_edge_dofs - rank(D)).
         obstruction_energy : float
@@ -157,6 +161,7 @@ def compute_cohomology(
             "h1_dim": 0,
             "obstruction_energy": 0.0,
             "rank_D": 0,
+            "affine_global_section_exists": True,
         }
 
     if dim is None:
@@ -198,11 +203,13 @@ def compute_cohomology(
     else:
         obstruction_energy = 0.0
 
+    affine_consistent = bool(np.isclose(obstruction_energy, 0.0, atol=1e-8, rtol=1e-8))
     return {
         "h0_dim": h0_dim,
         "h1_dim": h1_dim,
         "obstruction_energy": obstruction_energy,
         "rank_D": rank_D,
+        "affine_global_section_exists": affine_consistent,
     }
 
 
@@ -352,6 +359,7 @@ def attach_cohomology_attrs(
         attrs["sheaf_h0_dim"] = coh["h0_dim"]
         attrs["sheaf_h1_dim"] = coh["h1_dim"]
         attrs["sheaf_obstruction_energy"] = coh["obstruction_energy"]
+        attrs["sheaf_affine_global_section"] = coh["affine_global_section_exists"]
         attrs["sheaf_obstruction_leverage"] = leverage.get(eid)
         attrs["sheaf_cycle_obstruction_max"] = cycle_info["cycle_obstruction_max"]
         attrs["sheaf_cycle_count"] = cycle_info["cycle_count"]

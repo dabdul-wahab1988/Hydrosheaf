@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS_WITH_SUBMISSION_ACTIONS",
+  "reviewed_on": "2026-08-02",
+  "note": "Deterministic checks establish traceability and rendering correctness. Scientific validity was assessed by inspection of each rendered figure and of the underlying derivation code.",
+  "records": [
+    {
+      "artifact_id": "FIG-1",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Not applicable; the figure encodes no data-derived quantity.",
+        "scientific": "Node and edge set checked against the package module inventory in TAB-2; every stage shown corresponds to an implemented module.",
+        "presentation": "Rendered and inspected. Box width reduced to 1.44 against a 1.6 row spacing so adjacent boxes carry a visible surface gap rather than merging into one bar.",
+        "reproducibility": "Layout declared as data in the script; deterministic."
+      },
+      "reviewer_notes": "Conceptual figure; carries no evidential weight of its own."
+    },
+    {
+      "artifact_id": "FIG-2",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Charge balance computed in meq/L using equivalent weights, over only the ions each dataset reports. Meteoric water lines are OLS with reported standard error and R-squared.",
+        "scientific": "Independent recomputation reproduces the 294/19/7 tiering previously reported for the 320-row Northern Ghana workbook, confirming the charge-balance implementation against an external count. Local water line slopes of 3.1 to 5.3 are consistent with evaporative enrichment. Coordinates are validated by point-in-polygon test (check_coordinates.R), not by eye: an earlier version of this record asserted that all coordinates fell inside Ghana on the basis of visual inspection of the map, and that assertion was wrong. The test showed all 63 Talensi samples outside the national boundary because their longitudes were stored without the negative sign. After correction, 41/41 Lower Anayari, 63/63 Talensi and 157/160 Northern Ghana samples fall inside Ghana, with the remaining 3 within 2.0 km of a generalised boundary polygon.",
+        "presentation": "Rendered and inspected across four revisions. The original longitude-latitude scatter was replaced with a projected map after review; the inset was then moved from top-right to bottom-left because it covered the Talensi cluster and clipped a region label, and the scale bar was moved to avoid the legend. Panel tags are set explicitly because the inset makes panel (a) a nested patchwork that automatic tagging skips.",
+        "reproducibility": "Deterministic; no random seed involved."
+      },
+      "reviewer_notes": "Northern Ghana shown as its 160-well primary panel only; the reconstructed seasonal panel is excluded. The Talensi longitude sign correction is applied in the derivation script, not in the source file, and is recorded in field_provenance.json and Table 4. Because reflection preserves pairwise distance, no distance-based result changed."
+    },
+    {
+      "artifact_id": "FIG-3",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Completeness is a count of non-missing values over records; no inference.",
+        "scientific": "Absence rows were verified against the source column sets rather than asserted.",
+        "presentation": "Rendered and inspected across two revisions. A continuous fill was replaced with a categorical presence encoding after inspection showed the gradient was uninformative when nearly all cells are complete; facet labels and the colourbar overlap were corrected.",
+        "reproducibility": "Deterministic."
+      },
+      "reviewer_notes": "Panel (b) is an editorial summary of the panel (a) content and of Section 2.5; it asserts no new quantity."
+    },
+    {
+      "artifact_id": "FIG-4",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Recovery summarised by median absolute error with interquartile range, plus R-squared and mean absolute error over the benchmark's own active-term definition (absolute truth above 0.01 mmol/L). Rows with no recovered value are counted, not dropped.",
+        "scientific": "The negative active-term R-squared was tested against six alternative subset definitions before reporting; none reproduces the previously circulated positive value. The leakage fraction is computed over all truth-zero terms.",
+        "presentation": "Rendered and inspected across three revisions; legend and subtitle collisions corrected, and the age panel redrawn so neither method's point cloud is hidden by the other.",
+        "reproducibility": "Deterministic given the shipped benchmark records."
+      },
+      "reviewer_notes": "Panel (c) is a negative result and is the pivotal evidence for the paper's argument. The 100 realisations share one ground-truth specification, so the result is conditional on that generator."
+    },
+    {
+      "artifact_id": "FIG-5",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Observed values and thresholds read from the locked performance-gate record. Paired intervals are 2000-replicate bootstraps over six cases, reported as descriptive.",
+        "scientific": "Pass status recomputed from observed and threshold rather than copied from the record's own status field.",
+        "presentation": "Rendered and inspected across two revisions; clipped titles corrected and an irrelevant random-versus-specialist contrast removed.",
+        "reproducibility": "Deterministic; the bootstrap seed is recorded in the locked run manifest."
+      },
+      "reviewer_notes": "Six locked cases cannot support a population claim, and the figure subtitle says so. The locked run itself was generated from an uncommitted working tree."
+    },
+    {
+      "artifact_id": "FIG-6",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Metrics recomputed from the parity record; 675 of 1272 rows carry finite paired values. Leave-one-study-unit-out folds across 20 units.",
+        "scientific": "The recomputation reproduces the archived summary exactly, which validates the fold selection. Uncalibrated and calibrated variants are never pooled.",
+        "presentation": "Rendered and inspected; faceted so the two variants cannot be read as one result.",
+        "reproducibility": "Deterministic."
+      },
+      "reviewer_notes": "The calibrated variant is an emulation measure and is labelled as such in the caption, the axis facet, the Results and the Discussion."
+    },
+    {
+      "artifact_id": "FIG-7",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Closure values are in-sample coefficients of determination. The ablation is a cumulative tier comparison over 160 wells with no resampling.",
+        "scientific": "Negative closures are retained rather than clipped. The ablation unit is the well, so the reconstructed seasonal attribute is not involved.",
+        "presentation": "Rendered and inspected across three revisions; an axis limit that silently clipped eight negative closures was corrected, and a third panel was added.",
+        "reproducibility": "Deterministic."
+      },
+      "reviewer_notes": "47 of 208 candidate edges carry no site-identifying end-member and are excluded from the per-site panels; the overall median is reported over all 208."
+    },
+    {
+      "artifact_id": "TAB-1",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Counts and medians over the primary measured panels.",
+        "scientific": "Variable counts taken from the source files as delivered, after an initial version incorrectly reported counts inflated by harmonisation columns.",
+        "presentation": "Column consistency checked programmatically; pipe characters escaped.",
+        "reproducibility": "Generated from the export, not hand-typed."
+      },
+      "reviewer_notes": "Age-tracer column is uniformly negative by inspection of all three schemas."
+    },
+    {
+      "artifact_id": "TAB-2",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Not applicable.",
+        "scientific": "Module paths verified against the installed package namespace.",
+        "presentation": "Column consistency checked programmatically.",
+        "reproducibility": "Static content held in the build script."
+      },
+      "reviewer_notes": "Capability inventory only; it is not evidence that each capability has been benchmarked."
+    },
+    {
+      "artifact_id": "TAB-3",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Pass status recomputed from observed value and threshold direction.",
+        "scientific": "Thresholds transcribed programmatically from the locked contract rather than by hand.",
+        "presentation": "Column consistency checked; integer case count no longer rendered with decimals.",
+        "reproducibility": "Generated from the export."
+      },
+      "reviewer_notes": "The integrated gate's declared improvement fields are null in the locked record and only the recomputed fields are populated; this is disclosed in the Supplementary Methods."
+    },
+    {
+      "artifact_id": "TAB-4",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Each recomputed value is produced by the derivation scripts in this package.",
+        "scientific": "Every earlier value was tested against multiple plausible definitions before being recorded as non-reproducible.",
+        "presentation": "Pipe characters inside mathematical notation escaped after an initial version broke the table.",
+        "reproducibility": "Generated from the discrepancy ledger."
+      },
+      "reviewer_notes": "This table is a disclosure, not a result. It exists because earlier internal reporting of the same benchmarks is not reproducible."
+    },
+    {
+      "artifact_id": "CHECK-COORD",
+      "status": "PASS",
+      "checks": {
+        "statistical": "Point-in-polygon containment with a 5 km tolerance for boundary generalisation.",
+        "scientific": "Detected a dropped longitude sign in the Talensi source file that visual inspection missed. Corrected coordinates place all Talensi samples in the Upper East Region, which is where Talensi District lies.",
+        "presentation": "Console report plus coordinate_validation.csv.",
+        "reproducibility": "Deterministic; depends only on the cached boundary GeoPackage."
+      },
+      "reviewer_notes": "Added because a rendered map is not a coordinate check. This test now runs as part of the pipeline."
+    }
+  ],
+  "outstanding_submission_actions": [
+    "Regenerate the locked programme run from a committed source tree and compare result hashes.",
+    "Publish the repository at a permanent DOI and replace the placeholder in the availability statement.",
+    "Insert named CRediT author contributions.",
+    "Confirm redistribution terms for the two published field datasets.",
+    "Confirm the Talensi longitude sign against the source publication, alongside the charge-balance query."
+  ]
+}

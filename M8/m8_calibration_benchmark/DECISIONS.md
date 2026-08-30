@@ -37,3 +37,42 @@ showed the first random draw as if it were the strategy's fixed time. The locked
 raw outputs and all numerical estimates were preserved. A checksummed
 postprocessor produced reviewed artifacts with an explicit common optimum and a
 blank candidate time for the varying random strategy.
+
+## 2026-07-31 — Manuscript draft from locked confirmatory results (r2m Track B)
+
+The M8 manuscript was drafted from the locked confirmatory artifacts only.
+The five exploratory pilot claims (C1, C2, C3, C3b, C3c) are excluded from the
+manuscript, per M8_CLAIM_DECISION.md; the manuscript presents the common-50-d
+optimal-design result, the kinetic k*A rank-one structural limit, the
+independent-model parameter-specific robustness failure, the
+NOT_ACTIONABLE_FOR_TRANSPORT_TIME_SELECTION portability result, and the
+bounded topology active-learning qualification.
+
+## 2026-07-31 — Presentation-only title amendment
+
+The proposal title was changed from the internal project name ("M8 confirmatory
+optimal-design and Bayesian active-learning benchmark") to the journal-facing
+working title from M8_OUTLINE.md. This is a presentation-only amendment: no
+objective, acceptance criterion, input, risk or evidence was changed. The
+pre-amendment file is preserved byte-for-byte at
+provenance/runs/RUN-M8-CONFIRM-20260728-01/proposal.normalized.locked.json,
+mirroring the existing analysis_plan.locked.json precedent. The lock hashes in
+m8_confirmatory_protocol.lock.json refer to the pre-amendment file and are
+unchanged.
+
+## 2026-07-31 — Independent verification pass on the manuscript draft
+
+A read-only cross-check of every quantitative statement in the draft against
+the locked artifacts found and fixed four issues before final assembly:
+1. Results 3.1 misattributed the largest dispersivity error to `very_late`
+   (0.2404); the true maximum is `c120_s5` (0.3818), with `very_late`
+   second-worst (0.2404) and overall worst-conditioned (cond 7074.8).
+2. The Results opening undercounted matched-model calibrations: 4,000 fixed-
+   design plus 4,500 optimal-design = 8,500 (independent-model 1,000 unchanged).
+3. The abstract's "in well-conditioned designs" qualifier on the 0.75-0.91
+   coverage range was removed because the upper endpoint comes from the most
+   ill-conditioned design (`very_late`).
+4. Kinetic parameter correlation sign corrected to -0.957 in Results 3.3.
+No other mismatches were found; all medians, bootstrap intervals, ranks,
+condition numbers, counts, run IDs, seeds, dates and versions match the locked
+artifacts.

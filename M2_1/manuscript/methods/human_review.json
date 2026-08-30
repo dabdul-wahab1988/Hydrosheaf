@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "status": "complete_with_minor_submission_actions",
+  "reviewer": "manuscript-reviewer skill, adversarial first pass",
+  "reviewed_on": "2026-08-02",
+  "checks": {
+    "technical_fidelity": "PASS",
+    "claim_boundary": "PASS",
+    "field_scope": "PASS",
+    "citation_integrity": "PASS",
+    "reader_facing_terminology": "PASS",
+    "reproducibility": "PASS_WITH_CLEAN_RERUN_PENDING",
+    "word_budget": "PASS",
+    "adversarial_failure_scan": "PASS_NO_INTEGRITY_RED_FLAGS"
+  },
+  "required_follow_up": "Complete clean-commit regeneration, public release metadata and author-specific CRediT roles before external submission; rendered Figure 1 is present in the final package."
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "analysis_plan_id": "M2_1-PLAN-20260802",
+  "status": "locked_for_manuscript_reporting",
+  "manuscript_id": "M2_1",
+  "word_contract": {
+    "main_total": 6000,
+    "supplementary_methods_total": 3000,
+    "main_count_includes": ["abstract", "main_prose", "statements"],
+    "main_count_excludes": ["title", "headings", "references", "tables", "captions", "equations", "supplementary_methods"],
+    "supplementary_count_excludes": ["headings", "references", "tables", "captions", "equations"]
+  },
+  "primary_evidence": {
+    "synthetic_run": "RUN-INTEGRATION-FULL-20260802-15",
+    "field_root": "data/FieldData",
+    "field_validation_status": "not_established"
+  },
+  "predeclared_reporting_rules": [
+    "Report calibrated coverage and interval width together.",
+    "Report abstention rate and selective risk rather than pooling unsupported outputs.",
+    "Report reaction family scores separately from unique reaction identification.",
+    "Report conditional kinetic identifiability and k-times-A confounding explicitly.",
+    "Require calibrated discrepancy and converged model averaging before integrated claims.",
+    "Require truth-blind prospective policy selection and cost-adjusted paired uncertainty.",
+    "Use ABSTAIN when field or universal-superiority evidence is absent."
+  ],
+  "statistical_contrasts": {
+    "interval_level": 0.95,
+    "paired_bootstrap_replicates": 2000,
+    "random_seed_policy": "locked_by_run_manifest",
+    "multiple_comparison_policy": "component_gate_results are reported separately; no pooled universal claim"
+  }
+}

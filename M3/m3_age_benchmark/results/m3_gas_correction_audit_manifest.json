@@ -1,7 +1,7 @@
 {
-  "run_utc": "2026-07-27T13:05:33.405566+00:00",
+  "run_utc": "2026-07-28T06:41:32.896873+00:00",
   "design_results": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_design_matrix_results.csv",
   "output": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_gas_correction_audit.csv",
   "summary_output": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_gas_correction_audit_summary.csv",
-  "paired_rows": 1651
+  "paired_rows": 0
 }

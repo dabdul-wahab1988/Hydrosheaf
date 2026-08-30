@@ -1,0 +1,6 @@
+metric,value
+n_active_family_rows,1700.0
+family_r2_corr,0.160972995590662
+family_mae_mmolL,0.47457501408984337
+family_sign_match_rate,0.36470588235294116
+dominant_family_hit_rate,0.48

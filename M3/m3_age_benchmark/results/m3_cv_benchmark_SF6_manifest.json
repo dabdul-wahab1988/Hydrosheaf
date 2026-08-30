@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "run_utc": "2026-07-28T06:01:48.587490+00:00",
+  "withheld_tracer": "SF6",
+  "age_steps": 90,
+  "model_strategy": "selection",
+  "factors": {
+    "gas_correction_mode": "usgs_dgm",
+    "tracer_set": "reported",
+    "age_target_mode": "saturated_only",
+    "uztt_mode": "ignore",
+    "c14_correction_mode": "selected",
+    "he4_mode": "calibrated"
+  },
+  "reportability_guard": "reference-free M3 scalar-age guard",
+  "leakage_control": "all graph ages were fitted with the target tracer withheld",
+  "eligible_rows": 262,
+  "completed_fits": 262,
+  "reportable_fits": 75,
+  "prediction_rows": 75,
+  "graph_edges": {
+    "hydraulic_proxy_constrained": 5,
+    "depth_constrained": 12,
+    "randomized_negative_control": 14
+  },
+  "summary": {
+    "withheld_tracer": "SF6",
+    "n_samples": 75,
+    "rmse_single": 2.8439876191216946,
+    "rmse_phys_hyd": 2.8579933879294246,
+    "rmse_phys_dep": 2.9285280744019673,
+    "rmse_rand_graph": 2.928426975500482
+  },
+  "output": "C:\\Users\\ThinkPad P1 G4\\Documents\\July_2026\\NeutroProject\\Groundwater\\Hydrosheaf\\M3\\m3_age_benchmark\\results\\m3_cv_benchmark_SF6.csv",
+  "output_sha256": "07057ea52b4f737f9c4b5db12f132e5b6e7fbf081935c992b6a387b6ca912f37",
+  "script_sha256": "e54580c01499fe8e8c38599b173b151860be9c60a0e28ad418dbb7a04040b4dc",
+  "python_version": "3.14.6"
+}

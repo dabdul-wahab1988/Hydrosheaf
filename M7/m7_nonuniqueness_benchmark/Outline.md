@@ -42,7 +42,7 @@ Stretch target after an additional independent field/basin validation:
 
 ## Working Title
 
-**Evidence integration reduces groundwater interpretive non-uniqueness only conditionally: an independent benchmark with adverse controls**
+**Conditional evidence integration and the incremental contribution of sheaf structure in a single-generator groundwater benchmark**
 
 Alternative titles:
 
@@ -103,6 +103,13 @@ a decision rule that separates genuine complementarity from redundancy and
 negative transfer, so that combining evidence streams is a defensible choice
 rather than an assumed one.
 
+The representation claim is distinct: non-identity restriction maps provide
+globally coherent relation modelling and conflict localisation beyond an
+identity weighted graph. Against a strong edge-local graph, the fresh-seed
+follow-up supports a local-first/global-fallback ranking benefit for
+incompatible cycles and noisy/missing observations, but not general predictive
+superiority or excellence of the tested LOO robust estimator.
+
 ## Research Questions
 
 1. Does combining hydraulic, age and chemical evidence reduce topological interpretive non-uniqueness, and does every pairing behave the same way?
@@ -110,6 +117,7 @@ rather than an assumed one.
 3. Does expanding the hydrochemical indicator panel resolve reaction-mechanism non-uniqueness uniformly across processes, or only for some?
 4. When an evidence stream is misspecified, does the resulting reduction in posterior uncertainty still indicate improved inference, or can it manufacture false confidence?
 5. What can and cannot be defensibly claimed about a real, data-limited aquifer system (Northern Ghana) given the evidence it actually contains?
+6. What does the affine sheaf layer contribute beyond an ordinary weighted graph when inputs, calibration, optimisation budget and test cases are matched?
 
 ## Testable Hypotheses
 
@@ -119,12 +127,13 @@ rather than an assumed one.
 - **H4.** Predeclared adverse permutation controls that preserve each evidence stream's marginal distribution while destroying its case-specific meaning reduce posterior entropy while simultaneously degrading discrimination (PR-AUC) and calibration (Brier score, log loss, overconfident error).
 - **H5.** Expanding the hydrochemical indicator panel from a core to an enhanced set improves reaction-family recovery only for a subset of redox and silicate processes; carbonate weathering and precipitation remain non-identifiable under both panels.
 - **H6.** Northern Ghana field data support component-level chemical and isotopic diagnostics but not field validation of topology, groundwater age or a unique reaction mechanism, given the absence of environmental age tracers, screen intervals, repeated head series and independently verified connectivity.
+- **H7.** The affine sheaf is exactly equivalent to an identity graph in the identity limit and improves global consistency and planted-conflict localisation when non-identity relations must compose; a local-first/global-fallback hybrid can improve ranking when endpoint evidence is missing, but need not outperform a strong edge-local graph on every calibration metric.
 
 ---
 
 ## Article Architecture and Word Budget
 
-The target is **6,500 words from Introduction through Conclusion**, excluding
+The revised target is **8,000 words from Introduction through Conclusion**, excluding
 the Abstract, references, figure legends, code/data availability statements,
 and Supplementary Information. Word counts are prose only and exclude
 headings, equations, and citation markers, consistent with
@@ -132,22 +141,22 @@ headings, equations, and citation markers, consistent with
 
 | Section | Target words |
 |---|---:|
-| 1. Introduction | 1,050 |
-| 2. Methods | 1,550 |
-| 3. Results | 2,100 |
-| 4. Discussion | 1,550 |
+| 1. Introduction | 1,550 |
+| 2. Methods | 1,800 |
+| 3. Results | 2,200 |
+| 4. Discussion | 2,200 |
 | 5. Conclusion | 250 |
-| **Total** | **6,500** |
+| **Total** | **8,000** |
 
-Results receives the largest share because four linked experiments (evidence
-integration, topology-conditioned age, reaction non-uniqueness, Ghana scope
-audit) each require a fully reported quantitative paragraph with uncertainty.
+Results receives the largest share because the four original experiments and
+the two added system/representation audits each require a distinct,
+uncertainty-qualified result.
 Methods and Discussion are weighted second so the adverse-control logic,
 decision rules, and calibration guardrail can be explained without
 compression. Introduction and Conclusion answer five research questions and
 one decision framework respectively and do not require additional length.
 
-Abstract: 180–200 words, unstructured, no references, word-capped
+Abstract: 220–250 words, unstructured, no references, word-capped
 independently of the main-text budget. Write only after all analyses are
 locked (they already are; the Abstract may be drafted alongside the other
 sections).
@@ -158,7 +167,7 @@ sections).
    widely assumed to reduce interpretive uncertainty, but reduced uncertainty
    alone does not prove improved inference.
 2. State the methodological advance: a truth-blind benchmark using an
-   independent MODFLOW 6/MODPATH 7 generator, four linked experiments, and
+   independent MODFLOW 6/MODPATH 7 generator, seven linked audits, and
    predeclared adverse (permutation) controls that can distinguish
    complementarity, redundancy, and negative transfer.
 3. State the benchmark scale: development/locked-test case counts, particle
@@ -219,7 +228,7 @@ built on official MODFLOW 6/MODPATH 7 simulation (Langevin et al., 2017;
 Pollock, 2016) plus an independently coded nonlinear chemistry/tracer model
 that imports no Hydrosheaf code; (2) predeclared permutation-based adverse
 controls that preserve each stream's marginal distribution while destroying
-its case-specific meaning; (3) four linked experiments spanning topology
+its case-specific meaning; (3) seven linked audits spanning topology
 ranking, topology-conditioned age inference, reaction non-uniqueness, and a
 real-data scope audit; (4) explicit, predeclared decision rules that
 classify an evidence stream as complementary, redundant, or negative
@@ -236,7 +245,7 @@ State the aim:
 > inference, when it is redundant, and when a misspecified stream produces
 > false confidence.
 
-State four objectives, one per linked experiment:
+State five scientific objectives across the linked audits:
 
 1. Quantify the incremental topology-ranking contribution of hydraulic, age
    and chemical evidence, alone, in pairs and combined, under native and
@@ -248,6 +257,8 @@ State four objectives, one per linked experiment:
    indicator panels, with carbonate processes reported separately.
 4. Audit a real, data-limited aquifer system (Northern Ghana) to separate
    supportable component diagnostics from non-identifiable field claims.
+5. Isolate restriction-map value against identity-graph, edge-local graph and
+   permuted-map comparators under a locked, competence-matched design.
 
 ## 1.6 Significance — 150 words
 
@@ -264,7 +275,7 @@ whether integration itself is beneficial.
 
 ---
 
-# 2. Methods — 1,550 words
+# 2. Methods — 1,800 words
 
 ## 2.1 Independent synthetic-truth generator and blinding — 250 words
 
@@ -326,7 +337,19 @@ intervals, coordinates, hydraulic observations and independent connectivity
 labels, and the permitted claim is restricted to which integrated
 interpretations are supportable under available data.
 
-## 2.7 Statistical reporting and decision rules — 220 words
+## 2.7 Public-pipeline acceptance and competence-matched sheaf ablations — 500 words
+
+Keep system execution acceptance separate from scientific incremental value.
+Describe the four-scenario, 32-development/64-locked-case M7.4 design, exact
+identity-limit equivalence gate, matched information and solver budget, native
+and permuted affine maps, strong edge-local comparator, case-block bootstrap,
+and the predeclared claim rule.
+Then describe the two-stage 64-development/128-locked-case M7.5 design,
+equal-dimensional residual arms, LOO exclusion/weight update, development-only
+hybrid and calibration selection, shared-calibrator diagnostic, permuted-map
+control and strict three-outcome claim gate.
+
+## 2.8 Statistical reporting and decision rules — 220 words
 
 State the reported metrics (PR-AUC, ROC-AUC, Brier score, log loss,
 normalised edgewise entropy, calibration error, and, for age, MAE, bias, and
@@ -340,7 +363,7 @@ the full decision-rule specification.
 
 ---
 
-# 3. Results — 2,100 words
+# 3. Results — 2,200 words
 
 ## 3.1 Benchmark scale and candidate recall — 150 words → **Table 1**
 
@@ -383,13 +406,31 @@ does and does not support.
 
 ## 3.7 Summary decision table — 200 words
 
-Synthesise the four experiments into the complementary/redundant/negative-
-transfer classification for each contrast tested, without importing
-Discussion-level explanation.
+Synthesise the four original experiments into the complementary, redundant or
+negative-transfer classification without importing Discussion-level
+explanation.
+
+## 3.8 Public-pipeline acceptance and incremental sheaf contribution — 350 words → **Figure 6**, **Table 8**
+
+Report system execution separately from incremental scientific value. Then
+report identity-limit equivalence, sheaf-versus-identity and native-versus-
+permuted gains, the null overall PR-AUC/Brier contrast against the strong
+edge-local graph, worse sheaf log loss, and the planted-conflict localisation
+gain. Reject general superiority and accept only the conditional relation-
+modelling/localisation claim.
+
+## 3.9 Robust/hybrid estimator diagnostic — 350 words → **Figure 7**, **Table 9**
+
+Report the selected local-boundary hybrids, significant overall PR-AUC gain
+against edge-local, failed Brier/log-loss components of the strict gate,
+benefit of restoring local evidence, adverse LOO calibration result,
+incompatible-cycle and noisy/missing gains, persistent heterogeneous-affine
+log-loss penalty, and native-versus-permuted control. Retain the failed overall
+claim.
 
 ---
 
-# 4. Discussion — 1,550 words
+# 4. Discussion — 2,200 words
 
 ## 4.1 Evidence integration is conditional, not additive — 350 words
 
@@ -398,14 +439,24 @@ in this generator; age is redundant in the reverse direction once hydraulics
 and chemistry are present. Integration benefit therefore depends on which
 streams are already available, not on the number of streams combined.
 
-## 4.2 Topology assumptions change age uncertainty in both directions — 300 words
+## 4.2 What the sheaf contributes beyond an ordinary weighted graph — 400 words
+
+Answer RQ6/H7. Explain the identity-graph nesting, non-identity affine maps,
+global-section coherence and conflict localisation. State prominently that
+M7.4 favoured the edge-local graph on log loss; M7.5 showed that restoring
+local evidence helped but LOO robustification worsened calibration. Interpret
+the supported contribution as non-identity map semantics, conflict
+localisation and a local-first/global-fallback role, not universal predictive
+superiority.
+
+## 4.3 Topology assumptions change age uncertainty in both directions — 300 words
 
 Answer RQ2–RQ3/H2–H3: correct topology conditionally reduces age
 uncertainty, most when the tracer panel is weak; an incorrect topology
 assumption is not a merely less-accurate alternative but can destabilise
 inference outright, evidenced by importance-sampling degeneracy.
 
-## 4.3 Entropy reduction without calibration is false confidence — 300 words
+## 4.4 Entropy reduction without calibration is false confidence — 300 words
 
 Answer RQ4/H4: the adverse controls show that reduced posterior uncertainty
 can coexist with worse discrimination and calibration. Connect this to the
@@ -413,31 +464,33 @@ broader literature on overconfidence under model misspecification and argue
 that uncertainty reduction alone is an unsafe stopping rule for evidence
 integration.
 
-## 4.4 Carbonate reactions remain non-identifiable regardless of panel richness — 250 words
+## 4.5 Carbonate reactions remain non-identifiable regardless of panel richness — 250 words
 
 Answer RQ3/H5: an enhanced indicator panel improves several redox/silicate
 processes but not carbonate weathering or precipitation, illustrating that
 low support entropy (confidence) can coexist with a wrong modal family.
 
-## 4.5 What Ghana field data can and cannot support — 200 words
+## 4.6 What Ghana field data can and cannot support — 200 words
 
 Answer RQ5/H6: state the defensible claim boundary for the Northern Ghana
 data explicitly, consistent with the companion field-transfer analysis, and
 reiterate that synthetic truth throughout the benchmark is model-conditioned,
 not field truth.
 
-## 4.6 Limitations — 150 words
+## 4.7 Limitations — 250 words
 
 State the single-generator/geometry scope, the model-conditioned nature of
 all synthetic truth, the insensitivity of the predeclared univariate conflict
 flag (reported as a failed heuristic rather than silently replaced), and the
 descriptive-only status of the Ghana audit.
+Add the static scalar, controlled-affine scope of M7.4 and its explicit
+exclusion of temporal, three-dimensional and vadose-zone claims.
 
 ---
 
 # 5. Conclusion — 250 words
 
-Answer each of the five research questions directly in one to two sentences
+Answer each of the six research questions directly in one to two sentences
 each, then close with the decision-relevant statement that integration
 benefit in groundwater inference must be demonstrated per evidence pairing
 under predeclared adverse controls, not assumed from the number of streams
@@ -467,6 +520,11 @@ new computation.
 5. **Figure 5 — Ghana data support component diagnostics, not complete
    field truth.** Evidence-to-claim map; M6 evidence-tier ablation link;
    truth-free seasonal hold-forward.
+6. **Figure 6 — Incremental contribution of affine sheaf structure.** Overall
+   and scenario-specific model performance plus paired sheaf-versus-graph
+   bootstrap contrasts.
+7. **Figure 7 — Robust and hybrid sheaf estimator diagnostic.** Locked-test
+   discrimination/calibration, scenario effects and mechanism attribution.
 
 ## Main tables
 
@@ -476,6 +534,9 @@ new computation.
 4. Topology-conditioned age contrasts.
 5. Reaction-family recovery and non-uniqueness.
 6. Ghana data scope and claim boundary.
+7. Cross-experiment summary decision table.
+8. Competence-matched sheaf-versus-graph locked-test metrics.
+9. Robust/hybrid sheaf estimator locked-test metrics.
 
 ## Supplementary figures
 
@@ -490,6 +551,10 @@ new computation.
 - Table S4: edgewise reaction support and entropy.
 - Table S5: the predeclared conflict diagnostic, including its zero
   sensitivity.
+- Table S6: multiplicity-correction robustness check.
+- Table S7: complete sheaf-versus-graph contrast family.
+- Table S8: strict public-pipeline system-acceptance summary and contrasts.
+- Table S9: complete robust/hybrid contrast family for both calibration regimes.
 
 ## Supplementary Methods
 
@@ -498,10 +563,12 @@ coefficients; permutation-control construction; importance-sampling
 formulation, topology-potential definition, and MCMC/ESS convergence rules;
 PHREEQC constraint construction; reaction-dictionary and bootstrap detail;
 full metric definitions (PR-AUC, Brier score, log loss, entropy, calibration
-error, ESS); the three decision rules in full; and the Ghana audit criteria.
+error, ESS); the three decision rules in full; the Ghana audit criteria;
+public-pipeline acceptance; the competence-matched sheaf ablation; and the
+two-stage robust/hybrid estimator diagnostic.
 Target length: technically complete, not word-capped; expected to run
 approximately 2,800–3,400 words of prose (excluding equations, headings, and
-citations), matching the depth of four linked experiments.
+citations), matching the depth of the linked audits.
 
 ---
 
@@ -511,13 +578,16 @@ Use:
 
 > M7 evaluates whether combining independent hydraulic, age and hydrochemical
 > evidence reduces groundwater interpretive non-uniqueness, using an
-> independent synthetic-truth generator and predeclared adverse controls.
+> independent synthetic-truth generator and predeclared adverse controls;
+> non-identity restriction maps add global relation-consistency and conflict-
+> localisation capability under the tested controlled-synthetic conditions.
 
 Do not use:
 
 > M7 proves that integrating more evidence always improves groundwater
 > interpretation, or that the Northern Ghana results validate field topology,
-> age, or reaction truth.
+> age, or reaction truth; nor does M7 prove that a sheaf is generally more
+> predictive than every weighted-graph method.
 
 Do not equate:
 
@@ -526,14 +596,17 @@ Do not equate:
 - Ghana chemistry/isotope evidence with residence-time, connectivity, or
   reaction-mechanism validation;
 - low reaction-support entropy with correct mechanistic recovery.
+- improvement over an identity graph or in PR-AUC alone with general
+  superiority over a strong edge-local graph.
+- scientific-workflow validity with excellence of the LOO estimator.
 
 ---
 
-# Data & Analysis Status — LOCKED (committed `d336e87`, `771388a`, `8ca2036`)
+# Data & Analysis Status — M7.3, M7.4 AND M7.5 LOCKED
 
-The M7.3 package is built and run at `M7/m7_nonuniqueness_benchmark/`. All
-four experiments are executed and locked; no new computation is required to
-write this manuscript.
+The M7.3 package, strict system-acceptance audit, M7.4 representation run and
+two-stage M7.5 estimator diagnostic are built, executed and locked at
+`M7/m7_nonuniqueness_benchmark/`.
 
 ## Implemented evidence
 
@@ -548,7 +621,15 @@ write this manuscript.
   case; PHREEQC direction bounds.
 - Northern Ghana descriptive data-scope audit, cross-linked to the M6
   evidence-tier ablation.
-- Six main figures, one supplementary figure, six main tables and five
+- Strict six-case public-pipeline system-acceptance audit using the released
+  candidate, hydraulic, age, section-solving and calibration interfaces.
+- Competence-matched M7.4 ablation with 32 development cases, 64 locked test
+  cases, four scenarios, exact identity-limit equivalence and a native-map
+  permutation control.
+- Two-stage M7.5 diagnostic with 64 development and 128 one-time locked-test
+  cases, local/global hybrids, LOO robustification, group-cross-fitted and
+  shared calibration, and a frozen permuted-map control.
+- Seven main figures, one supplementary figure, nine main tables and nine
   supplementary tables generated as vector PDF, 600-dpi PNG and
   LZW-compressed 300-dpi TIFF (figures) or CSV/Markdown (tables).
 
@@ -572,6 +653,16 @@ See `docs/m7_3_results.md` for the full decision table. Headline results:
 - The Northern Ghana workbook supports component chemical/isotopic
   diagnostics but not field validation of age, exact topology, or reaction
   truth.
+- The public pipeline passes execution acceptance but not an overall
+  incremental full-sheaf claim.
+- The affine sheaf improves PR-AUC over the identity graph Laplacian by 0.0854
+  (95% CI 0.0666-0.1050) and localises planted conflicts, but its overall
+  PR-AUC difference from the strong edge-local graph is 0.0097 (95% CI
+  -0.0054-0.0248) and its log loss is worse.
+- The selected M7.5 local-first/global-fallback hybrid improves PR-AUC over
+  edge-local by 0.0200 (95% CI 0.0073-0.0324), including cycle and
+  noisy/missing gains, but fails the full calibration gate; LOO robustification
+  worsens Brier score and log loss relative to the original hybrid.
 
 ---
 

@@ -17,6 +17,7 @@ from hydrosheaf import Config
 from hydrosheaf.api import fit_network_pipeline
 from hydrosheaf.data.units import mgL_to_mmolL
 from hydrosheaf.graph.types import Edge
+from hydrosheaf.inference.network_fit import infer_edges
 
 
 def configure_local_mixing_endmember(config, samples, label):
@@ -46,6 +47,56 @@ def configure_local_mixing_endmember(config, samples, label):
         }
 
 
+def _build_and_fit(samples, config, site_label):
+    """Build the candidate graph and fit it using the documented pipeline.
+
+    Candidate edges come from the probabilistic builder of Section 2.3 --
+    directional confidence p_ij = Phi((h_i - h_j) / sigma_dh) with elevation as
+    the head proxy, capped at edge_max_neighbors per node, filtered on
+    edge_p_min / edge_gradient_min / edge_radius_km -- and the retained set is
+    then chosen by the sheaf refinement, with the cohomology diagnostics
+    (H0, H1, obstruction energy, per-edge leverage) attached.
+
+    Earlier revisions of this script built the field graph with a plain 2-D
+    Euclidean KD-tree over (lon, lat) and ran no refinement at all, so no
+    directional test was applied to the Ghana edges and nothing was ever
+    rejected. That construction is retained for comparison in
+    M2/m2_benchmark/scripts/run_m2_field_documented_pipeline.py.
+    """
+    # No nuclear tracers exist at either field site. Leaving the age stage on
+    # makes the pipeline try to treat Cl as a residence-time tracer and fail.
+    config.sheaf_age_enabled = False
+    config.sheaf_cohomology_enabled = True
+
+    edges = infer_edges(samples, method="probabilistic", config=config)
+    # The builder names edges "u->v"; downstream table and figure scripts key
+    # the site off an edge_id prefix, so stamp it on here.
+    for e in edges:
+        e.edge_id = f"{site_label}_{e.edge_id}"
+    print(f"  {site_label}: {len(edges)} candidate edges from the probabilistic builder")
+    results, report = fit_network_pipeline(
+        samples, edges, config, sheaf_refinement_enabled=True
+    )
+    stage = (report.get("stage_status", {}) or {}).get("sheaf_refinement", {})
+    status = stage.get("status") if isinstance(stage, dict) else stage
+    print(f"  {site_label}: sheaf refinement {status}; {len(results)} edges retained "
+          f"({len(edges) - len(results)} rejected)")
+    if status != "completed":
+        raise RuntimeError(
+            f"{site_label}: sheaf refinement did not complete (status={status!r}); "
+            "the reported field topology depends on it"
+        )
+    # p_ij is written onto the candidate Edge attrs by the builder, not onto the
+    # EdgeResult, so carry it across for reporting.
+    conf = {e.edge_id: (e.attrs or {}).get("edge_confidence",
+                                           (e.attrs or {}).get("p_uv"))
+            for e in edges}
+    for r in results:
+        if r.edge_confidence is None:
+            r.edge_confidence = conf.get(r.edge_id)
+    return results
+
+
 def process_manu():
     print("Processing Manu (LowerAnayari)...")
     df = pd.read_csv(ROOT / "data" / "FieldData" / "LowerAnayari" / "manu.csv")
@@ -58,6 +109,11 @@ def process_manu():
             'x': row['X coordinate'],
             'y': row['Y coordinate'],
             'z': row['Elevation'],
+            # keys the documented graph builder reads (Section 2.3): coordinates
+            # for the search radius, elevation as the head proxy inside p_ij
+            'lon': float(row['X coordinate'] if 'X coordinate' in row else row['Longitude']),
+            'lat': float(row['Y coordinate'] if 'Y coordinate' in row else row['Latitude']),
+            'elevation': float(row['Elevation']),
             'pH': row['pH'],
             'temp_C': row['Temp'],
             '18O': row['d18O'],
@@ -83,21 +139,7 @@ def process_manu():
         geologic_bias="crystalline"
     )
     configure_local_mixing_endmember(config, samples, "manu")
-
-    # Use a more realistic topology: Connect to 2 nearest spatial neighbors
-    from scipy.spatial import cKDTree
-    coords = np.array([[s['x'], s['y']] for s in samples])
-    tree = cKDTree(coords)
-    edges = []
-    for i, s in enumerate(samples):
-        # Find 3 nearest (including self)
-        dist, idx = tree.query([s['x'], s['y']], k=3)
-        for j in idx:
-            if i != j:
-                edges.append(Edge(u=samples[i]['site_id'], v=samples[j]['site_id'], edge_id=f"Manu_{i}_{j}"))
-
-    results, _ = fit_network_pipeline(samples, edges, config)
-    return results
+    return _build_and_fit(samples, config, "Manu")
 
 def process_talensi():
     print("Processing Talensi...")
@@ -111,6 +153,11 @@ def process_talensi():
             'x': row['Longitude'],
             'y': row['Latitude'],
             'z': row['Elevation'],
+            # keys the documented graph builder reads (Section 2.3): coordinates
+            # for the search radius, elevation as the head proxy inside p_ij
+            'lon': float(row['X coordinate'] if 'X coordinate' in row else row['Longitude']),
+            'lat': float(row['Y coordinate'] if 'Y coordinate' in row else row['Latitude']),
+            'elevation': float(row['Elevation']),
             'pH': row['pH'],
             'temp_C': row['Temp'],
             '18O': row['d18O'],
@@ -135,20 +182,7 @@ def process_talensi():
         geologic_bias="crystalline"
     )
     configure_local_mixing_endmember(config, samples, "talensi")
-
-    # Use a more realistic topology: Connect to 2 nearest spatial neighbors
-    from scipy.spatial import cKDTree
-    coords = np.array([[s['x'], s['y']] for s in samples])
-    tree = cKDTree(coords)
-    edges = []
-    for i, s in enumerate(samples):
-        dist, idx = tree.query([s['x'], s['y']], k=3)
-        for j in idx:
-            if i != j:
-                edges.append(Edge(u=samples[i]['site_id'], v=samples[j]['site_id'], edge_id=f"Talensi_{i}_{j}"))
-
-    results, _ = fit_network_pipeline(samples, edges, config)
-    return results
+    return _build_and_fit(samples, config, "Talensi")
 
 def main():
     m_res = process_manu()
@@ -166,6 +200,15 @@ def main():
             "gamma": r.gamma,
             "f": r.f,
             "endmember_id": r.endmember_id,
+            # directional confidence from the probabilistic builder, and the
+            # sheaf cohomology diagnostics attached by the refinement
+            "edge_confidence": r.edge_confidence,
+            "sheaf_h0_dim": r.sheaf_h0_dim,
+            "sheaf_h1_dim": r.sheaf_h1_dim,
+            "sheaf_obstruction_energy": r.sheaf_obstruction_energy,
+            "sheaf_obstruction_leverage": r.sheaf_obstruction_leverage,
+            "sheaf_cycle_obstruction_max": r.sheaf_cycle_obstruction_max,
+            "sheaf_cycle_count": r.sheaf_cycle_count,
         }
         # Flatten extents
         if r.z_labels and r.z_extents:

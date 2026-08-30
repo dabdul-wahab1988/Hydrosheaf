@@ -1,5 +1,7 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
+  "review_type": "targeted non-systematic search; not an exhaustive systematic review",
+  "coverage_limit": "Returned counts and duplicate-screening counts were not consistently exposed by the searched interfaces; no claim of exhaustive absence is made.",
   "searches": [
     {
       "source": "web search (general index)",
@@ -102,6 +104,42 @@
       "query": "Kish 1965 \"Survey Sampling\" effective sample size design effect citation publisher",
       "searched_on": "2026-07-24",
       "scope": "Identify the original source of the importance-weighting effective-sample-size formula used in this study, to correctly attribute the formula itself separately from the adopted numerical stability threshold."
+    },
+    {
+      "source": "publisher and primary-paper search",
+      "query": "cellular sheaf global sections restriction maps weighted graph Laplacian identity sheaf",
+      "searched_on": "2026-07-29",
+      "scope": "Verify the formal distinction and nesting relation needed to interpret the competence-matched sheaf-versus-graph ablation."
+    },
+    {
+      "source": "primary-paper and arXiv search",
+      "query": "necessity learnable sheaf Laplacians identity baseline graph learning 2026",
+      "searched_on": "2026-07-29",
+      "scope": "Identify current evidence motivating strong identity and graph baselines; the selected 2026 source is explicitly treated as a non-peer-reviewed preprint."
+    },
+    {
+      "source": "Copernicus publisher page and general scholarly index",
+      "query": "groundwater age distributions hydrochemistry symbolic regression gradient boosted regression",
+      "searched_on": "2026-07-30",
+      "scope": "Identify a recent non-sheaf hydrochemical metamodel for groundwater-age distributions and verify its model-derived target and bibliographic metadata."
+    },
+    {
+      "source": "AGU/Wiley publisher page and Crossref-indexed scholarly search",
+      "query": "groundwater contaminant transport source attribution attention graph neural network",
+      "searched_on": "2026-07-30",
+      "scope": "Identify a graph-structured groundwater transport alternative and verify task, comparator class and DOI."
+    },
+    {
+      "source": "AGU/Wiley publisher page and Crossref-indexed scholarly search",
+      "query": "groundwater level multiple spatial dependencies graph based deep learning",
+      "searched_on": "2026-07-30",
+      "scope": "Identify a graph-based groundwater-level forecasting alternative and verify bibliographic metadata."
+    },
+    {
+      "source": "publisher page and general scholarly index",
+      "query": "potential hydraulic connectivity aquifers hydrogeochemistry statistical analysis",
+      "searched_on": "2026-07-30",
+      "scope": "Identify a non-sheaf hydrochemical connectivity method and distinguish association/source-mixing inference from known-topology benchmarking."
     }
   ],
   "selected_sources": [
@@ -151,7 +189,7 @@
       "citation_key": "davisgoadrich2006prcurves",
       "supports_method_ids": ["METH-15"],
       "authority": "primary",
-      "reason": "Primary methodological reference establishing that PR-AUC is more informative than ROC-AUC under class imbalance, justifying its priority as the discrimination metric."
+      "reason": "Primary methodological reference showing how precision-recall curves can provide a more informative view under class imbalance and relating ROC and PR spaces; it is not cited as an unconditional ranking of scalar AUC summaries."
     },
     {
       "citation_key": "brier1950verification",
@@ -170,6 +208,30 @@
       "supports_method_ids": ["METH-17"],
       "authority": "primary",
       "reason": "Primary reference for treating multiple candidate models/evidence sources jointly under uncertainty, relevant background for the conventional integration rationale being tested."
+    },
+    {
+      "citation_key": "robinson2017sheaves",
+      "supports_method_ids": ["METH-31"],
+      "authority": "primary",
+      "reason": "Primary information-fusion treatment of sheaves as local data and consistency structures, supporting the global-section interpretation."
+    },
+    {
+      "citation_key": "hansen2019spectral",
+      "supports_method_ids": ["METH-31"],
+      "authority": "primary",
+      "reason": "Primary mathematical source for cellular sheaf Laplacians, restriction maps and global sections."
+    },
+    {
+      "citation_key": "hansen2019learning",
+      "supports_method_ids": ["METH-31"],
+      "authority": "primary",
+      "reason": "Primary source explicitly relating scalar identity-restriction sheaf Laplacians to weighted graph Laplacians and motivating the identity-limit gate."
+    },
+    {
+      "citation_key": "caralt2026necessity",
+      "supports_method_ids": ["METH-32"],
+      "authority": "primary",
+      "reason": "Recent non-peer-reviewed evidence that strong identity-sheaf baselines can be competitive in graph learning; used only to motivate comparator discipline, not as groundwater validation."
     }
   ]
 }

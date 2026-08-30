@@ -1,7 +1,7 @@
 {
   "schema_version": "2.1",
-  "title": "Evidence integration reduces groundwater interpretive non-uniqueness only conditionally in a single-generator benchmark with adverse controls",
-  "scope": "M7.3 single-generator conditional-integration benchmark: whether combining hydraulic, age and hydrochemical evidence reduces topological and age non-uniqueness, tested against an independent MODFLOW 6/MODPATH 7 synthetic truth with predeclared adverse controls, plus a descriptive Northern Ghana data-scope audit.",
+  "title": "Conditional evidence integration and the incremental contribution of sheaf structure in controlled-synthetic groundwater benchmarks",
+  "scope": "The study uses a MODFLOW/MODPATH flow-tracer-chemistry generator for the process-based integration and public-pipeline audits, a separate scalar affine generator for the representation benchmark and estimator diagnostic, and a descriptive Northern Ghana scope audit. Results are conditional capability tests, not whole-framework or field validation.",
   "objectives": [
     {
       "id": "OBJ-1",
@@ -36,32 +36,122 @@
         "Evidence-availability audit reported (chemistry, isotopes, age tracers, screen intervals, coordinates, connectivity)",
         "Explicit claim boundary reported distinguishing supportable from non-identifiable interpretations"
       ]
+    },
+    {
+      "id": "OBJ-5",
+      "statement": "Quantify what affine restriction maps and a global section contribute beyond edge-local and identity-Laplacian weighted graphs.",
+      "acceptance_criteria": [
+        "Competence-matched edge-local graph, identity-Laplacian, affine-sheaf and permuted-map conditions evaluated on a locked test split",
+        "Identity-limit numerical equivalence demonstrated",
+        "Paired case-block PR-AUC, Brier and conflict-localisation contrasts reported with predeclared claim rules",
+        "Fresh-seed robust/global/hybrid estimators and separately cross-fitted calibration evaluated under a second two-stage lock"
+      ]
     }
   ],
   "inputs": [
-    {"id": "DATA-1", "path": "results/m7_3_locked/evidence_panel_summary.csv", "provenance": "run_m7_3_nonuniqueness.py locked run, protocol commit d336e87"},
-    {"id": "DATA-2", "path": "results/m7_3_locked/evidence_case_bootstrap_contrasts.csv", "provenance": "run_m7_3_nonuniqueness.py locked run"},
-    {"id": "DATA-3", "path": "results/m7_3_locked/topology_age_sensitivity.csv", "provenance": "run_m7_3_nonuniqueness.py locked run"},
-    {"id": "DATA-4", "path": "results/m7_3_locked/topology_age_bootstrap_contrasts.csv", "provenance": "run_m7_3_nonuniqueness.py locked run"},
-    {"id": "DATA-5", "path": "results/m7_3_locked/reaction_nonuniqueness_summary.csv", "provenance": "run_m7_3_nonuniqueness.py locked run"},
-    {"id": "DATA-6", "path": "results/m7_3_locked/ghana_data_scope_audit.json", "provenance": "audit_ghana_workbook, run_m7_3_nonuniqueness.py locked run"},
-    {"id": "DATA-7", "path": "results/m7_3_locked/manifest.json", "provenance": "locked-run manifest, protocol commit d336e87"}
+    {
+      "id": "DATA-1",
+      "path": "results/m7_3_locked/evidence_panel_summary.csv",
+      "provenance": "run_m7_3_nonuniqueness.py locked run, protocol commit d336e87"
+    },
+    {
+      "id": "DATA-2",
+      "path": "results/m7_3_locked/evidence_case_bootstrap_contrasts.csv",
+      "provenance": "run_m7_3_nonuniqueness.py locked run"
+    },
+    {
+      "id": "DATA-3",
+      "path": "results/m7_3_locked/topology_age_sensitivity.csv",
+      "provenance": "run_m7_3_nonuniqueness.py locked run"
+    },
+    {
+      "id": "DATA-4",
+      "path": "results/m7_3_locked/topology_age_bootstrap_contrasts.csv",
+      "provenance": "run_m7_3_nonuniqueness.py locked run"
+    },
+    {
+      "id": "DATA-5",
+      "path": "results/m7_3_locked/reaction_nonuniqueness_summary.csv",
+      "provenance": "run_m7_3_nonuniqueness.py locked run"
+    },
+    {
+      "id": "DATA-6",
+      "path": "results/m7_3_locked/ghana_data_scope_audit.json",
+      "provenance": "audit_ghana_workbook, run_m7_3_nonuniqueness.py locked run"
+    },
+    {
+      "id": "DATA-7",
+      "path": "results/m7_3_locked/manifest.json",
+      "provenance": "locked-run manifest, protocol commit d336e87"
+    },
+    {
+      "id": "DATA-8",
+      "path": "results/RUN-M7-SHEAF-VS-GRAPH-20260729-01/run_manifest.json",
+      "provenance": "Prospectively hash-locked M7.4 comparator run"
+    },
+    {
+      "id": "DATA-9",
+      "path": "results/RUN-M7-ROBUST-HYBRID-SHEAF-20260729-01/locked_test/run_manifest.json",
+      "provenance": "Two-stage prospectively locked one-time M7.5 confirmatory run"
+    }
   ],
   "risks": [
-    {"id": "RISK-1", "risk": "Synthetic truth is model-conditioned and could be mistaken for field validation", "mitigation": "Explicit claim guardrails in Outline.md, Methods, Discussion and Conclusion distinguishing synthetic from field truth"},
-    {"id": "RISK-2", "risk": "Reduced posterior uncertainty could be misread as improved inference under evidence misspecification", "mitigation": "Predeclared adverse (permutation) controls and paired discrimination/calibration metrics reported alongside entropy"}
+    {
+      "id": "RISK-1",
+      "risk": "Synthetic truth is model-conditioned and could be mistaken for field validation",
+      "mitigation": "Explicit claim guardrails in Outline.md, Methods, Discussion and Conclusion distinguishing synthetic from field truth"
+    },
+    {
+      "id": "RISK-2",
+      "risk": "Reduced posterior uncertainty could be misread as improved inference under evidence misspecification",
+      "mitigation": "Predeclared adverse (permutation) controls and paired discrimination/calibration metrics reported alongside entropy"
+    },
+    {
+      "id": "RISK-3",
+      "risk": "A sheaf-versus-graph comparison could attribute gains to unequal calibration, tuning or optimisers",
+      "mitigation": "Shared and separately cross-fitted calibration regimes, identical numerical solver in the identity limit, equal-dimensional features, frozen development selection, and permuted-map controls"
+    }
   ],
-  "quality": {"minimum_test_coverage": 80},
+  "quality": {
+    "minimum_test_coverage": 80
+  },
   "implementation": {
     "backend_language": "python",
-    "entrypoint": "scripts/run_m7_3_nonuniqueness.py",
+    "entrypoint": "generation_script.py",
     "dependency_lock": "../../.venv",
     "results_store_profile": "local-files",
     "r_consumer_enabled": true,
     "qgis_consumer_enabled": false
   },
   "manuscript_requirements": {
-    "figures": ["FIG-1", "FIG-2", "FIG-3", "FIG-4", "FIG-5", "FIG-S1"],
-    "tables": ["TAB-1", "TAB-2", "TAB-3", "TAB-4", "TAB-5", "TAB-6", "TAB-S1", "TAB-S2", "TAB-S3", "TAB-S4", "TAB-S5"]
+    "figures": [
+      "FIG-1",
+      "FIG-2",
+      "FIG-3",
+      "FIG-4",
+      "FIG-5",
+      "FIG-6",
+      "FIG-7",
+      "FIG-S1"
+    ],
+    "tables": [
+      "TAB-1",
+      "TAB-7",
+      "TAB-8",
+      "TAB-9",
+      "TAB-S1",
+      "TAB-S2",
+      "TAB-S3",
+      "TAB-S4",
+      "TAB-S5",
+      "TAB-S6",
+      "TAB-S7",
+      "TAB-S8",
+      "TAB-S9",
+      "TAB-S10",
+      "TAB-S11",
+      "TAB-S12",
+      "TAB-S13"
+    ]
   }
 }

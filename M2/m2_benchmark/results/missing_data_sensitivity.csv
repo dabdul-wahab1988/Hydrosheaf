@@ -1,0 +1,5 @@
+scenario,n_edge_results,transport_relative_bias_median_percent,transport_relative_abs_bias_median_percent,reaction_relative_bias_median_percent,reaction_relative_abs_bias_median_percent,objective_score_median
+complete,1400,7.443952223117398,15.84241731343121,-100.0,100.0,0.40294130010849033
+ion_incomplete,1400,7.751490288272246,15.894896961551185,-100.0,100.0,0.42973420004984864
+tracer_absent,1400,7.443952223117398,15.84241731343121,-100.0,100.0,0.40294130010849033
+head_absent,1400,7.443952223117398,15.84241731343121,-100.0,100.0,0.40294130010849033
