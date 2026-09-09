@@ -4,7 +4,7 @@ import unittest
 
 from hydrosheaf.config import Config
 from hydrosheaf.null_models.chemistry import chemistry_null_score
-from hydrosheaf.null_models.lithology import lithology_null_score
+from hydrosheaf.null_models.lithology import lithology_null_score, mapped_geology_similarity
 from hydrosheaf.null_models.endmembers import endmember_null_score
 from hydrosheaf.null_models import compute_null_penalty
 
@@ -47,6 +47,21 @@ class ChemistryNullModelTests(unittest.TestCase):
 
 
 class LithologyNullModelTests(unittest.TestCase):
+    def test_mapped_geology_is_separate_and_unknown_abstains(self):
+        same = {
+            "geology_join_status": "MATCHED",
+            "geology_code_1000": 3502,
+            "geology_symbol": "gvhr",
+        }
+        score, flags = mapped_geology_similarity(same, same)
+        self.assertEqual(score, 1.0)
+        self.assertIn("null_mapped_geology_exact", flags)
+        unknown, flags = mapped_geology_similarity(
+            {"geology_join_status": "NO_MATCH"}, same
+        )
+        self.assertIsNone(unknown)
+        self.assertIn("mapped_geology_unknown", flags)
+
     def test_common_lithology_raises_null(self):
         """Same aquifer layer should increase null score."""
         config = Config()

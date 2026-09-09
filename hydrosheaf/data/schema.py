@@ -1,5 +1,7 @@
 """Input schema helpers."""
 
+import math
+
 from typing import Iterable, List, Mapping, Optional, Sequence, Tuple
 
 
@@ -55,7 +57,8 @@ def parse_numeric(value: object, detection_policy: str) -> Optional[float]:
     if value is None:
         return None
     if isinstance(value, (int, float)):
-        return float(value)
+        number = float(value)
+        return number if math.isfinite(number) else None
     text = str(value).strip()
     if not text:
         return None
@@ -66,6 +69,8 @@ def parse_numeric(value: object, detection_policy: str) -> Optional[float]:
             limit = float(number)
         except ValueError:
             return None
+        if not math.isfinite(limit):
+            return None
         if detection_policy == "drop":
             return None
         if detection_policy == "zero":
@@ -75,7 +80,7 @@ def parse_numeric(value: object, detection_policy: str) -> Optional[float]:
         return limit
     try:
         val = float(text)
-        if val < 0:
+        if not math.isfinite(val) or val < 0:
             # Negative concentrations are physically impossible. Treat as invalid/missing.
             return None
         return val

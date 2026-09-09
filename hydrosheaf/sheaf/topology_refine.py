@@ -58,6 +58,7 @@ def _ensure_null_models():
 from ..graph.types import Edge
 from ..isotopes import extract_isotopes, isotope_penalty
 from ..null_models import compute_null_penalty
+from ..validation.age_adjacency import compute_age_adjacency_evidence
 from ..validation.evidence import EdgeEvidenceClass, classify_edge_evidence
 from .directed_section import (
     build_edge_maps,
@@ -113,6 +114,7 @@ class EdgeSheafScore:
     evidence_reason: str = ""
     ot_cost: float = 0.0
     ot_attrs: Dict[str, float] = field(default_factory=dict)
+    age_adjacency_attrs: Dict[str, object] = field(default_factory=dict)
     causal_attrs: Dict[str, object] = field(default_factory=dict)
 
     @property
@@ -245,6 +247,10 @@ def _edge_age_cost(
 
     flags: List[str] = []
     if node_u.age_years is None or node_v.age_years is None:
+        # Missing age is absence of evidence, not evidence of a perfectly
+        # compatible edge.  Keep an explicit flag so downstream integrations
+        # can distinguish the neutral score from a genuinely low-cost edge.
+        flags.append("age_missing")
         return 0.0, flags
     if node_u.age_identifiable is False or node_v.age_identifiable is False:
         flags.append("age_unidentified")
@@ -279,6 +285,136 @@ def _edge_age_cost(
     elif abs(travel_z) > 2.0:
         flags.append("age_travel_mismatch")
     return float(cost), flags
+
+
+def _age_adjacency_probability(log_bayes_factor: float) -> float:
+    """Convert an equal-prior direct-vs-indirect log Bayes factor to a probability.
+
+    This is an evidence-scale convenience for edge ranking, not a calibrated
+    posterior.  A prior other than 0.5 must be applied by the caller after
+    inspecting the returned log Bayes factor.
+    """
+
+    bounded = max(-40.0, min(40.0, float(log_bayes_factor)))
+    if bounded >= 0.0:
+        return 1.0 / (1.0 + math.exp(-bounded))
+    exp_value = math.exp(bounded)
+    return exp_value / (1.0 + exp_value)
+
+
+def _edge_age_adjacency_cost(
+    edge: Edge,
+    node_u: NodeIsotopeInfo,
+    node_v: NodeIsotopeInfo,
+    *,
+    expected_travel_years: float,
+    travel_sigma_years: float,
+    config: Config,
+) -> Tuple[float, Dict[str, object], List[str]]:
+    """Score directness only when an explicit indirect alternative is supplied.
+
+    The ordinary age cost remains the direction/travel-time score used by
+    existing runs.  This optional term compares the observed age increment
+    with caller-supplied direct and indirect travel-time hypotheses.  No
+    graph closure or intermediate-node truth is inferred inside the
+    production scorer; callers must attach an independent indirect hypothesis
+    to the edge attributes.
+    """
+
+    if not getattr(config, "sheaf_age_adjacency_enabled", False):
+        return 0.0, {}, []
+
+    attrs = edge.attrs or {}
+    if "direct_travel_years" in attrs:
+        direct_travel = attrs.get("direct_travel_years")
+    elif attrs.get("length_m") is not None or attrs.get("distance_km") is not None:
+        direct_travel = expected_travel_years
+    else:
+        direct_travel = None
+    indirect_travel = None
+    for key in (
+        "indirect_travel_years",
+        "transitive_travel_years",
+        "indirect_travel_time_years",
+    ):
+        if attrs.get(key) is not None:
+            indirect_travel = attrs[key]
+            break
+    # ``travel_sigma_years`` is already passed once as shared process/model
+    # uncertainty below.  Do not use it again as the default hypothesis
+    # dispersion: doing so would double-count the legacy age uncertainty.
+    # Edge-specific RTD dispersions are opt-in and must be supplied explicitly.
+    direct_travel_sigma = attrs.get("direct_travel_sigma_years", 0.0)
+    indirect_travel_sigma = attrs.get("indirect_travel_sigma_years", 0.0)
+    age_covariance = attrs.get("age_covariance_years2", 0.0)
+
+    if node_u.age_years is None or node_v.age_years is None:
+        return (
+            0.0,
+            {
+                "adjacency_status": "insufficient_information",
+                "flags": ["age_measurement_missing"],
+            },
+            ["age_adjacency_age_missing"],
+        )
+    if node_u.age_identifiable is False or node_v.age_identifiable is False:
+        return (
+            0.0,
+            {
+                "adjacency_status": "insufficient_information",
+                "flags": ["age_measurement_unidentified"],
+            },
+            ["age_adjacency_age_unidentified"],
+        )
+
+    try:
+        evidence = compute_age_adjacency_evidence(
+            node_u.age_years,
+            node_v.age_years,
+            upstream_sigma_years=float(
+                node_u.age_sigma_years
+                if node_u.age_sigma_years is not None
+                else _get_config_float(config, "sheaf_age_default_sigma_years", 10.0)
+            ),
+            downstream_sigma_years=float(
+                node_v.age_sigma_years
+                if node_v.age_sigma_years is not None
+                else _get_config_float(config, "sheaf_age_default_sigma_years", 10.0)
+            ),
+            # ``travel_sigma_years`` already contains the configured process
+            # discrepancy and velocity CV from the legacy age score.  Pass it
+            # once as the shared increment/process uncertainty; explicit edge
+            # RTD dispersions are added separately below.
+            age_covariance_years2=age_covariance,
+            process_sigma_years=max(0.0, float(travel_sigma_years)),
+            direct_travel_years=direct_travel,
+            indirect_travel_years=indirect_travel,
+            direct_travel_sigma_years=direct_travel_sigma,
+            indirect_travel_sigma_years=indirect_travel_sigma,
+        )
+    except (TypeError, ValueError) as exc:
+        return (
+            0.0,
+            {
+                "adjacency_status": "invalid",
+                "error": str(exc),
+                "flags": ["invalid_edge_age_adjacency_input"],
+            },
+            ["age_adjacency_invalid_input"],
+        )
+
+    evidence_attrs = evidence.to_dict()
+    log_bayes_factor = evidence.log_bayes_factor_direct_vs_indirect
+    adjacency_cost = 0.0
+    if log_bayes_factor is not None and evidence.adjacency_status == "scored":
+        direct_probability = _age_adjacency_probability(log_bayes_factor)
+        adjacency_cost = -math.log(max(1.0e-12, direct_probability))
+        evidence_attrs["direct_probability_equal_prior"] = direct_probability
+        evidence_attrs["direct_adjacency_cost"] = adjacency_cost
+
+    flags = [f"age_adjacency_{flag}" for flag in evidence.flags]
+    flags.append(f"age_adjacency_{evidence.adjacency_status}")
+    return float(adjacency_cost), evidence_attrs, flags
 
 
 def _edge_iso_cost(
@@ -562,6 +698,7 @@ def _score_candidates(
                 cl_missing = True
 
         age_cost = 0.0
+        age_adjacency_attrs: Dict[str, object] = {}
         if getattr(config, "sheaf_age_enabled", True):
             attrs = edge.attrs or {}
             length_m = attrs.get("length_m")
@@ -599,6 +736,22 @@ def _score_candidates(
             age_cost = age_c * weight_age
             if age_flags:
                 flags.extend(age_flags)
+            adjacency_cost, age_adjacency_attrs, adjacency_flags = (
+                _edge_age_adjacency_cost(
+                    edge,
+                    node_u,
+                    node_v,
+                    expected_travel_years=expected_travel,
+                    travel_sigma_years=travel_sigma,
+                    config=config,
+                )
+            )
+            age_cost += (
+                _get_config_float(config, "sheaf_age_adjacency_weight", 1.0)
+                * adjacency_cost
+            )
+            if adjacency_flags:
+                flags.extend(adjacency_flags)
 
         # === Null-model integration (Phase 0-1) ===
         null_score = 0.0
@@ -740,6 +893,7 @@ def _score_candidates(
             evidence_reason=evidence_reason,
             ot_cost=ot_cost,
             ot_attrs=ot_attrs,
+            age_adjacency_attrs=age_adjacency_attrs,
             causal_attrs=causal_attrs,
         )
     return scores
@@ -857,6 +1011,53 @@ def refine_edges_with_sheaf(
     stats = compute_isotope_stats(sample_map.values(), config)
     node_info = _build_node_info(sample_map, stats, config)
     scores = _score_candidates(candidate_list, node_info, sample_map, stats, config)
+
+    # Preserve edge-local age evidence for the complete candidate universe.
+    # Selection is intentionally allowed to discard edges, but discarding an
+    # edge must not erase its score: integrations that later fuse age with
+    # hydraulic/chemical evidence need the score for every candidate, not only
+    # the sheaf-retained subset.  The returned ``selected`` list still has the
+    # original selection semantics.
+    for edge in candidate_list:
+        score_obj = scores.get(edge.edge_id)
+        if score_obj is None:
+            continue
+        attrs = dict(edge.attrs or {})
+        attrs["sheaf_cost_age"] = float(score_obj.age_cost)
+        age_flags = [flag for flag in score_obj.flags if flag.startswith("age_")]
+        attrs["sheaf_age_flags"] = ",".join(age_flags)
+        attrs["sheaf_age_evidence_available"] = bool(
+            getattr(config, "sheaf_age_enabled", True)
+            and not any(
+                flag in {"age_missing", "age_unidentified"} for flag in age_flags
+            )
+        )
+        if score_obj.age_adjacency_attrs:
+            adjacency_attrs = dict(score_obj.age_adjacency_attrs)
+            attrs["sheaf_age_adjacency"] = adjacency_attrs
+            attrs["sheaf_age_adjacency_status"] = str(
+                adjacency_attrs.get("adjacency_status", "unknown")
+            )
+            attrs["sheaf_age_adjacency_evidence_available"] = bool(
+                adjacency_attrs.get("adjacency_status") == "scored"
+                and adjacency_attrs.get("log_bayes_factor_direct_vs_indirect")
+                is not None
+            )
+            if adjacency_attrs.get("log_bayes_factor_direct_vs_indirect") is not None:
+                attrs["sheaf_age_log_bayes_factor_direct_vs_indirect"] = float(
+                    adjacency_attrs["log_bayes_factor_direct_vs_indirect"]
+                )
+            if adjacency_attrs.get("direct_probability_equal_prior") is not None:
+                attrs["sheaf_age_direct_probability_equal_prior"] = float(
+                    adjacency_attrs["direct_probability_equal_prior"]
+                )
+            attrs["sheaf_age_adjacency_flags"] = ",".join(
+                str(flag) for flag in adjacency_attrs.get("flags", [])
+            )
+        elif getattr(config, "sheaf_age_adjacency_enabled", False):
+            attrs["sheaf_age_adjacency_status"] = "not_scored"
+            attrs["sheaf_age_adjacency_evidence_available"] = False
+        edge.attrs = attrs
 
     grouped: Dict[str, List[str]] = {}
     for edge in candidate_list:

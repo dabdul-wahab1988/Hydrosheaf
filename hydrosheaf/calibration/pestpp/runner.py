@@ -13,6 +13,7 @@ import zipfile
 import urllib.request
 import socket
 import time
+import tempfile
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 import re
@@ -1391,6 +1392,41 @@ class PestRunner:
             self._terminate_process(agent)
         self._agents = []
 
+    def _prepare_panther_agent_dirs(self) -> tuple[Path, List[Path]]:
+        """Create isolated working folders for local PANTHER agents.
+
+        PEST++ agents write the template-expanded model inputs and model
+        outputs in their current working directory.  Sharing the manager
+        directory between agents makes concurrent runs overwrite one
+        another's files and can leave the manager waiting forever.  Each
+        local agent therefore receives a private copy of the prepared
+        workspace.  The temporary root is removed by :meth:`run` after all
+        child processes have been stopped.
+        """
+        agent_root = Path(
+            tempfile.mkdtemp(
+                prefix=f"{self.work_dir.name}_panther_",
+                dir=str(self.work_dir.parent),
+            )
+        ).resolve()
+        source_files = [
+            path
+            for path in self.work_dir.iterdir()
+            if path.is_file() and path.name.lower() != "pest.stp"
+        ]
+        agent_dirs: List[Path] = []
+        try:
+            for index in range(self.n_workers):
+                agent_dir = agent_root / f"agent_{index + 1}"
+                agent_dir.mkdir()
+                for source in source_files:
+                    shutil.copy2(source, agent_dir / source.name)
+                agent_dirs.append(agent_dir)
+        except Exception:
+            shutil.rmtree(agent_root, ignore_errors=True)
+            raise
+        return agent_root, agent_dirs
+
     @staticmethod
     def _terminate_process(proc: Optional[subprocess.Popen]) -> None:
         """Terminate a spawned PEST++ process and close captured pipes."""
@@ -1459,9 +1495,11 @@ class PestRunner:
         """Execute PEST++ binary and parse the outputs."""
         pst = self.prepare()
         pst_file = f"{self.case_name}.pst"
+        panther_agent_root: Optional[Path] = None
 
         # Find Executable
         exe_path = get_executable_path(self.engine, self.pestpp_version)
+        manager: Optional[subprocess.Popen] = None
 
         try:
             if self.n_workers <= 1:
@@ -1488,6 +1526,12 @@ class PestRunner:
                 pst.pestpp_options = self.pestpp_options.copy()
                 pst.write(self.work_dir / f"{self.case_name}.pst")
 
+                # PEST++ requires every agent to have its own working folder
+                # because template and instruction processing is local to the
+                # agent.  Prepare those folders only after the final control
+                # file has been written, so all generated options are copied.
+                panther_agent_root, panther_agent_dirs = self._prepare_panther_agent_dirs()
+
                 # Launch manager (non-blocking)
                 manager_cmd = [exe_path, pst_file, "/h", f":{port}"]
                 manager = subprocess.Popen(
@@ -1499,9 +1543,13 @@ class PestRunner:
 
                 # Launch agents
                 for i in range(self.n_workers):
-                    agent_cmd = [exe_path, pst_file, "/h", f"localhost:{port}"]
+                    # Keep manager/agent traffic on the IPv4 loopback.  On
+                    # Windows, ``localhost`` can resolve to IPv6 first and
+                    # produce a firewall prompt or a connection mismatch
+                    # even though the manager is local.
+                    agent_cmd = [exe_path, pst_file, "/h", f"127.0.0.1:{port}"]
                     agent = subprocess.Popen(
-                        agent_cmd, cwd=str(self.work_dir)
+                        agent_cmd, cwd=str(panther_agent_dirs[i])
                     )
                     self._agents.append(agent)
                     logger.debug(
@@ -1542,6 +1590,9 @@ class PestRunner:
             return {"success": False, "phi": -1}
         finally:
             self._terminate_agents()
+            self._terminate_process(manager)
+            if panther_agent_root is not None:
+                shutil.rmtree(panther_agent_root, ignore_errors=True)
 
         # Parse Results
         result = {"success": True, "phi": 0.0}

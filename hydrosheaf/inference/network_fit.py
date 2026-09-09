@@ -1,16 +1,16 @@
 """Network-level fitting pipeline."""
 
 import math
+from dataclasses import replace
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Union
+
+import pandas as pd
 
 from ..config import Config
 from ..log import get_logger
-from dataclasses import replace
-
-logger = get_logger("inference.network_fit")
-
-
-from ..data.schema import vector_from_sample
+from ..data.schema import normalize_sample, parse_numeric, vector_from_sample
+from ..models.ratios import compare_ratio_diagnostics
+from ..models.geology_context import add_boundary_confidence
 from ..graph.build import (
     EdgeInput,
     build_edges,
@@ -28,7 +28,8 @@ from ..models.redox import get_redox_constraints
 from ..sheaf.topology_refine import refine_edges_with_sheaf
 from .edge_fit import EdgeResult, fit_edge
 from ..nitrate_source_v2 import infer_node_posteriors
-import pandas as pd
+
+logger = get_logger("inference.network_fit")
 
 
 def _safe_float(value: object) -> Optional[float]:
@@ -39,6 +40,114 @@ def _safe_float(value: object) -> Optional[float]:
         return f if math.isfinite(f) else None
     except (ValueError, TypeError):
         return None
+
+
+def _common_observed_ions(
+    sample_u: Mapping[str, object],
+    sample_v: Mapping[str, object],
+    config: Config,
+) -> tuple[list[str], dict[str, object], dict[str, object]]:
+    """Return the per-edge ion panel and normalized endpoint observations.
+
+    Field packages have complementary analytical panels (for example, the
+    NorthenGhana workbook contains Sr/SiO2 while Talensi and Lower Anayari
+    contain Fe).  Requiring the global 11-ion panel would therefore discard
+    otherwise valid cross-package edges.  This helper projects each edge onto
+    the ions observed at *both* endpoints, preserving typed missingness and
+    preventing zero-imputation from creating artificial reactions.
+    """
+
+    # Preserve the historical behaviour unless a caller explicitly opts into
+    # the sparse-panel contract.  This is important for older locked runs:
+    # ``missing_policy='skip'`` used to reject an edge with one missing ion,
+    # while ``impute_zero`` used the documented zero-imputation path.
+    if not bool(getattr(config, "sparse_panel_enabled", False)):
+        u_values, u_norm = vector_from_sample(
+            sample_u,
+            config.ion_order,
+            config.missing_policy,
+            config.detection_limit_policy,
+        )
+        v_values, v_norm = vector_from_sample(
+            sample_v,
+            config.ion_order,
+            config.missing_policy,
+            config.detection_limit_policy,
+        )
+        if u_values is None or v_values is None:
+            return [], u_norm, v_norm
+        # Keep the normalized mapping and make the explicit imputation visible
+        # to downstream diagnostics rather than silently carrying ``None``.
+        for ion, value in zip(config.ion_order, u_values):
+            u_norm[ion] = value
+        for ion, value in zip(config.ion_order, v_values):
+            v_norm[ion] = value
+        return list(config.ion_order), u_norm, v_norm
+
+    u_norm = normalize_sample(
+        sample_u,
+        config.ion_order,
+        config.detection_limit_policy,
+    )
+    v_norm = normalize_sample(
+        sample_v,
+        config.ion_order,
+        config.detection_limit_policy,
+    )
+    common = [
+        ion
+        for ion in config.ion_order
+        if parse_numeric(u_norm.get(ion), config.detection_limit_policy) is not None
+        and parse_numeric(v_norm.get(ion), config.detection_limit_policy) is not None
+    ]
+    minimum = max(1, int(getattr(config, "minimum_observed_ions", 4)))
+    if len(common) < minimum:
+        return [], u_norm, v_norm
+    return common, u_norm, v_norm
+
+
+def _project_config(config: Config, ion_order: Sequence[str]) -> Config:
+    """Project a configuration (weights/endmembers/measured ions) to a panel."""
+
+    requested = list(ion_order)
+    original = list(config.ion_order)
+    indices = [original.index(ion) for ion in requested]
+    updates: dict[str, object] = {
+        "ion_order": requested,
+        "weights": [float(config.weights[index]) for index in indices],
+        "conservative_weights": [
+            float(config.conservative_weights[index]) for index in indices
+        ],
+    }
+    if config.measured_ions:
+        updates["measured_ions"] = [
+            ion for ion in config.measured_ions if ion in requested
+        ]
+    if config.mixing_endmembers:
+        updates["mixing_endmembers"] = {
+            name: [float(vector[index]) for index in indices]
+            for name, vector in config.mixing_endmembers.items()
+            if len(vector) == len(original)
+        }
+    return replace(config, **updates)
+
+
+def _mapped_geology_key(sample: Mapping[str, object]) -> Optional[str]:
+    """Build a descriptive mapped-geology key without treating it as truth."""
+
+    status = str(sample.get("geology_join_status") or "").strip().upper()
+    if status and status not in {"MATCHED", "WITHIN", "BOUNDARY_REVIEW"}:
+        return None
+    symbol = str(sample.get("geology_symbol") or "").strip()
+    code = str(sample.get("geology_code_1000") or "").strip()
+    unit = str(sample.get("geology_stratigraphic_unit") or "").strip()
+    if symbol and code and code.lower() not in {"nan", "none"}:
+        return f"{code}:{symbol}"
+    if symbol:
+        return symbol
+    if unit and unit.lower() not in {"nan", "none"}:
+        return unit
+    return None
 
 
 def estimate_edge_residence_time_days(
@@ -123,14 +232,42 @@ def _sample_map(samples: object) -> Dict[str, Mapping[str, object]]:
         # We need to ensure the values are Mapping[str, object]
         return {str(k): v for k, v in samples.items()}
     if isinstance(samples, Sequence):
+        rows = list(samples)
         mapping: Dict[str, Mapping[str, object]] = {}
-        for row in samples:
+        # A seasonal site can legitimately occur more than once (for example
+        # Dry/Wet records in the Northern Ghana workbook).  Index records by a
+        # stable sample/node identifier first so one season cannot overwrite
+        # another.  A site alias is added only when it is unambiguous; an edge
+        # that names an ambiguous physical site must use the sample ID.
+        site_groups: Dict[str, list[Mapping[str, object]]] = {}
+        for row in rows:
+            if not isinstance(row, Mapping):
+                raise TypeError("Each sample row must be a mapping.")
+            primary = row.get("node_id") or row.get("sample_id")
+            if primary is None:
+                primary = row.get("site_id") or row.get("SampleID") or row.get("Code")
+            if primary is None:
+                raise ValueError(
+                    "Each sample row must include node_id, sample_id, site_id, SampleID, or Code."
+                )
+            mapping[str(primary)] = row
             site_id = row.get("site_id")
-            if site_id is None:
-                site_id = row.get("SampleID") or row.get("Code")
-            if site_id is None:
-                raise ValueError("Each sample row must include site_id, SampleID, or Code.")
-            mapping[str(site_id)] = row
+            if site_id is not None and str(site_id).strip():
+                site_groups.setdefault(str(site_id), []).append(row)
+        has_explicit_node_ids = any(
+            isinstance(row, Mapping) and row.get("node_id") is not None
+            for row in rows
+        )
+        for site_id, group in site_groups.items():
+            if len(group) == 1:
+                mapping.setdefault(site_id, group[0])
+            elif not has_explicit_node_ids:
+                # Preserve the historical sequence API for legacy records
+                # that have repeated site IDs but no explicit node identity:
+                # the last record was the previous deterministic winner.  New
+                # field records always carry ``node_id`` and therefore require
+                # an unambiguous sample/node ID for repeated seasonal sites.
+                mapping[site_id] = group[-1]
         return mapping
     raise TypeError("Unsupported samples input type.")
 
@@ -162,23 +299,19 @@ def fit_network(
         sample_u = sample_map[edge.u]
         sample_v = sample_map[edge.v]
 
-        x_u, sample_u_norm = vector_from_sample(
-            sample_u,
-            config.ion_order,
-            config.missing_policy,
-            config.detection_limit_policy,
+        observed_ions, sample_u_norm, sample_v_norm = _common_observed_ions(
+            sample_u, sample_v, config
         )
-        if x_u is None:
+        if not observed_ions:
+            logger.info(
+                "Skipping edge %s: fewer than %s ions are observed at both endpoints.",
+                edge.edge_id,
+                getattr(config, "minimum_observed_ions", 4),
+            )
             continue
-
-        x_v, sample_v_norm = vector_from_sample(
-            sample_v,
-            config.ion_order,
-            config.missing_policy,
-            config.detection_limit_policy,
-        )
-        if x_v is None:
-            continue
+        config_edge = _project_config(config, observed_ions)
+        x_u = [float(sample_u_norm[ion]) for ion in observed_ions]
+        x_v = [float(sample_v_norm[ion]) for ion in observed_ions]
 
         # Build edge-specific configuration (handling layer-based priors)
         layer_key = getattr(config, "layer_key", "aquifer_layer")
@@ -190,11 +323,10 @@ def fit_network(
         except (TypeError, ValueError):
             layer_idx = None
 
-        config_edge = config
         if layer_idx is not None:
             minerals_for_layer = getattr(config, "layer_mineral_map", {}).get(layer_idx)
             if minerals_for_layer:
-                config_edge = replace(config, active_minerals=list(minerals_for_layer))
+                config_edge = replace(config_edge, active_minerals=list(minerals_for_layer))
 
         # The dictionary contains sample- and layer-specific logic gates.  Bounds
         # must be constructed against this exact label order; using one global
@@ -262,14 +394,18 @@ def fit_network(
             if neighbor_id not in sample_map:
                 continue
             n_sample = sample_map[neighbor_id]
-            x_n, _ = vector_from_sample(
-                 n_sample, 
-                 config.ion_order, 
-                 config.missing_policy, 
-                 config.detection_limit_policy
+            n_norm = normalize_sample(
+                n_sample,
+                observed_ions,
+                config.detection_limit_policy,
             )
-            if x_n is not None:
-                extra_endmembers[f"lateral_{neighbor_id}"] = x_n
+            if all(
+                parse_numeric(n_norm.get(ion), config.detection_limit_policy) is not None
+                for ion in observed_ions
+            ):
+                extra_endmembers[f"lateral_{neighbor_id}"] = [
+                    float(n_norm[ion]) for ion in observed_ions
+                ]
 
         result = fit_edge(
             x_u,
@@ -286,6 +422,44 @@ def fit_network(
             extra_endmembers=extra_endmembers,
             pre_si_mask=pre_si_mask,
         )
+
+        result.observed_ions = list(observed_ions)
+        result.ratio_diagnostics = compare_ratio_diagnostics(
+            sample_u_norm, sample_v_norm
+        )
+        result.geology_u_key = _mapped_geology_key(sample_u_norm)
+        result.geology_v_key = _mapped_geology_key(sample_v_norm)
+        geology_u_context = add_boundary_confidence(
+            sample_u_norm,
+            sigma_m=float(getattr(config_edge, "geology_boundary_sigma_m", 500.0)),
+        )
+        geology_v_context = add_boundary_confidence(
+            sample_v_norm,
+            sigma_m=float(getattr(config_edge, "geology_boundary_sigma_m", 500.0)),
+        )
+        result.geology_u_confidence = _safe_float(
+            geology_u_context.get("geology_confidence")
+            if isinstance(geology_u_context, Mapping)
+            else None
+        )
+        result.geology_v_confidence = _safe_float(
+            geology_v_context.get("geology_confidence")
+            if isinstance(geology_v_context, Mapping)
+            else None
+        )
+        if result.geology_u_key and result.geology_v_key:
+            result.geology_overlap = float(result.geology_u_key == result.geology_v_key)
+        statuses = {
+            str(sample_u_norm.get("geology_join_status") or "").strip().upper(),
+            str(sample_v_norm.get("geology_join_status") or "").strip().upper(),
+        }
+        if statuses & {"NO_MATCH", "UNMATCHED", "BOUNDARY_REVIEW", "OVERLAP_REVIEW"}:
+            result.geology_prior_status = "review_or_unmatched"
+        elif result.geology_u_key and result.geology_v_key:
+            result.geology_prior_status = "mapped_metadata"
+        else:
+            result.geology_prior_status = "unknown"
+        result.geology_prior_source = "sample_mapped_geology_fields"
         
         if result.transport_model != "mix":
              logger.debug(f"Edge {edge.edge_id}: Selected model '{result.transport_model}' (obj={result.objective_score:.4f})")
@@ -827,7 +1001,12 @@ def edge_process_maps(results: List[EdgeResult]) -> Dict[str, List[Dict[str, obj
 def predict_node_ec_tds(samples: object, config: Config) -> List[Dict[str, object]]:
     sample_map = _sample_map(samples)
     rows: List[Dict[str, object]] = []
+    seen_records: set[int] = set()
     for site_id, sample in sample_map.items():
+        record_identity = id(sample)
+        if record_identity in seen_records:
+            continue
+        seen_records.add(record_identity)
         values, sample_norm = vector_from_sample(
             sample,
             config.ion_order,
