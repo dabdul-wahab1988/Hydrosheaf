@@ -7,14 +7,16 @@ from typing import Dict, List, Mapping, Optional
 from ..config import Config
 from ..log import get_logger
 from ..data.qc import qc_flags
-
-logger = get_logger("inference.edge_fit")
 from ..models.ec_tds import ec_tds_penalty
 from ..models.gibbs import gibbs_evaporation_penalty, compute_gibbs_metrics
 from ..models.mixing import fit_evaporation
 from ..models.reactions import ReactionFit, build_reaction_dictionary, fit_reactions
+from ..models.evidence_lifted import reaction_panel_diagnostics
+from ..models.ratios import compare_ratio_diagnostics
 from ..isotopes import extract_isotopes, isotope_penalty
 from ..physics.kinetic_limit import apply_kinetic_penalties
+
+logger = get_logger("inference.edge_fit")
 
 
 @dataclass
@@ -168,6 +170,20 @@ class EdgeResult:
     temporal_residence_time_flags: List[str] = field(default_factory=list)
     temporal_residence_time_details: Dict[str, object] = field(default_factory=dict)
     uncertainty: Optional[object] = None
+    # Sparse-panel and evidence provenance diagnostics.  These fields are
+    # additive so old serialized/exported edge schemas remain readable.
+    observed_ions: List[str] = field(default_factory=list)
+    ratio_diagnostics: Dict[str, object] = field(default_factory=dict)
+    ratio_fit_penalty: float = 0.0
+    ratio_fit_pairs: int = 0
+    geology_u_key: Optional[str] = None
+    geology_v_key: Optional[str] = None
+    geology_u_confidence: Optional[float] = None
+    geology_v_confidence: Optional[float] = None
+    geology_overlap: Optional[float] = None
+    geology_prior_status: Optional[str] = None
+    geology_prior_source: Optional[str] = None
+    reaction_panel_diagnostics: Dict[str, object] = field(default_factory=dict)
 
 
 def _weighted_mean(values: List[float], weights: List[float]) -> float:
@@ -239,27 +255,44 @@ def fit_edge(
 ) -> EdgeResult:
     config.validate()
 
-    add_no3src = True
-    add_denit = True
-    no3src_scale = 1.0
     denit_scale = 1.0
-    
-    if obs_u is not None:
-        no3_val = float(obs_u.get("NO3") or 0.0)
-        if no3_val < 0.16:
-            add_denit = False
-            logger.debug("Logic Gate: Pruning 'denit' (NO3 < 0.16 mmol/L)")
-        if no3_val > 0.8:
-            no3src_scale = 0.1
-            logger.debug("Logic Gate: Forcing 'NO3src' selection (NO3 > 0.8 mmol/L)")
 
     # Short residence times are treated as unfavorable for denitrification.
     if residence_time_days is not None and residence_time_days < 30.0:
         denit_scale = 10.0
         logger.debug("Topology Redox Proxy: Penalizing denitrification (short residence time < 30d)")
+    dictionary_kwargs = {
+        "pre_si_mask": pre_si_mask,
+        "sample": obs_u,
+        "dynamic_denit_scale": denit_scale,
+    }
+    if bool(getattr(config, "geology_enabled", False)):
+        dictionary_kwargs.update(
+            {
+                "geology_context": obs_u,
+                "geology_family_multipliers": (
+                    getattr(config, "geology_family_multipliers", {}) or None
+                ),
+                "geology_prior_strength": float(
+                    getattr(config, "geology_prior_strength", 0.0)
+                ),
+            }
+        )
     reaction_matrix, labels, mineral_mask, penalty_scales = build_reaction_dictionary(
-        config, pre_si_mask=pre_si_mask, sample=obs_u, dynamic_denit_scale=denit_scale
+        config, **dictionary_kwargs
     )
+    panel_diagnostics = {}
+    if bool(getattr(config, "reaction_equivalence_enabled", True)):
+        # ``config.ion_order`` is already the edge-specific observed panel in
+        # the sparse workflow.  Diagnostics are attached to the result rather
+        # than used as a hidden optimisation gate: an unresolved carbonate
+        # class means ABSTAIN for unique attribution, not automatic edge loss.
+        panel_diagnostics = reaction_panel_diagnostics(
+            reaction_matrix,
+            labels,
+            ion_order=config.ion_order,
+            observed_ions=config.ion_order,
+        )
     signed_mask = [
         bool(config.allow_signed_reactions)
         or label in config.signed_reaction_labels
@@ -364,6 +397,32 @@ def fit_edge(
         end_id = cand["end_id"] # type: ignore
         
         modeled_x_v = [obs - r for obs, r in zip(x_v, chem_fit.residual)]
+        ratio_fit_penalty = 0.0
+        ratio_fit_pairs = 0
+        if (
+            bool(getattr(config, "ratio_features_enabled", False))
+            and float(getattr(config, "ratio_penalty_weight", 0.0)) > 0.0
+            and obs_v is not None
+        ):
+            # Ratios are derived from the same ion observations and therefore
+            # remain an explicitly optional diagnostic penalty; they are not
+            # appended as extra independent rows to the stoichiometric matrix.
+            predicted_sample = dict(obs_v)
+            predicted_sample.update(
+                {
+                    ion: value
+                    for ion, value in zip(config.ion_order, modeled_x_v)
+                }
+            )
+            ratio_fit = compare_ratio_diagnostics(predicted_sample, obs_v)
+            ratio_fit_pairs = int(ratio_fit.get("n_pairs", 0) or 0)
+            if (
+                ratio_fit_pairs >= int(getattr(config, "ratio_min_pairs", 2))
+                and ratio_fit.get("logratio_rmse") is not None
+            ):
+                ratio_fit_penalty = float(
+                    getattr(config, "ratio_penalty_weight", 0.0)
+                ) * float(ratio_fit["logratio_rmse"]) ** 2
         penalty = 0.0
         if obs_v is not None and config.ec_tds_penalty_enabled:
             penalty = ec_tds_penalty(modeled_x_v, obs_v, config)
@@ -412,7 +471,16 @@ def fit_edge(
         transport_residual_norm = float(cand.get("transport_residual", 0.0))
         combined_residual_norm = chem_fit.residual_norm + transport_residual_norm
         l1_penalty = config.lambda_l1_value() * chem_fit.l1_norm
-        objective = combined_residual_norm + l1_penalty + penalty + iso_penalty + gibbs_penalty_val + iso_consistency_penalty + kin_penalty
+        objective = (
+            combined_residual_norm
+            + l1_penalty
+            + penalty
+            + iso_penalty
+            + gibbs_penalty_val
+            + iso_consistency_penalty
+            + kin_penalty
+            + ratio_fit_penalty
+        )
 
         n_params = int(cand.get("transport_k", 1)) + len(
             [extent for extent in chem_fit.extents if abs(float(extent)) > 1e-6]
@@ -428,6 +496,8 @@ def fit_edge(
             "information_score": information_score,
             "transport_residual_norm": transport_residual_norm,
             "chemistry_residual_norm": chem_fit.residual_norm,
+            "ratio_fit_penalty": ratio_fit_penalty,
+            "ratio_fit_pairs": ratio_fit_pairs,
             "combined_residual_norm": combined_residual_norm,
             "n_parameters": n_params,
         })
@@ -490,6 +560,10 @@ def fit_edge(
             gibbs_penalty=gibbs_penalty_val, gibbs_metrics=gibbs_metrics_val, gibbs_used=gibbs_used,
             isotope_consistency_penalty=iso_consistency_penalty, reaction_fit=final_reaction_fit,
             residual_vector=list(final_reaction_fit.residual), chemistry_r2=chem_r2,
+            observed_ions=list(config.ion_order),
+            reaction_panel_diagnostics=panel_diagnostics,
+            ratio_fit_penalty=ratio_fit_penalty,
+            ratio_fit_pairs=ratio_fit_pairs,
             edge_residence_time_days=residence_time_days,
             physics_tau_mean_days=residence_time_days,
             physics_tau_std_days=residence_time_std_days
@@ -513,6 +587,9 @@ def fit_edge(
     if config.ec_tds_penalty_limit and best_result.ec_tds_penalty > config.ec_tds_penalty_limit:
         qc.append("ec_tds_consistency")
     best_result.qc_flags = qc
+    if best_result.reaction_panel_diagnostics.get("status") == "ABSTAIN":
+        qc.append("carbonate_mechanism_abstain")
+        best_result.qc_flags = qc
     best_result.transport_probabilities = transport_probs
     best_result.candidate_scores = candidate_entries
     uncertainty_method = str(getattr(config, "uncertainty_method", "none") or "none")

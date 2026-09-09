@@ -297,6 +297,7 @@ def test_parallel_spawn_flags(tmp_path):
 
     # Capture both Popen calls (manager + agents)
     popen_calls = []
+    popen_kwargs = []
 
     def mock_popen(cmd, **kwargs):
         mock_proc = MagicMock()
@@ -304,6 +305,9 @@ def test_parallel_spawn_flags(tmp_path):
         mock_proc.returncode = 0
         mock_proc.poll.return_value = 0
         popen_calls.append(cmd)
+        popen_kwargs.append(kwargs)
+        if len(popen_calls) > 1:
+            assert Path(kwargs["cwd"]).joinpath("case.pst").exists()
         return mock_proc
 
     with patch("subprocess.Popen", side_effect=mock_popen):
@@ -323,7 +327,14 @@ def test_parallel_spawn_flags(tmp_path):
     for agent_cmd in popen_calls[1:]:
         assert "/h" in agent_cmd
         host_port = agent_cmd[agent_cmd.index("/h") + 1]
-        assert host_port.startswith("localhost:")
+        assert host_port.startswith("127.0.0.1:")
+
+    # Each agent must run in a private directory so its template-expanded
+    # inputs and model outputs cannot collide with another agent.
+    assert Path(popen_kwargs[0]["cwd"]).resolve() == tmp_path.resolve()
+    agent_cwds = [Path(item["cwd"]).resolve() for item in popen_kwargs[1:]]
+    assert len(set(agent_cwds)) == 3
+    assert all(path.name.startswith("agent_") for path in agent_cwds)
 
 
 def test_ies_covariance_and_localizer_generated(tmp_path):

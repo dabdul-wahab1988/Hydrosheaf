@@ -26,7 +26,7 @@ from ..config import Config
 from ..null_models import compute_null_penalty
 from ..null_models.chemistry import chemistry_null_score
 from ..null_models.endmembers import endmember_null_score
-from ..null_models.lithology import lithology_null_score
+from ..null_models.lithology import lithology_null_score, mapped_geology_similarity
 
 
 FLOW_FEATURE_NAMES = (
@@ -41,6 +41,7 @@ FLOW_FEATURE_NAMES = (
 NULL_FEATURE_NAMES = (
     "null_chemistry_similarity",
     "null_isotope_similarity",
+    "mapped_geology_similarity",
     "common_lithology",
     "shared_recharge",
     "spatial_proximity",
@@ -54,6 +55,22 @@ NULL_FEATURE_NAMES = (
 # construct it.
 _MODEL_NULL_FEATURE_NAMES = tuple(
     name for name in NULL_FEATURE_NAMES if name != "null_score"
+)
+
+# Older calibration artifacts pre-date the mapped-geology channel.  They are
+# accepted and upgraded with a neutral (zero-coefficient) geology column so a
+# new field run cannot silently load an incompatible coefficient vector.
+_LEGACY_NULL_FEATURE_NAMES = (
+    "null_chemistry_similarity",
+    "null_isotope_similarity",
+    "common_lithology",
+    "shared_recharge",
+    "spatial_proximity",
+    "common_source",
+    "null_score",
+)
+_LEGACY_MODEL_NULL_FEATURE_NAMES = tuple(
+    name for name in _LEGACY_NULL_FEATURE_NAMES if name != "null_score"
 )
 
 DECISION_PRESENT = "PRESENT"
@@ -145,6 +162,12 @@ _NULL_ALIASES = {
         "common_lithology",
         "lithology_similarity",
         "null_lithology_score",
+    ),
+    "mapped_geology_similarity": (
+        "mapped_geology_similarity",
+        "geology_similarity",
+        "mapped_lithology_similarity",
+        "null_mapped_geology_similarity",
     ),
     "shared_recharge": (
         "shared_recharge",
@@ -418,6 +441,11 @@ def _derive_null_features(
             source_fields.append("null_model.endmembers")
 
     lithology_score, _ = lithology_null_score(upstream, downstream, config)
+    if bool(getattr(config, "mapped_geology_null_enabled", True)):
+        mapped_score, _ = mapped_geology_similarity(upstream, downstream)
+        if mapped_score is not None:
+            null["mapped_geology_similarity"] = float(mapped_score)
+            source_fields.append("null_model.mapped_geology")
     if (
         _paired_numeric_count(
             upstream,
@@ -541,6 +569,17 @@ def build_feature_rows(
                 null[name] = value
                 if source is not None:
                     source_fields.append(source)
+
+        if (
+            bool(getattr(feature_config, "mapped_geology_null_enabled", True))
+            and "mapped_geology_similarity" not in null
+            and upstream
+            and downstream
+        ):
+            mapped_score, _ = mapped_geology_similarity(upstream, downstream)
+            if mapped_score is not None:
+                null["mapped_geology_similarity"] = float(mapped_score)
+                source_fields.append("null_model.mapped_geology")
 
         if "head_drop_m" not in flow:
             value, source = _derive_head_drop(upstream, downstream, _HEAD_KEYS)
@@ -731,7 +770,7 @@ class NullAwareLogisticCalibrator:
         if min_samples < 2:
             raise ValueError("min_samples must be at least 2")
         names = tuple(feature_names)
-        if names != _ALL_FEATURE_NAMES:
+        if names not in {_ALL_FEATURE_NAMES, FLOW_FEATURE_NAMES + _LEGACY_MODEL_NULL_FEATURE_NAMES}:
             raise ValueError("feature_names must contain the canonical flow and null features in order")
 
         self.l2 = float(l2)
@@ -739,7 +778,7 @@ class NullAwareLogisticCalibrator:
         self.tolerance = float(tolerance)
         self.fit_scope = str(fit_scope).strip()
         self.min_samples = int(min_samples)
-        self.feature_names = names
+        self.feature_names = _ALL_FEATURE_NAMES
         self.intercept_: Optional[float] = None
         self.coefficients_: Optional[np.ndarray] = None
         self.feature_means_: Optional[np.ndarray] = None
@@ -1013,6 +1052,22 @@ class NullAwareLogisticCalibrator:
         coefficients = np.asarray(payload.get("coefficients"), dtype=float)
         means = np.asarray(payload.get("feature_means"), dtype=float)
         scales = np.asarray(payload.get("feature_scales"), dtype=float)
+
+        def _upgrade(values: np.ndarray, default: float) -> np.ndarray:
+            if values.shape == (len(_ALL_FEATURE_NAMES),):
+                return values
+            legacy_names = FLOW_FEATURE_NAMES + _LEGACY_MODEL_NULL_FEATURE_NAMES
+            if values.shape != (len(legacy_names),):
+                return values
+            source = dict(zip(legacy_names, values))
+            return np.asarray(
+                [source.get(name, default) for name in _ALL_FEATURE_NAMES],
+                dtype=float,
+            )
+
+        coefficients = _upgrade(coefficients, 0.0)
+        means = _upgrade(means, 0.0)
+        scales = _upgrade(scales, 1.0)
         if (
             coefficients.shape != (len(_ALL_FEATURE_NAMES),)
             or means.shape != (len(_ALL_FEATURE_NAMES),)
@@ -1039,11 +1094,19 @@ class NullAwareLogisticCalibrator:
         raw_patterns = payload.get("calibration_missingness_patterns", [])
         if not isinstance(raw_patterns, Sequence) or isinstance(raw_patterns, (str, bytes)):
             raise ValueError("payload contains invalid calibration missingness patterns")
-        model.missingness_patterns_ = tuple(
-            tuple(sorted(str(item) for item in pattern))
-            for pattern in raw_patterns
-            if isinstance(pattern, Sequence) and not isinstance(pattern, (str, bytes))
+        payload_names = tuple(payload.get("feature_names", _ALL_FEATURE_NAMES))
+        legacy_payload = payload_names == (
+            FLOW_FEATURE_NAMES + _LEGACY_MODEL_NULL_FEATURE_NAMES
         )
+        patterns: list[tuple[str, ...]] = []
+        for pattern in raw_patterns:
+            if not isinstance(pattern, Sequence) or isinstance(pattern, (str, bytes)):
+                continue
+            items = [str(item) for item in pattern]
+            if legacy_payload and "null:mapped_geology_similarity" not in items:
+                items.append("null:mapped_geology_similarity")
+            patterns.append(tuple(sorted(items)))
+        model.missingness_patterns_ = tuple(patterns)
         return model
 
 

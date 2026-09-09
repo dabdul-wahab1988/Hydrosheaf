@@ -1,6 +1,7 @@
 """Configuration defaults for hydrosheaf."""
 
 from dataclasses import dataclass, field
+import math
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -105,6 +106,13 @@ class Config:
     sheaf_age_process_sigma_years: float = 5.0
     sheaf_age_default_sigma_years: float = 10.0
     sheaf_age_travel_cost_weight: float = 0.1
+    # Optional cover-relation evidence.  It is disabled by default because
+    # direct adjacency is not identifiable from endpoint ages alone.  When
+    # enabled, candidate edges must provide an independent indirect travel-
+    # time hypothesis (for example ``indirect_travel_years``) before this
+    # term can affect the score.
+    sheaf_age_adjacency_enabled: bool = False
+    sheaf_age_adjacency_weight: float = 1.0
 
     sheaf_shallow_depth_m: float = 30.0
     sheaf_evap_gate_strength: float = 1.0
@@ -194,6 +202,27 @@ class Config:
     honest_modeling: bool = True
     measured_ions: List[str] = field(default_factory=list) # Ions available in the input chemistry
     geologic_bias: str = "crystalline" # "crystalline" (favor silicates) or "sedimentary" (favor carbonates)
+
+    # Sparse multi-dataset harmonisation.  These switches are neutral by
+    # default so historical runs/locked outputs are unchanged; a new field
+    # run can opt in after recording the source and geology-sidecar hashes.
+    # ``False`` preserves the historical all-ion contract.  Set it to ``True``
+    # only for an audited multi-panel run; each edge then uses the ions that
+    # are measured at both endpoints and abstains below ``minimum_observed_ions``.
+    sparse_panel_enabled: bool = False
+    minimum_observed_ions: int = 4
+    geology_enabled: bool = False
+    geology_dictionary_path: str = ""
+    geology_key: str = "geology_symbol"
+    geology_family_multipliers: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    geology_prior_strength: float = 0.0
+    geology_prior_max_scale: float = 5.0
+    geology_boundary_sigma_m: float = 500.0
+    mapped_geology_null_enabled: bool = True
+    ratio_features_enabled: bool = False
+    ratio_penalty_weight: float = 0.0
+    ratio_min_pairs: int = 2
+    reaction_equivalence_enabled: bool = True
 
     # Optional kinetic feasibility screen.
     kinetic_filter_enabled: bool = False
@@ -402,6 +431,7 @@ class Config:
     # Null model sub-weights and thresholds
     null_chemistry_similarity_threshold: float = 0.3  # Max ion-distance fraction to consider "similar"
     null_lithology_weight: float = 0.3
+    null_mapped_geology_weight: float = 0.2
     null_endmember_weight: float = 0.4
     null_spatial_weight: float = 0.2
     null_anthropogenic_weight: float = 0.2
@@ -478,6 +508,8 @@ class Config:
             raise ValueError("null_aware_candidate_p_min must be in [0, 1].")
         if self.null_aware_l2 < 0.0:
             raise ValueError("null_aware_l2 must be non-negative.")
+        if self.null_mapped_geology_weight < 0.0:
+            raise ValueError("null_mapped_geology_weight must be non-negative.")
         if not 0.0 <= self.edge_p_min <= 1.0:
             raise ValueError("edge_p_min must be between 0 and 1.")
         if self.edge_radius_km < 0:
@@ -504,6 +536,46 @@ class Config:
             raise ValueError("edge_map_candidate_multiplier must be at least 1.")
         if not 0.0 <= self.edge_map_p_min <= 1.0:
             raise ValueError("edge_map_p_min must be between 0 and 1.")
+        if self.minimum_observed_ions < 1:
+            raise ValueError("minimum_observed_ions must be at least 1.")
+        if not isinstance(self.sparse_panel_enabled, bool):
+            raise ValueError("sparse_panel_enabled must be boolean.")
+        if not isinstance(self.geology_enabled, bool):
+            raise ValueError("geology_enabled must be boolean.")
+        if not str(self.geology_key).strip():
+            raise ValueError("geology_key must not be empty.")
+        if self.geology_prior_strength < 0.0:
+            raise ValueError("geology_prior_strength must be non-negative.")
+        if self.geology_prior_max_scale < 1.0:
+            raise ValueError("geology_prior_max_scale must be at least 1.")
+        if not isinstance(self.geology_family_multipliers, dict):
+            raise ValueError("geology_family_multipliers must be a mapping.")
+        for unit, multipliers in self.geology_family_multipliers.items():
+            if not str(unit).strip() or not isinstance(multipliers, dict):
+                raise ValueError("geology family prior entries must map units to mappings.")
+            for family, multiplier in multipliers.items():
+                try:
+                    numeric_multiplier = float(multiplier)
+                except (TypeError, ValueError) as exc:
+                    raise ValueError("geology family multipliers must be finite and positive.") from exc
+                if (
+                    not str(family).strip()
+                    or not math.isfinite(numeric_multiplier)
+                    or numeric_multiplier <= 0.0
+                ):
+                    raise ValueError("geology family multipliers must be positive.")
+        if self.geology_boundary_sigma_m <= 0.0:
+            raise ValueError("geology_boundary_sigma_m must be positive.")
+        if not isinstance(self.mapped_geology_null_enabled, bool):
+            raise ValueError("mapped_geology_null_enabled must be boolean.")
+        if not isinstance(self.ratio_features_enabled, bool):
+            raise ValueError("ratio_features_enabled must be boolean.")
+        if self.ratio_penalty_weight < 0.0:
+            raise ValueError("ratio_penalty_weight must be non-negative.")
+        if self.ratio_min_pairs < 1:
+            raise ValueError("ratio_min_pairs must be at least 1.")
+        if not isinstance(self.reaction_equivalence_enabled, bool):
+            raise ValueError("reaction_equivalence_enabled must be boolean.")
         if self.sheaf_iso_sigma_d18o <= 0 or self.sheaf_iso_sigma_d2h <= 0:
             raise ValueError("sheaf isotope sigmas must be positive.")
         if self.sheaf_weight_head_prior < 0:
@@ -714,6 +786,12 @@ class Config:
         if self.sheaf_age_travel_cost_weight < 0:
             raise ValueError(
                 "sheaf_age_travel_cost_weight must be non-negative."
+            )
+        if not isinstance(self.sheaf_age_adjacency_enabled, bool):
+            raise ValueError("sheaf_age_adjacency_enabled must be boolean.")
+        if self.sheaf_age_adjacency_weight < 0:
+            raise ValueError(
+                "sheaf_age_adjacency_weight must be non-negative."
             )
         if self.topology_posterior_samples < 100:
             raise ValueError("topology_posterior_samples must be at least 100.")

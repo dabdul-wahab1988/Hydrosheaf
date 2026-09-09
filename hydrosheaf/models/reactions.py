@@ -1,12 +1,14 @@
 """Reaction dictionary and sparse fitting."""
 
 from dataclasses import dataclass
-from typing import Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Iterable, List, Mapping, Optional, Sequence, Tuple
 import math
 
 from ..config import Config, DEFAULT_ION_ORDER
 from ..data.minerals import get_mineral_stoich
 from ..log import get_logger
+from .geology_context import add_boundary_confidence
+from .geology_priors import geology_reaction_prior, load_geology_family_multipliers
 
 logger = get_logger("models.reactions")
 
@@ -22,6 +24,35 @@ INDICATOR_IONS = {
     "sulfate_reduction": ["SO4", "HCO3"],
     "iron_reduction": ["Fe", "HCO3"],
 }
+
+# A sentinel distinguishes an old call that does not request geology-aware
+# behaviour from an explicit ``None`` context.  The former preserves the
+# historical Config.geologic_bias behaviour for compatibility; the latter is
+# deliberately neutral and is useful when an analysis has audited that a
+# geology join is unavailable.
+_GEOLOGY_CONTEXT_UNSET = object()
+_GEOLOGY_METADATA_KEYS = frozenset(
+    {
+        "geology_stratigraphic_unit",
+        "geology_symbol",
+        "geology_code_1000",
+        "geology_legend_text",
+        "geology_unit",
+        "geology_group",
+        "geology",
+        "mapped_geology",
+        "lithology",
+        "aquifer_unit",
+        "aquifer_layer",
+        "geology_join_status",
+        "geology_status",
+        "join_status",
+    }
+)
+
+
+def _has_explicit_geology_metadata(sample: Optional[Mapping[str, object]]) -> bool:
+    return bool(sample and _GEOLOGY_METADATA_KEYS.intersection(sample.keys()))
 
 
 def _sample_float(sample: Mapping[str, object], key: str) -> float | None:
@@ -41,9 +72,37 @@ def build_reaction_dictionary(
     pre_si_mask: Optional[Mapping[str, float]] = None,
     sample: Optional[Mapping[str, object]] = None,
     dynamic_denit_scale: float = 1.0,
+    *,
+    geology_context: Any = _GEOLOGY_CONTEXT_UNSET,
+    geology_family_multipliers: Optional[Mapping[str, Mapping[str, Any]]] = None,
+    geology_prior_strength: float = 1.0,
 ) -> Tuple[List[List[float]], List[str], List[bool], List[float]]:
+    """Build the reaction dictionary and its penalty scales.
+
+    The four-element tuple returned by this function is unchanged for
+    backwards compatibility.  The optional keyword-only geology arguments
+    activate a soft, explicitly mapped contextual prior.  When an explicit
+    context is supplied, including ``None`` or a sample with a geology join
+    status, unknown/unmatched/invalid contexts receive neutral penalty scales
+    and do not activate the legacy ``Config.geologic_bias`` gates.  Calls that
+    omit all geology arguments retain the historical Config behaviour.
+    """
+
     ion_order = config.ion_order or DEFAULT_ION_ORDER
     kappa = config.denit_kappa
+
+    explicit_geology = geology_context is not _GEOLOGY_CONTEXT_UNSET
+    if not explicit_geology and _has_explicit_geology_metadata(sample):
+        # A field record carrying a declared join status/unit is an explicit
+        # request to honour that status.  A plain chemistry sample without
+        # those keys retains the historical call path above.
+        geology_context = sample
+        explicit_geology = True
+
+    if explicit_geology and geology_family_multipliers is None:
+        dictionary_path = str(getattr(config, "geology_dictionary_path", "") or "").strip()
+        if dictionary_path:
+            geology_family_multipliers = load_geology_family_multipliers(dictionary_path)
 
     # Identify available data (measured ions)
     available = set(config.measured_ions) if config.measured_ions else set(ion_order)
@@ -51,6 +110,24 @@ def build_reaction_dictionary(
     reactions: List[Tuple[str, Mapping[str, float], bool, float]] = []
 
     def get_penalty_scale(name: str) -> float:
+        if explicit_geology:
+            context_for_prior = add_boundary_confidence(
+                geology_context,
+                sigma_m=float(getattr(config, "geology_boundary_sigma_m", 500.0)),
+            )
+            prior = geology_reaction_prior(
+                name,
+                context_for_prior,
+                family_multipliers=geology_family_multipliers,
+                strength=geology_prior_strength,
+                preferred_key=getattr(config, "geology_key", None),
+            )
+            max_scale = max(
+                1.0,
+                float(getattr(config, "geology_prior_max_scale", 5.0)),
+            )
+            return max(1.0 / max_scale, min(max_scale, prior.penalty_scale))
+
         n = name.lower().replace(" ", "_")
         if config.geologic_bias == "crystalline":
             if any(s in n for s in ["albite", "anorthite", "feldspar", "biotite", "chlorite", "pyroxene"]):
@@ -101,7 +178,8 @@ def build_reaction_dictionary(
                     logger.debug(f"Logic Gate: Pruning '{name}' (SO4 < 0.208 mmol/L)")
                     continue
                 if (
-                    config.geologic_bias == "crystalline"
+                    not explicit_geology
+                    and config.geologic_bias == "crystalline"
                     and so4_val is not None
                     and so4_val > 0.52
                 ):

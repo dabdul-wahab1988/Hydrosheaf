@@ -16,6 +16,7 @@ from sklearn.metrics import (
     average_precision_score,
     brier_score_loss,
     f1_score,
+    log_loss,
     matthews_corrcoef,
     precision_score,
     recall_score,
@@ -33,7 +34,6 @@ from independent_modflow_generator import (  # noqa: E402
     generate_independent_aquifer,
 )
 from strong_inference import (  # noqa: E402
-    FUSION_FEATURES,
     StrongInferenceResult,
     run_strong_inference,
 )
@@ -146,17 +146,99 @@ def _fit_fusion_model(
     }
 
 
+def _sigmoid(linear: np.ndarray) -> np.ndarray:
+    return 1.0 / (1.0 + np.exp(-np.clip(linear, -40.0, 40.0)))
+
+
+def _fit_monotone_age_model(
+    frame: pd.DataFrame,
+    baseline_model: Mapping[str, object],
+) -> Dict[str, object]:
+    """Fit a continuous age penalty with the physically correct sign.
+
+    A free logistic coefficient can learn the wrong sign when the synthetic
+    travel-time prior is misspecified.  That is not an acceptable interpretation
+    of age evidence: a larger incompatibility cost must never increase an edge's
+    probability.  We therefore keep the frozen hydraulic/chemistry model and
+    calibrate one non-negative penalty on the development cases:
+
+        logit(p_age) = logit(p_baseline) - alpha * age_cost, alpha >= 0.
+
+    The zero-penalty solution is retained when age does not improve the locked
+    development objective.  This makes a null result explicit rather than
+    allowing an anti-physical coefficient or silently forcing a gain.
+    """
+
+    baseline_probability = _predict_fusion(frame, baseline_model)
+    baseline_logit = np.log(
+        np.clip(baseline_probability, 1.0e-6, 1.0 - 1.0e-6)
+        / np.clip(1.0 - baseline_probability, 1.0e-6, 1.0)
+    )
+    age_cost = np.maximum(frame["age_cost"].to_numpy(float), 0.0)
+    if "age_evidence_available" in frame:
+        available = frame["age_evidence_available"].to_numpy(bool)
+        age_cost = np.where(available, age_cost, 0.0)
+    truth = frame["is_true_edge"].to_numpy(int)
+
+    max_cost = float(np.max(age_cost)) if age_cost.size else 0.0
+    if max_cost <= 1.0e-12:
+        alpha = 0.0
+        objective = float(log_loss(truth, _sigmoid(baseline_logit)))
+    else:
+        # The upper bound allows a cost of one to move the linear predictor by
+        # up to forty log-odds units, while keeping the search finite and
+        # reproducible.  The grid includes alpha=0 exactly.
+        alpha_grid = np.linspace(0.0, 40.0 / max_cost, 2001)
+        losses = np.asarray(
+            [
+                log_loss(truth, _sigmoid(baseline_logit - candidate * age_cost))
+                for candidate in alpha_grid
+            ],
+            dtype=float,
+        )
+        best_index = int(np.argmin(losses))
+        alpha = float(alpha_grid[best_index])
+        objective = float(losses[best_index])
+
+    return {
+        "kind": "monotone_age_penalty",
+        "baseline_model": dict(baseline_model),
+        "age_cost_coefficient": alpha,
+        "training_split": "development_external_simulator_cases_only",
+        "objective": "development_log_loss",
+        "development_log_loss": objective,
+        "age_cost_direction": "non_increasing_probability",
+    }
+
+
 def _predict_fusion(
     frame: pd.DataFrame,
     model: Mapping[str, object],
 ) -> np.ndarray:
+    if model.get("kind") == "monotone_age_penalty":
+        baseline = _predict_fusion(
+            frame,
+            model["baseline_model"],  # type: ignore[arg-type]
+        )
+        baseline_logit = np.log(
+            np.clip(baseline, 1.0e-6, 1.0 - 1.0e-6)
+            / np.clip(1.0 - baseline, 1.0e-6, 1.0)
+        )
+        age_cost = np.maximum(frame["age_cost"].to_numpy(float), 0.0)
+        if "age_evidence_available" in frame:
+            available = frame["age_evidence_available"].to_numpy(bool)
+            age_cost = np.where(available, age_cost, 0.0)
+        return _sigmoid(
+            baseline_logit
+            - float(model.get("age_cost_coefficient", 0.0)) * age_cost
+        )
     names = list(model["feature_names"])
     x = frame[names].to_numpy(float)
     means = np.asarray(model["means"], float)
     scales = np.asarray(model["scales"], float)
     coefficients = np.asarray(model["coefficients"], float)
     linear = float(model["intercept"]) + ((x - means) / scales) @ coefficients
-    probability = 1.0 / (1.0 + np.exp(-np.clip(linear, -40.0, 40.0)))
+    probability = _sigmoid(linear)
     if model.get("kind") == "age_compatibility_gate":
         incompatible = frame["age_cost"].to_numpy(float) > float(model["age_cost_max"])
         probability[incompatible] = np.minimum(
@@ -172,14 +254,31 @@ def _age_permuted_frame(
     age_evidence_mode: str,
 ) -> pd.DataFrame:
     permuted = frame.copy()
-    if age_evidence_mode == "direction_gate":
-        permuted["age_cost"] = frame.groupby("seed")["age_cost"].transform(
-            lambda values: rng.permutation(values.to_numpy())
-        )
+    # Permute the age evidence itself, then rebuild the monotone transform so
+    # the negative control cannot accidentally retain an age/transform pairing.
+    # Permutation is case-blocked; no information is moved between aquifers.
+    if "seed" in frame:
+        for _, indexes in frame.groupby("seed", sort=False).groups.items():
+            source = frame.loc[indexes]
+            order = rng.permutation(len(indexes))
+            permuted.loc[indexes, "age_cost"] = source.iloc[order][
+                "age_cost"
+            ].to_numpy()
+            if "age_evidence_available" in frame:
+                permuted.loc[indexes, "age_evidence_available"] = source.iloc[
+                    order
+                ]["age_evidence_available"].to_numpy()
     else:
-        permuted["negative_age_cost"] = frame.groupby("seed")[
-            "negative_age_cost"
-        ].transform(lambda values: rng.permutation(values.to_numpy()))
+        order = rng.permutation(len(frame))
+        permuted["age_cost"] = frame.iloc[order]["age_cost"].to_numpy()
+        if "age_evidence_available" in frame:
+            permuted["age_evidence_available"] = frame.iloc[order][
+                "age_evidence_available"
+            ].to_numpy()
+    if "negative_age_cost" in frame:
+        permuted["negative_age_cost"] = -np.log1p(
+            np.maximum(permuted["age_cost"].to_numpy(float), 0.0)
+        )
     return permuted
 
 
@@ -405,7 +504,10 @@ def run_benchmark(
     protocol_stage: str = "initial_locked",
 ) -> Dict[str, object]:
     if age_evidence_mode not in {"logistic", "direction_gate"}:
-        raise ValueError("age_evidence_mode must be 'logistic' or 'direction_gate'.")
+        raise ValueError(
+            "age_evidence_mode must be 'logistic' (monotone continuous) "
+            "or 'direction_gate'."
+        )
     age_travel_cost_weight = 0.0 if age_evidence_mode == "direction_gate" else 0.1
     if output.exists():
         shutil.rmtree(output)
@@ -451,7 +553,10 @@ def run_benchmark(
             ),
         }
     else:
-        full_model = _fit_fusion_model(development, FUSION_FEATURES)
+        # Ordinary runs use a continuous, monotone age penalty.  The historical
+        # name ``logistic`` is retained for protocol/API compatibility, but age
+        # is no longer allowed to learn an anti-physical sign.
+        full_model = _fit_monotone_age_model(development, baseline_model)
     development["probability_hydraulic_chemistry"] = _predict_fusion(
         development, baseline_model
     )
@@ -644,6 +749,8 @@ def run_benchmark(
         "benchmark": "M7.2 strong integration",
         "protocol_stage": protocol_stage,
         "age_evidence_mode": age_evidence_mode,
+        "age_fusion_model": str(full_model.get("kind", "legacy_logistic")),
+        "age_score_universe": "all_candidate_edges",
         "age_travel_cost_weight": age_travel_cost_weight,
         "topology_updates_per_sample": topology_updates_per_sample,
         "development_seeds": list(dev_seeds),

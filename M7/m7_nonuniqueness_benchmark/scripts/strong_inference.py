@@ -159,6 +159,20 @@ def _fusion_probability(
     row: Mapping[str, object],
     fusion_model: Mapping[str, object],
 ) -> float:
+    if fusion_model.get("kind") == "monotone_age_penalty":
+        baseline_model = fusion_model.get("baseline_model")
+        if not isinstance(baseline_model, Mapping):
+            raise ValueError("monotone_age_penalty model lacks baseline_model")
+        baseline = _fusion_probability(row, baseline_model)
+        age_cost = max(0.0, float(row.get("age_cost", 0.0)))
+        if not bool(row.get("age_evidence_available", True)):
+            age_cost = 0.0
+        bounded = _bounded_probability(baseline)
+        base_logit = math.log(bounded / (1.0 - bounded))
+        linear = base_logit - float(
+            fusion_model.get("age_cost_coefficient", 0.0)
+        ) * age_cost
+        return 1.0 / (1.0 + math.exp(-max(-40.0, min(40.0, linear))))
     feature_names = tuple(fusion_model.get("feature_names", FUSION_FEATURES))
     means = np.asarray(fusion_model.get("means", [0.0] * len(feature_names)), float)
     scales = np.asarray(fusion_model.get("scales", [1.0] * len(feature_names)), float)
@@ -304,13 +318,31 @@ def run_strong_inference(
         row["mean_age_years"] = posterior["mean_age_years"]
         row["mean_age_std_years"] = posterior["std_age_years"]
         row["tracer_identifiable"] = bool(posterior["tracer_identifiable"])
+    # Keep the complete age-scored candidate universe.  ``refine_edges_with_sheaf``
+    # returns only the sheaf-retained subset, but its age scores are also
+    # attached to every candidate.  Reading the scores from the returned subset
+    # silently changed missing/rejected candidates into ``age_cost=0`` and made
+    # age look neutral (or spuriously perfect) during fusion.
+    age_candidates = deepcopy(candidates)
     age_edges = refine_edges_with_sheaf(
         age_rows,
-        deepcopy(candidates),
+        age_candidates,
         base_config,
     )
     calls["refine_edges_with_sheaf"] += 1
-    age_by_id = {edge.edge_id: edge for edge in age_edges}
+    age_by_id = {edge.edge_id: edge for edge in age_candidates}
+    age_diagnostics.update(
+        {
+            "n_candidate_edges_scored": len(age_candidates),
+            "n_age_edges_retained_by_sheaf": len(age_edges),
+            "n_candidate_edges_with_age_evidence": int(
+                sum(
+                    bool((edge.attrs or {}).get("sheaf_age_evidence_available"))
+                    for edge in age_candidates
+                )
+            ),
+        }
+    )
 
     unconstrained_config = strong_config(
         phreeqc_enabled=False,
@@ -348,10 +380,10 @@ def run_strong_inference(
             )
         )
         age_edge = age_by_id.get(edge.edge_id)
-        age_cost = float(
-            (age_edge.attrs or {}).get("sheaf_cost_age", 0.0)
-            if age_edge is not None
-            else 0.0
+        age_attrs = (age_edge.attrs or {}) if age_edge is not None else {}
+        age_cost = float(age_attrs.get("sheaf_cost_age", 0.0))
+        age_evidence_available = bool(
+            age_attrs.get("sheaf_age_evidence_available", False)
         )
         unconstrained = unconstrained_by_id[edge.edge_id]
         constrained = constrained_by_id[edge.edge_id]
@@ -387,6 +419,8 @@ def run_strong_inference(
                 hydraulic_probability / (1.0 - hydraulic_probability)
             ),
             "age_cost": age_cost,
+            "age_evidence_available": age_evidence_available,
+            "age_flags": str(age_attrs.get("sheaf_age_flags", "")),
             # Compress rare, very large reversal costs so a few grossly
             # incompatible candidates cannot determine the entire fusion
             # coefficient.  This monotone transform preserves the ranking.

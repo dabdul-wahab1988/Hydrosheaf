@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = ROOT / "M7" / "m7_nonuniqueness_benchmark" / "scripts"
@@ -16,7 +17,13 @@ from independent_modflow_generator import (  # noqa: E402
     ION_ORDER,
     _chemistry_step,
 )
-from run_supporting_validation import _predict_fusion  # noqa: E402
+from run_supporting_validation import (  # noqa: E402
+    BASELINE_FEATURES,
+    _age_permuted_frame,
+    _fit_fusion_model,
+    _fit_monotone_age_model,
+    _predict_fusion,
+)
 
 
 def test_independent_generator_does_not_import_hydrosheaf() -> None:
@@ -100,6 +107,56 @@ def test_confirmatory_age_gate_only_suppresses_incompatible_edges() -> None:
     probability = _predict_fusion(frame, model)
     assert probability[0] == 0.5
     assert probability[1] == 1.0e-6
+
+
+def test_continuous_age_penalty_cannot_reverse_physical_direction() -> None:
+    frame = pd.DataFrame(
+        {
+            "seed": [1, 1, 1, 1],
+            "is_true_edge": [1, 0, 1, 0],
+            "hydraulic_logit": [1.0, 0.0, 1.0, 0.0],
+            "negative_chemistry_log_objective": [0.0, 0.0, 0.0, 0.0],
+            "age_cost": [0.0, 0.25, 0.05, 0.75],
+            "age_evidence_available": [True, True, True, True],
+        }
+    )
+    baseline = _fit_fusion_model(frame, BASELINE_FEATURES)
+    model = _fit_monotone_age_model(frame, baseline)
+    assert model["kind"] == "monotone_age_penalty"
+    assert float(model["age_cost_coefficient"]) >= 0.0
+
+    same_baseline = frame.iloc[[0, 1]].copy()
+    same_baseline["hydraulic_logit"] = 0.5
+    same_baseline["negative_chemistry_log_objective"] = -0.1
+    same_baseline["age_cost"] = [0.0, 1.0]
+    probabilities = _predict_fusion(same_baseline, model)
+    assert probabilities[0] >= probabilities[1]
+
+    missing_age = same_baseline.copy()
+    missing_age["age_cost"] = [100.0, 0.0]
+    missing_age["age_evidence_available"] = [False, True]
+    missing_probabilities = _predict_fusion(missing_age, model)
+    assert missing_probabilities[0] == pytest.approx(missing_probabilities[1])
+
+
+def test_age_permutation_rebuilds_the_monotone_transform() -> None:
+    frame = pd.DataFrame(
+        {
+            "seed": [1, 1, 2, 2],
+            "age_cost": [0.0, 0.5, 0.1, 0.9],
+            "negative_age_cost": [0.0, -np.log1p(0.5), -np.log1p(0.1), -np.log1p(0.9)],
+            "age_evidence_available": [True, False, True, True],
+        }
+    )
+    permuted = _age_permuted_frame(
+        frame,
+        np.random.default_rng(13),
+        "logistic",
+    )
+    np.testing.assert_allclose(
+        permuted["negative_age_cost"].to_numpy(float),
+        -np.log1p(permuted["age_cost"].to_numpy(float)),
+    )
 
 
 def test_field_predictions_cannot_access_future_wet_batches() -> None:

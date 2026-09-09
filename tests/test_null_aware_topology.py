@@ -158,6 +158,26 @@ def test_declared_observations_generate_null_features_without_truth() -> None:
     assert all("truth" not in field.lower() for field in row.source_fields)
 
 
+def test_mapped_geology_is_a_distinct_null_channel() -> None:
+    row = build_feature_rows(
+        [{"edge_id": "A_B", "u": "A", "v": "B"}],
+        {
+            "A": {
+                "geology_join_status": "MATCHED",
+                "geology_code_1000": 3502,
+                "geology_symbol": "gvhr",
+            },
+            "B": {
+                "geology_join_status": "MATCHED",
+                "geology_code_1000": 3502,
+                "geology_symbol": "gvhr",
+            },
+        },
+    )[0]
+    assert row.null_features["mapped_geology_similarity"] == 1.0
+    assert "common_lithology" not in row.null_features
+
+
 def test_observation_head_drop_and_age_increment_use_explicit_sign_conventions() -> None:
     rows = build_feature_rows(
         [{"edge_id": "A_B", "u": "A", "v": "B"}],

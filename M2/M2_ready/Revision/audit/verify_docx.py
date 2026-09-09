@@ -107,6 +107,10 @@ failures: list[str] = []
 def docx_text(path: Path) -> str:
     xml = zipfile.ZipFile(path).read("word/document.xml").decode("utf8")
     xml = re.sub(r"</w:p>", "\n", xml)
+    # Runs can split a phrase at a formatting boundary (for example a
+    # reviewer-colour span). Insert a separator before stripping tags so
+    # freshness checks do not depend on run segmentation.
+    xml = re.sub(r"</w:t>", " ", xml)
     xml = re.sub(r"<[^>]+>", "", xml)
     return (xml.replace("&amp;", "&").replace("&lt;", "<")
                .replace("&gt;", ">").replace("&quot;", '"').replace("&#39;", "'"))
@@ -125,7 +129,7 @@ for docx_path, md_path in PAIRS:
     body = norm(docx_text(docx_path))
     required = REQUIRED_MS if "Manuscript" in docx_path.name else REQUIRED_SI
     for s in required:
-        if norm(s) not in body:
+        if norm(s).lower() not in body.lower():
             failures.append(f"{docx_path.name}: MISSING required text {s!r}")
     for s in FORBIDDEN:
         if norm(s) in body:

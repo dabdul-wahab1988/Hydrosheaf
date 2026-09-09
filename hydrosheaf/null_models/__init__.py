@@ -48,11 +48,18 @@ def compute_null_penalty(
 
     # --- Lithology null ---
     try:
-        from .lithology import lithology_null_score
+        from .lithology import lithology_null_score, mapped_geology_similarity
         lith_score, lith_flags = lithology_null_score(sample_a, sample_b, config)
         if lith_score > 0.0:
             total_score += lith_score * float(getattr(config, "null_lithology_weight", 0.3))
             flags.extend(lith_flags)
+        if bool(getattr(config, "mapped_geology_null_enabled", True)):
+            mapped_score, mapped_flags = mapped_geology_similarity(sample_a, sample_b)
+            if mapped_score is not None and mapped_score > 0.0:
+                total_score += mapped_score * float(
+                    getattr(config, "null_mapped_geology_weight", 0.2)
+                )
+                flags.extend(mapped_flags)
     except Exception:
         logger.warning("Lithology null model failed for edge pair; flagging.")
         flags.append("null_lithology_error")

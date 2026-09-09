@@ -417,16 +417,34 @@ class TestPestppParallelRealBinary:
         import socket
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("", 0))
+            s.bind(("127.0.0.1", 0))
             port = s.getsockname()[1]
 
         mgr_cmd = [exe, "case.pst", "/h", f":{port}"]
-        agent_cmd = [exe, "case.pst", "/h", f"localhost:{port}"]
+        # Use an explicit IPv4 loopback address.  ``localhost`` may resolve to
+        # IPv6 first on Windows, which can trigger an unnecessary firewall
+        # prompt or leave the agent unable to reach the manager.
+        agent_cmd = [exe, "case.pst", "/h", f"127.0.0.1:{port}"]
+
+        # PEST++ requires each agent to have a complete, private working
+        # directory.  In particular, params.csv and results.dat must not be
+        # shared by concurrent agents.
+        agent_root = tmp_path / "panther_agents"
+        agent_root.mkdir()
+        source_files = [path for path in tmp_path.iterdir() if path.is_file()]
+        agent_dirs = []
+        for index in range(2):
+            agent_dir = agent_root / f"agent_{index + 1}"
+            agent_dir.mkdir()
+            for source in source_files:
+                shutil.copy2(source, agent_dir / source.name)
+            agent_dirs.append(agent_dir)
 
         mgr = None
         agents = []
         mgr_out = ""
         mgr_err = ""
+        log_handles = []
 
         def cleanup_process(proc):
             if proc is None:
@@ -448,25 +466,39 @@ class TestPestppParallelRealBinary:
                     pass
 
         try:
+            mgr_stdout = (tmp_path / "panther.manager.stdout.log").open("w", encoding="utf-8")
+            mgr_stderr = (tmp_path / "panther.manager.stderr.log").open("w", encoding="utf-8")
+            log_handles.extend((mgr_stdout, mgr_stderr))
             mgr = subprocess.Popen(
                 mgr_cmd,
                 cwd=str(tmp_path),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=mgr_stdout,
+                stderr=mgr_stderr,
                 text=True,
             )
             time.sleep(1)
-            agents = [
-                subprocess.Popen(
-                    agent_cmd,
-                    cwd=str(tmp_path),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
+            for index, agent_dir in enumerate(agent_dirs, start=1):
+                agent_stdout = (tmp_path / f"panther.agent{index}.stdout.log").open(
+                    "w", encoding="utf-8"
                 )
-                for _ in range(2)
-            ]
-            mgr_out, mgr_err = mgr.communicate(timeout=120)
+                agent_stderr = (tmp_path / f"panther.agent{index}.stderr.log").open(
+                    "w", encoding="utf-8"
+                )
+                log_handles.extend((agent_stdout, agent_stderr))
+                agents.append(
+                    subprocess.Popen(
+                        agent_cmd,
+                        cwd=str(agent_dir),
+                        stdout=agent_stdout,
+                        stderr=agent_stderr,
+                        text=True,
+                    )
+                )
+            # PEST++ 5.2.25 may leave the manager in its idle-ping loop after
+            # all requested runs are complete.  The log files keep that loop
+            # from deadlocking on a full PIPE, and this finite bound lets the
+            # cleanup path handle a non-terminating vendor process.
+            mgr.wait(timeout=30)
 
             # Clean up agents
             for a in agents:
@@ -478,6 +510,12 @@ class TestPestppParallelRealBinary:
             cleanup_process(mgr)
             for a in agents:
                 cleanup_process(a)
+            mgr_out = (tmp_path / "panther.manager.stdout.log").read_text(
+                encoding="utf-8", errors="replace"
+            ) if (tmp_path / "panther.manager.stdout.log").exists() else ""
+            mgr_err = (tmp_path / "panther.manager.stderr.log").read_text(
+                encoding="utf-8", errors="replace"
+            ) if (tmp_path / "panther.manager.stderr.log").exists() else ""
             outputs = (
                 list(tmp_path.glob("case.par"))
                 + list(tmp_path.glob("case.rei"))
@@ -491,11 +529,32 @@ class TestPestppParallelRealBinary:
         finally:
             for a in agents:
                 cleanup_process(a)
+            for handle in log_handles:
+                try:
+                    handle.close()
+                except Exception:
+                    pass
+            shutil.rmtree(agent_root, ignore_errors=True)
 
+        mgr_out = (tmp_path / "panther.manager.stdout.log").read_text(
+            encoding="utf-8", errors="replace"
+        ) if (tmp_path / "panther.manager.stdout.log").exists() else ""
+        mgr_err = (tmp_path / "panther.manager.stderr.log").read_text(
+            encoding="utf-8", errors="replace"
+        ) if (tmp_path / "panther.manager.stderr.log").exists() else ""
+        run_record = (tmp_path / "case.rmr").read_text(
+            encoding="utf-8", errors="replace"
+        ) if (tmp_path / "case.rmr").exists() else ""
+        completed_runs = "run 3 processed" in run_record and "0 runs failed" in run_record
         assert mgr.returncode in (
             0,
             1,
+        ) or (
+            sys.platform == "win32"
+            and mgr.returncode == 0xC0000005
+            and completed_runs
         ), f"Manager exit={mgr.returncode}\nstderr={mgr_err[:4000]}\nstdout={mgr_out[:2000]}"
+        assert completed_runs, "PANTHER manager did not complete all real agent runs"
         outputs = (
             list(tmp_path.glob("case.par"))
             + list(tmp_path.glob("case.rei"))

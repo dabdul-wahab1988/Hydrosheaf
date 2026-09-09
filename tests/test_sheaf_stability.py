@@ -50,6 +50,70 @@ class SheafStabilityTests(unittest.TestCase):
         self.assertEqual(cost, 0.0)
         self.assertIn("age_unidentified", flags)
 
+    def test_missing_age_is_explicitly_neutral(self):
+        upstream = self._age_node("U", None)
+        downstream = self._age_node("V", 20.0)
+        cost, flags = _edge_age_cost(upstream, downstream)
+        self.assertEqual(cost, 0.0)
+        self.assertIn("age_missing", flags)
+
+    def test_age_cost_is_preserved_on_rejected_candidates(self):
+        samples = [
+            {
+                "site_id": "U",
+                "head_meas": 100.0,
+                "mean_age_years": 10.0,
+                "mean_age_std_years": 1.0,
+                "tracer_identifiable": True,
+                "lat": 0.0,
+                "lon": 0.0,
+            },
+            {
+                "site_id": "V",
+                "head_meas": 90.0,
+                "mean_age_years": 20.0,
+                "mean_age_std_years": 1.0,
+                "tracer_identifiable": True,
+                "lat": 0.0,
+                "lon": 0.01,
+            },
+            {
+                "site_id": "W",
+                "head_meas": 90.0,
+                "mean_age_years": 0.0,
+                "mean_age_std_years": 1.0,
+                "tracer_identifiable": True,
+                "lat": 0.01,
+                "lon": 0.0,
+            },
+        ]
+        config = Config()
+        config.edge_max_neighbors = 1
+        config.sheaf_weight_head_prior = 0.0
+        config.sheaf_weight_isotope = 0.0
+        config.sheaf_weight_cl = 0.0
+        config.sheaf_weight_age = 1.0
+        candidates = [
+            Edge(
+                u="U",
+                v="V",
+                edge_id="U->V",
+                attrs={"distance_km": 1.0},
+            ),
+            Edge(
+                u="U",
+                v="W",
+                edge_id="U->W",
+                attrs={"distance_km": 1.0},
+            ),
+        ]
+        selected = refine_edges_with_sheaf(samples, candidates, config)
+        self.assertEqual(len(selected), 1)
+        self.assertTrue(all("sheaf_cost_age" in (edge.attrs or {}) for edge in candidates))
+        self.assertTrue(
+            all("sheaf_age_evidence_available" in (edge.attrs or {}) for edge in candidates)
+        )
+
     def test_age_direction_likelihood_penalizes_reversal(self):
         upstream = self._age_node("U", 10.0)
         older = self._age_node("V", 20.0)
