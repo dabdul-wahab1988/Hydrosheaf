@@ -299,10 +299,14 @@ or `da_noptmax_schedule`.
 For **PEST++** engines, setting `n_workers > 1` activates the PANTHER manager/agent architecture:
 
 - A **manager** process is launched: `pestpp-<engine> case.pst /h :<port>`
-- `n_workers` **agent** processes connect: `pestpp-<engine> case.pst /h localhost:<port>`
+- `n_workers` **agent** processes connect: `pestpp-<engine> case.pst /h 127.0.0.1:<port>`
 - Agents execute model runs in parallel and report back to the manager.
 
-The runner automatically finds a free ephemeral port, handles agent lifecycle, and cleans up processes on completion or failure (Windows-safe `terminate` → `wait(5s)` → `kill` cascade).
+The runner automatically finds a free ephemeral port, creates an isolated
+working directory for each local agent, handles agent lifecycle, and cleans up
+processes on completion or failure (Windows-safe `terminate` → `wait(5s)` →
+`kill` cascade).  Isolated directories are required because each agent writes
+its own template-expanded inputs and model outputs.
 
 On Windows, the PANTHER manager can occasionally keep running after writing
 valid outputs. Set the Hydrosheaf-only runtime option `panther_timeout_secs` to
@@ -380,7 +384,11 @@ The optimization run outputs a summary directly to the console and saves a detai
 
 ### 4. PEST++ agents not connecting (Windows)
 - **Cause**: Windows firewall or port conflict.
-- **Solution**: Ensure the ephemeral port is not blocked. The runner automatically scans for a free port, but if you see `ConnectionRefused`, try setting `n_workers: 1` to run serially, or manually specify a known-open port via `pestpp_options.panther_master_port`.
+- **Solution**: Ensure the ephemeral loopback port is not blocked. The runner
+  automatically scans for a free port and uses `127.0.0.1`; if you see
+  `ConnectionRefused`, try setting `n_workers: 1` to run serially. The real
+  binary PANTHER regression test is opt-in on Windows because it may require a
+  firewall approval: set `HYDROSHEAF_RUN_WINDOWS_PANTHER=1` when running it.
 
 ### 5. IES ensemble convergence issues
 - **Cause**: `ies_num_reals` too low, or `ies_accept_phi_fac` too high.

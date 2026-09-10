@@ -143,9 +143,13 @@ def main() -> None:
     # ---- 5. dictionary sensitivity (leave-one-out, sample of realisations)
     n_sample = 5
     mineral_labels = [lbl for lbl in labels if lbl in truth["active_minerals"]]
-    variants = {"full_dictionary": set(truth["active_minerals"])}
+    # Keep the configured mineral order stable.  Converting this list to a set
+    # changes reaction-column order between Python processes and made the
+    # leave-one-out diagnostic non-reproducible even though the inputs were
+    # locked.
+    variants = {"full_dictionary": list(truth["active_minerals"])}
     for m in mineral_labels:
-        variants[f"minus_{m}"] = {x for x in truth["active_minerals"] if x != m}
+        variants[f"minus_{m}"] = [x for x in truth["active_minerals"] if x != m]
     sens_rows = []
     realisations_df = make_realisations(truth, nodes, n_sample)
     for variant, minerals in variants.items():

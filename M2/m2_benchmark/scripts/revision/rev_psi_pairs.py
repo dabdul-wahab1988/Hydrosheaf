@@ -15,6 +15,7 @@ Output: M2/m2_benchmark/results/revision/psi_pair_separation.csv
 from __future__ import annotations
 
 import sys
+import argparse
 from pathlib import Path
 
 import numpy as np
@@ -53,6 +54,20 @@ def load_samples(csv_file: Path) -> dict[str, dict[str, float]]:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Audit PSI separation for selected degenerate reaction pairs.")
+    parser.add_argument(
+        "--max-edges-per-site",
+        type=int,
+        default=None,
+        help="Optional cap per site. The default audits every retained canonical field edge.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=20260820,
+        help="Base seed for the NumPy perturbations used by analyze_sensitivity_mc.",
+    )
+    args = parser.parse_args()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     field = pd.read_csv(PROJECT_ROOT / "M2" / "m2_benchmark" / "results" / "field_discovery_results.csv")
     sites = [
@@ -62,7 +77,7 @@ def main() -> None:
          ["calcite", "dolomite", "pyrite_oxidation_aerobic", "albite", "halite"]),
     ]
     rows = []
-    for site_name, csv_file, active_minerals in sites:
+    for site_index, (site_name, csv_file, active_minerals) in enumerate(sites):
         samples = load_samples(csv_file)
         config = Config(
             ion_order=IONS,
@@ -74,14 +89,20 @@ def main() -> None:
             honest_modeling=True,
             geologic_bias="crystalline",
         )
-        site_edges = field[field["edge_id"].str.startswith(site_name)].head(20)
-        for _, row in site_edges.iterrows():
+        site_edges = field[field["edge_id"].str.startswith(site_name)]
+        if args.max_edges_per_site is not None:
+            site_edges = site_edges.head(args.max_edges_per_site)
+        for edge_index, (_, row) in enumerate(site_edges.iterrows()):
             u, v = str(row["u"]), str(row["v"])
             if u not in samples or v not in samples:
                 continue
             x_u = [samples[u][ion] for ion in IONS]
             x_v = [samples[v][ion] for ion in IONS]
             config.sensitivity_analysis_enabled = True
+            # analyze_sensitivity_mc currently consumes NumPy's module-level
+            # RNG. Seed each edge with a stable offset so this diagnostic is
+            # reproducible independently of previous script/process state.
+            np.random.seed(args.seed + site_index * 100_000 + edge_index)
             report = analyze_sensitivity_mc(
                 fit_edge,
                 {"x_u": x_u, "x_v": x_v, "config": config, "obs_v": samples[v]},
@@ -108,6 +129,8 @@ def main() -> None:
                         "co_activated_both_positive": bool(both),
                         "mean_extent_a": ma,
                         "mean_extent_b": mb,
+                        "n_trials": 30,
+                        "seed": args.seed + site_index * 100_000 + edge_index,
                     }
                 )
     out = pd.DataFrame(rows)

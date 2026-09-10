@@ -1,5 +1,97 @@
 # M7 manuscript decisions (r2m Track B)
 
+## 2026-09-08 — Age directness two-tier implementation
+
+- Current execution is locked to the data already in the repository: the four
+  Ghana field packages, the Aiken release, and controlled synthetic panels.
+  External-data acquisition is not an active analysis or reporting workstream.
+- Added a separate controlled-synthetic direct-versus-indirect benchmark and a
+  separate Aiken calibrated-model emulation. Neither changes the locked M7.3
+  topology metrics.
+- The synthetic run `RUN-AGE-BF-CONTROLLED-20260908-03` contains 24 cases,
+  192 complete direct edges, 864 reachable ordered pairs, a sealed truth
+  sidecar, complete-truth CSV, four arms (`no_age`, `order_only`, `full_bf`,
+  and a permuted-transport control), 1,000 complete-case bootstrap resamples,
+  and a passing `PASS_T2_DIRECTNESS_SCORING` audit. Full Bayes-factor PR-AUC
+  was 0.8847 versus 0.4313 for order-only; overlapping hypotheses abstained.
+  The full-versus-permuted contrast was +0.0420 with 95% interval
+  [-0.0004,+0.0839], so no unconditional directness-superiority claim is
+  permitted.
+- The Aiken run `RUN-AIKEN-MODEL-CONDITIONED-20260908-03` produced 20 CFC
+  intervals, 61 explicit `.loc` starting-cell crosswalk rows, 61 endpoint
+  hypotheses, 5,261 pathline segment records and 28 run summaries. Its model
+  time was days converted to years using 365.25; 35 active endpoints were
+  right-censored and 26 terminated observations were retained. The manifest
+  emits no well-to-well truth and sets integrated field scoring to false.
+- Claim ceiling: independent transport hypotheses can support conditional
+  directness discrimination in the controlled generator; endpoint age order
+  alone cannot. Aiken is a model-conditioned concordance/reference panel,
+  never an independent field benchmark and never pooled with synthetic truth.
+- The combined replay `RUN-AGE-ADJACENCY-TWO-TIER-20260908-03` reproduces both
+  panels under one separation manifest. The standalone Aiken provenance replay
+  `RUN-AIKEN-MODEL-CONDITIONED-20260908-03` additionally records SHA-256 and
+  byte-size metadata for each generated table; source archives remain outside
+  that hash scope because they are multi-gigabyte inputs.
+
+## 2026-09-08 — Aiken calibrated-model reference upgrade
+
+- Parsed the supplied USGS Aiken County release (`10.5066/P9U0GHLU`,
+  publication `10.3133/sir20225036`) through a read-only adapter. The run
+  records 20 wells, 26 field-sample rows, 20 CFC-age rows, 16 Table 15
+  recharge-to-well summaries, 4,785 canonical chemistry rows (with source
+  identifiers and non-analyte columns retained in the native tables), and the MODFLOW/MODPATH
+  model metadata in separate, run-scoped tables.
+- Added explicit MODPATH5 binary validation for `.pth` pathlines and `.ept`
+  endpoints: the parser checks the `MODPATH 5.0` header, little-endian
+  reference time, record-size divisibility, endpoint order, particle ordinal,
+  response-file tracking direction, and IPCODE-derived active/stopped/truncated
+  status. The validated output has 61 endpoints (53 backward-to-recharge and
+  8 forward-in-flow) and 5,322 pathline records; 35 endpoints are active and
+  right-censored. The raw release locations and parser provenance are retained;
+  no endpoint is converted to a direct well-to-well label.
+- Canonical chemistry now separates VOCs, field measurements, stable isotopes,
+  nitrate, dissolved gases, radium concentrations, the dimensionless
+  radium ratio, CFC concentrations, piston elapsed times, and young-water
+  fractions. Table identifiers and the Table 14 recharge code remain in the
+  native source-table copy rather than being misreported as analytes.
+- Aiken is now a second calibrated-model-reference panel under
+  `run_usgs_integrated_reference.py --aiken-root data/AikenCounty`. Its CFC
+  ages, chemistry, path extents/velocities, and MODPATH statuses support
+  component and age--transport concordance diagnostics only. Integrated
+  scoring remains disabled; direct-adjacency, independent-age,
+  independent-flow, and carbonate/reaction truth remain `ABSTAIN`.
+- This does not change the locked M2/M2.3 metrics, Ghana evidence, Savage
+  benchmark, or reviewer-response claims. If cited in the M2 revision, Aiken
+  must appear only as a separate supplementary calibrated-model-reference
+  panel; it cannot satisfy a Ghana-specific field case-study request or be
+  pooled into topology F1.
+
+## 2026-09-08 — Three-part benchmark remedy (points 1–3)
+
+- Added `run_usgs_integrated_reference.py`, which builds a new run-scoped
+  panel package from the compact USGS national-age tables and the existing M4
+  Savage/Great Miami/Long Island MODPATH projections.  USGS LPM ages and
+  MODPATH edges remain separate model-conditioned references. The optional
+  Aiken release is parsed into separate calibrated-model panels when supplied;
+  no unverified well-to-cell crosswalk or field-truth score is created.
+- Added `run_integrated_truth_blind.py`, a fresh smoke execution of the
+  independent MODFLOW/MODPATH/chemistry generator.  Blind observation tables
+  are audited before sealed edge/age/process truth is used for scoring.  The
+  run is controlled-synthetic evidence and does not alter `m7_3_locked`.
+- Exposed the locked M7.3 settings through the same wrapper and completed the
+  new full run `RUN-INTEGRATED-SYNTHETIC-20260908-05` (6 development and 12
+  locked-test cases; 600 age draws, 50,000 age particles, 64 reaction
+  bootstrap replicates and 10,000 paired case resamples).  All 18 blind
+  tables passed the leakage audit, candidate recall was 1.0, and local age
+  chains converged.  The run remains controlled-synthetic evidence; the
+  topology-importance stability flag is still false and must not be promoted
+  to a confirmatory stability claim.
+- Added the shared `hydrosheaf.validation.integrated_benchmark` contract and
+  run manifests so calibrated-model, independent-synthetic, observed-field,
+  and conceptual-soft-path evidence cannot be pooled silently.  The smoke
+  run deliberately reports convergence/importance-stability flags at its
+  reduced draw count; those flags are not promoted to confirmatory claims.
+
 ## 2026-07-31 — M7.6 auxiliary M3 mechanism claim decision
 
 - Executed the separately locked M7.6 auxiliary controlled-synthetic diagnostic

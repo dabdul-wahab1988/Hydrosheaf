@@ -81,6 +81,22 @@ Field validation of groundwater age, directed connectivity or unique reaction
 mechanism; universal superiority over MODFLOW, MODPATH, TracerLPM or PHREEQC;
 measured seasonality in the Northern Ghana workbook; and formal sheaf theory.
 
+### D9. Aiken calibrated-model reference panel (2026-09-08)
+
+The supplied USGS Aiken County MODFLOW-NWT/MODPATH5 release is implemented as
+an optional, separate model-reference panel under
+`M7/m7_nonuniqueness_benchmark/scripts/run_usgs_integrated_reference.py`.
+It contributes reproducible well metadata, CFC apparent-age intervals,
+chemistry (including explicit geochemical-ratio and CFC-derived roles),
+recharge-to-well pathway summaries, and validated MODPATH5 text/binary
+diagnostics (61 endpoints, 5,322 pathline records, 28 validated files). It is
+not a Ghana field dataset, does not provide
+independent well-to-well adjacency, age, flow, or reaction truth, and cannot
+be pooled with the locked M2.3 topology or age metrics. If mentioned in the
+M2.3 revision, it must be a supplementary calibrated-model/emulation panel
+with the same screening-only evidence boundary as the existing USGS age and
+MODPATH references.
+
 ## Claim ledger
 
 | ID | Claim | Evidence | Status |
@@ -96,3 +112,4 @@ measured seasonality in the Northern Ghana workbook; and formal sheaf theory.
 | C9 | Northern Ghana supplies a compiled regional chemistry panel; its seasonal attribute is reconstructed. | Data audit, author statement | PASS, with stated reconstruction |
 | C10 | Field effectiveness or universal superiority is established. | No independent field truth | ABSTAIN |
 | C11 | Measured seasonal change is established for Northern Ghana. | Seasonal split is reconstructed | ABSTAIN |
+| C12 | Aiken provides independent field validation or direct-adjacency labels. | Calibrated MODFLOW-NWT/MODPATH5 reference release | ABSTAIN |

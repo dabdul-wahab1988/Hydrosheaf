@@ -94,6 +94,16 @@ def _build_and_fit(samples, config, site_label):
     for r in results:
         if r.edge_confidence is None:
             r.edge_confidence = conf.get(r.edge_id)
+        # EdgeResult is intentionally enriched with the immutable run settings
+        # before serialization.  This keeps the field CSV self-describing and
+        # avoids reconstructing configuration from a different milestone.
+        r._m2_lambda_l1 = float(config.lambda_l1_value())
+        r._m2_lambda_l2 = float(config.lambda_l2)
+        r._m2_reaction_max_iter = int(config.reaction_max_iter)
+        r._m2_reaction_tol = float(config.reaction_tol)
+        r._m2_uncertainty_method = str(config.uncertainty_method)
+        r._m2_sigma_topo = float(config.edge_sigma_topo)
+        r._m2_sigma_elev = float(config.edge_sigma_elev)
     return results
 
 
@@ -203,6 +213,16 @@ def main():
             # directional confidence from the probabilistic builder, and the
             # sheaf cohomology diagnostics attached by the refinement
             "edge_confidence": r.edge_confidence,
+            # Preserve the uncertainty provenance and solver settings used for
+            # each field edge.  The field data use the elevation-only head
+            # fallback; these columns prevent that assumption from being lost
+            # when the CSV is consumed by tables or the manuscript.
+            "edge_delta_h": getattr(r, "edge_delta_h", None),
+            "edge_sigma_delta_h": getattr(r, "edge_sigma_delta_h", None),
+            "edge_source_tier": getattr(r, "edge_source_tier", None),
+            "edge_prob_head": getattr(r, "edge_prob_head", None),
+            "reaction_iterations": getattr(r, "reaction_iterations", None),
+            "reaction_converged": getattr(r, "reaction_converged", None),
             "sheaf_h0_dim": r.sheaf_h0_dim,
             "sheaf_h1_dim": r.sheaf_h1_dim,
             "sheaf_obstruction_energy": r.sheaf_obstruction_energy,
@@ -210,6 +230,21 @@ def main():
             "sheaf_cycle_obstruction_max": r.sheaf_cycle_obstruction_max,
             "sheaf_cycle_count": r.sheaf_cycle_count,
         }
+        # These are constant within a site run but are recorded per edge so
+        # downstream audits can verify the exact execution provenance without
+        # reconstructing Python object state.
+        row.update(
+            {
+                "lambda_l1": getattr(r, "_m2_lambda_l1", None),
+                "lambda_l2": getattr(r, "_m2_lambda_l2", None),
+                "reaction_max_iter": getattr(r, "_m2_reaction_max_iter", None),
+                "reaction_tol": getattr(r, "_m2_reaction_tol", None),
+                "uncertainty_method": getattr(r, "_m2_uncertainty_method", None),
+                "head_proxy": "elevation",
+                "sigma_topo_m": getattr(r, "_m2_sigma_topo", None),
+                "sigma_elev_m": getattr(r, "_m2_sigma_elev", None),
+            }
+        )
         # Flatten extents
         if r.z_labels and r.z_extents:
             for lbl, ext in zip(r.z_labels, r.z_extents):
