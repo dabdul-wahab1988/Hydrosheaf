@@ -3,11 +3,12 @@ Calibration CLI Module.
 """
 
 import argparse
+import copy
 import os
 import json
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, Mapping, cast
 
 from .config import load_calibration_config
 from .glm import PESTGLM
@@ -91,6 +92,132 @@ def _resolve_internal_parameters(
             )
         )
     return resolved_parameters
+
+
+def _normalise_active_learning_samples(samples: Any) -> Dict[str, Dict[str, Any]]:
+    """Convert calibration sample records into the topology cost-function map."""
+    if isinstance(samples, Mapping):
+        return {str(key): dict(value) for key, value in samples.items()}
+    if samples is None:
+        return {}
+    result: Dict[str, Dict[str, Any]] = {}
+    for row in samples:
+        if not isinstance(row, Mapping):
+            continue
+        site_id = (
+            row.get("site_id")
+            or row.get("node_id")
+            or row.get("sample_id")
+            or row.get("SampleID")
+            or row.get("Code")
+        )
+        if site_id is not None and str(site_id).strip():
+            result[str(site_id).strip()] = dict(row)
+    return result
+
+
+def _build_active_learning_posterior(
+    *,
+    candidate_edges: Any,
+    samples: Any,
+    topology_config: Any,
+    settings: Mapping[str, Any],
+    calibration_result: Mapping[str, Any],
+    logger: Any,
+) -> Dict[str, Any]:
+    """Build a probability-bearing topology posterior for campaign design."""
+    posterior_file = settings.get("active_learning_posterior_file")
+    if posterior_file:
+        with open(str(posterior_file), "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        if not isinstance(payload, dict):
+            raise ValueError("active_learning_posterior_file must contain a JSON object.")
+        return payload
+
+    if not candidate_edges:
+        raise ValueError("Bayesian active learning requires candidate topology edges.")
+    sample_map = _normalise_active_learning_samples(samples)
+    if not sample_map:
+        raise ValueError(
+            "Bayesian active learning requires model.samples_file (or equivalent "
+            "sample records) to build the topology posterior."
+        )
+
+    # Keep missing endpoint records explicit so the topology posterior can run,
+    # while the campaign's missing-data score still exposes the gap.
+    for edge in candidate_edges:
+        for endpoint in (getattr(edge, "u", ""), getattr(edge, "v", "")):
+            endpoint_id = str(endpoint or "").strip()
+            if endpoint_id:
+                sample_map.setdefault(endpoint_id, {})
+
+    from ..config import Config as HConfig
+    from ..inference.topology_posterior import (
+        make_topology_cost_fn,
+        run_topology_posterior,
+    )
+
+    posterior_config = copy.deepcopy(topology_config) if topology_config is not None else HConfig()
+    alias_map = {
+        "active_learning_topology_posterior_samples": "topology_posterior_samples",
+        "active_learning_topology_posterior_burnin": "topology_posterior_burnin",
+        "active_learning_topology_posterior_chains": "topology_posterior_chains",
+        "active_learning_topology_posterior_beta": "topology_posterior_beta",
+        "active_learning_topology_posterior_edge_penalty": "topology_posterior_edge_penalty",
+        "active_learning_topology_posterior_seed": "topology_posterior_seed",
+    }
+    for attr in (
+        "topology_posterior_samples",
+        "topology_posterior_burnin",
+        "topology_posterior_chains",
+        "topology_posterior_beta",
+        "topology_posterior_edge_penalty",
+        "topology_posterior_seed",
+        "topology_posterior_min_edges",
+        "topology_posterior_max_out_degree",
+        "topology_posterior_require_acyclic",
+        "topology_posterior_require_weak_connectivity",
+        "topology_posterior_require_root_reachability",
+        "topology_posterior_root_nodes",
+        "topology_posterior_updates_per_sample",
+        "topology_posterior_gibbs_probability",
+    ):
+        if attr in settings:
+            alias_map[attr] = attr
+    if (
+        "active_learning_topology_posterior_chains" not in settings
+        and "topology_posterior_chains" not in settings
+    ) and hasattr(posterior_config, "topology_posterior_chains"):
+        # A campaign recommendation needs convergence diagnostics; the
+        # ordinary topology default is one chain for lightweight inference.
+        posterior_config.topology_posterior_chains = 2
+    for key, attr in alias_map.items():
+        if key in settings and hasattr(posterior_config, attr):
+            setattr(posterior_config, attr, settings[key])
+    if hasattr(posterior_config, "topology_posterior_enabled"):
+        posterior_config.topology_posterior_enabled = True
+
+    cost_fn = make_topology_cost_fn(sample_map=sample_map, config=posterior_config)
+    selected_ids = {
+        str(edge.get("edge_id"))
+        for edge in calibration_result.get("selected_edges", [])
+        if isinstance(edge, Mapping) and edge.get("edge_id") is not None
+    }
+    initial_edges = [
+        edge for edge in candidate_edges if str(getattr(edge, "edge_id", "")) in selected_ids
+    ] or None
+    logger.info(
+        "Building topology posterior for active learning: %d candidate edges, %d sample nodes.",
+        len(candidate_edges),
+        len(sample_map),
+    )
+    return run_topology_posterior(
+        universe=list(candidate_edges),
+        cost_fn=cost_fn,
+        config=posterior_config,
+        initial_edges=initial_edges,
+        seed=int(getattr(posterior_config, "topology_posterior_seed", 42)),
+    )
 
 
 def run_calibration_cli(args):
@@ -265,6 +392,7 @@ def run_calibration_cli(args):
     logger.info(f"Phi: {result.get('phi', 0.0):.4f}")
 
     # ── 8. Post-calibration validation workflow (topology only) ───────
+    val_report = None
     val_file = config.adapter_settings.get(
         "validation_observations_file",
         config.validation_observations_file,
@@ -369,25 +497,133 @@ def run_calibration_cli(args):
 
             top_k = int(config.adapter_settings.get("active_learning_top_k", 20))
 
-            al_result = rank_next_measurements(
-                benchmark_report=full_benchmark_report,
-                validation_report=full_validation_report,
-                samples=topo_samples,
-                candidate_edges=topo_edges,
-                config=topo_config,
-                top_k=top_k,
-                output_dir=config.output_dir,
-            )
+            if not full_benchmark_report:
+                full_benchmark_report = benchmark_report
+            if full_validation_report is None:
+                full_validation_report = val_report
 
+            method = str(
+                config.adapter_settings.get("active_learning_method", "bayesian_campaign")
+            ).strip().lower()
+            if method in {"bayesian", "campaign", "bayesian_campaign"}:
+                method = "bayesian_campaign"
+                from .well_active_learning import (
+                    CampaignConfig,
+                    load_predictive_scenarios_file,
+                )
+
+                def _config_relative_path(value: Any) -> str:
+                    path = Path(str(value))
+                    if path.exists():
+                        return str(path)
+                    if not path.is_absolute():
+                        path = Path(args.config).resolve().parent / path
+                    return str(path)
+
+                if topo_samples is None:
+                    samples_file = config.adapter_settings.get("samples_file") or config.adapter_settings.get("nodes_file")
+                    if samples_file:
+                        import pandas as pd
+                        sample_path = _config_relative_path(samples_file)
+                        if Path(sample_path).exists():
+                            topo_samples = pd.read_csv(sample_path).to_dict("records")
+
+                predictive_model = None
+                predictive_file = config.adapter_settings.get(
+                    "active_learning_predictive_scenarios_file"
+                )
+                if predictive_file:
+                    predictive_model = load_predictive_scenarios_file(
+                        _config_relative_path(predictive_file)
+                    )
+                posterior_settings = dict(config.adapter_settings)
+                if posterior_settings.get("active_learning_posterior_file"):
+                    posterior_settings["active_learning_posterior_file"] = _config_relative_path(
+                        posterior_settings["active_learning_posterior_file"]
+                    )
+                campaign_config = CampaignConfig.from_mapping(
+                    config.adapter_settings,
+                    predictive_model=predictive_model,
+                    allow_surrogate_default=False,
+                )
+                try:
+                    posterior_for_active_learning = _build_active_learning_posterior(
+                        candidate_edges=topo_edges,
+                        samples=topo_samples,
+                        topology_config=topo_config,
+                        settings=posterior_settings,
+                        calibration_result=result,
+                        logger=logger,
+                    )
+                except ValueError as exc:
+                    # Missing campaign inputs are an evidence gate, not a
+                    # reason to emit a heuristic recommendation or crash the
+                    # completed calibration run.
+                    al_result = {
+                        "status": "ABSTAIN",
+                        "abstention_reasons": [str(exc)],
+                        "rankings": [],
+                        "summary": {
+                            "status": "ABSTAIN",
+                            "n_recommendations": 0,
+                            "top_priority_score": 0.0,
+                            "n_actions_scored": 0,
+                            "reasons": [str(exc)],
+                        },
+                    }
+                    from .well_active_learning import _write_campaign_outputs
+                    _write_campaign_outputs(al_result, config.output_dir)
+                else:
+                    posterior_path = Path(config.output_dir) / "active_learning_topology_posterior.json"
+                    with open(posterior_path, "w", encoding="utf-8") as handle:
+                        json.dump(posterior_for_active_learning, handle, indent=2, default=convert)
+                    al_result = rank_next_measurements(
+                        benchmark_report=full_benchmark_report,
+                        validation_report=full_validation_report,
+                        samples=topo_samples,
+                        candidate_edges=topo_edges,
+                        config=topo_config,
+                        top_k=top_k,
+                        output_dir=config.output_dir,
+                        method=method,
+                        posterior_ensemble=posterior_for_active_learning,
+                        campaign_config=campaign_config,
+                    )
+            elif method == "legacy_heuristic":
+                al_result = rank_next_measurements(
+                    benchmark_report=full_benchmark_report,
+                    validation_report=full_validation_report,
+                    samples=topo_samples,
+                    candidate_edges=topo_edges,
+                    config=topo_config,
+                    top_k=top_k,
+                    output_dir=config.output_dir,
+                )
+            else:
+                raise ValueError(
+                    "Unsupported active_learning_method. Use 'bayesian_campaign' "
+                    "or 'legacy_heuristic'."
+                )
+
+            al_summary = al_result.get("summary", {})
             result["active_learning"] = {
-                "summary": al_result["summary"],
-                "n_recommendations": al_result["summary"]["n_recommendations"],
-                "top_priority_score": al_result["summary"]["top_priority_score"],
+                "method": method,
+                "status": al_result.get("status"),
+                "summary": al_summary,
+                "n_recommendations": al_summary.get(
+                    "n_recommendations", len(al_result.get("rankings", al_result.get("recommendations", [])))
+                ),
+                "top_priority_score": al_summary.get(
+                    "top_priority_score", al_summary.get("top_acquisition_score", 0.0)
+                ),
+                "abstention_reasons": al_result.get("abstention_reasons", []),
             }
             logger.info(
-                "Active learning complete — %d recommendations, top score=%.4f",
-                al_result["summary"]["n_recommendations"],
-                al_result["summary"]["top_priority_score"],
+                "Active learning complete — method=%s status=%s recommendations=%d, top score=%.4f",
+                method,
+                al_result.get("status"),
+                result["active_learning"]["n_recommendations"],
+                result["active_learning"]["top_priority_score"],
             )
             # Re-write results.json with active_learning fields included
             with open(out_path, "w") as f:

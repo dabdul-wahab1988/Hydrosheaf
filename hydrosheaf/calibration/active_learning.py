@@ -23,6 +23,7 @@ import numpy as np
 
 from ..config import Config as HConfig
 from ..graph.types import Edge
+from .well_active_learning import CampaignConfig, WellAction, rank_campaign_measurements
 
 # ── measurement recommendation mapping ──────────────────────────────
 
@@ -88,6 +89,39 @@ FLAG_TO_MEASUREMENTS: Dict[str, List[str]] = {
         "independent connectivity evidence",
         "MODPATH/pathline check", "tracer test",
     ],
+    "false_positive": [
+        "tracer test", "hydraulic head survey", "geochemical pathway verification",
+    ],
+    "incorrectly selected (FP)": [
+        "tracer test", "hydraulic head survey", "geochemical pathway verification",
+    ],
+    "false_negative": [
+        "tracer test", "isotope connectivity survey", "groundwater age tracer",
+    ],
+    "missed detection (FN)": [
+        "tracer test", "isotope connectivity survey", "groundwater age tracer",
+    ],
+    "correctly selected (TP)": [
+        "independent connectivity evidence", "tracer test",
+    ],
+    "observed_present": [
+        "independent connectivity evidence", "tracer test",
+    ],
+    "assumption-sensitive (calibrated selects, baseline does not)": [
+        "major ion chemistry", "d18O/d2H sampling", "hydraulic head survey",
+    ],
+    "calibration-removed (baseline selected, calibrated removed)": [
+        "major ion chemistry", "d18O/d2H sampling", "hydraulic head survey",
+    ],
+    "null-model-ambiguous (only null-model-defaults selects)": [
+        "major ion chemistry", "lithologic log / aquifer unit assignment",
+    ],
+    "null-model-rejects (baseline+calibrated agree, null-model-default disagrees)": [
+        "major ion chemistry", "lithologic log / aquifer unit assignment",
+    ],
+    "mixed-disagreement": [
+        "major ion chemistry", "d18O/d2H sampling",
+    ],
 }
 
 # Default field keys to check for missing data (configurable via HConfig)
@@ -100,7 +134,6 @@ _DEFAULT_SAMPLE_FIELDS = [
 # ── internal helpers ─────────────────────────────────────────────────
 
 def _parse_evidence_flags(edge: Edge) -> List[str]:
-    """Parse comma-separated evidence_flags from edge attrs."""
     flags_str = (edge.attrs or {}).get("evidence_flags", "")
     if not flags_str or not isinstance(flags_str, str):
         return []
@@ -436,6 +469,11 @@ def rank_next_measurements(
     config: Optional[HConfig] = None,
     top_k: int = 20,
     output_dir: Optional[str] = None,
+    reject_missing_endpoints: bool = True,
+    require_concrete_actions: bool = True,
+    method: str = "legacy_heuristic",
+    posterior_ensemble: Optional[dict] = None,
+    campaign_config: Optional[CampaignConfig] = None,
 ) -> dict:
     """Rank edges by priority for the next field/lab measurement campaign.
 
@@ -457,12 +495,35 @@ def rank_next_measurements(
         Maximum number of recommendations to return.
     output_dir : str, optional
         When provided, writes JSON/CSV/MD output files.
+    reject_missing_endpoints : bool
+        When True, excludes candidate edges where well endpoints u or v are missing.
+    require_concrete_actions : bool
+        When True, excludes edges for which no actionable field/lab measurement
+        could be mapped from uncertainty reasons or evidence flags.
 
     Returns
     -------
     dict
         ``recommendations`` list, ``summary``, and ``inputs_used``.
     """
+    if method == "bayesian_campaign":
+        if posterior_ensemble is None:
+            raise ValueError(
+                "posterior_ensemble must be provided when method='bayesian_campaign'."
+            )
+        if candidate_edges is None:
+            raise ValueError(
+                "candidate_edges must be provided when method='bayesian_campaign'."
+            )
+        return rank_campaign_measurements(
+            posterior_result=posterior_ensemble,
+            benchmark_report=benchmark_report,
+            candidate_edges=candidate_edges,
+            samples=samples,
+            validation_report=validation_report,
+            config=campaign_config,
+            output_dir=output_dir,
+        )
     variants = benchmark_report.get("variants", {})
     if not variants:
         result = {
@@ -518,7 +579,7 @@ def rank_next_measurements(
     # ── Calibrated-variant selected set (for validation scoring) ─────
     ac_selected = variant_selected_sets.get("assumption_calibrated", set())
 
-    # ── Report-level bootstrap instability ──────────────────────────
+    # ── Report-level bootstrap instability (campaign-level signal) ───
     boot_modulation, boot_reason = _compute_bootstrap_instability_modulation(
         benchmark_report,
     )
@@ -532,8 +593,25 @@ def rank_next_measurements(
 
     # ── Score each edge ─────────────────────────────────────────────
     scored: List[dict] = []
-    for edge_id in all_edge_ids:
-        edge = edge_lookup.get(edge_id, Edge(edge_id=edge_id, u="", v=""))
+    excluded: List[dict] = []
+    for edge_id in sorted(all_edge_ids):
+        edge = edge_lookup.get(edge_id)
+        if edge is None:
+            u_parsed, v_parsed = ("", "")
+            if "->" in edge_id:
+                parts = edge_id.split("->", 1)
+                u_parsed, v_parsed = parts[0].strip(), parts[1].strip()
+            edge = Edge(edge_id=edge_id, u=u_parsed, v=v_parsed)
+
+        u_val = str(edge.u or "").strip()
+        v_val = str(edge.v or "").strip()
+        if reject_missing_endpoints and (not u_val or not v_val):
+            excluded.append({
+                "edge_id": edge_id,
+                "reason": "missing_endpoints",
+                "detail": f"Missing valid endpoints (u='{u_val}', v='{v_val}')",
+            })
+            continue
 
         # Which variants select this edge?
         vs = {
@@ -544,40 +622,36 @@ def rank_next_measurements(
         # Signal A: disagreement
         disagree_score, disagree_reason = _compute_disagreement_score(edge_id, vs)
 
-        # Signal B: bootstrap instability (report-level, same for all edges)
-        bootstrap_score = boot_modulation
-
-        # Signal C: evidence ambiguity
+        # Signal B: evidence ambiguity
         ev_score, ev_reason = _score_evidence_ambiguity(edge)
 
-        # Signal D: validation error
+        # Signal C: validation error
         val_score, val_status, val_reason = _score_validation_error(
             edge_id, validation_report, val_obs_by_edge, ac_selected,
         )
 
-        # Signal E: missing data
+        # Signal D: missing data
         md_score, md_reasons = _score_missing_data(edge, samples, config)
 
-        # Signal F: posterior uncertainty (Bayesian topology posterior)
+        # Signal E: posterior uncertainty (Bayesian topology posterior)
         post_score, post_reason = _score_posterior_uncertainty(edge)
 
-        # Aggregate priority
+        # Aggregate priority: 5 per-edge signals, weights sum to 1.00.
+        # Bootstrap instability is handled as a campaign-level warning to avoid
+        # uniformly inflating every edge score without differentiating priorities.
         priority = (
             disagree_score * 0.25
-            + bootstrap_score * 0.10
-            + ev_score * 0.20
-            + val_score * 0.20
+            + ev_score * 0.25
+            + val_score * 0.25
             + md_score * 0.10
             + post_score * 0.15
         )
         priority = round(min(max(priority, 0.0), 1.0), 6)
 
-        # Collect reasons
+        # Collect edge-specific uncertainty reasons
         all_reasons = []
         if disagree_reason:
             all_reasons.append(disagree_reason)
-        if boot_reason:
-            all_reasons.append(boot_reason)
         if ev_reason:
             all_reasons.append(ev_reason)
         if val_reason:
@@ -587,16 +661,26 @@ def rank_next_measurements(
         if post_reason:
             all_reasons.append(post_reason)
 
+        recs = _recommended_measurements(all_reasons)
+        if require_concrete_actions and not recs:
+            excluded.append({
+                "edge_id": edge_id,
+                "reason": "no_concrete_measurement",
+                "detail": "No actionable field/lab measurement could be mapped from uncertainty reasons",
+            })
+            continue
+
         evidence_class = (edge.attrs or {}).get("evidence_class", "")
         if not evidence_class:
             evidence_class = ""
 
         scored.append({
             "edge_id": edge_id,
-            "u": edge.u or "",
-            "v": edge.v or "",
+            "u": u_val,
+            "v": v_val,
             "priority_score": priority,
             "uncertainty_reasons": all_reasons,
+            "recommended_measurements": recs if recs else ["review edge evidence"],
             "evidence_flags": _parse_evidence_flags(edge),
             "evidence_reason": (edge.attrs or {}).get("evidence_reason", ""),
             "evidence_class": evidence_class,
@@ -606,15 +690,15 @@ def rank_next_measurements(
             "validation_status": val_status,
         })
 
-    # ── Sort by priority descending ─────────────────────────────────
-    scored.sort(key=lambda x: x["priority_score"], reverse=True)
+    # ── Sort by priority descending with deterministic tie-breaking on edge_id ───
+    scored.sort(key=lambda x: (-x["priority_score"], str(x["edge_id"])))
     top = scored[:top_k]
 
     # ── Build final recommendation dicts ────────────────────────────
     recommendations = []
     for i, item in enumerate(top):
         reasons = item["uncertainty_reasons"]
-        recs = _recommended_measurements(reasons)
+        recs = item["recommended_measurements"]
         status_item = {
             "baseline_selected": item["baseline_selected"],
             "null_model_default_selected": item["null_model_default_selected"],
@@ -627,7 +711,7 @@ def rank_next_measurements(
             "v": item["v"],
             "priority_score": item["priority_score"],
             "uncertainty_reasons": reasons,
-            "recommended_measurements": recs if recs else ["review edge evidence"],
+            "recommended_measurements": recs,
             "expected_benefit": _compute_expected_benefit(
                 item["priority_score"], reasons, item["evidence_class"],
                 item["validation_status"],
@@ -645,9 +729,15 @@ def rank_next_measurements(
     summary = {
         "n_recommendations": len(recommendations),
         "top_priority_score": recommendations[0]["priority_score"] if recommendations else 0.0,
-        "n_edges_scored": len(scored),
+        "n_edges_scored": len(all_edge_ids),
+        "n_edges_actionable": len(scored),
+        "n_edges_excluded": len(excluded),
+        "excluded_recommendations": excluded,
         "bootstrap_instability_detected": bool(boot_reason),
+        "bootstrap_instability_warning": boot_reason if boot_reason else None,
     }
+    if boot_reason:
+        summary["warnings"] = [f"Bootstrap instability detected: {boot_reason}"]
 
     result = {
         "recommendations": recommendations,
@@ -732,8 +822,12 @@ def _write_active_learning_md(path: Path, result: dict) -> None:
         f"- **Top priority score**: {summary['top_priority_score']:.4f}",
     ]
 
-    if summary.get("bootstrap_instability_detected"):
+    if summary.get("bootstrap_instability_warning"):
+        lines.append(f"- **Bootstrap instability warning**: {summary['bootstrap_instability_warning']}")
+    elif summary.get("bootstrap_instability_detected"):
         lines.append("- **Bootstrap instability**: detected in benchmark delta CIs")
+    if summary.get("n_edges_excluded", 0) > 0:
+        lines.append(f"- **Edges excluded (missing endpoints / non-concrete)**: {summary['n_edges_excluded']}")
     lines.append("")
 
     if not recs:
@@ -819,3 +913,13 @@ def _write_active_learning_md(path: Path, result: dict) -> None:
 
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
+
+
+__all__ = [
+    "rank_next_measurements",
+    "rank_campaign_measurements",
+    "WellAction",
+    "CampaignConfig",
+    "FLAG_TO_MEASUREMENTS",
+    "REASON_TO_MEASUREMENTS",
+]

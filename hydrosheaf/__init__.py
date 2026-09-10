@@ -157,6 +157,26 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
         ".calibration.bayesian_active_learning",
         "update_hypothesis_posterior",
     ),
+    "rank_next_measurements": (
+        ".calibration.active_learning",
+        "rank_next_measurements",
+    ),
+    "rank_campaign_measurements": (
+        ".calibration.well_active_learning",
+        "rank_campaign_measurements",
+    ),
+    "CampaignConfig": (
+        ".calibration.well_active_learning",
+        "CampaignConfig",
+    ),
+    "WellAction": (
+        ".calibration.well_active_learning",
+        "WellAction",
+    ),
+    "load_predictive_scenarios_file": (
+        ".calibration.well_active_learning",
+        "load_predictive_scenarios_file",
+    ),
     "tracer_response_kernel": (
         ".nuclear.joint_lpm",
         "tracer_response_kernel",

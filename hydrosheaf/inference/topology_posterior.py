@@ -643,8 +643,11 @@ def run_topology_posterior(
             "edge_log_odds": {},
             "map_edges": [],
             "entropy": 0.0,
+            "joint_graph_entropy": 0.0,
             "marginal_edge_entropy": 0.0,
             "entropy_definition": "sum_of_marginal_bernoulli_edge_entropies",
+            "graph_ensemble": [],
+            "n_unique_graphs": 0,
             "n_edges_mean": 0.0,
             "n_edges_ci95": (0.0, 0.0),
             "acceptance_rate": 0.0,
@@ -664,6 +667,7 @@ def run_topology_posterior(
         }
 
     aggregate_counts: Dict[str, int] = {edge_id: 0 for edge_id in edge_ids}
+    graph_counts: Dict[Tuple[str, ...], int] = {}
     chain_counts: List[Dict[str, int]] = []
     chain_edge_traces: List[Dict[str, List[int]]] = []
     chain_n_edges: List[List[int]] = []
@@ -777,7 +781,9 @@ def run_topology_posterior(
                         acceptance_count += 1
 
             if iteration >= n_burnin:
-                included = {_get_edge_id(edge) for edge in current}
+                included_tuple = tuple(sorted(_get_edge_id(edge) for edge in current))
+                graph_counts[included_tuple] = graph_counts.get(included_tuple, 0) + 1
+                included = set(included_tuple)
                 for edge_id in edge_ids:
                     present = int(edge_id in included)
                     counts[edge_id] += present
@@ -803,12 +809,33 @@ def run_topology_posterior(
         for eid, p in edge_probabilities.items()
     }
 
-    # Sum of marginal Bernoulli edge entropies. This is not the entropy of the
-    # joint graph posterior because dependencies among edges are not represented.
+    # Sum of marginal Bernoulli edge entropies (preserved for baseline comparison).
     marginal_edge_entropy = 0.0
     for p in edge_probabilities.values():
         if 0.0 < p < 1.0:
             marginal_edge_entropy -= p * math.log(p) + (1.0 - p) * math.log(1.0 - p)
+
+    # Discrete probability-bearing ensemble of posterior graphs.
+    sorted_graphs = sorted(
+        graph_counts.items(),
+        key=lambda item: (-item[1], item[0]),
+    )
+    graph_ensemble = [
+        {
+            "graph_id": f"G{idx:04d}",
+            "edge_ids": edges_tuple,
+            "probability": float(count / n_post_samples),
+            "count": int(count),
+        }
+        for idx, (edges_tuple, count) in enumerate(sorted_graphs)
+    ]
+
+    # Exact joint Shannon entropy of the discrete posterior graph ensemble.
+    joint_graph_entropy = 0.0
+    for g in graph_ensemble:
+        p = g["probability"]
+        if p > 0.0:
+            joint_graph_entropy -= p * math.log(p)
 
     flattened_n_edges = [value for trace in chain_n_edges for value in trace]
     n_edges_mean = float(np.mean(flattened_n_edges)) if flattened_n_edges else 0.0
@@ -917,8 +944,12 @@ def run_topology_posterior(
         "edge_log_odds": edge_log_odds,
         "map_edges": [_get_edge_id(e) for e in best_edges],
         "entropy": marginal_edge_entropy,
+        "joint_graph_entropy": joint_graph_entropy,
         "marginal_edge_entropy": marginal_edge_entropy,
         "entropy_definition": "sum_of_marginal_bernoulli_edge_entropies",
+        "joint_entropy_definition": "joint_shannon_entropy_over_mcmc_graph_ensemble",
+        "graph_ensemble": graph_ensemble,
+        "n_unique_graphs": len(graph_ensemble),
         "n_edges_mean": n_edges_mean,
         "n_edges_ci95": n_edges_ci95,
         "acceptance_rate": acceptance_rate,
@@ -1380,4 +1411,64 @@ def attach_posterior_attrs(
         attrs["posterior_selection_max_neighbors"] = posterior_result.get(
             "selection_max_neighbors"
         )
+        attrs["posterior_joint_graph_entropy"] = posterior_result.get(
+            "joint_graph_entropy", entropy
+        )
         edge.attrs = attrs
+
+
+def extract_topology_hypotheses(
+    posterior_result: Dict[str, Any],
+    min_probability: float = 0.0,
+    max_hypotheses: Optional[int] = None,
+) -> Tuple[List[str], List[float], List[Tuple[str, ...]]]:
+    """Extract discrete topology hypotheses from posterior result for Bayesian active learning.
+
+    Parameters
+    ----------
+    posterior_result : dict
+        Result dictionary returned by ``run_topology_posterior``.
+    min_probability : float
+        Minimum empirical posterior probability required to retain a graph.
+    max_hypotheses : int, optional
+        Maximum number of discrete graph hypotheses to retain.
+
+    Returns
+    -------
+    tuple of (hypothesis_ids, prior_probabilities, edge_tuples)
+        Aligned lists of string hypothesis IDs, normalized probabilities summing to 1.0,
+        and tuples of included edge IDs.
+    """
+    ensemble = posterior_result.get("graph_ensemble", [])
+    if not ensemble and isinstance(posterior_result.get("attrs"), Mapping):
+        ensemble = posterior_result["attrs"].get("posterior_graph_ensemble", [])
+    if not ensemble:
+        map_edges = tuple(
+            sorted(
+                posterior_result.get(
+                    "map_edges",
+                    posterior_result.get("selected_edge_ids", []),
+                )
+            )
+        )
+        return (["G0000"], [1.0], [map_edges])
+
+    filtered = [g for g in ensemble if float(g.get("probability", 0.0)) >= float(min_probability)]
+    if not filtered:
+        filtered = list(ensemble[:1])
+    if max_hypotheses is not None and max_hypotheses > 0 and len(filtered) > max_hypotheses:
+        filtered = filtered[:max_hypotheses]
+
+    raw_probs = [float(g["probability"]) for g in filtered]
+    total = sum(raw_probs)
+    if total <= 0.0:
+        norm_probs = [1.0 / len(filtered)] * len(filtered)
+    else:
+        norm_probs = [p / total for p in raw_probs]
+
+    ids = [str(g.get("graph_id", f"G{i:04d}")) for i, g in enumerate(filtered)]
+    edge_tuples = [
+        tuple(g.get("edge_ids", g.get("graph_edges", g.get("edges", ()))))
+        for g in filtered
+    ]
+    return ids, norm_probs, edge_tuples
