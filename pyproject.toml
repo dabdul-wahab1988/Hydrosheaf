@@ -37,6 +37,11 @@ viz3d = ["pyvista", "vtk"]
 [tool.setuptools.packages.find]
 include = ["hydrosheaf*"]
 
+[tool.pytest.ini_options]
+# M3 and M3.1 intentionally retain parallel test filenames; importlib
+# collection prevents basename collisions during repository-wide discovery.
+addopts = "--import-mode=importlib"
+
 [project.scripts]
 hydrosheaf = "hydrosheaf.cli:main"
 hydrosheaf-cal = "hydrosheaf.calibration.cli:main"
