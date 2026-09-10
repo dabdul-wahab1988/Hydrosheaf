@@ -437,6 +437,11 @@ def result_rows(
             "objective_score": result.objective_score,
             "anomaly_norm": result.anomaly_norm,
             "chemistry_r2": result.chemistry_r2,
+            # Solver diagnostics are part of the auditable result schema.  In
+            # particular, a chemistry fit must not be interpreted as a
+            # converged reaction solution when the iteration cap was reached.
+            "reaction_iterations": result.reaction_iterations,
+            "reaction_converged": result.reaction_converged,
             "transport_prob_evap": result.transport_probabilities.get("evap"),
             "transport_prob_mix": result.transport_probabilities.get("mix"),
             "edge_score": score,

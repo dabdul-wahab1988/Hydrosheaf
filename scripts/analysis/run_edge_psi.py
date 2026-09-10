@@ -138,9 +138,8 @@ def main():
     parser.add_argument("--trials", type=int, default=30, help="Monte Carlo trials per edge.")
     parser.add_argument("--max-edges-per-site", type=int, default=None, help="Optional smoke-test edge limit per site.")
     parser.add_argument("--seed", type=int, default=20260820,
-                        help="RNG seed. analyze_sensitivity_mc draws from the global "
-                             "numpy RNG, so PSI values -- and hence the reported family "
-                             "distribution -- drift between runs unless this is fixed.")
+                        help="RNG seed for the global NumPy RNG consumed by "
+                             "analyze_sensitivity_mc.")
     args = parser.parse_args()
     np.random.seed(args.seed)
 

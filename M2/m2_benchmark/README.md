@@ -76,11 +76,12 @@ the manuscript.
 
 ## Public Age Benchmark For Fig. 5
 
-The public-age side of M2 Fig. 5 should use the canonical M3 screened USGS
-benchmark when available. Run this from the repository root:
+The public-age side of M2 Fig. 5 consumes the canonical M3
+identifiability-gated USGS benchmark (`tracerlpm_parity_agefractions`, 90 age
+steps) when available. Run this from the repository root:
 
 ```powershell
-python M3\m3_age_benchmark\scripts\run_m3_design_matrix.py --full --age-steps 35 --scenario screened_dgm_gases --output M3\m3_age_benchmark\results\m3_phase4_screened_full_results.csv
+python M3\m3_age_benchmark\scripts\run_m3_design_matrix.py --full --age-steps 90 --scenario tracerlpm_parity_agefractions
 ```
 
 Then regenerate the M2 manuscript figures:
@@ -92,4 +93,6 @@ python M2\m2_benchmark\scripts\make_supplementary_figures.py
 
 The older `external/usgs_age/results/usgs_age_validation.csv` file remains a
 fallback for traceability, but final manuscript figures should report the M3
-full screened result and keep the claim at screening-level age agreement.
+identifiability-gated result and keep the claim at screening-level age
+agreement. The reported log10 R² is the residual-based `1 - SS_res/SS_tot`
+statistic, not squared Pearson correlation.

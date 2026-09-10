@@ -1,5 +1,20 @@
 # M6 manuscript — material decisions
 
+## 2026-09-08 — Prospective integrated field benchmark contract (point 3)
+
+- Added `configs/ghana_prospective_campaign.json` and
+  `docs/ghana_prospective_campaign_protocol.md`.  The contract includes all
+  four available Ghana packages, explicit age/direct-adjacency/reaction
+  estimands, log-ratio diagnostics, and a user-supplied geology dictionary
+  boundary.
+- Added `scripts/audit_prospective_campaign_readiness.py`.  The read-only
+  readiness run confirms the four packages can support transfer, ratio, and
+  mapped-geology diagnostics, while independent age, direct-adjacency, and
+  reaction-truth accuracy remain `ABSTAIN` until blind predictions and
+  independent co-timed confirmation are collected.
+- This protocol is prospective evidence planning, not a retrospective field
+  validation result; existing locked M6 outputs are unchanged.
+
 ## Revision round (manuscript-reviewer report, 2026-07-24)
 
 A full peer-review pass was run using the manuscript-reviewer skill

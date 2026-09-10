@@ -20,8 +20,9 @@ The benchmark has seven linked audits:
    uncertainty and accuracy.
 3. Reaction-family recovery is bootstrapped under core and enhanced chemistry
    panels, with special reporting for carbonate processes.
-4. The Northern Ghana workbook is audited as a data-limited application:
-   supported component diagnostics are separated from unavailable field truth.
+4. The four Ghana packages are audited as data-in-hand applications:
+   supported component diagnostics, coverage, and missingness are reported
+   separately for each package.
 5. The strict public pipeline is exercised on fresh independent cases, with
    mandatory nuclear-age, sheaf-refinement, and network-fit stage assertions.
 6. A prospectively locked M7.4 comparator isolates what affine restriction
@@ -63,6 +64,71 @@ The supporting experiment's
 [fresh-seed amendment](docs/supporting_validation_amendment.md), and
 [results](docs/supporting_validation_results.md) remain as the audit trail for
 the negative incremental-age finding.
+
+## Three-part integrated benchmark remedy
+
+The consolidated runbook is [`docs/INTEGRATED_BENCHMARK_PLAN.md`](../../docs/INTEGRATED_BENCHMARK_PLAN.md).
+
+The current execution scope is data-in-hand only; see
+[`docs/CURRENT_DATA_IN_HAND_SCOPE.md`](../../docs/CURRENT_DATA_IN_HAND_SCOPE.md)
+for the active field-package, Aiken, ratio, geology, and synthetic panels.
+
+The repository now exposes the three evidence paths separately:
+
+1. `scripts/run_usgs_integrated_reference.py` prepares a new run-scoped panel
+   package from the USGS age tables and the compact M4 MODPATH projections.
+   With `--aiken-root data/AikenCounty`, it also parses the supplied Aiken
+   workbooks and validated MODPATH5 binary panels directly from ZIP members,
+   preserving censored values and endpoint status/censoring. It does not
+   extract multi-gigabyte archives, guess a well-to-cell crosswalk, or create
+   direct well--well labels.
+2. `scripts/run_integrated_truth_blind.py` runs a fresh independent-generator
+   benchmark and audits that inference saw only blind observations.  Use
+   `--quick` for a smoke check; omitting it replays the locked M7.3 settings.
+   The completed full run is recorded under
+   `.codex_work/runs/RUN-INTEGRATED-SYNTHETIC-20260908-05`.
+3. The four Ghana packages are audited as separate data-in-hand transfer and
+   screening panels under `data/FieldData/`.
+
+These panels are not silently pooled. Aiken is retained as a calibrated-model
+transport/concordance panel, while the four Ghana packages remain separate
+observed-data transfer/screening panels. Their source kind and scoring status
+are recorded in each run manifest.
+
+## Direct-versus-indirect age test
+
+The endpoint-age direction gate and the direct-adjacency estimand are now
+separate. The controlled synthetic benchmark compares `no_age`, endpoint
+`order_only`, an explicit direct/indirect travel-time Bayes factor (`full_bf`),
+and a within-case permuted-transport control:
+
+```powershell
+.venv\Scripts\python.exe M7\m7_nonuniqueness_benchmark\scripts\age_bayes_factor_benchmark.py `
+  --output .codex_work\runs\RUN-AGE-BF-CONTROLLED-YYYYMMDD-01
+```
+
+The package writes a complete truth graph, a separately sealed truth sidecar,
+case-block bootstrap contrasts, and a fail-closed two-tier QA report. Aiken
+can be run as a separate calibrated-model reference panel:
+
+```powershell
+.venv\Scripts\python.exe M7\m7_nonuniqueness_benchmark\scripts\run_aiken_model_conditioned_emulation.py `
+  --aiken-root data\AikenCounty `
+  --output .codex_work\runs\RUN-AIKEN-MODEL-CONDITIONED-YYYYMMDD-01
+```
+
+Orchestrate both without pooling their denominators:
+
+```powershell
+.venv\Scripts\python.exe M7\m7_nonuniqueness_benchmark\scripts\run_age_adjacency_two_tier.py `
+  --aiken-root data\AikenCounty `
+  --output .codex_work\runs\RUN-AGE-ADJACENCY-TWO-TIER-YYYYMMDD-01
+```
+
+The synthetic panel is the only panel allowed to report an independent
+direct-adjacency denominator. Aiken's MODPATH endpoint/pathline and CFC
+outputs remain model-conditioned concordance diagnostics; its manifest
+explicitly disables integrated field scoring and emits no well-to-well truth.
 
 ## Replay the final benchmark
 

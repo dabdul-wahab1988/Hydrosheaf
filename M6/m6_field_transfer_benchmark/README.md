@@ -1,11 +1,18 @@
 # M6 — Hydrosheaf Field-Transfer & Robustness Benchmark
 
 Field transfer of the identifiability-aware Hydrosheaf reaction-inference workflow to
-three real Ghanaian aquifer datasets, under data scarcity. M6 asks whether the M5
+four real Ghanaian groundwater data packages, under data scarcity. M6 asks whether the M5
 workflow degrades **gracefully, honestly and reproducibly** as evidence is removed —
 it does **not** claim field validation of true reactions, flow paths or ages.
 
 See `Outline.md` (Q1 Nature-Portfolio outline) and `docs/m6_locked_analysis_plan.md`.
+
+The four-package prospective field contract is documented in
+[`docs/ghana_prospective_campaign_protocol.md`](docs/ghana_prospective_campaign_protocol.md)
+and encoded in
+[`configs/ghana_prospective_campaign.json`](configs/ghana_prospective_campaign.json).
+Run the read-only readiness audit with
+`.venv\Scripts\python.exe scripts\audit_prospective_campaign_readiness.py`.
 
 ## What is reused (frozen, not re-fit)
 - M5 inverse-reaction primitives (`M5/.../scripts/m5_common.py`): FISTA sparse inverse,
@@ -14,9 +21,9 @@ See `Outline.md` (Q1 Nature-Portfolio outline) and `docs/m6_locked_analysis_plan
   *transferred* identifiability classifier. This is the scientific core of a transfer study.
 
 ## Datasets (real)
-All three datasets are sourced strictly from `data/FieldData/`
-(`NorthenGhana/NorthernGhana.xlsx`, `Talensi_MiningArea/talensi.csv`,
-`LowerAnayari/manu.csv`). An earlier revision additionally read a different,
+All four packages are sourced strictly from `data/FieldData/`
+(`NorthenGhana/NorthernGhana.xlsx`, `NorthernGhanaNew/compiled UER data_new.xlsx`,
+`Talensi_MiningArea/talensi.csv`, `LowerAnayari/manu.csv`). An earlier revision additionally read a different,
 antecedent study's own derived workbook (`Aquifers_Dataset_Mendeley.xlsx` — aquifer/
 geology/lithology metadata, workbook saturation indices, a provided graph-edge sheet,
 inferred process labels for the same Northern Ghana boreholes); that workbook is not
@@ -25,6 +32,7 @@ this project's field data and has been removed entirely (see `DECISIONS.md`).
 | Dataset | n | Native tier | Role |
 |---|---:|---|---|
 | Northern Ghana (canonical raw workbook) | 320 (160 wells × wet/dry) | Tier 4 (M6 chemistry ladder) | Primary field transfer + robustness |
+| NorthernGhanaNew (compiled UER workbook) | 237 groundwater rows + auxiliary rain/monitoring sheets | Context/transfer panel | Alternate chemistry, tritium and monitoring context |
 | Talensi (mining area) | 63 | Tier 1 | External sparse transfer |
 | Lower Anayari (manu) | 41 | Tier 2 | External sparse transfer |
 
@@ -32,7 +40,7 @@ this project's field data and has been removed entirely (see `DECISIONS.md`).
 isotopes + Sr/SiO2 + Hydrosheaf-computed PHREEQC saturation indices. It does not
 imply that environmental age tracers, repeated heads, screen intervals, independent
 flow-path truth, or any aquifer/geology/lithology metadata are available. No
-independent aquifer-type classification exists for any of the three datasets;
+independent aquifer-type classification exists for the three core transfer datasets;
 stratified reporting uses administrative region/district for Northern Ghana instead.
 See
 [`docs/objective6_data_limited_synthesis.md`](docs/objective6_data_limited_synthesis.md)

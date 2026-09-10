@@ -113,6 +113,27 @@ Minimum metrics:
 - source-receptor path overlap.
 - travel-time consistency where MODPATH travel times are available.
 
+### Aiken supplemental model-reference panel
+
+The supplied USGS Aiken County MODFLOW-NWT/MODPATH5 release can be used as a
+second, panel-separated reference without replacing the Savage result above:
+
+```powershell
+.venv\Scripts\python.exe M7\m7_nonuniqueness_benchmark\scripts\run_usgs_integrated_reference.py `
+  --output .codex_work\runs\RUN-USGS-INTEGRATED-REFERENCE-<run-id> `
+  --aiken-root data\AikenCounty
+```
+
+The adapter preserves the Aiken CFC ages, field chemistry, well metadata,
+recharge-to-well pathway summaries, and validated MODPATH5 binary endpoint and
+pathline records. It is useful for component checks and age--transport
+concordance, but it has no independent well-to-well adjacency labels or
+reaction truth. Active MODPATH particles are right-censored and are not
+completed recharge paths; the exceptional forward run is kept identifiable.
+Accordingly, Aiken outputs remain a supplementary calibrated-model/emulation
+panel, cannot be pooled into topology F1, and do not constitute Ghana field
+validation for the M2 revision.
+
 ### Tier E3: Live PHREEQC Forward Validation
 
 Primary source:
