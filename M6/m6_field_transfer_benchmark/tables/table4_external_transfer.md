@@ -1,8 +1,0 @@
-# Table 4. External transfer performance and uncertainty summary
-
-| dataset | n_edges | mean_mrs | mean_stability | frac_partial | frac_non_identifiable |
-| --- | --- | --- | --- | --- | --- |
-| talensi (Tier1) | 129 | 68.799 | 0.967 | 0.628 | 0.372 |
-| manu (Tier2) | 85 | 69.933 | 0.929 | 0.047 | 0.953 |
-| N.Ghana ref (Tier1) | 120 | 70.939 | 0.967 | 0.458 | 0.542 |
-| N.Ghana ref (Tier2) | 120 | 73.13 | 0.968 | 0.467 | 0.533 |

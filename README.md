@@ -38,7 +38,6 @@ The framework integrates:
 - **Topology Uncertainty**: Bayesian MCMC over candidate topologies produces edge inclusion probabilities, log-odds, and posterior entropy — moving beyond hard-threshold edge selection.
 - **Global Consistency Checks**: Sheaf cohomology detects cycles where chemistry constraints cannot be simultaneously satisfied, computing obstruction energy and per-edge leverage scores.
 - **Active Learning**: Recommends which wells to measure next based on variant disagreement, posterior uncertainty, evidence ambiguity, and validation gaps.
-- **Verified Documentation**: All mathematical examples in the technical reference are computationally verified by the test suite.
 
 ## Installation
 
@@ -177,7 +176,7 @@ config = Config(
 )
 ```
 
-For detailed configuration reference, see [User Guide](docs/USER_GUIDE.md#2-cli-options-reference).
+For configuration options, see `hydrosheaf/config.py` and the command-line help provided by `hydrosheaf --help`.
 
 ### Data Input Format
 
@@ -222,19 +221,13 @@ edges = [
 
 
 
-## Documentation
+## Repository scope
 
-For comprehensive reference, see:
-
-- **[User Guide](docs/USER_GUIDE.md)**: Extended usage instructions, CLI options, and workflows
-- **[Calibration Guide](docs/CALIBRATION_GUIDE.md)**: Configuring and running PEST++ calibration, topology, and assumption parameter tuning
-- **[DEVELOPMENT.md](DEVELOPMENT.md)**: For developers and contributors (building from source, running tests, contributing)
-- **[Technical Document (PDF)](docs/papers/hydrosheaf_technical_document.pdf)**: Mathematical theory and proofs
-- **[Mathematical Reference](docs/math.md)**: Compact math notes aligned with the codebase
-- **[PHREEQC Integration](docs/phreeqc.md)**: Setting up thermodynamic constraints
-- **[Examples](docs/examples.md)**: Walkthroughs of common scenarios
-- **[Inputs Reference](docs/INPUTS_REFERENCE.md)**: Detailed description of required inputs per module
-- **[Extensions Summary](docs/EXTENSIONS_SUMMARY.md)**: Deep dive into 3D, vadose, uncertainty, age, and temporal extensions
+This public repository contains the Hydrosheaf Python source package,
+executable Python analysis and test scripts, package metadata, and this
+README. Manuscripts, reviewer responses, figures, data, generated results,
+and temporary preparation files are maintained outside this public code
+repository.
 
 ## Troubleshooting & Common Questions
 
@@ -245,10 +238,9 @@ For comprehensive reference, see:
 **A: That's fine!** Core hydrosheaf inverse modeling works perfectly without PEST++. Download pre-compiled PEST++ binaries from [USGS/pestpp releases](https://github.com/usgs/pestpp/releases) if needed.
 
 ### Q: Will it work on Linux/Mac?
-**A: Yes!** The Python package is cross-platform. The `bin/` directory contains Windows executables, but:
-- Core hydrosheaf works on Windows/Linux/Mac
-- Download Linux/Mac binaries separately if needed
-- Most users don't need the `bin/` files
+**A: Yes!** The Python package is cross-platform. External PEST++, MODFLOW,
+and MT3DMS binaries, when required, should be installed separately for the
+target operating system.
 
 ### Q: Can I use Hydrosheaf without PHREEQC?
 **A: Yes!** While the PHREEQC library is installed by default, you can disable thermodynamic constraints in your configuration if you don't need them.

@@ -1,6 +1,0 @@
-scenario_id,old_groundwater_status,n,median_c14_age,median_he4_age,median_constraint_gap_log10
-tracerlpm_strict_parity,agreement,176,5514.582633922642,6971.861827309197,0.08314064463366905
-tracerlpm_strict_parity,conflict,3,1166.0763980423387,10256.727703135277,1.0830147696315584
-tracerlpm_strict_parity,none,452,,,
-tracerlpm_strict_parity,single_tracer,633,9196.321016773,42390.93829328404,
-tracerlpm_strict_parity,tension,8,2266.242851725372,1564.9056766349038,0.401016724929393

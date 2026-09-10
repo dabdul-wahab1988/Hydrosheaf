@@ -1,7 +1,0 @@
-station_code,station_type,lat_deg,lon_deg,ground_elev_m,screen_top_m,screen_bottom_m,cluster_id,cluster_code,input_intensity,target_N_kg_ha_range
-L1,lysimeter,8.0501,-1.7352,315.2,,,CL_A,CLUSTER_A,high,250-300
-L2,lysimeter,8.0508,-1.7345,314.7,,,CL_B,CLUSTER_B,moderate,100-150
-BH1,borehole,8.0516,-1.7364,316.0,5.0,20.0,GW,CLUSTER_A,high,250-300
-BH2,borehole,8.0509,-1.7357,315.5,6.0,22.0,GW,CLUSTER_A,high,250-300
-BH3,borehole,8.0502,-1.735,314.9,7.0,24.0,GW,CLUSTER_B,moderate,100-150
-BH4,borehole,8.0496,-1.7342,314.2,8.0,25.0,GW,CLUSTER_B,moderate,100-150

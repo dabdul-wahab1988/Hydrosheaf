@@ -1,3 +1,20 @@
+# Public repository boundary: keep executable Python source/tests/scripts,
+# the root README, and the small package/repository metadata needed to install
+# and validate the source. Manuscripts, results, data, figures, and temporary
+# research material stay outside the public checkout.
+*
+!*/
+!*.py
+!/README.md
+!/pyproject.toml
+!/uv.lock
+!/.gitignore
+!/.gitattributes
+!/LICENSE
+!/.github/
+!/.github/workflows/
+!/.github/workflows/ci.yml
+
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -245,3 +262,79 @@ M8/m8_calibration_benchmark/.simulator_workspaces/
 !M8/m8_calibration_benchmark/development/DEV-M8-FRONTIER-AL-20260728-01/**
 !M8/m8_calibration_benchmark/provenance/
 !M8/m8_calibration_benchmark/provenance/**
+
+# Final public-repository boundary. Keep this block last so legacy exceptions
+# above cannot re-include research material in the public checkout.
+*
+!*/
+!*.py
+!/README.md
+!/pyproject.toml
+!/uv.lock
+!/.gitignore
+!/.gitattributes
+!/LICENSE
+!/.github/
+!/.github/workflows/
+!/.github/workflows/ci.yml
+
+# Python manuscript/preparation helpers are retained locally but are not part
+# of the public source checkout.
+/M1/Revision_5_9_2026/
+/M2/M2_ready/
+/bundle_project_files.py
+/generate_m2_md_tables.py
+/hydrosheaf/outputs/tables.py
+/M2.3/analysis/python/build_manuscript.py
+/M2/m2_benchmark/figures/Manuscript_Ready/
+/M2/m2_benchmark/scripts/make_publication_figures.py
+/M2/m2_benchmark/scripts/make_publication_tables.py
+/M2/m2_benchmark/scripts/make_supplementary_figures.py
+/M2/m2_benchmark/scripts/run_m2_manuscript_analysis.py
+/M2_1/generation_script.py
+/M3.1/analysis/python/build_display_tables.py
+/M3.1/analysis/python/build_exports.py
+/M3.1/m3_age_benchmark/scripts/finalize_m3_docx_formatting.py
+/M3.1/m3_age_benchmark/scripts/make_publication_figures.py
+/M3.1/m3_age_benchmark/scripts/make_publication_tables.py
+/M3.1/m3_age_benchmark/scripts/run_m3_manuscript_analysis.py
+/M3.1/m3_age_benchmark/scripts/update_m3_manuscripts.py
+/M3/m3_age_benchmark/scripts/finalize_m3_docx_formatting.py
+/M3/m3_age_benchmark/scripts/make_publication_figures.py
+/M3/m3_age_benchmark/scripts/make_publication_tables.py
+/M3/m3_age_benchmark/scripts/run_m3_manuscript_analysis.py
+/M3/m3_age_benchmark/scripts/update_m3_manuscripts.py
+/M4/m4_topology_benchmark/scripts/make_publication_figures.py
+/M4/m4_topology_benchmark/scripts/make_publication_tables.py
+/M4/m4_topology_benchmark/scripts/run_m4_manuscript_analysis.py
+/M5/m5_inverse_reaction_benchmark/scripts/make_m5_database_figures.py
+/M5/m5_inverse_reaction_benchmark/scripts/make_m5_publication_figures.py
+/M5/m5_inverse_reaction_benchmark/scripts/make_m5_publication_tables.py
+/M5/m5_inverse_reaction_benchmark/scripts/export_m5_artifact_manifest.py
+/M6/m6_field_transfer_benchmark/scripts/export_m6_figure_data.py
+/M6/m6_field_transfer_benchmark/scripts/make_m6_tables.py
+/M6/m6_field_transfer_benchmark/scripts/make_objective6_prequential_figure.py
+/M6/m6_field_transfer_benchmark/scripts/run_m6_q1.py
+/M7/m7_nonuniqueness_benchmark/generation_script.py
+/M7/m7_nonuniqueness_benchmark/scripts/assemble_m7_manuscript.py
+/M7/m7_nonuniqueness_benchmark/scripts/assemble_m7_supplement.py
+/M7/m7_nonuniqueness_benchmark/scripts/finalise_m7_manuscript.py
+/M7/m7_nonuniqueness_benchmark/scripts/finalise_m7_review_response.py
+/M7/m7_nonuniqueness_benchmark/scripts/make_m7_3_publication_assets.py
+/M7/m7_nonuniqueness_benchmark/scripts/make_m7_robust_hybrid_assets.py
+/M7/m7_nonuniqueness_benchmark/scripts/make_m7_sheaf_vs_graph_assets.py
+/M7/m7_nonuniqueness_benchmark/scripts/post_review_statistical_audit.py
+/M7/m7_nonuniqueness_benchmark/scripts/prepare_m7_20260729_revision.py
+/M7/m7_nonuniqueness_benchmark/scripts/sync_m7_revision_metadata.py
+/M7/m7_nonuniqueness_benchmark/scripts/write_m7_second_round_review.py
+/M7/m7_nonuniqueness_benchmark/tests/test_post_review_statistical_audit.py
+/M7/m7_nonuniqueness_benchmark/tests/test_publication_asset_stems.py
+/M8/m8_calibration_benchmark/scripts/make_m8_reviewed_artifacts.py
+/scripts/assemble_manuscript_revised.py
+/scripts/build_revision_records.py
+/scripts/check_manuscript_artifacts.py
+/scripts/make_m5_supplement.py
+/scripts/make_render_contact_sheets.py
+/scripts/run_review_sensitivity.py
+/scripts/set_docx_metadata.py
+/tests/test_mathematical_review_regressions.py
