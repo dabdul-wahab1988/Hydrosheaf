@@ -17,7 +17,6 @@ BENCHMARK_TABLE_DIR = BENCHMARK_ROOT / "tables"
 ROOT_TABLE_DIR = PROJECT_ROOT / "tables"
 EXTERNAL_DIR = BENCHMARK_ROOT / "external"
 M3_RESULT_DIR = PROJECT_ROOT / "M3" / "m3_age_benchmark" / "results"
-M6_RESULT_DIR = PROJECT_ROOT / "M6" / "m6_field_transfer_benchmark" / "results"
 
 
 def _read_csv(path: Path) -> pd.DataFrame:
@@ -219,7 +218,7 @@ def write_static_tables() -> None:
             {"Metric": "Information gain", "Formula/meaning": "percent reduction in posterior uncertainty", "Used for": "temporal inversion", "Interpretation": "higher means stronger network constraint"},
             {"Metric": "PSI (edge)", "Formula/meaning": "edge-level process inclusion probability", "Used for": "spatial discovery", "Interpretation": "probability path is robust to input noise"},
             {"Metric": "PSI (region)", "Formula/meaning": "regional phase stability index", "Used for": "geologic province", "Interpretation": "probability process exists in aquifer type"},
-            {"Metric": "R2", "Formula/meaning": "explained variance", "Used for": "age/chemistry recovery", "Interpretation": "closer to 1 is stronger agreement"},
+            {"Metric": "R²", "Formula/meaning": "explained variance", "Used for": "age/chemistry recovery", "Interpretation": "closer to 1 is stronger agreement"},
             {"Metric": "RMSE", "Formula/meaning": "root mean squared residual", "Used for": "chemistry/age", "Interpretation": "lower values indicate better fit"},
             {"Metric": "NSE", "Formula/meaning": "Nash-Sutcliffe efficiency", "Used for": "forward validation", "Interpretation": ">0.5 indicates useful predictive skill"},
             {"Metric": "AICc", "Formula/meaning": "small-sample model-selection criterion", "Used for": "regularisation/model choice", "Interpretation": "lower favours parsimonious model"},
@@ -234,7 +233,10 @@ def write_reaction_table() -> None:
     if reaction_dictionary.empty:
         reaction_dictionary = _read_csv(BENCHMARK_ROOT / "data" / "hydrosheaf_reaction_dictionary.csv")
     rows = []
-    for _, row in reaction_dictionary.head(12).iterrows():
+    # Keep all executable dictionary terms.  The previous ``head(12)``
+    # silently dropped the two Mg/Na exchange directions from the reader-facing
+    # table even though the benchmark uses the full 14-reaction dictionary.
+    for _, row in reaction_dictionary.iterrows():
         label = str(row.get("reaction_label", row.get("process_label", "")))
         stoich = row.get("stoichiometry_mmolL_per_extent", "{}")
         try:
@@ -338,10 +340,9 @@ def _distance_km(a: Mapping[str, float], b: Mapping[str, float]) -> float:
 def write_field_edge_tables() -> None:
     field = _read_csv(RESULT_DIR / "field_discovery_results.csv")
     psi = _read_csv(RESULT_DIR / "top_edges_psi.csv")
-    regularization = _read_csv(M6_RESULT_DIR / "m6_regularization_path.csv")
     if field.empty:
-        _write(ROOT_TABLE_DIR / "table_s5_edge_outputs.md", [], ["Edge ID", "From node", "To node", "Distance (km)", "Elevation/head relation", "Edge confidence", "Age consistency", "Chemical match R2", "Dominant reaction", "Status"])
-        _write(ROOT_TABLE_DIR / "table6_discovery.md", [], ["Site", "Flow path/edge", "Dominant process", "Reaction extent (mmol/L)", "Selected lambda", "RMSE/NSE", "PSI probability", "Interpretation"])
+        _write(ROOT_TABLE_DIR / "table_s5_edge_outputs.md", [], ["Edge ID", "From node", "To node", "Distance (km)", "Elevation/head relation", "Edge confidence", "Age consistency", "Chemical match R²", "Dominant reaction", "Status"])
+        _write(ROOT_TABLE_DIR / "table6_discovery.md", [], ["Site", "Flow path/edge", "Dominant process", "Reaction extent (mmol/L)", "As-run lambda1", "Objective / chemistry R²", "PSI probability", "Interpretation"])
         return
 
     merged = field.merge(psi[["edge_id", "psi", "family"]] if not psi.empty else pd.DataFrame(columns=["edge_id", "psi", "family"]), on="edge_id", how="left")
@@ -362,22 +363,30 @@ def write_field_edge_tables() -> None:
                 "Distance (km)": _fmt(distance, 2),
                 "Elevation/head relation": "downgradient" if pd.notna(dz) and dz >= 0 else "upgradient/flat",
                 # This is the process-stability index, not a hydraulic edge
-                # confidence; the field results carry no edge-confidence field.
+                # confidence; the raw field results carry directional p_ij and
+                # its uncertainty provenance in separate columns.
                 "Process stability (PSI)": _fmt(row.get("psi", 0.5), 2),
                 "Age consistency": "field tracer absent",
-                "Chemical match R2": _fmt(row.get("chemistry_r2"), 2),
+                "Chemical match R²": _fmt(row.get("chemistry_r2"), 2),
                 "Dominant reaction": _process_family(dom),
                 # No independent process truth exists for the field sites, so a
                 # good chemistry fit is a screening result, not a validation.
                 "Status": "screening-level demonstration",
             }
         )
-    _write(ROOT_TABLE_DIR / "table_s5_edge_outputs.md", edge_rows, ["Edge ID", "From node", "To node", "Distance (km)", "Elevation/head relation", "Process stability (PSI)", "Age consistency", "Chemical match R2", "Dominant reaction", "Status"])
+    _write(ROOT_TABLE_DIR / "table_s5_edge_outputs.md", edge_rows, ["Edge ID", "From node", "To node", "Distance (km)", "Elevation/head relation", "Process stability (PSI)", "Age consistency", "Chemical match R²", "Dominant reaction", "Status"])
 
+    # The documented M2 field runner uses the core default lambda_l1=0.  Do
+    # not import an AICc path from an adjacent milestone: that would make the
+    # table describe a computation that this M2 rerun did not execute.
     lambda_by_site: dict[str, float] = {}
-    if not regularization.empty:
-        for site, sub in regularization.groupby("site"):
-            lambda_by_site[str(site)] = float(sub.loc[sub["aicc"].idxmin(), "lambda"])
+    if "lambda_l1" in field.columns:
+        for site, sub in field.groupby(
+            field["edge_id"].astype(str).str.extract(r"^(Manu|Talensi)")[0]
+        ):
+            values = pd.to_numeric(sub["lambda_l1"], errors="coerce").dropna()
+            if not values.empty:
+                lambda_by_site[str(site)] = float(values.iloc[0])
     discovery_rows = []
     for _, row in merged.sort_values("rank_score", ascending=False).head(6).iterrows():
         site_key = "Manu" if str(row["edge_id"]).startswith("Manu") else "Talensi"
@@ -399,13 +408,13 @@ def write_field_edge_tables() -> None:
                 "Flow path/edge": row["edge_id"],
                 "Dominant process": dom_family,
                 "Reaction extent (mmol/L)": _fmt(extent, 2),
-                "Selected lambda": _fmt(lambda_by_site.get(site_key), 4),
-                "RMSE/NSE": f"objective {_fmt(row.get('objective_score'), 2)} / R2 {_fmt(row.get('chemistry_r2'), 2)}",
+                "As-run lambda1": _fmt(lambda_by_site.get(site_key), 4),
+                "Objective / chemistry R²": f"objective {_fmt(row.get('objective_score'), 2)} / R² {_fmt(row.get('chemistry_r2'), 2)}",
                 "PSI probability": _fmt(row.get("psi"), 2),
                 "Interpretation": interpretation,
             }
         )
-    _write(ROOT_TABLE_DIR / "table6_discovery.md", discovery_rows, ["Site", "Flow path/edge", "Dominant process", "Reaction extent (mmol/L)", "Selected lambda", "RMSE/NSE", "PSI probability", "Interpretation"])
+    _write(ROOT_TABLE_DIR / "table6_discovery.md", discovery_rows, ["Site", "Flow path/edge", "Dominant process", "Reaction extent (mmol/L)", "As-run lambda1", "Objective / chemistry R²", "PSI probability", "Interpretation"])
 
 
 def write_validation_tables() -> None:
@@ -439,7 +448,7 @@ def write_validation_tables() -> None:
     field_r2 = float(field["chemistry_r2"].median()) if not field.empty else float("nan")
     field_psi = float(psi["psi"].median()) if not psi.empty else float("nan")
     topo_metric = "no-prior F1=0.62 (P=0.49, R=0.84); prior-assisted F1=1.00 (ingestion check)"
-    age_metric = f"synthetic R2={_fmt(age_r2)}, median AE={_fmt(age_mae)} y"
+    age_metric = f"synthetic R²={_fmt(age_r2)}, median AE={_fmt(age_mae)} y"
     if usgs_summary:
         age_metric += (
             f"; public M3 (n={_fmt(usgs_summary.get('metric_rows'), 0)} identifiable): "
@@ -447,11 +456,11 @@ def write_validation_tables() -> None:
             f"{_fmt(100.0 * float(usgs_summary.get('within_factor_2', float('nan'))), 0)}% within 2x"
         )
     rows = [
-        {"Validation tier": "Synthetic benchmark", "Dataset/source": "simulated benchmark suite", "What is tested": "transport and reaction recovery", "Reference/target": "known truth", "Main metric": f"median chemistry R2={_fmt(synthetic_r2)} (reaction recovery in Fig. 3B)", "Related figure": "Fig. 3"},
+        {"Validation tier": "Synthetic benchmark", "Dataset/source": "simulated benchmark suite", "What is tested": "transport and reaction recovery", "Reference/target": "known truth", "Main metric": f"median chemistry R²={_fmt(synthetic_r2)} (reaction recovery in Fig. 3B)", "Related figure": "Fig. 3"},
         {"Validation tier": "MODPATH topology", "Dataset/source": "particle-tracking reference", "What is tested": "directed-edge recovery", "Reference/target": "MODPATH edges", "Main metric": topo_metric, "Related figure": "Fig. 2"},
         {"Validation tier": "Residence-time benchmarking", "Dataset/source": f"synthetic + {usgs_source or 'public tracer age pending'}", "What is tested": "age agreement", "Reference/target": "known MRT/public age", "Main metric": age_metric, "Related figure": "Fig. 5, Fig. S1"},
         {"Validation tier": "PHREEQC validation", "Dataset/source": "geochemical forward check", "What is tested": "reaction feasibility", "Reference/target": "SI/forward model", "Main metric": f"RMSE={_fmt(phreeqc_rmse)}, NSE={_fmt(phreeqc_nse)}", "Related figure": "Fig. S2"},
-        {"Validation tier": "Ghana field demonstration", "Dataset/source": "Lower Anayari/Talensi", "What is tested": "field process discovery", "Reference/target": "hydrochemical consistency", "Main metric": f"median R2={_fmt(field_r2)}, median PSI={_fmt(field_psi)}", "Related figure": "Fig. 4, Fig. 7"},
+        {"Validation tier": "Ghana field demonstration", "Dataset/source": "Lower Anayari/Talensi", "What is tested": "field process discovery", "Reference/target": "hydrochemical consistency", "Main metric": f"median R²={_fmt(field_r2)}, median PSI={_fmt(field_psi)}", "Related figure": "Fig. 4, Fig. 7"},
     ]
     _write(ROOT_TABLE_DIR / "table2_validation_suite.md", rows, ["Validation tier", "Dataset/source", "What is tested", "Reference/target", "Main metric", "Related figure"])
 
@@ -465,7 +474,7 @@ def write_validation_tables() -> None:
                     "Validation group": group_names.get(str(age_class), str(age_class)),
                     "Reference age range (y)": f"{_fmt(sub['true_mrt_years'].min(), 1)} - {_fmt(sub['true_mrt_years'].max(), 1)}",
                     "Hydrosheaf inferred range (y)": f"{_fmt(sub['network_bayesian_years'].min(), 1)} - {_fmt(sub['network_bayesian_years'].max(), 1)}",
-                    "R2": _fmt(_r2(np.log10(np.maximum(sub["true_mrt_years"], 0.1)), np.log10(np.maximum(sub["network_bayesian_years"], 0.1))), 2),
+                    "R²": _fmt(_r2(np.log10(np.maximum(sub["true_mrt_years"], 0.1)), np.log10(np.maximum(sub["network_bayesian_years"], 0.1))), 2),
                     "MAE (y)": _fmt(np.abs(sub["network_bayesian_years"] - sub["true_mrt_years"]).median(), 2),
                     "Age-order consistency": _fmt(consistency_value, 2),
                     "Interpretation": "synthetic age-class recovery",
@@ -497,13 +506,13 @@ def write_validation_tables() -> None:
                 "Validation group": "Public USGS screening",
                 "Reference age range (y)": f"{_fmt(clean['reference_mean_age_years'].min(), 1)} - {_fmt(clean['reference_mean_age_years'].max(), 1)}",
                 "Hydrosheaf inferred range (y)": f"{_fmt(clean['hydrosheaf_age_years'].min(), 1)} - {_fmt(clean['hydrosheaf_age_years'].max(), 1)}",
-                "R2": _fmt(usgs_r2, 2),
+                "R²": _fmt(usgs_r2, 2),
                 "MAE (y)": f"median |log10| {_fmt(log_error_median, 2)}",
-                "Age-order consistency": usgs_source,
-                "Interpretation": metric_note,
+                "Age-order consistency": "not evaluated for public parity",
+                "Interpretation": f"{metric_note}; source: {usgs_source}",
             }
         )
-    _write(ROOT_TABLE_DIR / "table4_residence_time.md", rt_rows, ["Validation group", "Reference age range (y)", "Hydrosheaf inferred range (y)", "R2", "MAE (y)", "Age-order consistency", "Interpretation"])
+    _write(ROOT_TABLE_DIR / "table4_residence_time.md", rt_rows, ["Validation group", "Reference age range (y)", "Hydrosheaf inferred range (y)", "R²", "MAE (y)", "Age-order consistency", "Interpretation"])
 
     table5_rows = []
     if noprior:

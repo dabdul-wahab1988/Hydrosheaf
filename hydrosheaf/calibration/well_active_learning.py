@@ -38,8 +38,12 @@ from .bayesian_active_learning import (
     rank_measurement_options,
     shannon_entropy,
     _prior_decision_risk,
+    _normalise_probabilities,
+    _robust_joint_decision_risk_reduction,
     _robust_joint_eig,
-    _scenario_eigs,
+    _validate_batch_scenarios,
+    _validate_config,
+    _validate_option,
 )
 
 logger = get_logger("calibration.well_active_learning")
@@ -64,7 +68,9 @@ PredictiveModel = Callable[[Mapping[str, Any]], Tuple[float, float]]
 
 
 def _action_id(well_id: str, measurement_type: str, sampling_time: float) -> str:
-    return f"{well_id}@{measurement_type}@t{float(sampling_time):.1f}"
+    # Float repr preserves distinct sampling times and keeps familiar IDs
+    # such as t0.0 and t30.0 compatible with existing scenario files.
+    return f"{well_id}@{measurement_type}@t{float(sampling_time)!r}"
 
 
 def _validate_prediction(value: Any) -> Tuple[float, float]:
@@ -228,7 +234,7 @@ class WellAction:
 
     @property
     def action_id(self) -> str:
-        return f"{self.well_id}@{self.measurement_type}@t{self.sampling_time:.1f}"
+        return _action_id(self.well_id, self.measurement_type, self.sampling_time)
 
     def __str__(self) -> str:
         return f"WellAction({self.action_id}, standalone_cost={self.standalone_cost:.2f})"
@@ -458,7 +464,11 @@ def build_well_actions(
         Types of measurements to consider.
     """
     # Handle argument flexibility if candidate_edges passed first
-    if sample_nodes is not None and len(sample_nodes) > 0 and isinstance(sample_nodes[0], Edge):
+    if (
+        isinstance(sample_nodes, Sequence)
+        and len(sample_nodes) > 0
+        and isinstance(sample_nodes[0], Edge)
+    ):
         candidate_edges = sample_nodes
         sample_nodes = None
 
@@ -608,13 +618,16 @@ def build_well_measurement_options(
     samples: Optional[Sequence[Dict[str, Any]]] = None,
 ) -> List[MeasurementOption]:
     """Convert WellActions into MeasurementOptions with predictive Gaussian scenarios."""
-    n_hypotheses = len(hypothesis_ids)
+    return _well_measurement_options(actions, len(hypothesis_ids))
+
+
+def _well_measurement_options(
+    actions: Sequence[WellAction], n_hypotheses: int
+) -> List[MeasurementOption]:
+    """Build the same predictive stress scenarios for ranking and batch selection."""
     options: List[MeasurementOption] = []
 
     for action in actions:
-        wid = action.well_id
-        m_type = action.measurement_type
-
         if action.scenarios and len(action.scenarios) == n_hypotheses:
             means = np.array([s.mean for s in action.scenarios], dtype=float)
             sds = np.array([s.sd for s in action.scenarios], dtype=float)
@@ -879,8 +892,10 @@ def evaluate_abstention_gate(
     if r_hat is None:
         r_hat = posterior_result.get("r_hat")
 
-    if r_hat is not None and not math.isnan(float(r_hat)):
-        if float(r_hat) > cfg.max_r_hat:
+    if r_hat is not None:
+        if not math.isfinite(float(r_hat)) or float(r_hat) <= 0.0:
+            reasons.append("MCMC R-hat must be finite and positive.")
+        elif float(r_hat) > cfg.max_r_hat:
             reasons.append(f"MCMC chains did not converge: R-hat={float(r_hat):.3f} > {cfg.max_r_hat}.")
 
     edge_rhats = posterior_result.get("edge_r_hat", {})
@@ -900,8 +915,15 @@ def evaluate_abstention_gate(
     if ess is None:
         ess = posterior_result.get("ess")
 
-    if ess is not None and float(ess) < cfg.min_ess:
-        reasons.append(f"MCMC effective sample size is inadequate (ESS={float(ess):.1f} < {cfg.min_ess}).")
+    if ess is not None:
+        if not math.isfinite(float(ess)) or float(ess) <= 0.0:
+            reasons.append(
+                "MCMC effective sample size (ESS) must be finite and positive."
+            )
+        elif float(ess) < cfg.min_ess:
+            reasons.append(
+                f"MCMC effective sample size is inadequate (ESS={float(ess):.1f} < {cfg.min_ess})."
+            )
 
     if cfg.require_mcmc_diagnostics and (r_hat is None or ess is None):
         reasons.append(
@@ -919,15 +941,22 @@ def evaluate_abstention_gate(
             ent = posterior_result.get("entropy", 0.0)
         entropy = float(ent) if ent is not None else 0.0
 
-    if entropy < cfg.min_entropy:
+    if not math.isfinite(entropy):
+        reasons.append("Posterior topology entropy must be finite.")
+    elif entropy < cfg.min_entropy:
         reasons.append(f"Posterior topology entropy is near zero ({entropy:.6f} nats); no uncertainty remains to resolve.")
 
     accept_rate = float(posterior_result.get("acceptance_rate", 0.25))
-    if accept_rate < 0.005 or accept_rate > 0.99:
+    if not math.isfinite(accept_rate) or accept_rate < 0.005 or accept_rate > 0.99:
         reasons.append(f"MCMC acceptance rate is degenerate ({accept_rate:.4f}).")
 
-    if max_robust_eig is not None and float(max_robust_eig) < cfg.minimum_robust_eig:
-        reasons.append(f"Maximum robust information gain ({float(max_robust_eig):.6f}) is below campaign threshold ({cfg.minimum_robust_eig}).")
+    if max_robust_eig is not None:
+        if not math.isfinite(float(max_robust_eig)):
+            reasons.append("Maximum robust information gain must be finite.")
+        elif float(max_robust_eig) < cfg.minimum_robust_eig:
+            reasons.append(
+                f"Maximum robust information gain ({float(max_robust_eig):.6f}) is below campaign threshold ({cfg.minimum_robust_eig})."
+            )
 
     # 2. Benchmark & independent validation gate
     if benchmark_report is not None:
@@ -953,7 +982,9 @@ def evaluate_abstention_gate(
             reasons.append("No feasible measurement actions are available in the campaign domain.")
         if max_robust_eig is None and prior_probabilities is not None and feasible_options:
             try:
-                prior = np.asarray(prior_probabilities, dtype=float)
+                prior = _normalise_probabilities(
+                    prior_probabilities, name="prior_probabilities"
+                )
                 eig_values = [
                     _robust_joint_eig(prior, [opt], cfg.acquisition_config)[2]
                     for opt in feasible_options
@@ -991,57 +1022,52 @@ def select_well_campaign_batch(
     max_actions_per_well = (
         max_actions_per_well if max_actions_per_well is not None else cfg.max_actions_per_well
     )
-    prior = list(prior_probabilities)
+    prior = _normalise_probabilities(prior_probabilities, name="prior_probabilities")
     ac_cfg = cfg.acquisition_config
+    _validate_config(ac_cfg)
+    if int(batch_size) != batch_size or batch_size < 1:
+        raise ValueError("batch_size must be a positive integer.")
+    if int(max_actions_per_well) != max_actions_per_well or max_actions_per_well < 1:
+        raise ValueError("max_actions_per_well must be a positive integer.")
+    if budget is not None and (not math.isfinite(float(budget)) or budget <= 0.0):
+        raise ValueError("budget must be positive when provided.")
+    if not math.isfinite(cfg.minimum_robust_eig) or cfg.minimum_robust_eig < 0.0:
+        raise ValueError("minimum_robust_eig must be finite and non-negative.")
     decision_array = None
     prior_decision_risk = 0.0
     if decision_values is not None:
         decision_array = np.asarray(decision_values, dtype=float)
         if decision_array.ndim == 1:
             decision_array = decision_array[:, None]
-        if decision_array.ndim != 2 or decision_array.shape[0] != len(prior):
-            raise ValueError("decision_values must have one row per hypothesis.")
-        prior_array = np.asarray(prior, dtype=float)
-        prior_array /= prior_array.sum()
-        prior_decision_risk = _prior_decision_risk(prior_array, decision_array)
+        if (
+            decision_array.ndim != 2
+            or decision_array.shape[0] != len(prior)
+            or decision_array.shape[1] < 1
+            or not np.all(np.isfinite(decision_array))
+        ):
+            raise ValueError(
+                "decision_values must be finite with one row per hypothesis."
+            )
+        prior_decision_risk = _prior_decision_risk(prior, decision_array)
 
     # Convert WellAction to MeasurementOption if needed
     converted_options: List[MeasurementOption] = []
     for item in candidate_options:
         if isinstance(item, WellAction):
-            if item.scenarios and len(item.scenarios) == len(prior):
-                m_vec = [s.mean for s in item.scenarios]
-                s_vec = [s.sd for s in item.scenarios]
-                scenarios = (
-                    PredictiveScenario("nominal", m_vec, s_vec, weight=0.50),
-                    PredictiveScenario("separation_stress", m_vec, [s * 1.25 for s in s_vec], weight=0.25),
-                    PredictiveScenario("noise_stress", m_vec, [s * 1.60 for s in s_vec], weight=0.25),
-                )
-            else:
-                scenarios = ()
-
-            converted_options.append(
-                MeasurementOption(
-                    option_id=item.action_id,
-                    measurement_type=item.measurement_type,
-                    target_id=f"{item.well_id}@{item.measurement_type}",
-                    cost=item.standalone_cost,
-                    scenarios=scenarios,
-                    feasible=bool(item.feasible and scenarios),
-                    metadata={
-                        "well_id": item.well_id,
-                        "sampling_time": item.sampling_time,
-                        "base_cost": item.base_cost,
-                        "travel_cost": item.travel_cost,
-                        "accessibility": item.accessibility,
-                        "connected_edges": list(item.connected_edge_ids),
-                    },
-                )
-            )
+            converted_options.extend(_well_measurement_options([item], len(prior)))
         else:
             converted_options.append(item)
 
-    available = [opt for opt in converted_options if opt.feasible and opt.scenarios]
+    available = []
+    seen = set()
+    for opt in converted_options:
+        if opt.option_id in seen:
+            raise ValueError(f"Duplicate option_id: {opt.option_id}")
+        seen.add(opt.option_id)
+        if opt.feasible and opt.scenarios:
+            _validate_option(opt, len(prior))
+            available.append(opt)
+    _validate_batch_scenarios(available)
     if not available:
         return {
             "status": "ABSTAIN",
@@ -1062,8 +1088,9 @@ def select_well_campaign_batch(
     total_cost = 0.0
     nominal_unshared_cost = 0.0
     current_joint = 0.0
+    current_decision_reduction = 0.0
 
-    for _ in range(min(batch_size, len(available))):
+    for _ in range(min(int(batch_size), len(available))):
         candidates = []
         for opt in available:
             if opt in selected:
@@ -1074,14 +1101,28 @@ def select_well_campaign_batch(
             if count_at_well >= max_actions_per_well:
                 continue
 
-            accessibility = max(0.05, float(opt.metadata.get("accessibility", 1.0)))
-            base_c = float(opt.metadata.get("base_cost", opt.cost))
-            travel_c = float(opt.metadata.get("travel_cost", cfg.travel_cost_per_well))
-
-            if wid in visited_wells:
-                incremental_cost = base_c / accessibility
+            if "base_cost" in opt.metadata and "travel_cost" in opt.metadata:
+                accessibility = max(
+                    0.05, min(1.0, float(opt.metadata.get("accessibility", 1.0)))
+                )
+                base_c = float(opt.metadata["base_cost"])
+                travel_c = float(opt.metadata["travel_cost"])
+                if (
+                    not math.isfinite(base_c)
+                    or base_c <= 0.0
+                    or not math.isfinite(travel_c)
+                    or travel_c < 0.0
+                ):
+                    raise ValueError(
+                        "Base cost must be positive and travel cost non-negative and finite."
+                    )
+                incremental_cost = (
+                    base_c + (0.0 if wid in visited_wells else travel_c)
+                ) / accessibility
             else:
-                incremental_cost = (base_c + travel_c) / accessibility
+                # A generic MeasurementOption already declares its full cost;
+                # mobilization savings require an explicit cost breakdown.
+                incremental_cost = float(opt.cost)
 
             proposed_cost = total_cost + incremental_cost
             if budget is not None and proposed_cost > float(budget) + 1.0e-12:
@@ -1091,14 +1132,19 @@ def select_well_campaign_batch(
                 prior, [*selected, opt], ac_cfg
             )
             marginal_eig = max(0.0, robust_eig - current_joint)
+            if marginal_eig < cfg.minimum_robust_eig or marginal_eig <= 0.0:
+                continue
             marginal_decision_risk = 0.0
+            joint_decision_reduction = 0.0
             if decision_array is not None:
-                _, _, _, _, _, marginal_decision_risk, _ = _scenario_eigs(
-                    np.asarray(prior, dtype=float),
-                    opt,
+                joint_decision_reduction = _robust_joint_decision_risk_reduction(
+                    prior,
+                    [*selected, opt],
                     ac_cfg,
                     decision_array,
-                    prior_decision_risk,
+                )
+                marginal_decision_risk = max(
+                    0.0, joint_decision_reduction - current_decision_reduction
                 )
             information_fraction = marginal_eig / max(
                 shannon_entropy(prior), 1.0e-15
@@ -1112,20 +1158,23 @@ def select_well_campaign_batch(
             )
             score = selection_utility / (incremental_cost ** ac_cfg.cost_exponent)
 
-            candidates.append((
-                -score,
-                opt.option_id,
-                opt,
-                incremental_cost,
-                wid,
-                mean_eig,
-                worst_eig,
-                robust_eig,
-                marginal_eig,
-                marginal_decision_risk,
-                selection_utility,
-                scenarios,
-            ))
+            candidates.append(
+                (
+                    -score,
+                    opt.option_id,
+                    opt,
+                    incremental_cost,
+                    wid,
+                    mean_eig,
+                    worst_eig,
+                    robust_eig,
+                    marginal_eig,
+                    marginal_decision_risk,
+                    joint_decision_reduction,
+                    selection_utility,
+                    scenarios,
+                )
+            )
 
         if not candidates:
             break
@@ -1141,12 +1190,10 @@ def select_well_campaign_batch(
             robust_eig,
             marginal_eig,
             marginal_decision_risk,
+            joint_decision_reduction,
             selection_utility,
             scenarios,
         ) = min(candidates, key=lambda x: (x[0], x[1]))
-
-        if marginal_eig < cfg.minimum_robust_eig and len(selected) > 0:
-            break
 
         selected.append(best_opt)
         visited_wells.add(wid)
@@ -1154,21 +1201,25 @@ def select_well_campaign_batch(
         total_cost += inc_cost
         nominal_unshared_cost += float(best_opt.cost)
         current_joint = robust_eig
+        current_decision_reduction = joint_decision_reduction
 
-        selection_rows.append({
-            "batch_rank": len(selected),
-            "option_id": best_opt.option_id,
-            "well_id": wid,
-            "measurement_type": best_opt.measurement_type,
-            "marginal_cost": float(inc_cost),
-            "standalone_cost": float(best_opt.cost),
-            "cumulative_cost": float(total_cost),
-            "marginal_robust_information_gain": float(marginal_eig),
-            "marginal_decision_risk_reduction": float(marginal_decision_risk),
-            "selection_utility": float(selection_utility),
-            "joint_robust_information_gain": float(robust_eig),
-            "scenario_scores": scenarios,
-        })
+        selection_rows.append(
+            {
+                "batch_rank": len(selected),
+                "option_id": best_opt.option_id,
+                "well_id": wid,
+                "measurement_type": best_opt.measurement_type,
+                "marginal_cost": float(inc_cost),
+                "standalone_cost": float(best_opt.cost),
+                "cumulative_cost": float(total_cost),
+                "marginal_robust_information_gain": float(marginal_eig),
+                "marginal_decision_risk_reduction": float(marginal_decision_risk),
+                "joint_decision_risk_reduction": float(joint_decision_reduction),
+                "selection_utility": float(selection_utility),
+                "joint_robust_information_gain": float(robust_eig),
+                "scenario_scores": scenarios,
+            }
+        )
 
     travel_savings = max(0.0, nominal_unshared_cost - total_cost)
     actionable = (len(selected) > 0)

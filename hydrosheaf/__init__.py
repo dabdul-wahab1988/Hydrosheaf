@@ -230,6 +230,30 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
         ".nuclear.ttd_design",
         "select_ttd_measurement_batch",
     ),
+    "CertifiedCandidateTracer": (
+        ".nuclear.ttd_certified_design",
+        "CertifiedCandidateTracer",
+    ),
+    "AmbiguityEvaluation": (
+        ".nuclear.ttd_certified_design",
+        "AmbiguityEvaluation",
+    ),
+    "CertifiedDesignCertificate": (
+        ".nuclear.ttd_certified_design",
+        "CertifiedDesignCertificate",
+    ),
+    "evaluate_worst_case_ambiguity": (
+        ".nuclear.ttd_certified_design",
+        "evaluate_worst_case_ambiguity",
+    ),
+    "solve_certified_measurement_design": (
+        ".nuclear.ttd_certified_design",
+        "solve_certified_measurement_design",
+    ),
+    "solve_budgeted_minimax_design": (
+        ".nuclear.ttd_certified_design",
+        "solve_budgeted_minimax_design",
+    ),
     "GraphCompatibilityAudit": (
         ".nuclear.ttd_graph",
         "GraphCompatibilityAudit",

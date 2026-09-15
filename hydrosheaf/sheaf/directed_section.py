@@ -21,6 +21,33 @@ class DirectedEdgeMap:
     transport_model: str
     endmember_id: Optional[str]
     residual_norm: float
+    # The legacy section solver uses ``offset``, which includes the reaction
+    # fit made while constructing the edge map.  The joint solver must retain
+    # the conservative transport term separately so reaction extents remain
+    # variables in its objective rather than frozen offsets.
+    transport_offset: Optional[List[float]] = None
+    reaction_matrix: Optional[List[List[float]]] = None
+    reaction_labels: Optional[List[str]] = None
+    reaction_penalty_scales: Optional[List[float]] = None
+    signed_reaction_mask: Optional[List[bool]] = None
+    reaction_extents: Optional[List[float]] = None
+
+
+@dataclass
+class _EdgeMapFit:
+    """Internal result used to preserve transport and reaction components."""
+
+    alpha: float
+    offset: List[float]
+    transport_offset: List[float]
+    objective: float
+    transport_model: str
+    endmember_id: Optional[str]
+    reaction_matrix: List[List[float]]
+    reaction_labels: List[str]
+    reaction_penalty_scales: List[float]
+    signed_reaction_mask: List[bool]
+    reaction_extents: List[float]
 
 
 def _edge_confidence(edge: Edge) -> float:
@@ -52,7 +79,7 @@ def _fit_edge_map(
     x_v: Sequence[float],
     config: Config,
     pre_si_mask: Optional[Mapping[str, float]] = None,
-) -> Optional[Tuple[float, List[float], float, str, Optional[str]]]:
+) -> Optional[_EdgeMapFit]:
     transport_weights = getattr(config, "conservative_weights", config.weights)
     candidates: List[
         Tuple[str, Optional[str], Optional[float], Optional[float], List[float], float]
@@ -74,7 +101,7 @@ def _fit_edge_map(
     signed_mask = [label in config.signed_reaction_labels for label in labels]
     lambda_l1 = config.lambda_l1_value()
 
-    best: Optional[Tuple[float, List[float], float, str, Optional[str]]] = None
+    best: Optional[_EdgeMapFit] = None
     best_objective = float("inf")
 
     for transport_model, end_id, gamma, f, residual, _ in candidates:
@@ -92,26 +119,33 @@ def _fit_edge_map(
 
         if transport_model == "evap":
             alpha = float(gamma if gamma is not None else 1.0)
-            offset = [0.0] * len(x_u)
-            transport_pred = [alpha * float(x) for x in x_u]
+            transport_offset = [0.0] * len(x_u)
         else:
             f_val = float(f if f is not None else 0.0)
             endmember = config.mixing_endmembers.get(str(end_id), [])
             if len(endmember) != len(x_u):
                 continue
             alpha = 1.0 - f_val
-            offset = [f_val * float(v) for v in endmember]
-            transport_pred = [
-                float(u) + f_val * (float(e) - float(u))
-                for u, e in zip(x_u, endmember)
-            ]
+            transport_offset = [f_val * float(v) for v in endmember]
 
         reaction_pred = _reaction_vector(residual, reaction_fit.residual)
-        offset = [o + r for o, r in zip(offset, reaction_pred)]
+        offset = [o + r for o, r in zip(transport_offset, reaction_pred)]
 
         if objective < best_objective:
             best_objective = objective
-            best = (alpha, offset, objective, transport_model, end_id)
+            best = _EdgeMapFit(
+                alpha=alpha,
+                offset=offset,
+                transport_offset=transport_offset,
+                objective=objective,
+                transport_model=transport_model,
+                endmember_id=end_id,
+                reaction_matrix=[list(row) for row in reaction_matrix],
+                reaction_labels=list(labels),
+                reaction_penalty_scales=list(penalty_scales),
+                signed_reaction_mask=list(signed_mask),
+                reaction_extents=list(reaction_fit.extents),
+            )
 
     return best
 
@@ -137,17 +171,22 @@ def build_edge_maps(
         fit = _fit_edge_map(x_u, x_v, config, pre_si_mask=pre_si)
         if fit is None:
             continue
-        alpha, offset, objective, transport_model, end_id = fit
         weight = prior_weight * _edge_confidence(edge)
         maps[edge.edge_id] = DirectedEdgeMap(
             edge=edge,
-            alpha=alpha,
-            offset=offset,
+            alpha=fit.alpha,
+            offset=fit.offset,
             weight=weight,
-            objective=objective,
-            transport_model=transport_model,
-            endmember_id=end_id,
-            residual_norm=objective,
+            objective=fit.objective,
+            transport_model=fit.transport_model,
+            endmember_id=fit.endmember_id,
+            residual_norm=fit.objective,
+            transport_offset=fit.transport_offset,
+            reaction_matrix=fit.reaction_matrix,
+            reaction_labels=fit.reaction_labels,
+            reaction_penalty_scales=fit.reaction_penalty_scales,
+            signed_reaction_mask=fit.signed_reaction_mask,
+            reaction_extents=fit.reaction_extents,
         )
     return maps
 

@@ -19,15 +19,11 @@ from matplotlib.ticker import MaxNLocator
 
 BENCHMARK_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-M6_BENCHMARK_ROOT = (
-    Path(__file__).resolve().parents[3] / "M6" / "m6_field_transfer_benchmark"
-)
 # Direct output to Manuscript folder
 FIGURE_DIR = BENCHMARK_ROOT / "figures" / "Manuscript_Ready"
 RESULT_DIR = BENCHMARK_ROOT / "results"
 EXTERNAL_DIR = BENCHMARK_ROOT / "external"
 M3_RESULT_DIR = PROJECT_ROOT / "M3" / "m3_age_benchmark" / "results"
-M6_RESULT_DIR = M6_BENCHMARK_ROOT / "results"
 
 
 # --- Typography Standards (Matching Fig 5 style) ---
@@ -208,7 +204,7 @@ def _canonical_public_age_log10_r2() -> float:
 def _load_public_age_validation() -> tuple[pd.DataFrame, str]:
     """Return the best available public USGS age benchmark in M2 figure schema."""
     m3_candidates = [
-        (M3_RESULT_DIR / "m3_tracerlpm_parity_agefractions_full.csv", "M3 age-fraction parity"),
+        (M3_RESULT_DIR / "m3_tracerlpm_parity_agefractions_full.csv", "USGS identifiability-gated age-fraction parity"),
         (M3_RESULT_DIR / "m3_tracerlpm_parity_modes_full.csv", "M3 parity-mode comparison"),
         (M3_RESULT_DIR / "m3_tracerlpm_strict_parity_full.csv", "M3 strict TracerLPM parity"),
         (M3_RESULT_DIR / "m3_design_matrix_results.csv", "M3 design-matrix USGS benchmark"),
@@ -926,37 +922,121 @@ def plot_manuscript_fig5_residence_time_validation() -> None:
     _save(fig, "Manuscript_Fig5_Residence_Time_Validation.png")
 
 
-def plot_manuscript_fig6_optimal_model_selection() -> None:
-    """Figure 6: The Information-Theoretic 'Optimal Discovery' Plateau."""
-    path = M6_RESULT_DIR / "m6_regularization_path.csv"
+def plot_manuscript_fig6_field_filtering() -> None:
+    """Figure 6 alt: M2 field filtering and as-run configuration.
+
+    Generated from the M2 documented-pipeline summary showing candidate pruning.
+    """
+    path = RESULT_DIR / "revision" / "field_pipeline_comparison_summary.csv"
     if not path.exists():
-        print("Skipping Figure 6: Regularization path data not found.")
+        print("Skipping Figure 6 field filtering: M2 field-pipeline summary not found.")
+        return
+    df = pd.read_csv(path)
+    if "mode" in df.columns:
+        df = df[df["mode"].astype(str).str.lower().eq("documented")].copy()
+    if df.empty:
+        print("Skipping Figure 6 field filtering: documented M2 field-pipeline summary is empty.")
+        return
+    df["site"] = df["site"].replace({"Manu": "Lower Anayari", "Talensi": "Talensi"})
+    df = df.sort_values("site")
+    x = np.arange(len(df))
+    width = 0.24
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 5.8))
+    for offset, column, label, color in [
+        (-width, "n_candidates", "Candidates", "#94a3b8"),
+        (0, "n_retained", "Retained", "#2563eb"),
+        (width, "rejected", "Rejected", "#ef4444"),
+    ]:
+        values = pd.to_numeric(df.get(column, pd.Series(0, index=df.index)), errors="coerce").fillna(0)
+        bars = ax1.bar(x + offset, values, width, label=label, color=color)
+        ax1.bar_label(bars, fmt="%.0f", padding=2, fontsize=10)
+    ax1.set_xticks(x, df["site"])
+    ax1.set_ylabel("Edges", fontsize=FONT_LABEL, fontweight="bold")
+    ax1.set_title("A. Candidate-to-retained graph", fontsize=FONT_TITLE, fontweight="bold")
+    ax1.legend(frameon=False, fontsize=FONT_LEGEND)
+    ax1.grid(axis="y", ls=":", alpha=0.3)
+    r2 = pd.to_numeric(df.get("median_chemistry_r2", pd.Series(np.nan, index=df.index)), errors="coerce")
+    bars = ax2.bar(x, r2, color=["#0f766e", "#7c3aed"][: len(x)])
+    ax2.bar_label(bars, fmt="%.2f", padding=2, fontsize=10)
+    ax2.set_xticks(x, df["site"])
+    ax2.set_ylim(0, 1)
+    ax2.set_ylabel("Median chemistry $R^2$", fontsize=FONT_LABEL, fontweight="bold")
+    ax2.set_title("B. Chemistry fit of retained edges", fontsize=FONT_TITLE, fontweight="bold")
+    ax2.grid(axis="y", ls=":", alpha=0.3)
+    fig.suptitle(
+        "M2 field screening under the documented configuration\n"
+        r"Elevation-only head proxy; as-run $\lambda_1=0$; no field AICc selection",
+        fontsize=FONT_TITLE,
+        fontweight="bold",
+    )
+    fig.tight_layout()
+    _save(fig, "Manuscript_Fig6_Field_Filtering_Configuration.png")
+
+
+def plot_manuscript_fig6_optimal_model_selection() -> None:
+    """Figure 6: Optimal Model Selection via AICc Minimum on Real Field Datasets.
+
+    Uses exclusively the real Lower Anayari (121 edges) and Talensi (137 edges)
+    hydrochemical datasets with site-specific geology-aware mineral models.
+    """
+    field_path = BENCHMARK_ROOT / "results" / "field_regularization_path.csv"
+    if not field_path.exists():
+        field_path = PROJECT_ROOT / "M6" / "m6_field_transfer_benchmark" / "results" / "m6_regularization_path.csv"
+    if not field_path.exists():
+        print("Skipping Figure 6: regularization path data not found.")
         return
 
-    df_all = pd.read_csv(path)
+    df_all = pd.read_csv(field_path)
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 13))
 
     def plot_panel(ax, site_name, label):
-        df = df_all[df_all["site"] == site_name].copy()
+        if "site" in df_all.columns and site_name in df_all["site"].values:
+            df = df_all[df_all["site"] == site_name].copy()
+        elif site_name == "Lower Anayari" and "Manu" in df_all.get("site", pd.Series()).values:
+            df = df_all[df_all["site"] == "Manu"].copy()
+        elif site_name == "Talensi" and "Talensi" in df_all.get("site", pd.Series()).values:
+            df = df_all[df_all["site"] == "Talensi"].copy()
+        else:
+            df = df_all.copy()
+
+        finite_df = df[np.isfinite(df["aicc"]) & (df.get("active_k", 1) >= 1)].copy()
+        best_idx = finite_df["aicc"].idxmin()
+        best_lambda = float(finite_df.loc[best_idx, "lambda"])
+        best_aicc = float(finite_df.loc[best_idx, "aicc"])
+
         ax_right = ax.twinx()
-        lns1 = ax.plot(df["lambda"], df["residual_norm"], "o-", color="#3b82f6", label="Residual Norm", markersize=5, linewidth=1.5, alpha=0.8)
-        lns2 = ax_right.plot(df["lambda"], df["aicc"], "s-", color="#ef4444", label="AICc", markersize=5, linewidth=1.5, alpha=0.8)
-        best_lambda = df.loc[df["aicc"].idxmin(), "lambda"]
-        ax.axvline(best_lambda, color="#1f2937", ls="--", alpha=0.4)
-        ax_right.annotate(fr"Optimal $\lambda$ = {best_lambda:.4f}", xy=(best_lambda, 0.5), xycoords=("data", "axes fraction"), ha="center", va="center", rotation=90, fontsize=10, fontweight="bold", bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="#d1d5db", alpha=0.9))
+        lns1 = ax.plot(df["lambda"], df["residual_norm"], "o-", color="#3b82f6", label="Residual Norm", markersize=6, linewidth=1.8, alpha=0.85)
+        lns2 = ax_right.plot(df["lambda"], df["aicc"], "s-", color="#ef4444", label="AICc", markersize=6, linewidth=1.8, alpha=0.85)
+
+        ax.axvline(best_lambda, color="#1f2937", ls="--", lw=1.5, alpha=0.6)
+        ax_right.annotate(
+            fr"Optimal $\lambda$ = {best_lambda:.4f}" + "\n" + fr"Min AICc = {best_aicc:.1f}",
+            xy=(best_lambda, 0.5),
+            xycoords=("data", "axes fraction"),
+            ha="right" if best_lambda > 0.12 else "left",
+            va="center",
+            xytext=(-12 if best_lambda > 0.12 else 12, 0),
+            textcoords="offset points",
+            fontsize=10.5,
+            fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.35", facecolor="white", edgecolor="#d1d5db", alpha=0.92)
+        )
+
         ax.set_xscale("log")
         ax.set_xlabel(r"Regularization Strength ($\lambda$)", fontsize=FONT_LABEL, fontweight="bold")
-        ax.set_ylabel("Residual Norm", color="#3b82f6", fontsize=FONT_LABEL, fontweight="bold")
+        ax.set_ylabel("Residual Norm (mmol/L)", color="#3b82f6", fontsize=FONT_LABEL, fontweight="bold")
         ax_right.set_ylabel("AICc", color="#ef4444", fontsize=FONT_LABEL, fontweight="bold")
         ax.tick_params(axis='both', which='major', labelsize=FONT_TICK)
         ax_right.tick_params(axis='both', which='major', labelsize=FONT_TICK)
-        ax.set_title(f"({label}) {'Lower Anayari' if site_name == 'Manu' else 'Talensi Mining Area'}", fontsize=FONT_TITLE, fontweight="bold", pad=12)
+        edge_count = "121 field edges" if site_name == "Lower Anayari" else "137 field edges"
+        ax.set_title(f"({label}) {site_name} ({edge_count})", fontsize=FONT_TITLE, fontweight="bold", pad=12)
+        ax.grid(True, ls=":", alpha=0.3)
         return lns1 + lns2
 
-    h = plot_panel(ax1, "Manu", "a")
+    h = plot_panel(ax1, "Lower Anayari", "a")
     plot_panel(ax2, "Talensi", "b")
-    fig.legend(h, ["Residual Norm", "AICc"], loc="lower center", ncol=2, frameon=True, fontsize=FONT_LEGEND, edgecolor="#d1d5db", bbox_to_anchor=(0.5, -0.02))
-    plt.suptitle("Optimal Model Selection via AICc Minimum", fontsize=FONT_TITLE, fontweight="bold", y=1.02)
+    fig.legend(h, ["Residual Norm", "AICc"], loc="lower center", ncol=2, frameon=True, fontsize=FONT_LEGEND, edgecolor="#d1d5db", bbox_to_anchor=(0.5, -0.015))
+    plt.suptitle("Optimal Model Selection via AICc Minimum", fontsize=FONT_TITLE, fontweight="bold", y=1.01)
     fig.tight_layout()
     _save(fig, "Manuscript_Fig6_Optimal_Model_Selection.png")
 
@@ -1029,6 +1109,7 @@ def plot_manuscript_fig7_psi_robustness_guarantee() -> None:
                title="Process Family", bbox_to_anchor=(0.5, 0.03),
                fontsize=FONT_LEGEND, title_fontsize=FONT_LABEL, frameon=False)
 
+
     fig.subplots_adjust(left=0.34, right=0.88, bottom=0.24, top=0.82)
     _save(fig, "Manuscript_Fig7_PSI_Robustness_Guarantee.png")
 
@@ -1040,6 +1121,7 @@ def main() -> None:
     plot_manuscript_fig4_ghana_network()
     plot_manuscript_fig5_residence_time_validation()
     plot_manuscript_fig6_optimal_model_selection()
+    plot_manuscript_fig6_field_filtering()
     plot_manuscript_fig7_psi_robustness_guarantee()
     print("M2 Manuscript-Ready figures generated in 'figures/Manuscript_Ready/'.")
 

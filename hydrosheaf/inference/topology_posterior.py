@@ -999,6 +999,7 @@ def make_topology_cost_fn(
     from ..sheaf.isotope_metrics import compute_isotope_stats
     from ..sheaf.topology_refine import _build_node_info, _score_candidates
     from ..sheaf.directed_section import build_edge_maps, solve_directed_section
+    from ..sheaf.joint_reaction import solve_joint_reaction_section
 
     if stats is None:
         stats = compute_isotope_stats(sample_map.values(), config)
@@ -1096,18 +1097,38 @@ def make_topology_cost_fn(
                     config,
                     prior_weight=0.0,
                 )
-                node_estimates = solve_directed_section(
-                    list(node_vectors.keys()),
-                    list(maps.values()),
-                    node_vectors,
-                    obs_weight=1.0,
-                    diag_eps=1e-6,
-                )
                 from ..sheaf.directed_section import compute_edge_section_residuals
 
-                residuals = compute_edge_section_residuals(
-                    maps, node_estimates, config.weights
-                )
+                if bool(getattr(config, "sheaf_joint_reaction_enabled", True)):
+                    joint_solution = solve_joint_reaction_section(
+                        list(node_vectors.keys()),
+                        list(maps.values()),
+                        node_vectors,
+                        config.ion_order,
+                        species_weights=config.weights,
+                        obs_weight=1.0,
+                        diag_eps=1e-6,
+                        lambda_l1=config.lambda_l1_value(),
+                        lambda_l2=config.lambda_l2,
+                        max_iter=_get_config_int(
+                            config, "sheaf_joint_reaction_max_iter", 1000
+                        ),
+                        tol=_get_config_float(
+                            config, "sheaf_joint_reaction_tol", 1e-7
+                        ),
+                    )
+                    residuals = joint_solution.edge_residuals
+                else:
+                    node_estimates = solve_directed_section(
+                        list(node_vectors.keys()),
+                        list(maps.values()),
+                        node_vectors,
+                        obs_weight=1.0,
+                        diag_eps=1e-6,
+                    )
+                    residuals = compute_edge_section_residuals(
+                        maps, node_estimates, config.weights
+                    )
                 global_cost = sum(residuals.values())
             except Exception:
                 logger.warning(

@@ -336,6 +336,7 @@ def _load_northern_ghana_new(
     path: Path,
     *,
     geology_join_path: Optional[Path] = None,
+    elevation_dem_path: Optional[Path] = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     frame = pd.read_excel(path, sheet_name="GW", header=0)
     # Row 2 in the native workbook is a units legend rather than a sample.
@@ -401,6 +402,10 @@ def _load_northern_ghana_new(
         _attach_geology_join(records, geology_join_path, key_mode="sample_no")
         metadata["geology_join_path"] = str(geology_join_path)
         metadata["geology_join_sha256"] = _sha256(geology_join_path)
+    if elevation_dem_path is not None and elevation_dem_path.exists():
+        _attach_elevation_dem(records, elevation_dem_path)
+        metadata["elevation_dem_path"] = str(elevation_dem_path)
+        metadata["elevation_dem_sha256"] = _sha256(elevation_dem_path)
     return records, metadata
 
 
@@ -515,6 +520,33 @@ def _attach_geology_join(
             record["coordinate_label_flag"] = row.get("coordinate_label_flag")
 
 
+def _attach_elevation_dem(records: list[dict[str, Any]], dem_path: Path) -> None:
+    """Attach completed DEM elevations to records by sample_no."""
+    dem_df = pd.read_csv(dem_path)
+    lookup = {
+        int(row["sample_no"]): row.to_dict()
+        for _, row in dem_df.iterrows()
+        if _finite(row.get("sample_no")) is not None
+    }
+    for record in records:
+        s_no = record.get("sample_no")
+        if s_no in lookup:
+            dem_row = lookup[s_no]
+            elev_val = (
+                _finite(dem_row.get("elevation_completed_m"))
+                or _finite(dem_row.get("elevation_m"))
+                or _finite(dem_row.get("elev_srtm30m"))
+            )
+            if elev_val is not None:
+                record["elevation"] = elev_val
+            if "elev_srtm30m" in dem_row:
+                record["elev_srtm30m"] = _finite(dem_row.get("elev_srtm30m"))
+            if "elev_aster30m" in dem_row:
+                record["elev_aster30m"] = _finite(dem_row.get("elev_aster30m"))
+            if "elevation_source" in dem_row:
+                record["elevation_source"] = dem_row.get("elevation_source")
+
+
 @dataclass(frozen=True)
 class FieldDataset:
     """Harmonised records plus immutable source provenance."""
@@ -592,6 +624,7 @@ def load_field_dataset(
     *,
     field_root: Optional[Path] = None,
     geology_join_path: Optional[Path] = None,
+    elevation_dem_path: Optional[Path] = None,
 ) -> FieldDataset:
     """Load one of the four canonical field-data packages."""
 
@@ -640,7 +673,16 @@ def load_field_dataset(
         join_path = geology_join_path
         if join_path is None:
             join_path = _default_geology_join_path(root)
-        records, metadata = _load_northern_ghana_new(source, geology_join_path=join_path)
+        dem_path = elevation_dem_path
+        if dem_path is None:
+            candidate_dem = root / "derived" / "uer_elevations_dem.csv"
+            if candidate_dem.exists():
+                dem_path = candidate_dem
+        records, metadata = _load_northern_ghana_new(
+            source,
+            geology_join_path=join_path,
+            elevation_dem_path=dem_path,
+        )
 
     auxiliary = {}
     if key == "northern_ghana_new":
@@ -668,6 +710,7 @@ def load_all_field_datasets(
     *,
     field_root: Optional[Path] = None,
     geology_join_path: Optional[Path] = None,
+    elevation_dem_path: Optional[Path] = None,
 ) -> dict[str, FieldDataset]:
     """Load all four packages without mutating any source file."""
 
@@ -676,6 +719,7 @@ def load_all_field_datasets(
             key,
             field_root=field_root,
             geology_join_path=geology_join_path,
+            elevation_dem_path=elevation_dem_path,
         )
         for key in FIELD_DATA_RELATIVE_PATHS
     }

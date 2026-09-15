@@ -6,7 +6,10 @@ import math
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
-import flopy
+try:
+    import flopy
+except ImportError:
+    flopy = None
 
 from ..graph.types import Edge
 

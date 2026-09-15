@@ -426,6 +426,26 @@ def main() -> None:
         help="Max iterations for sheaf global refinement.",
     )
     parser.add_argument(
+        "--sheaf-disable-joint-reaction",
+        action="store_true",
+        help=(
+            "Use the legacy pre-fitted reaction-offset workflow instead of "
+            "joint chemical-state and reaction-extent inference."
+        ),
+    )
+    parser.add_argument(
+        "--sheaf-joint-reaction-max-iter",
+        type=int,
+        default=1000,
+        help="Maximum proximal-gradient iterations for joint sheaf-reaction inference.",
+    )
+    parser.add_argument(
+        "--sheaf-joint-reaction-tol",
+        type=float,
+        default=1e-7,
+        help="Optimality tolerance for joint sheaf-reaction inference.",
+    )
+    parser.add_argument(
         "--sheaf-cohomology",
         action="store_true",
         help="Enable sheaf cohomology diagnostics on selected edges.",
@@ -1408,6 +1428,9 @@ def main() -> None:
         sheaf_shallow_depth_m=args.sheaf_shallow_depth,
         sheaf_evap_gate_strength=args.sheaf_evap_strength,
         sheaf_max_iter=args.sheaf_max_iter,
+        sheaf_joint_reaction_enabled=not args.sheaf_disable_joint_reaction,
+        sheaf_joint_reaction_max_iter=args.sheaf_joint_reaction_max_iter,
+        sheaf_joint_reaction_tol=args.sheaf_joint_reaction_tol,
         sheaf_cohomology_enabled=args.sheaf_cohomology,
         topology_posterior_enabled=args.topology_posterior,
         topology_posterior_samples=args.topology_posterior_samples,

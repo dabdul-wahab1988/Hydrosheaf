@@ -118,6 +118,12 @@ class Config:
     sheaf_evap_gate_strength: float = 1.0
     sheaf_max_iter: int = 3
     sheaf_soft_beta: float = 1.0  # Soft selection sharpness (inverse temperature)
+    # Jointly estimate chemical node states and edge reaction extents with
+    # fixed transport maps.  Set False only to reproduce the legacy
+    # pre-fitted-offset workflow from frozen historical analyses.
+    sheaf_joint_reaction_enabled: bool = True
+    sheaf_joint_reaction_max_iter: int = 1000
+    sheaf_joint_reaction_tol: float = 1e-7
     # Sheaf cohomology diagnostics
     sheaf_cohomology_enabled: bool = False
     # Hydraulic Hodge diagnostics and posterior coupling
@@ -592,6 +598,12 @@ class Config:
             raise ValueError("sheaf_evap_gate_strength must be non-negative.")
         if self.sheaf_max_iter < 1:
             raise ValueError("sheaf_max_iter must be at least 1.")
+        if not isinstance(self.sheaf_joint_reaction_enabled, bool):
+            raise ValueError("sheaf_joint_reaction_enabled must be boolean.")
+        if self.sheaf_joint_reaction_max_iter < 1:
+            raise ValueError("sheaf_joint_reaction_max_iter must be at least 1.")
+        if not math.isfinite(self.sheaf_joint_reaction_tol) or self.sheaf_joint_reaction_tol < 0:
+            raise ValueError("sheaf_joint_reaction_tol must be finite and non-negative.")
         if self.edge_gradient_min < 0:
             raise ValueError("edge_gradient_min must be non-negative.")
         if self.edge_depth_mismatch < 0:
