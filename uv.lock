@@ -927,7 +927,7 @@ wheels = [
 
 [[package]]
 name = "hydrosheaf"
-version = "0.5.1"
+version = "0.6.0"
 source = { editable = "." }
 dependencies = [
     { name = "arviz", version = "0.23.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },

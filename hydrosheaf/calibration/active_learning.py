@@ -124,6 +124,10 @@ FLAG_TO_MEASUREMENTS: Dict[str, List[str]] = {
     ],
 }
 
+# Backward-compatible public name retained for callers that used the older
+# reason-oriented mapping name.
+REASON_TO_MEASUREMENTS = FLAG_TO_MEASUREMENTS
+
 # Default field keys to check for missing data (configurable via HConfig)
 _DEFAULT_SAMPLE_FIELDS = [
     "hydraulic_head", "elevation", "d18O", "d2H", "Cl",

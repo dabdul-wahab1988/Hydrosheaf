@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0 (2026-09-16)
+
+### New Features
+
+- **Evidence-gated active learning**: Added predictive campaign selection with explicit `ABSTAIN` outcomes when topology, predictive, or diagnostic evidence is insufficient.
+- **Joint sheaf-reaction inference**: Added chemical node-state and edge-reaction extent inference with fixed transport maps, while retaining a legacy compatibility switch.
+- **Certified tracer design**: Added worst-case ambiguity evaluation and budgeted minimax measurement-design helpers without inventing prior probabilities.
+- **Field integration utilities**: Added geology-aware field loading, completed DEM attachment, UER integration scripts, and bounded Objective 5 audit tooling.
+
+### Validation
+
+- Expanded regression coverage for active learning, joint reaction inference, certified tracer design, field integration, and Objective 5 audit gates.
+
 ## 0.5.0 (2026-01-25)
 
 ### New Features
