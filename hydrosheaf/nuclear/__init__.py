@@ -86,6 +86,15 @@ from .diagnostics import (
     tracer_removal_sensitivity,
 )
 from .age_coherence import audit_graph_age_coherence
+from .graph_ttd_inversion import (
+    GraphTTDInversionConfig,
+    NodeInversionResult,
+    solve_node_ttd_inversion,
+    solve_static_virtual_benchmark,
+    solve_particle_virtual_benchmark,
+    solve_dynamic_virtual_benchmark,
+    verify_truth_blindness,
+)
 
 __all__ = [
     "Nuclide",
@@ -164,5 +173,54 @@ __all__ = [
     "diagnose_lpm_identifiability",
     "diagnose_tracer_disagreement",
     "tracer_removal_sensitivity",
-    "audit_graph_age_coherence",
+    "GraphTTDInversionConfig",
+    "NodeInversionResult",
+    "solve_node_ttd_inversion",
+    "solve_static_virtual_benchmark",
+    "solve_particle_virtual_benchmark",
+    "solve_dynamic_virtual_benchmark",
+    "verify_truth_blindness",
+    "DynamicEdgeKernel",
+    "build_lag_curvature_matrix",
+    "build_temporal_smoothness_matrix",
+    "build_phase_basis_matrix",
+    "build_harmonic_basis_matrix",
+    "convolve_causal_dynamic_kernel",
+    "simulate_dynamic_graph_transport",
+    "validate_candidate_graph",
+    "TracerSpec",
+    "build_default_tracer_registry",
+    "DynamicTTDInversionConfig",
+    "DynamicTTDRecovery",
+    "solve_dynamic_node_inversion",
+    "MultiTracerGraphConfig",
+    "MultiTracerNodeRecovery",
+    "solve_joint_multitracer_node_inversion",
 ]
+
+from .dynamic_edge_kernel import (
+    DynamicEdgeKernel,
+    build_lag_curvature_matrix,
+    build_temporal_smoothness_matrix,
+    build_phase_basis_matrix,
+    build_harmonic_basis_matrix,
+)
+from .graph_tracer_forward import (
+    convolve_causal_dynamic_kernel,
+    simulate_dynamic_graph_transport,
+    validate_candidate_graph,
+)
+from .tracer_registry import (
+    TracerSpec,
+    build_default_tracer_registry,
+)
+from .dynamic_kernel_inversion import (
+    DynamicTTDInversionConfig,
+    DynamicTTDRecovery,
+    solve_dynamic_node_inversion,
+)
+from .multi_tracer_graph_inversion import (
+    MultiTracerGraphConfig,
+    MultiTracerNodeRecovery,
+    solve_joint_multitracer_node_inversion,
+)
