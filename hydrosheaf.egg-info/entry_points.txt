@@ -1,3 +1,0 @@
-[console_scripts]
-hydrosheaf = hydrosheaf.cli:main
-hydrosheaf-cal = hydrosheaf.calibration.cli:main

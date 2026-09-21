@@ -1,5 +1,0 @@
-Region,Wet-dry pairs,Districts,Median MRS,Median held-out RMSE (mmol/L),Median support stability,Identifiable (%),Equivalence-class (%),Partially identifiable (%),Non-identifiable (%)
-North East Region,40,7,77.29174580823764,0.15804460372274426,0.9666666666666666,0.0,0.0,100.0,0.0
-Northern Region,40,8,78.20844604307197,0.15829658045656486,0.9714285714285712,0.0,0.0,100.0,0.0
-Upper East Region,40,8,77.53951532049655,0.1697714514101326,0.9666666666666667,0.0,0.0,100.0,0.0
-Upper West Region,40,8,77.53817058149818,0.1602392120109571,0.9714285714285712,0.0,0.0,100.0,0.0

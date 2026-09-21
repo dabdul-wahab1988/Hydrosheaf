@@ -245,3 +245,46 @@ M8/m8_calibration_benchmark/.simulator_workspaces/
 !M8/m8_calibration_benchmark/development/DEV-M8-FRONTIER-AL-20260728-01/**
 !M8/m8_calibration_benchmark/provenance/
 !M8/m8_calibration_benchmark/provenance/**
+
+# ---------------------------------------------------------------------------
+# Public source-only boundary
+# ---------------------------------------------------------------------------
+# The research checkout contains private manuscripts, reviewer material,
+# generated figures/tables/results, and local analysis products.  Keep those
+# files in the working tree, but publish only source/configuration plus the
+# small set of runtime and test fixtures required for a fresh checkout.
+# This final allowlist intentionally overrides the historical exceptions above.
+#
+# Directories are re-included so Git can reach the explicitly allowed files;
+# files not matched by an allow rule remain ignored.
+*
+!*/
+!*.py
+!*.yaml
+!*.yml
+
+# Public repository metadata.
+!/.gitignore
+!/.gitattributes
+!/AGENTS.md
+!/CHANGELOG.md
+!/DEVELOPMENT.md
+!/LICENSE
+!/README.md
+!/SECURITY.md
+
+# Packaging metadata.
+!/pyproject.toml
+!/uv.lock
+
+# Required package runtime databases (not generated outputs).
+!/hydrosheaf/databases/
+!/hydrosheaf/databases/*.dat
+!/hydrosheaf/databases/nitrate_endmembers.json
+
+# Static test fixtures and public synthetic inputs.
+!/tests/fixtures/
+!/tests/fixtures/*.json
+!/data/
+!/data/synthetic/
+!/data/synthetic/*.csv
