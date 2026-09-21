@@ -95,6 +95,66 @@ from .graph_ttd_inversion import (
     solve_dynamic_virtual_benchmark,
     verify_truth_blindness,
 )
+from .dynamic_edge_kernel import (
+    DynamicEdgeKernel,
+    build_lag_curvature_matrix,
+    build_temporal_smoothness_matrix,
+    build_phase_basis_matrix,
+    build_harmonic_basis_matrix,
+)
+from .graph_tracer_forward import (
+    convolve_causal_dynamic_kernel,
+    simulate_dynamic_graph_transport,
+    validate_candidate_graph,
+)
+from .tracer_registry import (
+    TracerSpec,
+    build_default_tracer_registry,
+)
+from .dynamic_kernel_inversion import (
+    DynamicTTDInversionConfig,
+    DynamicTTDRecovery,
+    solve_dynamic_node_inversion,
+)
+from .multi_tracer_graph_inversion import (
+    MultiTracerGraphConfig,
+    MultiTracerNodeRecovery,
+    solve_joint_multitracer_node_inversion,
+)
+from .ttd_grid import (
+    TTDGrid,
+    build_multiscale_ttd_grid,
+    build_uniform_ttd_grid,
+    build_d1_difference_matrix,
+    build_d2_curvature_matrix,
+    build_mass_aware_curvature_matrix,
+    shannon_entropy,
+    wasserstein_1d,
+)
+from .ttd_kernel_builder import (
+    TracerObservation,
+    NodeTracerPanel,
+    MultiTracerForwardSystem,
+    build_forward_system,
+    build_network_forward_systems,
+)
+from .ttd_transport import (
+    EdgeTransportOperator,
+    build_advection_dispersion_operator,
+    build_local_recharge_distribution,
+    NodeMixingSpecification,
+)
+from .ttd_diagnostics import (
+    DiagnosticGateReport,
+    audit_node_physical_evidence,
+    audit_graph_topology,
+)
+from .ttd_network_solver import (
+    SingleNodeTTDResult,
+    NetworkTTDResult,
+    solve_single_node_ttd,
+    solve_network_ttd,
+)
 
 __all__ = [
     "Nuclide",
@@ -173,6 +233,7 @@ __all__ = [
     "diagnose_lpm_identifiability",
     "diagnose_tracer_disagreement",
     "tracer_removal_sensitivity",
+    "audit_graph_age_coherence",
     "GraphTTDInversionConfig",
     "NodeInversionResult",
     "solve_node_ttd_inversion",
@@ -196,31 +257,28 @@ __all__ = [
     "MultiTracerGraphConfig",
     "MultiTracerNodeRecovery",
     "solve_joint_multitracer_node_inversion",
+    "TTDGrid",
+    "build_multiscale_ttd_grid",
+    "build_uniform_ttd_grid",
+    "build_d1_difference_matrix",
+    "build_d2_curvature_matrix",
+    "build_mass_aware_curvature_matrix",
+    "shannon_entropy",
+    "wasserstein_1d",
+    "TracerObservation",
+    "NodeTracerPanel",
+    "MultiTracerForwardSystem",
+    "build_forward_system",
+    "build_network_forward_systems",
+    "EdgeTransportOperator",
+    "build_advection_dispersion_operator",
+    "build_local_recharge_distribution",
+    "NodeMixingSpecification",
+    "DiagnosticGateReport",
+    "audit_node_physical_evidence",
+    "audit_graph_topology",
+    "SingleNodeTTDResult",
+    "NetworkTTDResult",
+    "solve_single_node_ttd",
+    "solve_network_ttd",
 ]
-
-from .dynamic_edge_kernel import (
-    DynamicEdgeKernel,
-    build_lag_curvature_matrix,
-    build_temporal_smoothness_matrix,
-    build_phase_basis_matrix,
-    build_harmonic_basis_matrix,
-)
-from .graph_tracer_forward import (
-    convolve_causal_dynamic_kernel,
-    simulate_dynamic_graph_transport,
-    validate_candidate_graph,
-)
-from .tracer_registry import (
-    TracerSpec,
-    build_default_tracer_registry,
-)
-from .dynamic_kernel_inversion import (
-    DynamicTTDInversionConfig,
-    DynamicTTDRecovery,
-    solve_dynamic_node_inversion,
-)
-from .multi_tracer_graph_inversion import (
-    MultiTracerGraphConfig,
-    MultiTracerNodeRecovery,
-    solve_joint_multitracer_node_inversion,
-)

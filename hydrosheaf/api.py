@@ -14,6 +14,7 @@ from .data.parsing import (
 from .data.schema import parse_numeric
 from .data.validation import (
     auto_disable_missing_modules,
+    resolve_optional_modules,
     validate_required_inputs,
 )
 from .graph.build import EdgeInput, build_edges
@@ -83,6 +84,64 @@ def infer_network_ages_bayesian(*args: Any, **kwargs: Any) -> Any:
 
 
 
+
+
+def fit_ttd_network(
+    graph: Any,
+    panels: Sequence[Any],
+    grid: Any,
+    *,
+    transport_operators: Mapping[Tuple[str, str], Any],
+    mixing_specs: Optional[Mapping[str, Any]] = None,
+    node_heads: Optional[Mapping[str, float]] = None,
+    allow_default_mixing: bool = False,
+    forward_system_options: Optional[Mapping[str, object]] = None,
+    **solver_options: Any,
+) -> Any:
+    """Run the explicit non-parametric network TTD workflow.
+
+    The shape-free TTD inversion is intentionally separate from the legacy
+    chemical/network pipeline.  This function builds validated multi-tracer
+    forward systems from the supplied observation panels, derives hydraulic
+    heads from those panels when necessary, and delegates to the gated joint
+    network solver.  Missing panels, contradictory evidence, missing edge
+    transport maps, and missing downstream mixing specifications therefore
+    produce a machine-readable ``ABSTAIN`` result rather than a silent
+    fallback model.
+
+    ``allow_default_mixing=True`` is an explicit compatibility opt-in for the
+    historical 20% local / 80% upstream prior.  It should not be used for a
+    data-driven estimate unless that prior is scientifically justified.
+    """
+    from .nuclear.ttd_kernel_builder import build_network_forward_systems
+    from .nuclear.ttd_network_solver import solve_network_ttd
+
+    panel_list = tuple(panels)
+    systems = build_network_forward_systems(
+        panel_list,
+        grid,
+        **dict(forward_system_options or {}),
+    )
+
+    resolved_heads = node_heads
+    if resolved_heads is None:
+        panel_heads = {
+            str(panel.node_id): float(panel.head_m)
+            for panel in panel_list
+            if getattr(panel, "head_m", None) is not None
+        }
+        resolved_heads = panel_heads or None
+
+    return solve_network_ttd(
+        graph,
+        systems,
+        transport_operators,
+        grid,
+        mixing_specs=mixing_specs,
+        node_heads=resolved_heads,
+        allow_default_mixing=allow_default_mixing,
+        **solver_options,
+    )
 
 
 def build_vadose_priors(
@@ -183,6 +242,13 @@ def fit_network_with_priors(
         built_edges = apply_physics_priors(
             built_edges, physics_priors, mode=physics_priors_mode
         )
+    if auto_disable_missing:
+        config, _ = resolve_optional_modules(
+            samples,
+            config,
+            candidate_edges=built_edges,
+        )
+
     results = fit_network(
         samples,
         built_edges,
@@ -204,7 +270,7 @@ def fit_network_pipeline(
     temporal_nodes: Optional[Mapping[str, TemporalNode]] = None,
     temporal_hydraulic_params: Optional[Mapping[str, Dict[str, float]]] = None,
     phreeqc_results: Optional[Mapping[str, Mapping[str, object]]] = None,
-    sheaf_refinement_enabled: bool = False,
+    sheaf_refinement_enabled: Optional[bool] = None,
     nuclear_inference_options: Optional[Mapping[str, object]] = None,
     strict_stage_completion: bool = False,
     required_stages: Optional[Iterable[str]] = None,
@@ -212,37 +278,71 @@ def fit_network_pipeline(
     """Run the connected inference pipeline and report explicit stage status.
 
     ``strict_stage_completion`` converts a requested optional-stage skip or
-    failure into :class:`PipelineStageError`. ``sheaf_refinement_enabled`` is
-    opt-in for backward compatibility; when age evidence is enabled, nuclear
-    posteriors are attached before candidate edges are sheaf-refined.
+    failure into :class:`PipelineStageError`.  Optional sheaf stages use an
+    automatic default when ``sheaf_refinement_enabled`` is ``None``: the
+    stage is enabled when candidate edges and at least one evidence channel
+    are available.  Explicit ``True``/``False`` values remain overrides.  When
+    age evidence is enabled, nuclear posteriors are attached before candidate
+    edges are sheaf-refined.
     """
+
+    # Preserve the distinction between automatic defaults and explicit
+    # requests.  Explicit requests remain eligible for strict-stage failure;
+    # automatically disabled modules are reported but do not make a default
+    # run fail.
+    original_config = config
+
+    def _sheaf_stage_requested(
+        resolved_config: Config,
+        decisions: Mapping[str, Mapping[str, object]],
+    ) -> bool:
+        """Apply the stage argument before automatic component decisions."""
+        if sheaf_refinement_enabled is not None:
+            return bool(sheaf_refinement_enabled)
+        return bool(
+            decisions.get("sheaf_refinement", {}).get("enabled", False)
+            or getattr(resolved_config, "topology_posterior_enabled", False)
+        )
+
+    explicit_stage_requests = {
+        "nuclear_age": getattr(original_config, "sheaf_age_enabled", None) is True,
+        "sheaf_refinement": bool(
+            sheaf_refinement_enabled is True
+            or (
+                sheaf_refinement_enabled is None
+                and getattr(original_config, "topology_posterior_enabled", None) is True
+            )
+        ),
+    }
+    module_status: Dict[str, Dict[str, object]] = {}
+
+    if getattr(config, "strict_input_validation", False):
+        validate_required_inputs(samples, config)
+    elif auto_disable_missing:
+        # Keep the legacy hard-disable behavior for PHREEQC, the general
+        # isotope module, and nitrate-source V2, then resolve the newer
+        # capability-gated sheaf stack after candidate edges are available.
+        config = auto_disable_missing_modules(samples, config)
+
     requested = {
         "latent_endmembers": bool(
             getattr(config, "latent_endmembers_enabled", False)
         ),
         "temporal": temporal_nodes is not None,
         "nuclear_age": bool(getattr(config, "sheaf_age_enabled", False)),
-        "sheaf_refinement": bool(
-            sheaf_refinement_enabled
-            or getattr(config, "topology_posterior_enabled", False)
-        ),
+        "sheaf_refinement": _sheaf_stage_requested(config, module_status),
         "network_fit": True,
     }
     if required_stages is None:
-        required = {name for name, is_requested in requested.items() if is_requested}
+        required = {"network_fit"}
+        required.update(
+            stage for stage, is_explicit in explicit_stage_requests.items() if is_explicit
+        )
     else:
         required = {str(name) for name in required_stages}
         unknown = required - set(_PIPELINE_STAGES)
         if unknown:
             raise ValueError(f"Unknown required pipeline stages: {sorted(unknown)}")
-        not_requested = required - {
-            name for name, is_requested in requested.items() if is_requested
-        }
-        if not_requested:
-            raise ValueError(
-                "Required pipeline stages were not requested: "
-                f"{sorted(not_requested)}"
-            )
 
     stage_status = {
         name: _stage_record("not_requested", requested=is_requested)
@@ -259,11 +359,6 @@ def fit_network_pipeline(
         )
         if (strict_stage_completion and stage in required) or posterior_fail_closed:
             raise PipelineStageError(stage, message) from exc
-
-    if getattr(config, "strict_input_validation", False):
-        validate_required_inputs(samples, config)
-    elif auto_disable_missing:
-        config = auto_disable_missing_modules(samples, config)
 
     # Never mutate a caller-owned list when virtual nodes or inferred age fields
     # are added for downstream stages.
@@ -325,6 +420,59 @@ def fit_network_pipeline(
             built_edges, physics_priors, mode=physics_priors_mode
         )
 
+    # Re-resolve after candidate construction so topology, cohomology, Hodge,
+    # and geophysical capabilities can inspect edge-level inputs as well as
+    # sample-level inputs.  This second pass makes the automatic default
+    # deterministic for callers that supply explicit edge tuples.
+    if auto_disable_missing:
+        config, module_status = resolve_optional_modules(
+            pipeline_samples,
+            config,
+            candidate_edges=built_edges,
+        )
+        requested["nuclear_age"] = bool(
+            getattr(config, "sheaf_age_enabled", False)
+        )
+        requested["sheaf_refinement"] = _sheaf_stage_requested(
+            config, module_status
+        )
+
+        # Expose default auto-disables as explicit stage diagnostics.  They do
+        # not enter the default required set, but a user can still require a
+        # stage explicitly through required_stages/strict mode.
+        age_decision = module_status.get("sheaf_age_enabled", {})
+        if age_decision.get("status") == "auto_disabled":
+            stage_status["nuclear_age"] = _stage_record(
+                "auto_disabled",
+                requested=True,
+                detail=str(age_decision.get("reason", "age inputs unavailable")),
+            )
+        sheaf_decision = module_status.get("sheaf_refinement", {})
+        if (
+            sheaf_decision.get("status") == "auto_disabled"
+            and sheaf_refinement_enabled is None
+            and not getattr(config, "topology_posterior_enabled", False)
+        ):
+            stage_status["sheaf_refinement"] = _stage_record(
+                "auto_disabled",
+                requested=True,
+                detail=str(
+                    sheaf_decision.get(
+                        "reason", "sheaf refinement inputs unavailable"
+                    )
+                ),
+            )
+
+    if required_stages is not None:
+        not_requested = required - {
+            name for name, is_requested in requested.items() if is_requested
+        }
+        if not_requested:
+            raise ValueError(
+                "Required pipeline stages were not requested: "
+                f"{sorted(not_requested)}"
+            )
+
     temporal_results: List[TemporalEdgeResult] = []
     residence_time_overrides: Optional[Dict[str, float]] = None
     graph = None
@@ -358,7 +506,7 @@ def fit_network_pipeline(
             # cycles can invalidate the DAG age model. Infer local ages on an
             # edge-free graph first; retain the legacy graph-conditioned path
             # when sheaf refinement is not requested.
-            if not sheaf_refinement_enabled:
+            if not requested["sheaf_refinement"]:
                 graph.add_edge(
                     edge.u,
                     edge.v,
@@ -527,6 +675,7 @@ def fit_network_pipeline(
         "nuclear_results": nuclear_results,
         "graph": graph,
         "stage_status": stage_status,
+        "optional_module_status": module_status,
         "strict_stage_completion": bool(strict_stage_completion),
         "required_stages": sorted(required),
         "virtual_nodes": virtual_nodes,
