@@ -288,3 +288,28 @@ M8/m8_calibration_benchmark/.simulator_workspaces/
 !/data/
 !/data/synthetic/
 !/data/synthetic/*.csv
+
+# Local workspaces and dependency trees stay private even when they contain
+# Python/YAML files; they are not project source.
+/.codex_work/
+**/.codex_work/
+/.r-lib/
+**/.r-lib/
+**/node_modules/
+/.venv/
+**/.venv/
+/build/
+**/build/
+/dist/
+**/dist/
+/outputs/
+**/outputs/
+/scratch/
+**/scratch/
+/tmp/
+**/tmp/
+/pymc_cache/
+**/pymc_cache/
+/draftbychapter/
+/M9_ttd_graph_paper/
+**/revision_9_9_2026/
