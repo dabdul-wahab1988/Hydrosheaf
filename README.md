@@ -8,11 +8,14 @@
 
 Hydrosheaf is a Python-based framework for groundwater inference across hydrogeochemistry, environmental tracers, and flow-network topology. It combines inverse geochemical modeling, nuclear-tracer age estimation, graph-based aquifer connectivity, uncertainty quantification, and benchmark workflows against public groundwater-age and MODFLOW/MODPATH reference datasets.
 
+The current public source branch is intentionally source-only: it contains the Python package, runtime configuration, tests, and reproducibility/benchmark runners needed to inspect and exercise the implementation. Manuscripts, raw and derived research data, generated figures, and historical output trees remain local and are not treated as package inputs or public validation evidence.
+
 The framework integrates:
 
 - **Weighted Least Squares Optimization** for transport model selection.
 - **Sparse LASSO Regression** with coordinate descent for parsimonious reaction fitting.
 - **Thermodynamic Constraints** utilizing PHREEQC for saturation index calculations.
+- **Field-Data Contracts and Unit Registries** for manifest-backed datasets, chemistry normalization, and configured trace-species/speciation inputs such as boron, silica, and arsenic.
 - **Isotope and Nuclear-Tracer Hydrogeology** for process validation and groundwater-age inference.
 - **Graph and Sheaf-Based Network Inference** for probabilistic flow connectivity and topology refinement.
 - **Null-Model Screening** for ruling out non-connectivity explanations (shared lithology, endmember similarity, spatial proximity).
@@ -21,6 +24,12 @@ The framework integrates:
 - **Optimal Transport and Causal Discovery** for reaction-aware chemistry-plausibility screens and guarded causal direction support.
 - **Active Learning** for recommending which wells to measure next based on topology uncertainty and validation gaps.
 - **MODFLOW/MODPATH Benchmarking** for testing reduced-order graph topology against reference particle-tracking outputs.
+- **History-aware TTD inversion** for stable-water-isotope and atmospheric-tracer response matrices conditioned on dated source histories, with explicit abstention reasons for missing or invalid histories.
+- **Truth-blind topology-v2** for all-pairs candidate generation, soft physical evidence, optional calibration, tri-state `PRESENT`/`ABSENT`/`ABSTAIN` decisions, and bootstrap case metrics.
+- **Fair M4 benchmark modes** that separate sparse geometry, archive-informed, and path-aware evidence while keeping MODPATH reference edges out of inference.
+- **Reproducible execution** through deterministic seeds/epochs, file hashes, tree comparison, isolated output staging, and recipe-level replay checks.
+
+The implementation distinguishes software contracts and controlled benchmark evidence from independent field or system-level validation. Inference routines fail closed or return `ABSTAIN` when required evidence is missing, contradictory, or outside the declared scope.
 
 ## Features
 
@@ -29,20 +38,27 @@ The framework integrates:
 - **Sparsity**: Uses L1 regularization to find the simplest chemical explanation for observed data.
 - **Physical Consistency**: Enforces thermodynamic bounds (e.g., minerals cannot precipitate from undersaturated solutions).
 - **Network Inference**: Infers flow direction probabilities from hydraulic head data with uncertainty.
-- **Nitrate Source Discrimination**: Distinguishes between manure and fertilizer sources using a hybrid approach: Dual Isotope Bayesian Mixing ($\delta^{15}\text{N}, \delta^{18}\text{O}$) prioritized over CoDA-based hydrochemical statistics.
+- **Nitrate Source Discrimination**: Distinguishes between manure and fertilizer sources using a hybrid approach: Dual Isotope Bayesian Mixing ($\delta^{15}\text{N}, \delta^{18}\text{O}$), with optional boron evidence, prioritized over CoDA-based hydrochemical statistics.
 - **Reactive Transport**: Validates inverse results against kinetic rate laws (Arrhenius) and Damköhler numbers.
-- **3D Flow Networks**: Analyzes layered aquifer systems with vertical anisotropy and topographic Bayesian priors.
+- **3D Flow Networks**: Analyzes layered aquifer systems with vertical anisotropy, geophysical observations, bedrock barriers, transit-time effects, and topographic priors.
 - **Temporal Dynamics**: Resolves time-variant signals with cross-correlation residence times and seasonal decomposition.
+- **Conditional Time-History TTDs**: Uses supplied dated source histories without silently extrapolating stable-isotope inputs; results are explicitly conditional on those histories.
 - **Uncertainty Quantification**: Provides rigorous confidence intervals via Bayesian MCMC (NUTS) and Bias-Corrected Bootstrap (BCa).
 - **Assumption Auditing**: Null-model screening rules out alternative explanations before accepting flow connectivity, with an evidence ladder from FALSIFIED to VALIDATED per edge.
-- **Topology Uncertainty**: Bayesian MCMC over candidate topologies produces edge inclusion probabilities, log-odds, and posterior entropy — moving beyond hard-threshold edge selection.
+- **Topology-v2 Uncertainty**: Truth-blind all-pairs candidate universes, calibrated scores, frozen threshold policies, missingness-aware feature rows, and tri-state decisions.
+- **Fair Topology Benchmarking**: M4-A/M4-B/M4-C workflows using projected Savage coordinates, public MODFLOW CBC context, and path-aware physical evidence.
 - **Global Consistency Checks**: Sheaf cohomology detects cycles where chemistry constraints cannot be simultaneously satisfied, computing obstruction energy and per-edge leverage scores.
-- **Active Learning**: Recommends which wells to measure next based on variant disagreement, posterior uncertainty, evidence ambiguity, and validation gaps.
-- **Verified Documentation**: All mathematical examples in the technical reference are computationally verified by the test suite.
+- **Active Learning**: Recommends which wells to measure next based on variant disagreement, posterior uncertainty, geophysical ambiguity, missing tracer/boron evidence, and validation gaps.
+- **Reproducibility Contracts**: Deterministic environment setup, SHA-256 manifests, exact tree comparisons, and isolated rerun verification.
+- **Contract-Tested Source**: Public tests and configuration exercise package imports, validation gates, benchmark rules, and abstention behavior.
+- **Evidence-Aware Optional Modules**: Input validation can resolve available topology, hydraulic, geophysical, and tracer modules from the signals actually present instead of silently fabricating missing evidence.
 
 ## Installation
 
 ### Core Package (CLI)
+
+The current package metadata declares version `0.6.0` and requires Python
+`3.10` or newer.
 
 ```bash
 git clone https://github.com/dabdul-wahab1988/Hydrosheaf.git
@@ -58,21 +74,30 @@ pip install ".[viz3d]"
 
 ### External Dependencies
 
-**For PEST++ Calibration (Auto-handled):**
-Hydrosheaf now automatically manages external dependencies for advanced calibration.
-When you run a calibration routine that requires PEST++, MODFLOW, or MT3DMS, the necessary binaries will be **automatically downloaded** and configured for your operating system (Windows, Linux, or macOS).
+The core package and its Python validation workflows run from the declared Python
+dependencies. External simulator workflows are separate adapters and require the
+corresponding executables and model files to be installed and configured by the
+user:
 
-No manual compilation or download is required.
-
-**Note:**
-1. **Core inverse modeling** works entirely within Python and needs no external tools.
-2. **Advanced calibration** (using PEST++) triggers the auto-download on first use.
+1. **Core inverse modeling** works within Python and does not require PEST++,
+   MODFLOW, or MT3DMS executables.
+2. **PEST++/MODFLOW/MT3DMS workflows** are optional and depend on the external
+   binaries, templates, and input files required by the selected calibration or
+   transport model.
+3. The PEST++ adapter can attempt to download its configured PEST++ release
+   (currently defaulting to version `5.2.25`) when the executable is missing;
+   this requires network access and writes the runtime binary under the local
+   `bin/<version>/` directory. MODFLOW and MT3DMS executables are not managed by
+   this path. For reproducible runs, preinstall or pin external tools and record
+   their versions in the run provenance.
 
 ## Quick Start
 
-### ✅ Works Out-of-the-Box
+### Core Python Workflows
 
-When you do `pip install .`, you get **full functionality** for:
+After `pip install .`, the public package provides the core Python workflows
+for:
+
 - Core inverse geochemical modeling (transport + reactions)
 - PHREEQC thermodynamic constraints
 - Isotope analysis and forensics
@@ -84,11 +109,37 @@ When you do `pip install .`, you get **full functionality** for:
 - Optimal transport and causal direction screening
 - 3D flow-network inference
 - Temporal dynamics and residence time estimation
+- History-aware TTD inference with conditional source histories and explicit abstention
+- Truth-blind topology-v2 scoring and associated benchmark utilities
 - Uncertainty quantification (Bootstrap, MCMC)
 - Active learning measurement recommendations
-- **Advanced Calibration (PEST++)**: Binaries are auto-downloaded when needed.
 
-**This is sufficient for 95% of use cases.** Install `.[viz3d]` only when you need PyVista/VTK-based 3D plotting or VTK file export.
+Install `.[viz3d]` only when you need PyVista/VTK-based 3D plotting or VTK file export. Benchmark and replay commands are designed to write to isolated run directories and do not overwrite preserved historical output trees.
+
+### Command-Line Entry Points
+
+The package installs two CLI entry points:
+
+```bash
+hydrosheaf --help
+hydrosheaf-cal --help
+```
+
+The public benchmark and reproducibility runners can be inspected directly from
+the repository root:
+
+```bash
+python scripts/run_topology_v2_benchmark.py --help
+python M4/m4_topology_benchmark/scripts/run_m4_fair_topology_benchmark.py --help
+python scripts/reproduce_outputs.py --help
+```
+
+These runners are deliberately conservative. The topology-v2 runner writes to
+an isolated `.codex_work/topology-v2` directory by default; the fair M4 runner
+keeps MODPATH reference edges in the evaluator rather than the inference path;
+and `reproduce_outputs.py` stages reruns separately from historical `outputs`
+trees and can compare hashes in strict mode. A complete run still requires the
+corresponding public/archive inputs to be available locally.
 
 ### Python API Usage
 
@@ -119,20 +170,46 @@ for edge_result in results:
     print(f"  Reaction extents: {edge_result.z_extents}")
 ```
 
-### ⚙️ Optional: Manual Compilation
+### History-Aware TTD API
 
-**Only needed if you want to modify PEST++ source code:**
+The history-aware TTD wrapper is conditional on the dated source histories
+provided by the caller. Stable-isotope rows are not silently extrapolated, and
+invalid, incomplete, contradictory, or unsupported inputs return an explicit
+`ABSTAIN` result with machine-readable reason codes.
 
-#### System Requirements for Compilation
-- Windows 10+ with Visual Studio 2022 Build Tools
-- CMake and Ninja
-- ~500 MB disk space
+```python
+from hydrosheaf import fit_history_ttd
+from hydrosheaf.nuclear.history_ttd import HistoryTracerObservation
 
-#### Build PEST++
-```bash
-# Compile from source (NOT necessary for standard usage)
-compile_pestpp.bat
+observations = [
+    HistoryTracerObservation(tracer="d18O", value=-8.5, sigma=0.2),
+    HistoryTracerObservation(tracer="3H", value=4.1, sigma=0.5),
+]
+
+result = fit_history_ttd(
+    observations=observations,
+    sample_year=2020,
+    age_grid_years=[0.0, 1.0, 5.0, 10.0, 20.0],
+    source_histories={"d18O": dated_d18O_history},
+)
+
+if result.status == "ABSTAIN":
+    print(result.abstention_reasons)
+else:
+    print(result.age_grid_years, result.g)
 ```
+
+This is a model-conditioned inference result, not independent field validation
+of groundwater ages, flow paths, or source-history reconstruction.
+
+### Optional External Calibration Tooling
+
+PEST++ source compilation is outside the Python package. If a calibration
+workflow needs PEST++, the adapter can attempt to fetch its configured release
+when no local executable is available, or you can install/build it separately
+and provide the executable and model configuration to the adapter. MODFLOW and
+MT3DMS remain separately managed external tools. None of this is required for
+the core inverse-modeling, TTD, topology-v2, or reproducibility workflows.
 
 ### Configuration
 
@@ -177,7 +254,9 @@ config = Config(
 )
 ```
 
-For detailed configuration reference, see [User Guide](docs/USER_GUIDE.md#2-cli-options-reference).
+For the installed dependency and CLI contracts, see [pyproject.toml](pyproject.toml),
+[hydrosheaf/cli.py](hydrosheaf/cli.py), and
+[hydrosheaf/calibration/cli.py](hydrosheaf/calibration/cli.py).
 
 ### Data Input Format
 
@@ -222,33 +301,49 @@ edges = [
 
 
 
-## Documentation
+## Documentation and Public Source Map
 
-For comprehensive reference, see:
+The public branch keeps the executable source and tests close to the contracts
+they implement:
 
-- **[User Guide](docs/USER_GUIDE.md)**: Extended usage instructions, CLI options, and workflows
-- **[Calibration Guide](docs/CALIBRATION_GUIDE.md)**: Configuring and running PEST++ calibration, topology, and assumption parameter tuning
-- **[DEVELOPMENT.md](DEVELOPMENT.md)**: For developers and contributors (building from source, running tests, contributing)
-- **[Technical Document (PDF)](docs/papers/hydrosheaf_technical_document.pdf)**: Mathematical theory and proofs
-- **[Mathematical Reference](docs/math.md)**: Compact math notes aligned with the codebase
-- **[PHREEQC Integration](docs/phreeqc.md)**: Setting up thermodynamic constraints
-- **[Examples](docs/examples.md)**: Walkthroughs of common scenarios
-- **[Inputs Reference](docs/INPUTS_REFERENCE.md)**: Detailed description of required inputs per module
-- **[Extensions Summary](docs/EXTENSIONS_SUMMARY.md)**: Deep dive into 3D, vadose, uncertainty, age, and temporal extensions
+- **[DEVELOPMENT.md](DEVELOPMENT.md)**: Development setup, testing, and contribution guidance.
+- **[Public API](hydrosheaf/api.py)**: Pipeline, temporal-edge, network-prior, and history-aware TTD entry points.
+- **[Field data](hydrosheaf/data/field.py)** and **[input validation](hydrosheaf/data/validation.py)**: Dataset manifests, optional-signal resolution, and fail-closed module gating.
+- **[Chemical units and registry](hydrosheaf/data/units.py)**: Explicit species, unit-conversion, and trace-speciation contracts.
+- **[History-aware TTD](hydrosheaf/nuclear/history_ttd.py)**: Conditional source-history inversion and abstention reason codes.
+- **[Topology-v2](hydrosheaf/validation/topology_v2.py)**: Truth-blind candidate generation, calibration, thresholds, and metrics.
+- **[M4 fair inputs](hydrosheaf/validation/m4_fair.py)**: Projected Savage-frame and archive-informed observation construction.
+- **[M4 path-aware evidence](hydrosheaf/validation/m4_path_aware.py)**: Truth-blind head-gradient/CBC path features.
+- **[PEST++ adapter](hydrosheaf/calibration/pestpp/runner.py)**: External executable resolution and versioned calibration-run support.
+- **[Reproducibility core](hydrosheaf/reproducibility/core.py)**: Deterministic environment, hashes, manifests, and tree comparison.
+- **[M4 benchmark runner](M4/m4_topology_benchmark/scripts/run_m4_fair_topology_benchmark.py)**: Isolated fair-benchmark orchestration.
+- **[Development workflow](scripts/reproduce_outputs.py)**: Isolated recipe reruns and strict output comparison.
+
+Manuscripts, private research reports, raw/derived field datasets, generated
+figures, and historical output trees are intentionally not linked here because
+they are not part of the public source release.
 
 ## Troubleshooting & Common Questions
 
 ### Q: Do I need to compile anything to use Hydrosheaf?
-**A: No!** Simply run `pip install .` and everything works. Compilation is only optional for PEST++ advanced calibration.
+**A:** No compilation is required for the core Python package. Run `pip install .`.
+Compilation or installation of an external simulator is only relevant to a
+specific PEST++/MODFLOW/MT3DMS adapter workflow.
 
-### Q: What if I can't compile PEST++?
-**A: That's fine!** Core hydrosheaf inverse modeling works perfectly without PEST++. Download pre-compiled PEST++ binaries from [USGS/pestpp releases](https://github.com/usgs/pestpp/releases) if needed.
+### Q: What if I do not have PEST++ installed?
+**A:** Core Hydrosheaf inverse modeling, history-aware TTD, topology-v2, and
+reproducibility workflows do not require PEST++. Install a compatible PEST++
+release separately, or allow the PEST++ adapter to attempt its configured
+download, only when using an adapter that explicitly needs it. MODFLOW and
+MT3DMS binaries are not auto-managed.
 
 ### Q: Will it work on Linux/Mac?
-**A: Yes!** The Python package is cross-platform. The `bin/` directory contains Windows executables, but:
-- Core hydrosheaf works on Windows/Linux/Mac
-- Download Linux/Mac binaries separately if needed
-- Most users don't need the `bin/` files
+**A:** The Python package is cross-platform:
+
+- Core Hydrosheaf source works on Windows/Linux/macOS.
+- External simulator binaries must be installed separately for the relevant
+  platform.
+- Most users do not need external simulator binaries.
 
 ### Q: Can I use Hydrosheaf without PHREEQC?
 **A: Yes!** While the PHREEQC library is installed by default, you can disable thermodynamic constraints in your configuration if you don't need them.
