@@ -264,7 +264,7 @@ def validate_sparse_inverse_reaction_model(
     if len(x_v) != len(x_transport):
         raise ValueError("downstream and post_transport vectors must have the same length.")
     residual = [v - t for v, t in zip(x_v, x_transport)]
-    weights = list(map(float, config.weights))
+    weights = list(config.get_weights(config.ion_order))
     rank = _rank_diagnostics(reaction_matrix)
     l1_rows = l1_penalty_sensitivity(
         residual,

@@ -16,11 +16,14 @@ PAIRS = [
     (ROOT / "M6" / "m6_field_transfer_benchmark" / "manuscript" / "Manuscript-Final.md", ROOT / "M6" / "m6_field_transfer_benchmark" / "manuscript" / "Manuscript-Final.docx"),
     (ROOT / "M7" / "m7_nonuniqueness_benchmark" / "manuscript" / "Manuscript-Final.md", ROOT / "M7" / "m7_nonuniqueness_benchmark" / "manuscript" / "Manuscript-Final.docx"),
     (ROOT / "M5" / "manuscript" / "supplementary" / "Supplementary-Figures-and-Tables.md", ROOT / "M5" / "manuscript" / "supplementary" / "Supplementary-Figures-and-Tables.docx"),
+    (ROOT / "M9_ttd_graph_paper" / "manuscript" / "Manuscript-Final.md", ROOT / "M9_ttd_graph_paper" / "manuscript" / "Manuscript-Final.docx"),
 ]
 
 
 def main() -> int:
     for markdown, docx in PAIRS:
+        if not docx.is_file() or not markdown.is_file():
+            continue
         title = next(line[2:].strip() for line in markdown.read_text(encoding="utf-8").splitlines() if line.startswith("# "))
         document = Document(docx)
         document.core_properties.title = title

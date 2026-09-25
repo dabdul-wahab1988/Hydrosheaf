@@ -28,7 +28,6 @@ REPO_ROOT = SCRIPT_DIR.parents[2]
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from field_prequential import run_field_prequential  # noqa: E402
 from independent_modflow_generator import (  # noqa: E402
     IndependentAquifer,
     generate_independent_aquifer,
@@ -705,16 +704,6 @@ def run_benchmark(
         [reaction_overall, reaction_summary], ignore_index=True
     )
 
-    field = run_field_prequential(
-        REPO_ROOT / "data" / "FieldData" / "NorthenGhana" / "NorthernGhana.xlsx"
-    )
-    field.predictions.to_csv(output / "field_prequential_predictions.csv", index=False)
-    field.summary.to_csv(output / "field_prequential_summary.csv", index=False)
-    (output / "field_prequential_audit.json").write_text(
-        json.dumps(field.audit, indent=2, default=_json_default),
-        encoding="utf-8",
-    )
-
     development.to_csv(output / "development_edge_features.csv", index=False)
     test.to_csv(output / "locked_test_edge_results.csv", index=False)
     method_summary.to_csv(output / "method_summary.csv", index=False)
@@ -794,12 +783,18 @@ def run_benchmark(
             "denitrification",
             "iron_reduction",
         ],
-        "field_prequential_claim": field.audit["field_claim"],
-        "field_n_pairs": field.audit["n_complete_quantitative_pairs"],
+        "field_scope": {
+            "field_data_used": False,
+            "approved_cohorts": ["central_region", "upper_east_region"],
+            "temporal_hold_forward": "ABSTAIN",
+            "reason": (
+                "The approved field cohorts are cross-sectional; they do not "
+                "replace the retired paired wet/dry branch."
+            ),
+        },
         "claim_guardrail": (
             "External simulators provide model-conditioned synthetic truth. "
-            "Northern Ghana supplies within-campaign chemistry hold-forward, "
-            "not field topology, age, or reaction truth."
+            "No Ghana field data are used by this synthetic supporting validation."
         ),
     }
     (output / "manifest.json").write_text(

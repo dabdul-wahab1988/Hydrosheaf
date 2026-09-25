@@ -41,6 +41,10 @@ def _write(df: pd.DataFrame, name: str, title: str):
 
 
 def rd(f):
+    raise RuntimeError(
+        "Retired: legacy M6 tables summarize excluded seasonal/older-cohort "
+        "outputs. Use the provenance-checked refined Central/UER M6 input-QA run."
+    )
     return pd.read_csv(RES / f)
 
 
@@ -156,7 +160,10 @@ def table4():
 
 def table5():
     """Truth-free Northern Ghana seasonal hold-forward performance."""
-
+    raise RuntimeError(
+        "Retired: no seasonal field hold-forward analysis is valid for the "
+        "current cross-sectional Central/UER cohorts."
+    )
     summary = pd.read_csv(FIELD_RESULTS / "field_prequential_summary.csv")
     overall = summary[summary["ion"] == "ALL"].copy()
     overall["method"] = overall["method"].map(
@@ -304,6 +311,10 @@ def supp_tables():
 
 
 def main():
+    raise RuntimeError(
+        "Legacy M6 publication tables are blocked. Run run_m6_q1.py for the "
+        "current refined-cohort QA outputs; no seasonal transfer tables are generated."
+    )
     table1()
     table2()
     table3()

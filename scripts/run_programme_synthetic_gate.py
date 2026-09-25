@@ -31,6 +31,7 @@ if str(M7_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(M7_SCRIPTS))
 
 from hydrosheaf.api import fit_network_pipeline  # noqa: E402
+from hydrosheaf.reproducibility import reproducible_now_iso  # noqa: E402
 from hydrosheaf.inference.network_fit import infer_edges  # noqa: E402
 from hydrosheaf.nuclear.input_history import (  # noqa: E402
     InputHistory,
@@ -581,7 +582,7 @@ def run_benchmark(
     manifest: dict[str, object] = {
         "run_id": RUN_ID,
         "status": "PASS" if execution_gate else "FAIL",
-        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "created_at_utc": reproducible_now_iso(),
         "git_revision": _git_revision(),
         "git_worktree_dirty": _git_worktree_dirty(),
         "source_hashes": {

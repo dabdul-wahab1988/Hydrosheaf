@@ -86,6 +86,41 @@ def infer_network_ages_bayesian(*args: Any, **kwargs: Any) -> Any:
 
 
 
+def fit_history_ttd(
+    observations: Sequence[Any],
+    sample_year: float,
+    age_grid_years: Sequence[float],
+    source_histories: Mapping[str, Any],
+    *,
+    stable_isotope_scales: Optional[Mapping[str, float]] = None,
+    stable_isotope_offsets: Optional[Mapping[str, float]] = None,
+    tracer_weights: Optional[Mapping[str, float]] = None,
+    lambda_smoothness: float = 0.05,
+    max_condition_number: float = 1e8,
+) -> Any:
+    """Fit a recharge-history-aware conditional TTD.
+
+    This is a time-history-aware conditional inference path.  It is not field
+    validation and must not be presented as independent validation of
+    groundwater ages or flow paths.  The nuclear implementation is imported
+    only when this wrapper is called so importing :mod:`hydrosheaf` does not
+    import the history-aware nuclear stack.
+    """
+    from .nuclear.history_ttd import fit_history_ttd as _fit_history_ttd
+
+    return _fit_history_ttd(
+        observations,
+        sample_year,
+        age_grid_years,
+        source_histories,
+        stable_isotope_scales=stable_isotope_scales,
+        stable_isotope_offsets=stable_isotope_offsets,
+        tracer_weights=tracer_weights,
+        lambda_smoothness=lambda_smoothness,
+        max_condition_number=max_condition_number,
+    )
+
+
 def fit_ttd_network(
     graph: Any,
     panels: Sequence[Any],

@@ -127,10 +127,15 @@ def hydrate(text: str, records: dict[str, dict], root: Path) -> tuple[str, list[
 
     counters = {"figure": 0, "table": 0}
     labels: dict[str, str] = {}
-    for artifact_id in used:
-        kind = records[artifact_id]["kind"]
-        counters[kind] += 1
-        labels[artifact_id] = f"{'Figure' if kind == 'figure' else 'Table'} {counters[kind]}"
+    for artifact_id, record in records.items():
+        kind = record["kind"]
+        kind_label = "Figure" if kind == "figure" else "Table"
+        num_match = re.search(r"\d+", artifact_id)
+        if num_match:
+            labels[artifact_id] = f"{kind_label} {num_match.group(0)}"
+        else:
+            counters[kind] += 1
+            labels[artifact_id] = f"{kind_label} {counters[kind]}"
 
     embedded: set[str] = set()
     output_parts: list[str] = []

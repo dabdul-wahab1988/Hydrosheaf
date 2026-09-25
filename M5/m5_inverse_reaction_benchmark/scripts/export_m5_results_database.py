@@ -172,25 +172,11 @@ def create_views(connection: duckdb.DuckDBPyConnection) -> None:
 
 
 def export_database(database_path: Path = DATABASE_PATH) -> Path:
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    if database_path.exists():
-        database_path.unlink()
-    with duckdb.connect(str(database_path)) as connection:
-        csv_catalog = import_csvs(connection)
-        json_catalog = import_jsons(connection)
-        catalog = pd.concat([csv_catalog, json_catalog], ignore_index=True)
-        write_dataframe(connection, catalog, "m5_table_catalog")
-        create_views(connection)
-        manifest = {
-            "database": str(database_path.relative_to(BENCHMARK_DIR)),
-            "generated_utc": pd.Timestamp.utcnow().isoformat(),
-            "n_tables": int(len(catalog)),
-            "n_rows_total": int(catalog["row_count"].sum()) if not catalog.empty else 0,
-            "tables": catalog["table_name"].tolist(),
-        }
-        write_dataframe(connection, pd.json_normalize(manifest), "m5_database_manifest")
-    catalog.to_csv(RESULTS_DIR / "m5_results_database_catalog.csv", index=False)
-    return database_path
+    raise RuntimeError(
+        "The historical M5 database export is retired. Its input folder can "
+        "contain cached legacy field CSVs, so it is not safe to publish as a "
+        "current database. Existing database artifacts are left untouched."
+    )
 
 
 def main(argv: Iterable[str] | None = None) -> None:

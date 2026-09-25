@@ -1019,6 +1019,12 @@ The clean UER dataset and this bounded computational audit support the following
 
 
 def main():
+    raise RuntimeError(
+        "Retired combined Objective 5 runner: its field-network branch consumes "
+        "a legacy DEM-elevation-as-head edge file, and its chemistry path zero-fills "
+        "missing values. The CR/UER source QA remains valid, but no combined O5 "
+        "frontier or field-gating result is regenerated from this implementation."
+    )
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     TAB_DIR.mkdir(parents=True, exist_ok=True)

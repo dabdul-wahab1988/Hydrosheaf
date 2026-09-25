@@ -61,6 +61,10 @@ def panel_label(ax: plt.Axes, label: str) -> None:
 
 
 def main() -> None:
+    raise RuntimeError(
+        "Retired: the stored seasonal prequential figure is based on an excluded "
+        "field branch and is not valid for the cross-sectional Central/UER cohorts."
+    )
     configure_style()
     summary = pd.read_csv(SOURCE / "field_prequential_summary.csv")
     audit = json.loads(

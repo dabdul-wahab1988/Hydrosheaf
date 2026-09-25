@@ -22,6 +22,11 @@ evap_gate_factor: 0.5    # Multiplier for ratio evidence if evap detected
 # Dual-isotope process constraints
 nitrate_isotope_process_constraints_enabled: true
 nitrate_isotope_water_o18_col: d18O
+nitrate_isotope_boron_col: B_ug_L
+nitrate_isotope_boron_unit: ug/L
+nitrate_isotope_d11b_col: d11B
+nitrate_isotope_boron_enabled: true
+nitrate_isotope_include_subsources: true
 isotope_process_constraints:
   denitrification_enabled: true
   denitrification_min_extent: 0.05

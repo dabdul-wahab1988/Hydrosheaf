@@ -601,6 +601,10 @@ def plot_manuscript_fig3_synthetic_validation() -> None:
 
 
 def plot_manuscript_fig4_ghana_network() -> None:
+    raise RuntimeError(
+        "The historical Ghana network figure is retired; it uses old field "
+        "cohorts and cached edge results rather than the approved CR/UER inputs."
+    )
     """Figure 4: The 'Ghana Discovery' 4-Panel Spatial Process Network."""
     path = RESULT_DIR / "field_discovery_results.csv"
     if not path.exists():
@@ -923,6 +927,10 @@ def plot_manuscript_fig5_residence_time_validation() -> None:
 
 
 def plot_manuscript_fig6_field_filtering() -> None:
+    raise RuntimeError(
+        "The historical field-filtering figure is retired with the legacy M2 "
+        "field workflow and is not a current result."
+    )
     """Figure 6 alt: M2 field filtering and as-run configuration.
 
     Generated from the M2 documented-pipeline summary showing candidate pruning.
@@ -974,6 +982,10 @@ def plot_manuscript_fig6_field_filtering() -> None:
 
 
 def plot_manuscript_fig6_optimal_model_selection() -> None:
+    raise RuntimeError(
+        "The historical M2 optimal-model-selection figure reads legacy field "
+        "regularization files; that field analysis has been retired."
+    )
     """Figure 6: Optimal Model Selection via AICc Minimum on Real Field Datasets.
 
     Uses exclusively the real Lower Anayari (121 edges) and Talensi (137 edges)
@@ -1042,6 +1054,10 @@ def plot_manuscript_fig6_optimal_model_selection() -> None:
 
 
 def plot_manuscript_fig7_psi_robustness_guarantee() -> None:
+    raise RuntimeError(
+        "The historical PSI field figure is retired with the legacy M2 field "
+        "workflow and must not be republished from cached outputs."
+    )
     """Figure 7: The Phase Stability Matrix (PSI) Heatmap.
 
     Reads the M2 phase-stability matrix computed with GEOLOGICALLY-CORRECT per-site
@@ -1118,12 +1134,8 @@ def main() -> None:
     plot_manuscript_fig1_architecture()
     plot_manuscript_fig2_topology_validation()
     plot_manuscript_fig3_synthetic_validation()
-    plot_manuscript_fig4_ghana_network()
     plot_manuscript_fig5_residence_time_validation()
-    plot_manuscript_fig6_optimal_model_selection()
-    plot_manuscript_fig6_field_filtering()
-    plot_manuscript_fig7_psi_robustness_guarantee()
-    print("M2 Manuscript-Ready figures generated in 'figures/Manuscript_Ready/'.")
+    print("M2 synthetic/public-reference figures generated; legacy field figures were skipped.")
 
 
 if __name__ == "__main__":

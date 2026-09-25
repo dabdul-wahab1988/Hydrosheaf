@@ -20,21 +20,10 @@ from _common import M4, M5, write
 
 
 def m5_field() -> pd.DataFrame:
-    elri = pd.read_csv(M5 / "results/external_field_evidence_lifted_resolution.csv")
-    ghana = pd.read_csv(M5 / "results/ghana_field_hydrosheaf_core_evidence.csv")
-    med = elri.groupby("dataset").agg(
-        n_edges=("edge_id", "nunique"),
-        median_elri=("evidence_lifted_resolution_index", "median"),
-    ).reset_index()
-    med["dataset"] = med["dataset"].replace({"NorthernGhana.xlsx": "Northern Ghana"})
-    med["component"] = "Reaction"
-    med["site_type"] = "field chemistry (wet/dry candidate edges)"
-    med["score_name"] = "median evidence-lifted resolution index (ELRI)"
-    med["score_value"] = med["median_elri"]
-    med["claim_scope"] = ("Field plausibility / candidate-class audit, not "
-                          "reaction-truth or flow-path validation")
-    return med[["component", "dataset", "site_type", "n_edges", "score_name",
-                "score_value", "claim_scope"]]
+    raise RuntimeError(
+        "The historical O3 field-transfer summary is retired: it republishes "
+        "cached M5 field outputs from superseded cohorts. M5 is synthetic-only."
+    )
 
 
 def m4_field() -> pd.DataFrame:
@@ -70,8 +59,10 @@ def m3_field() -> pd.DataFrame:
 
 
 def main() -> None:
-    df = pd.concat([m5_field(), m4_field(), m3_field()], ignore_index=True)
-    write(df, "field_transfer.csv")
+    raise RuntimeError(
+        "The historical O3 field-transfer artifact is retired and must not be "
+        "regenerated from cached legacy M5 field outputs."
+    )
 
 
 if __name__ == "__main__":

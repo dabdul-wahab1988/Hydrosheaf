@@ -398,6 +398,10 @@ def figure5_thermo_phreeqc(con: duckdb.DuckDBPyConnection) -> None:
 
 
 def figure6_field_transfer(con: duckdb.DuckDBPyConnection) -> None:
+    raise RuntimeError(
+        "The historical M5 database field-transfer figure is retired and may "
+        "not be regenerated from a database with legacy cohort rows."
+    )
     external = q(con, "SELECT * FROM external_field_evidence_lifted_resolution")
     ghana = q(con, "SELECT * FROM ghana_field_pairs")
     fig, axes = plt.subplots(1, 3, figsize=(7.4, 3.8), constrained_layout=True)
@@ -603,6 +607,11 @@ def supplementary_figures(con: duckdb.DuckDBPyConnection) -> None:
 
 
 def main() -> None:
+    raise RuntimeError(
+        "Retired: this database-backed figure bundle includes historical field "
+        "transfer tables. M5 is synthetic-only and these mixed-source outputs "
+        "must not be regenerated."
+    )
     setup_theme()
     with connect() as con:
         available = tables(con)

@@ -447,13 +447,21 @@ def main() -> None:
     )
     parser.add_argument(
         "--sheaf-cohomology",
-        action="store_true",
-        help="Enable sheaf cohomology diagnostics on selected edges.",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help=(
+            "Enable/disable sheaf cohomology diagnostics; default is automatic "
+            "based on available core panels."
+        ),
     )
     parser.add_argument(
         "--topology-posterior",
-        action="store_true",
-        help="Enable Bayesian topology posterior over candidate edges.",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help=(
+            "Enable/disable Bayesian topology posterior; default is automatic "
+            "based on available topology evidence."
+        ),
     )
     parser.add_argument(
         "--topology-posterior-samples",
@@ -1417,8 +1425,11 @@ def main() -> None:
         edge_map_prior_weight=args.edge_map_weight,
         edge_map_candidate_multiplier=args.edge_map_candidate_multiplier,
         edge_map_p_min=args.edge_map_p_min,
-        sheaf_isotope_enabled=not args.sheaf_disable_isotopes,
-        sheaf_cl_enabled=not args.sheaf_disable_cl,
+        # Keep these as automatic capability gates unless the legacy disable
+        # switches are supplied.  This lets data-complete runs use the terms
+        # while data-limited runs omit only the unavailable evidence.
+        sheaf_isotope_enabled=(False if args.sheaf_disable_isotopes else None),
+        sheaf_cl_enabled=(False if args.sheaf_disable_cl else None),
         sheaf_iso_sigma_d18o=args.sheaf_iso_sigma_d18o,
         sheaf_iso_sigma_d2h=args.sheaf_iso_sigma_d2h,
         sheaf_weight_head_prior=args.sheaf_weight_head,

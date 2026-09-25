@@ -32,18 +32,11 @@ SEED = 1234
 BENCH_DIR = Path(__file__).resolve().parents[1]
 RESULTS_DIR = BENCH_DIR / "results"
 
-# Canonical field data only (data/FieldData/). The Northern Ghana raw
-# workbook has no independent aquifer-type, geology-group, lithology,
-# land-use, QC-class, prior-process-label, or graph-edge data: an earlier
-# revision of this module read those from a separate
-# "Aquifers_Dataset_Mendeley.xlsx" workbook that is not this project's own
-# field data (it is the derived product of a different, antecedent study;
-# see data/FieldData/NorthenGhana/SI.pdf and DECISIONS.md) and does not
-# exist in data/FieldData/, so it has been removed from this pipeline.
-DATA = {
-    "northern_ghana": REPO_ROOT / "data" / "FieldData" / "NorthenGhana" / "NorthernGhana.xlsx",
-    "talensi": REPO_ROOT / "data" / "FieldData" / "Talensi_MiningArea" / "talensi.csv",
-    "manu": REPO_ROOT / "data" / "FieldData" / "LowerAnayari" / "manu.csv",
+# The active field-QA workflow is isolated in run_m6_refined_cross_sectional.py.
+# These are the only field cohorts it may read.
+APPROVED_FIELD_INPUTS = {
+    "central_region": REPO_ROOT / "data" / "FieldData" / "CRdata" / "CentralRegion_completed.xlsx",
+    "upper_east_region": REPO_ROOT / "data" / "FieldData" / "UERdata" / "compiled UER data_new_completed.xlsx",
 }
 
 # Reaction-basis ions (subset of M5 ION_ORDER used by the linear panel)
@@ -132,12 +125,11 @@ def _compute_si(out: pd.DataFrame, ph: pd.Series, temp_c: pd.Series) -> pd.DataF
 
 
 def load_northern_ghana() -> pd.DataFrame:
-    """320 seasonal samples (160 boreholes x wet/dry) from the raw canonical
-    workbook (data/FieldData/NorthenGhana/NorthernGhana.xlsx, Dry/Wet
-    sheets). No independent aquifer-type, geology-group, lithology,
-    land-use, QC-class, prior-process-label, or graph-edge data is
-    available for these boreholes; stratified reporting elsewhere in M6
-    uses Region/District instead."""
+    """Disabled legacy loader; the excluded seasonal workbook is not an input."""
+    raise RuntimeError(
+        "The legacy seasonal field branch is retired. Run "
+        "run_m6_refined_cross_sectional.py for approved Central/UER input QA."
+    )
     f = DATA["northern_ghana"]
     dry = pd.read_excel(f, sheet_name="Dry").assign(Season="Dry")
     wet = pd.read_excel(f, sheet_name="Wet").assign(Season="Wet")
@@ -169,6 +161,10 @@ def load_talensi() -> pd.DataFrame:
     F/Sr/SiO2/season (Tier 1). Talensi measures no fluoride, so its fluorite
     SI reflects F treated as absent, not as an independently measured
     near-zero value (see _compute_si)."""
+    raise RuntimeError(
+        "Legacy field packages are not approved current inputs; use the "
+        "refined Central/UER field-QA runner."
+    )
     df = pd.read_csv(DATA["talensi"])
     out = pd.DataFrame({"dataset": "talensi", "sample_id": df["Code"],
                         "site_id": df["Code"], "season": "unknown"})
@@ -198,6 +194,10 @@ def load_talensi() -> pd.DataFrame:
 def load_manu() -> pd.DataFrame:
     """41 samples, majors + F + Fe + isotopes + PHREEQC saturation indices;
     no Sr/SiO2/season (Tier 2)."""
+    raise RuntimeError(
+        "Legacy field packages are not approved current inputs; use the "
+        "refined Central/UER field-QA runner."
+    )
     df = pd.read_csv(DATA["manu"])
     out = pd.DataFrame({"dataset": "manu", "sample_id": df["Sample ID"],
                         "site_id": df["Sample ID"], "season": "unknown"})
@@ -221,14 +221,17 @@ def load_manu() -> pd.DataFrame:
 
 
 def load_all() -> dict[str, pd.DataFrame]:
-    return {"northern_ghana": load_northern_ghana(),
-            "talensi": load_talensi(), "manu": load_manu()}
+    raise RuntimeError(
+        "The old M6 field-transfer experiment is disabled because its seasonal "
+        "and legacy-cohort design is not compatible with the approved refined "
+        "cross-sectional cohorts. Run run_m6_refined_cross_sectional.py instead."
+    )
 
 
 def seasonal_well_pairs(
     frame: pd.DataFrame,
 ) -> dict[str, tuple[dict[str, object], dict[str, object]]]:
-    """Return the first wet/dry observation pair for each complete field well."""
+    """Pair wet/dry rows for isolated legacy-unit tests only, not field runs."""
     complete = [
         well
         for well in frame["site_id"].unique()
@@ -256,10 +259,19 @@ def seasonal_well_pairs(
 
 # --- quality control ----------------------------------------------------------
 def charge_balance_error(row: Mapping[str, float]) -> float:
-    """Independent CBE (%) in meq/L from harmonised mmol/L ions."""
-    cat = sum(max(row.get(i, 0) or 0, 0) * CHARGE[i] for i in ["Ca", "Mg", "Na", "K"])
-    an = sum(abs(row.get(i, 0) or 0) * abs(CHARGE[i])
-             for i in ["HCO3", "Cl", "SO4", "NO3", "F"] if pd.notna(row.get(i)))
+    """Independent 8-major-ion CBE; return NaN rather than zero-fill gaps."""
+    required = ["Ca", "Mg", "Na", "K", "HCO3", "Cl", "SO4", "NO3"]
+    values: dict[str, float] = {}
+    for ion in required:
+        try:
+            value = float(row.get(ion))
+        except (TypeError, ValueError):
+            return float("nan")
+        if not math.isfinite(value) or value < 0.0:
+            return float("nan")
+        values[ion] = value
+    cat = sum(values[i] * CHARGE[i] for i in ["Ca", "Mg", "Na", "K"])
+    an = sum(values[i] * abs(CHARGE[i]) for i in ["HCO3", "Cl", "SO4", "NO3"])
     if cat + an == 0:
         return np.nan
     return 100.0 * (cat - an) / (cat + an)

@@ -54,29 +54,18 @@ from m5_common import (  # noqa: E402
 
 
 BENCHMARK_DIR = Path(__file__).resolve().parents[1]
-RESULTS_DIR = BENCHMARK_DIR / "results"
-TABLES_DIR = BENCHMARK_DIR / "tables"
-DOCS_DIR = BENCHMARK_DIR / "docs"
-PHREEQC_DIR = BENCHMARK_DIR / "phreeqc_inputs"
-PHREEQC_INVERSE_DIR = PHREEQC_DIR / "inverse_baseline"
-PHREEQC_GHANA_FIELD_DIR = PHREEQC_DIR / "ghana_field_si"
-# Canonical field data (see data/FieldData/). Northern Ghana provides only the
-# raw Dry/Wet hydrochemistry workbook; there is no independent aquifer-type,
-# geology-group, lithology, or saturation-index metadata for these wells. An
-# earlier revision of this script read those attributes from a separate
-# "Aquifers_Dataset_Mendeley.xlsx" workbook, which does not belong to this
-# dataset: it is the derived product of a different, antecedent study
-# ("Graph-inverted Ghanaian aquifers under aridification"; see
-# data/FieldData/NorthenGhana/SI.pdf) that classified these same boreholes and
-# even pre-computed its own connectivity graph. Reusing that workbook would
-# import another study's classifications and graph structure into what is
-# meant to be an independent field demonstration, and the file is not part of
-# the canonical field data, so it has been removed from this pipeline.
-NORTHERN_GHANA_WORKBOOK = (
-    REPO_ROOT / "data" / "FieldData" / "NorthenGhana" / "NorthernGhana.xlsx"
+DEFAULT_OUTPUT_DIR = (
+    REPO_ROOT
+    / ".codex_work"
+    / "runs"
+    / "REFINED-CR-UER-20260922-01"
+    / "M5_synthetic"
 )
-TALENSI_CSV = REPO_ROOT / "data" / "FieldData" / "Talensi_MiningArea" / "talensi.csv"
-LOWER_ANAYARI_CSV = REPO_ROOT / "data" / "FieldData" / "LowerAnayari" / "manu.csv"
+RESULTS_DIR = DEFAULT_OUTPUT_DIR / "results"
+TABLES_DIR = DEFAULT_OUTPUT_DIR / "tables"
+DOCS_DIR = DEFAULT_OUTPUT_DIR / "docs"
+PHREEQC_DIR = DEFAULT_OUTPUT_DIR / "phreeqc_inputs"
+PHREEQC_INVERSE_DIR = PHREEQC_DIR / "inverse_baseline"
 RANDOM_SEED = 20250615
 N_SCENARIOS_PER_ARCHETYPE = 60
 NOISE_LEVELS = [0.0, 0.03, 0.08]
@@ -352,7 +341,6 @@ def ensure_directories() -> None:
         DOCS_DIR,
         PHREEQC_DIR,
         PHREEQC_INVERSE_DIR,
-        PHREEQC_GHANA_FIELD_DIR,
     ):
         directory.mkdir(parents=True, exist_ok=True)
 
@@ -2872,6 +2860,9 @@ def load_ghana_pairs() -> pd.DataFrame:
     geology-group, lithology, or sampling-date metadata (see the constant
     comment above), so those attributes are not available here.
     """
+    raise RuntimeError(
+        "The legacy M5 field-data loader is retired. M5 is synthetic-only."
+    )
     dry = pd.read_excel(NORTHERN_GHANA_WORKBOOK, sheet_name="Dry")
     wet = pd.read_excel(NORTHERN_GHANA_WORKBOOK, sheet_name="Wet")
     dry = dry.assign(Season="dry")
@@ -2895,6 +2886,9 @@ def compute_ghana_field_saturation_indices(
     panel, keyed by Well_ID. Replaces the retired Mendeley workbook's
     precomputed SI columns with an independent calculation from this
     project's own measured chemistry (pH, temperature, and major ions)."""
+    raise RuntimeError(
+        "Field PHREEQC calculations are disabled in the synthetic-only M5 workflow."
+    )
     wet = pd.read_excel(NORTHERN_GHANA_WORKBOOK, sheet_name="Wet")
     lines: list[str] = []
     for index, row in wet.iterrows():
@@ -2963,6 +2957,9 @@ def compute_external_field_saturation_indices(
     upstream_si to every fit), which this replaces. Talensi measures no
     fluoride, so its fluorite SI reflects F treated as absent rather than an
     independently measured near-zero value."""
+    raise RuntimeError(
+        "Legacy external field saturation calculations are retired from M5."
+    )
     talensi = pd.read_csv(TALENSI_CSV)
     manu = pd.read_csv(LOWER_ANAYARI_CSV)
     lines: list[str] = []
@@ -3062,6 +3059,10 @@ def run_ghana_field_demonstration(
     class_map: Mapping[str, str],
     saturation_indices: pd.DataFrame | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    raise RuntimeError(
+        "The paired seasonal M5 field demonstration is retired; use the "
+        "controlled synthetic benchmark only."
+    )
     quantitative = load_ghana_pairs()
     si_by_well: dict[str, dict[str, float]] = {}
     if saturation_indices is not None:
@@ -3522,6 +3523,7 @@ def _external_field_edge_outputs(
 def _legacy_northern_ghana_external_edges() -> list[
     tuple[str, Mapping[str, object], Mapping[str, object]]
 ]:
+    raise RuntimeError("The legacy seasonal edge builder is disabled and cannot load field data.")
     dry = pd.read_excel(NORTHERN_GHANA_WORKBOOK, sheet_name="Dry")
     wet = pd.read_excel(NORTHERN_GHANA_WORKBOOK, sheet_name="Wet")
     dry = dry.copy()
@@ -3613,6 +3615,9 @@ def run_external_field_transfer(
     ghana_si: pd.DataFrame | None = None,
     external_si: pd.DataFrame | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    raise RuntimeError(
+        "Legacy M5 external-field transfer is retired; M5 runs the synthetic benchmark only."
+    )
     # Saturation-index lookup keyed by (dataset, sample_id), evaluated at the
     # upstream sample of each edge (consistent with the Ghana field
     # demonstration's own convention of computing SI from the wet-season/
@@ -3717,6 +3722,7 @@ def write_external_field_transfer_outputs(
     ghana_si: pd.DataFrame | None = None,
     external_si: pd.DataFrame | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    raise RuntimeError("Legacy M5 external-field outputs are not generated.")
     print("M5: running external field ELRI transfer on NorthernGhana, Talensi, and Lower Anayari...")
     pairs, evidence, resolution = run_external_field_transfer(
         hyperparameters,
@@ -3869,45 +3875,11 @@ def write_summary(
         )
     else:
         core_elri_mean = None
-    external_resolution_path = (
-        RESULTS_DIR / "external_field_evidence_lifted_resolution.csv"
-    )
-    external_pairs_path = RESULTS_DIR / "external_field_transfer_pairs.csv"
-    if external_resolution_path.exists():
-        external_resolution = pd.read_csv(external_resolution_path)
-        external_field_elri_summary: dict[str, dict[str, dict[str, float]]] = {}
-        for keys, group in external_resolution.groupby(["dataset", "data_tier"]):
-            dataset, tier = keys
-            external_field_elri_summary.setdefault(str(dataset), {})[str(tier)] = {
-                "mean_evidence_lifted_resolution_index": float(
-                    group["evidence_lifted_resolution_index"].mean()
-                ),
-                "median_evidence_lifted_resolution_index": float(
-                    group["evidence_lifted_resolution_index"].median()
-                ),
-                "conditionally_preferred_or_resolved_fraction": float(
-                    group["resolution_status"]
-                    .isin(
-                        [
-                            "conditionally_preferred",
-                            "evidence_lifted_resolved",
-                        ]
-                    )
-                    .mean()
-                ),
-                "n_class_evaluations": int(len(group)),
-            }
-    else:
-        external_field_elri_summary = {}
-    if external_pairs_path.exists():
-        external_pairs = pd.read_csv(external_pairs_path)
-        external_field_edge_counts = {
-            str(dataset): int(group["edge_id"].nunique())
-            for dataset, group in external_pairs.groupby("dataset")
-        }
-    else:
-        external_pairs = pd.DataFrame()
-        external_field_edge_counts = {}
+    # Never read historical field-branch files from RESULTS_DIR here. A
+    # synthetic-only rerun may share a directory with old outputs, and those
+    # cached rows are not current source data or valid M5 results.
+    external_field_elri_summary: dict[str, dict[str, dict[str, float]]] = {}
+    external_field_edge_counts: dict[str, int] = {}
     inverse_strict_success = (
         float(
             (
@@ -3945,7 +3917,15 @@ def write_summary(
         "n_phreeqc_scenarios": len(scenarios),
         "n_benchmark_fits": len(fits),
         "n_phreeqc_inverse_scenarios": len(phreeqc_inverse),
-        "n_field_pairs": len(field_pairs),
+        "n_field_pairs": None,
+        "field_data_scope": {
+            "field_analysis_run": False,
+            "approved_field_cohorts": ["central_region", "upper_east_region"],
+            "reason": (
+                "M5 remains a controlled synthetic benchmark; its former field "
+                "branch required paired wet/dry or legacy cohorts and is retired."
+            ),
+        },
         "archetypes": sorted(ARCHETYPES),
         "noise_levels": NOISE_LEVELS,
         "panels": PANELS,
@@ -4062,7 +4042,7 @@ def write_summary(
             "Hydrosheaf is evaluated as an identifiability-aware sparse linear "
             "inverse reaction model with PHREEQC-generated truth and "
             "thermodynamic screening, not as a fully coupled nonlinear "
-            "PHREEQC inverse solver."
+            "PHREEQC inverse solver. No field dataset is used in this M5 run."
         ),
         "software": {
             "python": platform.python_version(),
@@ -4108,11 +4088,11 @@ def write_summary(
         )
 
     lines = [
-        "# M5 Complete Analysis Summary",
+        "# M5 Controlled Synthetic Benchmark Summary",
         "",
         f"- Live PHREEQC scenarios: {summary['n_phreeqc_scenarios']}.",
         f"- Factorial inverse fits: {summary['n_benchmark_fits']}.",
-        f"- Northern Ghana quantitative wet-dry pairs: {summary['n_field_pairs']}.",
+        "- Field-data analyses: not run; M5 is retained as a controlled synthetic benchmark only.",
         (
             "- Maximum PHREEQC-to-stoichiometric generation RMSE: "
             f"{summary['maximum_phreeqc_generation_rmse_mmolL']:.3e} mmol/L."
@@ -4176,29 +4156,13 @@ def write_summary(
             "- Mixed-archetype held-out MRS classification accuracy: "
             f"{summary['mixed_holdout_mrs_classification_accuracy']:.3f}."
         ),
-        (
-            "- Ghana median Hydrosheaf-Core evidence score / TDS consistency "
-            "score: "
-            f"{fmt3(summary['field_median_core_evidence_score'])} / "
-            f"{fmt3(summary['field_median_tds_consistency_score'])}; "
-            "pairs with optional SiO2/Sr/isotope support: "
-            f"{summary['field_pairs_with_plus_lite_tracers']}."
-        ),
-        (
-            "- External field ELRI transfer: "
-            f"{external_elri_text('NorthernGhana.xlsx')}; "
-            f"{external_elri_text('Talensi')}; "
-            f"{external_elri_text('LowerAnayari')}. These are field "
-            "plausibility audits, not reaction-truth validation."
-        ),
         "",
         "## Claim Guardrail",
         "",
         str(summary["claim_guardrail"]),
         "",
-        "The Northern Ghana component is a chemistry-only seasonal transfer "
-        "demonstration without independent flow-path, groundwater-age, or "
-        "reaction-truth validation.",
+        "This run reads no field workbook. Do not combine these synthetic "
+        "benchmark results with historical field-branch tables or figures.",
         "",
     ]
     with (DOCS_DIR / "m5_results_summary.md").open(
@@ -4208,16 +4172,14 @@ def write_summary(
 
 
 def main() -> None:
+    global RESULTS_DIR, TABLES_DIR, DOCS_DIR, PHREEQC_DIR, PHREEQC_INVERSE_DIR
+
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--skip-field",
-        action="store_true",
-        help="Skip the Northern Ghana workbook analysis.",
-    )
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument(
         "--reuse-synthetic",
         action="store_true",
-        help="Reuse existing synthetic outputs and run only field/summary stages.",
+        help="Reuse synthetic outputs already present in --output-dir.",
     )
     parser.add_argument(
         "--reuse-phreeqc",
@@ -4227,6 +4189,17 @@ def main() -> None:
     args = parser.parse_args()
     if args.reuse_synthetic and args.reuse_phreeqc:
         parser.error("--reuse-synthetic and --reuse-phreeqc are mutually exclusive.")
+    output_root = args.output_dir.resolve()
+    reuse = args.reuse_synthetic or args.reuse_phreeqc
+    if output_root.exists() and any(output_root.iterdir()) and not reuse:
+        parser.error(f"Refusing to overwrite non-empty output directory: {output_root}")
+    if reuse and not output_root.exists():
+        parser.error("A reuse mode requires existing synthetic outputs in --output-dir.")
+    RESULTS_DIR = output_root / "results"
+    TABLES_DIR = output_root / "tables"
+    DOCS_DIR = output_root / "docs"
+    PHREEQC_DIR = output_root / "phreeqc_inputs"
+    PHREEQC_INVERSE_DIR = PHREEQC_DIR / "inverse_baseline"
     ensure_directories()
     print("M5: building structural diagnostics and equivalence classes...")
     class_map, _ = write_diagnostics_and_classes()
@@ -4401,48 +4374,7 @@ def main() -> None:
             RESULTS_DIR / "thermodynamic_threshold_sensitivity.csv", index=False
         )
     write_core_evidence_lifted_resolution(class_map)
-    if args.skip_field:
-        field_pairs = pd.DataFrame()
-    else:
-        ghana_si_path = RESULTS_DIR / GHANA_SI_CSV
-        if ghana_si_path.exists():
-            print("M5: reusing Northern Ghana field saturation indices...")
-            ghana_si = pd.read_csv(ghana_si_path)
-        else:
-            print(
-                "M5: computing Northern Ghana field saturation indices via "
-                "live PHREEQC..."
-            )
-            ghana_si = compute_ghana_field_saturation_indices(executable, database)
-            ghana_si.to_csv(ghana_si_path, index=False)
-        print("M5: running the 2025 Northern Ghana chemistry-only demonstration...")
-        field_pairs, field_extents, field_heldout, field_classes, field_evidence = (
-            run_ghana_field_demonstration(hyperparameters, class_map, ghana_si)
-        )
-        field_pairs.to_csv(RESULTS_DIR / "ghana_field_pairs.csv", index=False)
-        field_extents.to_csv(RESULTS_DIR / "ghana_field_reaction_extents.csv", index=False)
-        field_heldout.to_csv(RESULTS_DIR / "ghana_field_heldout_ions.csv", index=False)
-        field_classes.to_csv(RESULTS_DIR / "ghana_field_class_support.csv", index=False)
-        field_evidence.to_csv(
-            RESULTS_DIR / "ghana_field_hydrosheaf_core_evidence.csv", index=False
-        )
-        write_field_evidence_lifted_resolution(class_map, field_evidence)
-        external_si_path = RESULTS_DIR / EXTERNAL_SI_CSV
-        if external_si_path.exists():
-            print("M5: reusing Talensi/Lower Anayari field saturation indices...")
-            external_si = pd.read_csv(external_si_path)
-        else:
-            print(
-                "M5: computing Talensi/Lower Anayari field saturation indices "
-                "via live PHREEQC..."
-            )
-            external_si = compute_external_field_saturation_indices(
-                executable, database
-            )
-            external_si.to_csv(external_si_path, index=False)
-        write_external_field_transfer_outputs(
-            hyperparameters, class_map, ghana_si=ghana_si, external_si=external_si
-        )
+    field_pairs = pd.DataFrame()
     write_summary(
         scenarios,
         phreeqc_frame,
@@ -4457,7 +4389,23 @@ def main() -> None:
         executable,
         database,
     )
-    print("M5 complete analysis finished. Generate tables and figures next.")
+    (output_root / "field_scope.json").write_text(
+        json.dumps(
+            {
+                "field_analysis_run": False,
+                "approved_field_cohorts": ["central_region", "upper_east_region"],
+                "m5_design": "controlled synthetic benchmark only",
+                "reason": (
+                    "The former M5 field branch depended on paired seasonal or "
+                    "legacy field packages; those are not valid current inputs."
+                ),
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    print(f"M5 synthetic-only analysis finished. Outputs -> {output_root}")
 
 
 if __name__ == "__main__":

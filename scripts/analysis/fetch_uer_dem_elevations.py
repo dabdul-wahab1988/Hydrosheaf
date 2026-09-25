@@ -49,6 +49,11 @@ def fetch_dem_batch(ds: str, pts: list[tuple[float, float]]) -> list[float | Non
 
 
 def main() -> None:
+    raise RuntimeError(
+        "This DEM fetcher targets a superseded NorthernGhanaNew join package. "
+        "The approved UER workbook is under data/FieldData/UERdata; do not "
+        "join this old output or relabel elevation as hydraulic head."
+    )
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     if not JOIN_CSV.exists():
         raise FileNotFoundError(f"Geology join CSV not found: {JOIN_CSV}")

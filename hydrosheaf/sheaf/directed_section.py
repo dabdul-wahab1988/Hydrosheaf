@@ -1,7 +1,7 @@
 """Directed sheaf section solver for chemistry vectors."""
 
-from dataclasses import dataclass
-from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from dataclasses import dataclass, replace
+from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -31,6 +31,7 @@ class DirectedEdgeMap:
     reaction_penalty_scales: Optional[List[float]] = None
     signed_reaction_mask: Optional[List[bool]] = None
     reaction_extents: Optional[List[float]] = None
+    species: Optional[List[str]] = None
 
 
 @dataclass
@@ -48,6 +49,7 @@ class _EdgeMapFit:
     reaction_penalty_scales: List[float]
     signed_reaction_mask: List[bool]
     reaction_extents: List[float]
+    species: Optional[List[str]] = None
 
 
 def _edge_confidence(edge: Edge) -> float:
@@ -74,32 +76,130 @@ def _reaction_vector(
     return [pre - post for pre, post in zip(pre_residual, post_residual)]
 
 
+NodePanel = Union[Sequence[float], Mapping[str, float]]
+
+
+def _panel_mapping(
+    values: NodePanel,
+    ion_order: Sequence[str],
+) -> Optional[Dict[str, float]]:
+    """Return a finite species mapping for a vector or labelled panel."""
+    if isinstance(values, Mapping):
+        result: Dict[str, float] = {}
+        for key, value in values.items():
+            try:
+                number = float(value)
+            except (TypeError, ValueError):
+                continue
+            if np.isfinite(number):
+                result[str(key)] = number
+        return result
+    try:
+        vector = list(values)
+    except TypeError:
+        return None
+    if len(vector) != len(ion_order):
+        return None
+    try:
+        return {
+            ion: float(value)
+            for ion, value in zip(ion_order, vector)
+            if np.isfinite(float(value))
+        }
+    except (TypeError, ValueError):
+        return None
+
+
+def _edge_panel(
+    upstream: NodePanel,
+    downstream: NodePanel,
+    config: Config,
+) -> Tuple[List[float], List[float], Optional[List[str]]]:
+    """Resolve legacy vectors or the common species intersection for an edge."""
+    labelled = isinstance(upstream, Mapping) or isinstance(downstream, Mapping)
+    if not labelled:
+        return list(upstream), list(downstream), None
+
+    upstream_map = _panel_mapping(upstream, config.ion_order)
+    downstream_map = _panel_mapping(downstream, config.ion_order)
+    if upstream_map is None or downstream_map is None:
+        raise ValueError(
+            "Species-labelled edge panels require vectors matching config.ion_order."
+        )
+    common = set(upstream_map).intersection(downstream_map)
+    species = [ion for ion in config.ion_order if ion in common]
+    species.extend(sorted(common.difference(species)))
+    if not species:
+        raise ValueError("No shared species are available for the edge panel.")
+    return (
+        [upstream_map[ion] for ion in species],
+        [downstream_map[ion] for ion in species],
+        species,
+    )
+
+
+def _config_for_edge_panel(config: Config, species: Sequence[str]) -> Config:
+    """Create a configuration whose vectors and reactions match one edge panel."""
+    base_order = list(config.ion_order)
+    base_indices = {ion: idx for idx, ion in enumerate(base_order)}
+
+    def restrict_vector(values: Sequence[float]) -> Optional[List[float]]:
+        if len(values) == len(base_order):
+            return [float(values[base_indices[ion]]) for ion in species]
+        if len(values) == len(species):
+            return [float(value) for value in values]
+        return None
+
+    endmembers: Dict[str, List[float]] = {}
+    for name, values in config.mixing_endmembers.items():
+        restricted = restrict_vector(values)
+        if restricted is not None:
+            endmembers[str(name)] = restricted
+
+    return replace(
+        config,
+        ion_order=list(species),
+        weights=config.get_weights(list(species)),
+        conservative_weights=config.get_conservative_weights(list(species)),
+        measured_ions=[ion for ion in config.measured_ions if ion in species],
+        mixing_endmembers=endmembers,
+    )
+
+
 def _fit_edge_map(
     x_u: Sequence[float],
     x_v: Sequence[float],
     config: Config,
     pre_si_mask: Optional[Mapping[str, float]] = None,
+    species: Optional[Sequence[str]] = None,
 ) -> Optional[_EdgeMapFit]:
-    transport_weights = getattr(config, "conservative_weights", config.weights)
+    panel_config = (
+        _config_for_edge_panel(config, species)
+        if species is not None
+        else config
+    )
+    transport_weights = panel_config.get_conservative_weights(panel_config.ion_order)
     candidates: List[
         Tuple[str, Optional[str], Optional[float], Optional[float], List[float], float]
     ] = []
 
-    if "evap" in config.transport_models_enabled:
+    if "evap" in panel_config.transport_models_enabled:
         gamma, residual, norm = fit_evaporation(x_u, x_v, transport_weights)
         candidates.append(("evap", None, gamma, None, residual, norm))
 
-    if "mix" in config.transport_models_enabled:
-        for end_id, endmember in config.mixing_endmembers.items():
+    if "mix" in panel_config.transport_models_enabled:
+        for end_id, endmember in panel_config.mixing_endmembers.items():
             f, residual, norm = fit_mixing(x_u, x_v, endmember, transport_weights)
             candidates.append(("mix", str(end_id), None, f, residual, norm))
 
     if not candidates:
         return None
 
-    reaction_matrix, labels, mineral_mask, penalty_scales = build_reaction_dictionary(config, pre_si_mask=pre_si_mask)
-    signed_mask = [label in config.signed_reaction_labels for label in labels]
-    lambda_l1 = config.lambda_l1_value()
+    reaction_matrix, labels, mineral_mask, penalty_scales = build_reaction_dictionary(
+        panel_config, pre_si_mask=pre_si_mask
+    )
+    signed_mask = [label in panel_config.signed_reaction_labels for label in labels]
+    lambda_l1 = panel_config.lambda_l1_value()
 
     best: Optional[_EdgeMapFit] = None
     best_objective = float("inf")
@@ -108,10 +208,10 @@ def _fit_edge_map(
         reaction_fit = fit_reactions(
             list(residual),
             reaction_matrix,
-            weights=list(config.weights),
+            weights=panel_config.get_weights(panel_config.ion_order),
             lambda_l1=lambda_l1,
-            max_iter=config.reaction_max_iter,
-            tol=config.reaction_tol,
+            max_iter=panel_config.reaction_max_iter,
+            tol=panel_config.reaction_tol,
             signed_mask=signed_mask,
             penalty_scales=penalty_scales,
         )
@@ -122,7 +222,7 @@ def _fit_edge_map(
             transport_offset = [0.0] * len(x_u)
         else:
             f_val = float(f if f is not None else 0.0)
-            endmember = config.mixing_endmembers.get(str(end_id), [])
+            endmember = panel_config.mixing_endmembers.get(str(end_id), [])
             if len(endmember) != len(x_u):
                 continue
             alpha = 1.0 - f_val
@@ -145,6 +245,7 @@ def _fit_edge_map(
                 reaction_penalty_scales=list(penalty_scales),
                 signed_reaction_mask=list(signed_mask),
                 reaction_extents=list(reaction_fit.extents),
+                species=list(species) if species is not None else None,
             )
 
     return best
@@ -152,23 +253,34 @@ def _fit_edge_map(
 
 def build_edge_maps(
     edges: Iterable[Edge],
-    node_values: Mapping[str, Sequence[float]],
+    node_values: Mapping[str, NodePanel],
     config: Config,
     prior_weight: float = 1.0,
     pre_si_masks: Optional[Mapping[str, Mapping[str, float]]] = None,
 ) -> Dict[str, DirectedEdgeMap]:
     maps: Dict[str, DirectedEdgeMap] = {}
     for edge in edges:
-        x_u = node_values.get(edge.u)
-        x_v = node_values.get(edge.v)
-        if x_u is None or x_v is None:
+        raw_u = node_values.get(edge.u)
+        raw_v = node_values.get(edge.v)
+        if raw_u is None or raw_v is None:
             continue
-        
+
+        try:
+            x_u, x_v, species = _edge_panel(raw_u, raw_v, config)
+        except ValueError:
+            continue
+
         pre_si = None
         if pre_si_masks:
             pre_si = pre_si_masks.get(edge.u)
 
-        fit = _fit_edge_map(x_u, x_v, config, pre_si_mask=pre_si)
+        fit = _fit_edge_map(
+            x_u,
+            x_v,
+            config,
+            pre_si_mask=pre_si,
+            species=species,
+        )
         if fit is None:
             continue
         weight = prior_weight * _edge_confidence(edge)
@@ -187,6 +299,7 @@ def build_edge_maps(
             reaction_penalty_scales=fit.reaction_penalty_scales,
             signed_reaction_mask=fit.signed_reaction_mask,
             reaction_extents=fit.reaction_extents,
+            species=fit.species,
         )
     return maps
 

@@ -29,6 +29,10 @@ def export_coords(data):
 
 
 def export_tier_ladder():
+    raise RuntimeError(
+        "Retired: the legacy tier ladder describes excluded field packages and "
+        "must not be regenerated for the refined Central/UER cohorts."
+    )
     rows = []
     caps = {"Tier 0": "majors", "Tier 1": "+ isotopes", "Tier 2": "+ fluoride",
             "Tier 3": "+ Sr / SiO2", "Tier 4": "+ saturation indices"}
@@ -69,6 +73,10 @@ def export_hydrochem_context(data):
 
 
 def main():
+    raise RuntimeError(
+        "Legacy M6 figure exports are blocked. The active M6 scope is the "
+        "refined-cohort input-QA workflow only."
+    )
     data = m6.load_all()
     export_coords(data)
     export_tier_ladder()

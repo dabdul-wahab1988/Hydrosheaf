@@ -156,6 +156,22 @@ from .ttd_network_solver import (
     solve_network_ttd,
 )
 
+# Worker A may land the history-aware implementation after this public export
+# patch. Keep the established nuclear package importable in the interim, but
+# expose the direct exports as soon as the implementation module is present.
+_HISTORY_TTD_EXPORTS = False
+try:
+    from .history_ttd import (
+        HistoryTracerObservation,  # noqa: F401
+        HistoryTTDResult,  # noqa: F401
+        fit_history_ttd,  # noqa: F401
+    )
+except ModuleNotFoundError as exc:
+    if exc.name not in {f"{__name__}.history_ttd", "hydrosheaf.nuclear.history_ttd"}:
+        raise
+else:
+    _HISTORY_TTD_EXPORTS = True
+
 __all__ = [
     "Nuclide",
     "TRITIUM",
@@ -282,3 +298,12 @@ __all__ = [
     "solve_single_node_ttd",
     "solve_network_ttd",
 ]
+
+if _HISTORY_TTD_EXPORTS:
+    __all__.extend(
+        [
+            "HistoryTracerObservation",
+            "HistoryTTDResult",
+            "fit_history_ttd",
+        ]
+    )

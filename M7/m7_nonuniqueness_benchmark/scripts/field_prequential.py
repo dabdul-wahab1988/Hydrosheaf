@@ -1,17 +1,8 @@
-"""Leakage-audited one-step field prequential evaluation.
+"""Retired legacy prequential experiment and isolated algorithm primitives.
 
-The canonical Northern Ghana workbook (data/FieldData/NorthenGhana/
-NorthernGhana.xlsx, Dry/Wet sheets) has one dry and one wet observation per
-well and carries no intra-season sampling-date field: it cannot support a
-multi-year operational digital twin, and it cannot support a real-date
-sequential batch design either. It can, however, support a genuine
-leakage-audited prequential experiment using a fixed, disclosed *arbitrary*
-well-revelation order in place of real dates: wells are revealed in a fixed
-pseudo-random batch sequence (seeded, reproducible, stated in the audit
-output), and each batch is predicted from the dry-season observations of all
-160 wells plus the wet-season observations of only the already-revealed
-batches. This tests whether sequential updating from real observations helps,
-independent of any claim about true chronological sampling order.
+Frame-level routines remain available for unit tests only. The approved
+Central/UER cohorts are cross-sectional and are not run through a wet/dry
+hold-forward design.
 """
 
 from __future__ import annotations
@@ -448,24 +439,9 @@ def run_prequential_frames(
 def run_field_prequential(
     workbook: Path,
 ) -> FieldPrequentialResult:
-    """Load the canonical Northern Ghana Dry/Wet workbook and run the
-    leakage-audited prequential evaluation (DECISIONS.md)."""
+    """Disabled: no approved field source has paired temporal observations."""
 
-    dry = pd.read_excel(workbook, sheet_name="Dry").assign(Season="Dry")
-    wet = pd.read_excel(workbook, sheet_name="Wet").assign(Season="Wet")
-    hydro = pd.concat([dry, wet], ignore_index=True)
-    static_columns = [
-        "Well_ID",
-        "Region",
-        "District",
-        "Latitude",
-        "Longitude",
-        "Elevation_m",
-        "Borehole_Depth_m",
-        "Static_Water_Level_m",
-        "Distance_River_km",
-        "Distance_Farm_km",
-        "Distance_Settlement_km",
-    ]
-    wells = dry[static_columns].copy()
-    return run_prequential_frames(wells, hydro)
+    raise RuntimeError(
+        "The workbook-based field prequential branch is retired. The refined "
+        "Central/UER cohorts are cross-sectional and cannot replace it."
+    )

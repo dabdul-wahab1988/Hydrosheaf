@@ -21,8 +21,9 @@ from m5_common import ION_ORDER, REACTION_LABELS, reaction_matrix  # noqa: E402
 
 
 BENCHMARK_DIR = Path(__file__).resolve().parents[1]
-RESULTS_DIR = BENCHMARK_DIR / "results"
-FIGURE_DIR = BENCHMARK_DIR / "figures"
+RUN_DIR = REPO_ROOT / ".codex_work" / "runs" / "REFINED-CR-UER-20260922-01" / "M5_synthetic"
+RESULTS_DIR = RUN_DIR / "results"
+FIGURE_DIR = RUN_DIR / "figures"
 SUPP_DIR = FIGURE_DIR / "supplementary"
 PALETTE = {
     "bounded_ls": "#6b7280",
@@ -85,7 +86,6 @@ def panel_label(ax: plt.Axes, label: str) -> None:
 def figure1_workflow() -> None:
     truth = pd.read_csv(RESULTS_DIR / "phreeqc_ground_truth.csv")
     fits = pd.read_csv(RESULTS_DIR / "benchmark_fits.csv")
-    field = pd.read_csv(RESULTS_DIR / "ghana_field_pairs.csv")
     fig = plt.figure(figsize=(12, 7))
     grid = fig.add_gridspec(
         2, 2, width_ratios=[1.35, 1.0], hspace=0.48, wspace=0.28
@@ -123,7 +123,7 @@ def figure1_workflow() -> None:
     ax.text(
         0.47,
         0.04,
-        "Northern Ghana: chemistry-only transfer, not reaction truth",
+        "Controlled synthetic benchmark only; field transfer omitted",
         transform=ax.transAxes,
         ha="center",
         color="#7c2d12",
@@ -545,6 +545,10 @@ def figure5_thermodynamic_screening() -> None:
 
 
 def figure6_ghana_field() -> None:
+    raise RuntimeError(
+        "Retired: M5 is synthetic-only. Historical field CSVs are not valid "
+        "inputs for current publication figures."
+    )
     pairs = pd.read_csv(RESULTS_DIR / "ghana_field_pairs.csv")
     heldout = pd.read_csv(RESULTS_DIR / "ghana_field_heldout_ions.csv")
     classes = pd.read_csv(RESULTS_DIR / "ghana_field_class_support.csv")
@@ -653,6 +657,10 @@ def figure6_ghana_field() -> None:
 
 
 def supplementary_figures() -> None:
+    raise RuntimeError(
+        "Retired: the legacy supplementary figure set includes field-result "
+        "CSVs and is not regenerated. Use only synthetic-only main figures."
+    )
     matrix = pd.DataFrame(
         reaction_matrix(),
         index=REACTION_LABELS,
@@ -996,9 +1004,7 @@ def main() -> None:
     figure3_regularization_and_mrs()
     figure4_measurement_value()
     figure5_thermodynamic_screening()
-    figure6_ghana_field()
-    supplementary_figures()
-    print("Generated six main and up to eighteen supplementary M5 figures.")
+    print("Generated five controlled-synthetic M5 figures; field figures were omitted.")
 
 
 if __name__ == "__main__":

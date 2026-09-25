@@ -23,6 +23,11 @@ def by_id(items, key="id"):
 
 
 def main() -> int:
+    raise RuntimeError(
+        "Retired: this metadata synchronizer certifies a Figure 5 derived from "
+        "the excluded Northern Ghana/M6 seasonal field branch. Do not refresh its "
+        "claims or source manifest from the legacy outputs."
+    )
     registry_path = MANUSCRIPT / "artifact_registry.json"
     registry = load(registry_path)
     reg = by_id(registry["artifacts"])

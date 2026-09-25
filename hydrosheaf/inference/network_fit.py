@@ -9,6 +9,7 @@ import pandas as pd
 from ..config import Config
 from ..log import get_logger
 from ..data.schema import normalize_sample, parse_numeric, vector_from_sample
+from ..data.validation import resolve_optional_modules
 from ..models.ratios import compare_ratio_diagnostics
 from ..models.geology_context import add_boundary_confidence
 from ..graph.build import (
@@ -112,11 +113,13 @@ def _project_config(config: Config, ion_order: Sequence[str]) -> Config:
     requested = list(ion_order)
     original = list(config.ion_order)
     indices = [original.index(ion) for ion in requested]
+    ordinary_weights = config.get_weights(original)
+    conservative_weights = config.get_conservative_weights(original)
     updates: dict[str, object] = {
         "ion_order": requested,
-        "weights": [float(config.weights[index]) for index in indices],
+        "weights": [float(ordinary_weights[index]) for index in indices],
         "conservative_weights": [
-            float(config.conservative_weights[index]) for index in indices
+            float(conservative_weights[index]) for index in indices
         ],
     }
     if config.measured_ions:
@@ -174,6 +177,12 @@ def estimate_edge_residence_time_days(
         if explicit is not None and explicit > 0:
             std_explicit = _safe_float(edge_attrs.get("physics_tau_std_days"))
             return float(explicit), float(std_explicit) if std_explicit is not None else None
+
+    # The 3-D geophysical builder stores sNMR travel time in years. Convert it
+    # at this boundary and do not replace it with a hydraulic fallback.
+    geophys_tau_years = _safe_float(edge_attrs.get("tau_geophys_years"))
+    if geophys_tau_years is not None and geophys_tau_years > 0:
+        return float(geophys_tau_years * 365.25), None
 
     k_m_per_day = float(getattr(config, "residence_time_hydraulic_k", 0.0) or 0.0)
     porosity = float(getattr(config, "residence_time_porosity", 0.0) or 0.0)
@@ -283,6 +292,7 @@ def fit_network(
 ) -> List[EdgeResult]:
     """Fit inverse geochemical reactions over a directed flow network."""
 
+    config.validate()
     sample_map = _sample_map(samples)
     built_edges = build_edges(edges)
     lateral_neighbors = lateral_neighbors or {}
@@ -565,6 +575,9 @@ def fit_network(
         result.edge_prob_head = _get_float("prob_head")
         result.edge_prob_distance = _get_float("prob_distance")
         result.edge_prob_layer = _get_float("prob_layer")
+        result.edge_prob_geophys = _get_float("prob_geophys")
+        result.geophysical_k_m_day = _get_float("k_geophys_m_day")
+        result.geophysical_tau_years = _get_float("tau_geophys_years")
         result.edge_horizontal_gradient = _get_float("horizontal_gradient")
         result.edge_vertical_gradient = _get_float("vertical_gradient")
         result.physics_source = _get_str("physics_source")
@@ -582,9 +595,15 @@ def fit_network(
             post = all_posteriors.get(node_v)
             if post:
                 result.nitrate_source_p_manure = post.p_manure
-                result.nitrate_source_logit = post.logit_manure
-                result.nitrate_source_evidence = post.evidence
-                result.nitrate_source_gates = post.gates
+                result.nitrate_source_p_septic_sewage = post.p_septic_sewage
+                result.nitrate_source_p_animal_manure = post.p_animal_manure
+                result.nitrate_source_boron_used = post.boron_used
+                result.nitrate_source_d11b_used = post.d11b_used
+                result.nitrate_source_logit = post.logit_score
+                result.nitrate_source_evidence = list(post.top_evidence)
+                result.nitrate_source_gates = list(post.gating_flags)
+                result.nitrate_source_fractions = dict(post.source_fractions or {})
+                result.nitrate_source_diagnostics = dict(post.diagnostics or {})
 
     return results
 
@@ -617,6 +636,10 @@ def infer_edges(
             elevation_key=elevation_key,
         )
     config = config or Config()
+    # Resolve sample-level capability defaults before 3-D/probabilistic edge
+    # generation. Candidate-edge-dependent flags remain deferred until the
+    # sheaf entry point has the built edge universe.
+    config, _ = resolve_optional_modules(samples_iter, config)
 
     def _apply_overrides(edges: List[Edge]) -> List[Edge]:
         if not edge_attr_overrides:
@@ -665,7 +688,67 @@ def infer_edges(
                     "prob_layer": edge3d.prob_layer,
                     "p_uv": edge3d.prob_combined,
                     "edge_confidence": edge3d.prob_combined,
+                    "geophysics_enabled": bool(
+                        getattr(config_for_edges, "geophysics_enabled", False)
+                    ),
+                    "nitrate_source_enabled": bool(
+                        getattr(config_for_edges, "nitrate_source_enabled", False)
+                    ),
+                    "prob_geophys": edge3d.prob_geophys,
+                    "tau_geophys_years": edge3d.tau_geophys_years,
+                    "k_geophys_m_day": edge3d.k_geophys_m_day,
+                    "physics_source": (
+                        "geophysics_snmr"
+                        if edge3d.tau_geophys_years is not None
+                        else None
+                    ),
                 }
+                node_u = network.nodes.get(edge3d.u)
+                node_v = network.nodes.get(edge3d.v)
+                if node_u is not None and node_v is not None:
+                    attrs["geophysical_barrier"] = bool(
+                        (node_u.attrs or {}).get("geophysical_barrier", False)
+                        or (node_v.attrs or {}).get("geophysical_barrier", False)
+                    )
+                    endpoint_aliases = {
+                        "EC": "ec",
+                        "fluid_ec": "fluid_ec",
+                        "conductivity": "conductivity",
+                        "formation_conductivity": "formation_conductivity",
+                        "ert_conductivity": "ert_conductivity",
+                        "apparent_resistivity_ohm_m": "apparent_resistivity",
+                        "sr_ratio_87_86": "sr_ratio_87_86",
+                        "87Sr/86Sr": "sr_ratio_87_86",
+                        "geophysical_uncertainty": "geophysical_uncertainty",
+                        "geophysical_k_cv": "geophysical_k_cv",
+                        "k_geophys_std_m_day": "k_geophys_std_m_day",
+                    }
+                    for source_key, output_key in endpoint_aliases.items():
+                        value_u = (node_u.attrs or {}).get(source_key)
+                        value_v = (node_v.attrs or {}).get(source_key)
+                        if value_u is not None:
+                            attrs[f"{output_key}_u"] = value_u
+                        if value_v is not None:
+                            attrs[f"{output_key}_v"] = value_v
+                    for output_key in (
+                        "geophysical_uncertainty",
+                        "geophysical_k_cv",
+                        "k_geophys_std_m_day",
+                    ):
+                        endpoint_values = [
+                            attrs.get(f"{output_key}_u"),
+                            attrs.get(f"{output_key}_v"),
+                        ]
+                        numeric_values = []
+                        for value in endpoint_values:
+                            try:
+                                numeric_values.append(float(value))
+                            except (TypeError, ValueError):
+                                continue
+                        if numeric_values:
+                            attrs[output_key] = max(numeric_values)
+                        elif any(value is True for value in endpoint_values):
+                            attrs[output_key] = True
                 converted.append(
                     Edge(edge_id=edge3d.edge_id, u=edge3d.u, v=edge3d.v, attrs=attrs)
                 )

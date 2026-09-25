@@ -79,6 +79,11 @@ def classify_tritium(tu: float | None) -> str:
 
 
 def main() -> None:
+    raise RuntimeError(
+        "Retired: this builder reads the superseded NorthernGhanaNew folder and "
+        "recreates a derived UER mirror from an old source. Use the approved "
+        "UERdata/compiled UER data_new_completed.xlsx source instead."
+    )
     print(f"Loading {JOIN_CSV.name}...")
     df_join = pd.read_csv(JOIN_CSV)
     print(f"Loading {DEM_CSV.name}...")

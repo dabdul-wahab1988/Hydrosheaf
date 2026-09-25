@@ -7,6 +7,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 from ..config import Config
 from ..log import get_logger
 from ..data.schema import parse_numeric, vector_from_sample
+from ..data.validation import resolve_optional_modules
 
 logger = get_logger("sheaf.topology_refine")
 
@@ -688,12 +689,32 @@ def _score_candidates(
             iso_cost *= weight_iso
             if "iso_missing_u" in flags or "iso_missing_v" in flags:
                 iso_missing = True
+        else:
+            # Capability gating removes the isotope term from the numeric
+            # score, but missing isotope evidence must remain visible to the
+            # evidence ladder. Otherwise an edge with no isotope observations
+            # could be labelled PROBABLE merely because the term was skipped.
+            _, _, _, missing_flags = _edge_iso_cost(
+                node_u, node_v, stats, config
+            )
+            flags.extend(missing_flags)
+            iso_missing = any(
+                flag in {"iso_missing_u", "iso_missing_v"}
+                for flag in missing_flags
+            )
 
         cl_cost = 0.0
         cl_ratio = None
         if getattr(config, "sheaf_cl_enabled", True):
             cl_cost, cl_ratio = _edge_cl_cost(node_u.cl, node_v.cl, pi_evap)
             cl_cost *= weight_cl
+            if cl_ratio is None:
+                flags.append("cl_missing")
+                cl_missing = True
+        else:
+            # As with isotopes, retain the data-availability flag without
+            # applying a chloride consistency cost when the term is disabled.
+            _, cl_ratio = _edge_cl_cost(node_u.cl, node_v.cl, pi_evap)
             if cl_ratio is None:
                 flags.append("cl_missing")
                 cl_missing = True
@@ -978,6 +999,16 @@ def refine_edges_with_sheaf(
 ) -> List[Edge]:
     sample_map = _sample_map(samples)
     source_candidates = list(candidates)
+    # Resolve capability-gated defaults at the lowest sheaf entry point as
+    # well as in the high-level API.  This keeps direct callers safe: the
+    # default topology/cohomology/Hodge layers activate only when their
+    # required evidence is available, while explicit booleans remain
+    # overrides for controlled analyses and tests.
+    config, _module_status = resolve_optional_modules(
+        samples,
+        config,
+        candidate_edges=source_candidates,
+    )
     use_posterior = bool(getattr(config, "topology_posterior_enabled", False))
     if use_posterior:
         # Posterior selection annotates every candidate with probabilities and
@@ -1148,7 +1179,7 @@ def refine_edges_with_sheaf(
                     selected_maps,
                     node_vectors,
                     config.ion_order,
-                    species_weights=config.weights,
+                    species_weights=config.get_weights(config.ion_order),
                     obs_weight=1.0,
                     diag_eps=1e-6,
                     lambda_l1=config.lambda_l1_value(),
@@ -1184,7 +1215,9 @@ def refine_edges_with_sheaf(
                     ),
                 )
                 residuals = compute_edge_section_residuals(
-                    edge_maps, node_estimates, config.weights
+                        edge_maps,
+                        node_estimates,
+                        config.get_weights(config.ion_order),
                 )
             else:
                 node_estimates = solve_directed_section(
@@ -1214,7 +1247,9 @@ def refine_edges_with_sheaf(
                     ),
                 )
                 residuals = compute_edge_section_residuals(
-                    edge_maps, node_estimates, config.weights
+                    edge_maps,
+                    node_estimates,
+                    config.get_weights(config.ion_order),
                 )
 
         head_penalties: Dict[str, float] = {}
@@ -1317,7 +1352,7 @@ def refine_edges_with_sheaf(
                 list(edge_maps.values()),
                 node_vectors,
                 config.ion_order,
-                species_weights=config.weights,
+                species_weights=config.get_weights(config.ion_order),
                 obs_weight=1.0,
                 diag_eps=1e-6,
                 lambda_l1=config.lambda_l1_value(),
@@ -1331,7 +1366,9 @@ def refine_edges_with_sheaf(
             final_residuals = final_joint_solution.edge_residuals
         else:
             final_residuals = compute_edge_section_residuals(
-                edge_maps, node_estimates, config.weights
+                edge_maps,
+                node_estimates,
+                config.get_weights(config.ion_order),
             )
 
     for edge in selected:

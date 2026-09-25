@@ -144,6 +144,7 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
     "fit_network_pipeline": (".api", "fit_network_pipeline"),
     "fit_network_with_priors": (".api", "fit_network_with_priors"),
     "fit_ttd_network": (".api", "fit_ttd_network"),
+    "fit_history_ttd": (".api", "fit_history_ttd"),
     "fit_temporal_edges": (".api", "fit_temporal_edges"),
     "PhysicsPrior": (".physics.priors", "PhysicsPrior"),
     "apply_physics_priors": (".physics.priors", "apply_physics_priors"),

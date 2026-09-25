@@ -639,6 +639,11 @@ def figure4_reactions() -> None:
 
 
 def figure5_ghana_boundary() -> None:
+    raise RuntimeError(
+        "Retired: this figure reads legacy Northern Ghana and M6 seasonal field "
+        "artifacts. M7 is synthetic-only for this thesis revision; no field "
+        "boundary figure is regenerated from those artifacts."
+    )
     audit = json.loads(
         (RESULTS / "ghana_data_scope_audit.json").read_text(encoding="utf-8")
     )
@@ -1007,31 +1012,6 @@ def build_tables() -> None:
         "Table 5 | Reaction-family recovery and non-uniqueness",
     )
 
-    audit = json.loads(
-        (RESULTS / "ghana_data_scope_audit.json").read_text(encoding="utf-8")
-    )
-    scope = pd.DataFrame(
-        [
-            ("Major hydrochemistry", "Available", "Component inference and QC"),
-            ("Stable water isotopes", "Available", "Recharge/source evidence"),
-            ("Environmental age tracers", "Absent", "Residence time non-identifiable"),
-            ("Screen intervals", "Absent", "Vertical connectivity non-identifiable"),
-            ("Repeated head series", "Absent", "Dynamic head validation unavailable"),
-            ("Coordinates", "Masked", "No site-scale connectivity truth"),
-            ("Processed graph edges", "Absent", "Edge sets are self-generated, not supplied"),
-            ("Intra-season sampling dates", "Absent", "Batch order is disclosed and arbitrary"),
-            ("Independent aquifer-type classification", "Absent", "Stratified reporting uses region instead"),
-            ("Independent reaction truth", "Absent", "Unique mechanisms unvalidated"),
-        ],
-        columns=["Evidence", "Status", "Defensible use"],
-    )
-    assert audit["n_wells"] == 160
-    write_table(
-        scope,
-        "table6_ghana_claim_boundary",
-        "Table 6 | Ghana data scope and claim boundary",
-    )
-
     full_tables = {
         "tableS1_all_evidence_conditions": read_csv("evidence_panel_summary.csv"),
         "tableS2_case_block_contrasts": read_csv(
@@ -1074,12 +1054,6 @@ def write_manifest() -> None:
             "reaction_nonuniqueness_summary.csv",
             "Process-family recovery and carbonate failure",
         ),
-        (
-            "Figure 5",
-            "figure5_ghana_supportability_boundary_m7_only",
-            "Ghana audit; supporting prequential audit",
-            "Objective 6 supportability and non-identifiability",
-        ),
     ]
     frame = pd.DataFrame(
         rows,
@@ -1095,7 +1069,6 @@ def verify_outputs() -> None:
         "figure2_evidence_integration",
         "figure3_topology_conditions_age",
         "figure4_reaction_nonuniqueness",
-        "figure5_ghana_supportability_boundary_m7_only",
     ]:
         for suffix in (".pdf", ".png", ".tif"):
             path = FIGURES / f"{stem}{suffix}"
@@ -1104,8 +1077,8 @@ def verify_outputs() -> None:
     # Verify the M7.3 contract by name rather than by total directory count:
     # later locked extensions (M7.4 and system-acceptance tables) legitimately
     # share this publication directory.
-    expected_tables = [f"table{index}" for index in range(1, 8)] + [
-        f"tableS{index}" for index in range(1, 7)
+    expected_tables = [f"table{index}" for index in range(1, 6)] + [
+        f"tableS{index}" for index in range(1, 6)
     ]
     for stem in expected_tables:
         path = TABLES / f"{stem}.csv"
@@ -1120,11 +1093,10 @@ def main() -> None:
     figure2_evidence_integration()
     figure3_topology_age()
     figure4_reactions()
-    figure5_ghana_boundary()
     build_tables()
     write_manifest()
     verify_outputs()
-    print(f"M7.3 publication figures -> {FIGURES}")
+    print(f"M7 synthetic-only publication figures -> {FIGURES}")
     print(f"M7.3 publication tables -> {TABLES}")
 
 

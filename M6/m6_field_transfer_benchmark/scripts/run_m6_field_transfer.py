@@ -1,11 +1,8 @@
-"""Run the complete M6 Hydrosheaf field-transfer & robustness benchmark.
+"""Retired legacy M6 seasonal/field-transfer runner.
 
-Executes six experiments on the real Ghanaian datasets and writes all results
-CSVs consumed by the R figure/table scripts. Deterministic (seed=1234).
-Northern Ghana chemistry comes only from the canonical raw workbook
-(data/FieldData/NorthenGhana/NorthernGhana.xlsx); no aquifer/geology/
-lithology metadata, prior process labels, or externally provided graph
-edges are used (see DECISIONS.md).
+Use ``run_m6_refined_cross_sectional.py`` for source-verified CR/UER input QA.
+This module's former experiment design and outputs are not approved field
+evidence and must not be regenerated from old cached inputs.
 """
 from __future__ import annotations
 
@@ -318,21 +315,12 @@ def experiment6_limitation_map(ng_pairs, ext, edge, cmap):
 
 
 def main():
-    t0 = time.time()
-    data = m6.load_all()
-    ng = data["northern_ghana"]
-    clf = m6.TransferClassifier()
-    cmap = m6.get_class_map()
-    rng = np.random.default_rng(m6.SEED)
-
-    experiment1_readiness(data)
-    ng_pairs = experiment2_ng_transfer(ng, clf, cmap, rng)
-    experiment3_tier_ablation(ng, clf, cmap, rng)
-    edge = experiment4_edge_uncertainty(ng, clf, cmap, rng)
-    ext = experiment5_external(data, ng, clf, cmap, rng)
-    experiment6_limitation_map(ng_pairs, ext, edge, cmap)
-    print(f"\nM6 field-transfer analysis complete in {time.time()-t0:.0f}s.")
-    print("Results ->", RESULTS)
+    raise RuntimeError(
+        "Legacy M6 field transfer is retired. Its seasonal branch and cached "
+        "outputs are not valid for the approved refined cross-sectional CR/UER "
+        "cohorts. Run run_m6_refined_cross_sectional.py for input QA only; "
+        "that QA does not establish flow or process truth."
+    )
 
 
 if __name__ == "__main__":

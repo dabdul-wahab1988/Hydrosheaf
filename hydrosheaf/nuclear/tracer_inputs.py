@@ -13,6 +13,14 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Union
 import numpy as np
 
 from .input_history import InputHistory, build_default_tritium_input
+from .tracer_registry import (
+    TRACER_ALIASES as _TRACER_ALIASES,
+    canonicalize_tracer_alias,
+)
+
+# Backward-compatible module-level export retained for callers that imported
+# the legacy alias table from tracer_inputs.
+TRACER_ALIASES = _TRACER_ALIASES
 
 
 @dataclass(frozen=True)
@@ -208,7 +216,6 @@ def build_site_tracer_histories(context: SiteInputContext) -> dict[str, InputHis
 
 def site_input_history_metadata(context: SiteInputContext) -> dict[str, str]:
     """Return metadata tags describing which histories were selected."""
-    lat = context.latitude
     region = _history_region(context)
     mode = os.environ.get("HYDROSHEAF_TRITIUM_HISTORY_MODE", "usgs_quadrangle").strip().lower()
     _, source = _usgs_quadrangle_history(context) if mode != "wiser" else (None, "")
@@ -344,38 +351,9 @@ def _compact_history(history: InputHistory, *, step_years: float = 0.5, max_poin
 
 
 GAS_TRACERS = ("SF6", "CFC11", "CFC12", "CFC113", "85KR")
-TRACER_ALIASES = {
-    "3H": "3H",
-    "H3": "3H",
-    "TRITIUM": "3H",
-    "SF6": "SF6",
-    "CFC11": "CFC11",
-    "CFC_11": "CFC11",
-    "CFC-11": "CFC11",
-    "CFC12": "CFC12",
-    "CFC_12": "CFC12",
-    "CFC-12": "CFC12",
-    "CFC113": "CFC113",
-    "CFC_113": "CFC113",
-    "CFC-113": "CFC113",
-    "14C": "14C",
-    "C14": "14C",
-    "CARBON14": "14C",
-    "39AR": "39Ar",
-    "AR39": "39Ar",
-    "ARGON39": "39Ar",
-    "85KR": "85Kr",
-    "KR85": "85Kr",
-    "KRYPTON85": "85Kr",
-    "4HE": "4He",
-    "HE4": "4He",
-}
-
-
 def normalize_tracer_key(tracer: str) -> str:
     """Return Hydrosheaf's canonical tracer key."""
-    key = str(tracer).strip().upper().replace(" ", "").replace("/", "")
-    return TRACER_ALIASES.get(key, TRACER_ALIASES.get(key.replace("-", "_"), str(tracer).strip()))
+    return canonicalize_tracer_alias(tracer)
 
 
 def _finite_float(value: Any) -> Optional[float]:

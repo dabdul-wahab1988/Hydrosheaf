@@ -104,6 +104,10 @@ def run_site(site, cfg, n_trials=30):
 
 
 def main():
+    raise RuntimeError(
+        "The historical M2 phase-stability matrix consumes cached legacy "
+        "field edges and is retired; it is not valid for refined CR/UER inputs."
+    )
     # analyze_sensitivity_mc draws from the global numpy RNG, so the PSI matrix
     # (and Figure 7) drifts between runs unless the seed is fixed. Same seed as
     # scripts/analysis/run_edge_psi.py.

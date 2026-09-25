@@ -25,7 +25,24 @@ from ..models.ttd_losses import weighted_rmse
 from .dynamic_edge_kernel import build_lag_curvature_matrix, build_phase_basis_matrix, build_temporal_smoothness_matrix
 from .dynamic_kernel_inversion import DynamicTTDInversionConfig, DynamicTTDRecovery
 from .graph_tracer_forward import edge_id_str
-from .tracer_registry import TracerSpec, build_default_tracer_registry
+from .tracer_registry import (
+    TracerSpec,
+    build_default_tracer_registry,
+    canonicalize_tracer_alias,
+)
+
+
+# Stable result-contract values for downstream consumers.  The legacy
+# ``reason_codes`` entries remain unchanged for compatibility; these constants
+# provide a non-natural-language machine-readable contract.
+TRACER_CONFLICT_REASON_CODE = "TRACER_CONFLICT"
+DUPLICATE_TRACER_ALIAS_REASON_CODE = "DUPLICATE_TRACER_ALIAS"
+MISSING_TRACER_HISTORY_REASON_CODE = "MISSING_TRACER_HISTORY"
+INVALID_TRACER_HISTORY_REASON_CODE = "INVALID_TRACER_HISTORY"
+INVALID_STABLE_ISOTOPE_RESPONSE_REASON_CODE = "INVALID_STABLE_ISOTOPE_RESPONSE"
+STABLE_ISOTOPE_WARNING_CODE = "STABLE_ISOTOPE_TIME_HISTORY_CONDITIONAL"
+INFERENCE_FAMILY = "multi_tracer_dynamic_graph"
+CLAIM_SCOPE = "controlled_synthetic"
 
 
 @dataclass(frozen=True)
@@ -83,6 +100,8 @@ class MultiTracerNodeRecovery:
     held_out_per_tracer_r2: Mapping[str, Optional[float]] = field(default_factory=dict)
     held_out_per_tracer_normalized_rmse: Mapping[str, float] = field(default_factory=dict)
     diagnostics: Mapping[str, Any] = field(default_factory=dict)
+    reason_code: Optional[str] = None
+    provenance: Mapping[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -145,16 +164,197 @@ def _local_series_for_tracer(
     # Preferred contract: {tracer_id: series}.
     if tracer in local_tracer_inputs and not isinstance(local_tracer_inputs[tracer], Mapping):
         return local_tracer_inputs[tracer]
+    canonical = _canonical_tracer_id(tracer)
+    for key, value in local_tracer_inputs.items():
+        if _canonical_tracer_id(key) == canonical and not isinstance(value, Mapping):
+            return value
     # Backwards-compatible node contract: {"R": {tracer_id: series}}.
     for value in local_tracer_inputs.values():
-        if isinstance(value, Mapping) and tracer in value:
-            return value[tracer]
+        if isinstance(value, Mapping):
+            series = _history_value(value, tracer)
+            if series is not None:
+                return series
     return None
+
+
+def _canonical_tracer_id(tracer: str) -> str:
+    """Canonicalize aliases used in time-history mappings for this solver."""
+    return canonicalize_tracer_alias(tracer)
+
+
+def _canonicalize_tracer_mapping(
+    observations: Optional[Mapping[str, Sequence[float]]],
+) -> tuple[dict[str, Sequence[float]], tuple[str, ...]]:
+    """Canonicalize tracer keys and report aliases that collide.
+
+    A collision is not resolved by last-write-wins: two spellings for one
+    tracer can carry different observations, and silently selecting one would
+    make the inverse result depend on dictionary insertion order.
+    """
+    if observations is None:
+        return {}, ()
+    canonical: dict[str, Sequence[float]] = {}
+    duplicates: list[str] = []
+    for raw_tracer, values in observations.items():
+        tracer = canonicalize_tracer_alias(raw_tracer)
+        if tracer in canonical:
+            duplicates.append(tracer)
+            continue
+        canonical[tracer] = values
+    return canonical, tuple(sorted(set(duplicates)))
+
+
+def _history_value(history: Mapping[str, Any], tracer: str) -> Any:
+    """Return a tracer series from a mapping, accepting safe aliases."""
+    if tracer in history:
+        return history[tracer]
+    canonical = _canonical_tracer_id(tracer)
+    for key, value in history.items():
+        if _canonical_tracer_id(key) == canonical:
+            return value
+    return None
+
+
+def _history_status(value: Any) -> str:
+    """Classify a supplied series without changing the forward numerical path."""
+    if value is None:
+        return "missing"
+    try:
+        arr = np.asarray(value, dtype=float).reshape(-1)
+    except (TypeError, ValueError):
+        return "invalid"
+    if arr.size == 0 or not np.any(np.isfinite(arr)):
+        return "invalid"
+    return "available"
+
+
+def _audit_tracer_histories(
+    active_tracers: Sequence[str],
+    registry: Mapping[str, TracerSpec],
+    candidate_parents: Mapping[str, Mapping[str, Sequence[float]]],
+    local_tracer_inputs: Optional[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Audit required source histories before the dynamic fit consumes them.
+
+    The historical implementation converted a missing parent history into a
+    zero series.  That is numerically convenient but scientifically ambiguous,
+    especially for stable isotopes.  This audit fails closed for required
+    tracer histories while leaving optional local recharge inputs optional.
+    """
+    required = [
+        tracer
+        for tracer in active_tracers
+        if tracer in registry and registry[tracer].source_history_required
+    ]
+    status_by_tracer: dict[str, dict[str, Any]] = {}
+    missing: list[str] = []
+    invalid: list[str] = []
+
+    if candidate_parents and required:
+        for tracer in required:
+            parent_status: dict[str, str] = {}
+            for parent, histories in candidate_parents.items():
+                if not isinstance(histories, Mapping):
+                    status = "invalid"
+                else:
+                    status = _history_status(_history_value(histories, tracer))
+                parent_status[str(parent)] = status
+                if status == "missing":
+                    missing.append(f"{tracer}:{parent}")
+                elif status == "invalid":
+                    invalid.append(f"{tracer}:{parent}")
+            status_by_tracer[tracer] = {"parent_histories": parent_status}
+
+    local_status: dict[str, str] = {}
+    if local_tracer_inputs is not None and not isinstance(local_tracer_inputs, Mapping):
+        invalid.append("local_tracer_inputs")
+    elif isinstance(local_tracer_inputs, Mapping):
+        for tracer in active_tracers:
+            raw = _local_series_for_tracer(local_tracer_inputs, tracer)
+            if raw is not None:
+                status = _history_status(raw)
+                local_status[tracer] = status
+                if status == "invalid":
+                    invalid.append(f"local:{tracer}")
+
+    for tracer in active_tracers:
+        status_by_tracer.setdefault(tracer, {})["local_history"] = local_status.get(tracer, "not_supplied")
+
+    available: Optional[bool]
+    if not required:
+        available = None
+    elif not candidate_parents:
+        # The fit has its own stable ``no_candidate_parents`` failure reason.
+        # Do not replace it with a source-history code when no history path was
+        # supplied at all.
+        available = None
+    else:
+        available = not missing and not invalid
+
+    return {
+        "required_tracers": list(required),
+        "source_history_required": bool(required),
+        "source_history_available": available,
+        "missing": list(dict.fromkeys(missing)),
+        "invalid": list(dict.fromkeys(invalid)),
+        "by_tracer": status_by_tracer,
+    }
+
+
+def _build_provenance(
+    registry: Mapping[str, TracerSpec],
+    active_tracers: Sequence[str],
+    *,
+    holdout_evaluated: bool = False,
+    history_audit: Optional[Mapping[str, Any]] = None,
+) -> dict[str, Any]:
+    """Build the additive node-level provenance contract for this solver."""
+    active = tuple(sorted(active_tracers))
+    active_kinds = {tracer: registry[tracer].kind for tracer in active if tracer in registry}
+    kinds = set(active_kinds.values())
+    stable_used = "stable_isotope" in kinds
+    required = bool(
+        history_audit.get("source_history_required", False)
+        if history_audit is not None
+        else any(registry[tracer].source_history_required for tracer in active if tracer in registry)
+    )
+    available = (
+        history_audit.get("source_history_available")
+        if history_audit is not None
+        else None
+    )
+    warnings: list[str] = []
+    if stable_used:
+        # This solver uses observed time-series histories and a scalar
+        # fractionation factor.  It is not a field-validated isotope
+        # fractionation model, and d-excess is deliberately not a conflict gate.
+        warnings.append(STABLE_ISOTOPE_WARNING_CODE)
+        if available is None:
+            warnings.append("STABLE_ISOTOPE_SOURCE_HISTORY_UNVERIFIED")
+        elif available is False:
+            warnings.append("STABLE_ISOTOPE_SOURCE_HISTORY_UNAVAILABLE")
+    return {
+        "inference_family": INFERENCE_FAMILY,
+        "claim_scope": CLAIM_SCOPE,
+        "field_validation_status": "not_performed",
+        "active_tracers": list(active),
+        "active_tracer_count": len(active),
+        "active_tracer_kinds": active_kinds,
+        "stable_isotopes_used": stable_used,
+        "radioactive_tracers_used": "radioactive" in kinds,
+        "source_history_required": required,
+        "source_history_available": available,
+        "warnings": warnings,
+        "history_audit": dict(history_audit or {}),
+        "holdout_evaluated": bool(holdout_evaluated),
+    }
 
 
 def _response_factor(spec: TracerSpec, tracer: str, lags: np.ndarray, cfg: MultiTracerGraphConfig) -> np.ndarray:
     factor = np.ones(len(lags), dtype=float)
-    if spec.decay_constant_per_day is not None:
+    # Stable water isotopes never receive a radioactive decay factor, even if
+    # a caller supplies a malformed custom registry entry.
+    if spec.kind != "stable_isotope" and spec.decay_constant_per_day is not None:
         factor *= np.exp(-float(spec.decay_constant_per_day) * lags)
     if tracer == "SF6" and spec.response_model == "gas_exchange":
         factor *= 1.0 + cfg.sf6_excess_air * np.exp(-lags / cfg.sf6_exchange_timescale_days)
@@ -274,7 +474,11 @@ def _fit_joint_transport(
         local = _fill_series(local_raw, t_total) if local_raw is not None else None
         parent_full: dict[str, np.ndarray] = {}
         for parent in parent_ids:
-            raw = candidate_parents[parent].get(tracer)
+            raw = (
+                _history_value(candidate_parents[parent], tracer)
+                if isinstance(candidate_parents[parent], Mapping)
+                else None
+            )
             if raw is None:
                 parent_full[parent] = np.zeros(t_total, dtype=float)
             else:
@@ -507,73 +711,252 @@ def solve_joint_multitracer_node_inversion(
     """Fit shared transport parameters jointly across all active tracers."""
     cfg = config or MultiTracerGraphConfig()
     registry = tracer_registry or build_default_tracer_registry()
+    canonical_observations, duplicate_aliases = _canonicalize_tracer_mapping(tracer_observations)
+    canonical_holdout_observations, holdout_duplicate_aliases = _canonicalize_tracer_mapping(
+        holdout_tracer_observations
+    )
+    duplicate_aliases = tuple(sorted(set(duplicate_aliases + holdout_duplicate_aliases)))
+    active = tuple(sorted(t for t in canonical_observations if t in registry and registry[t].enabled))
+    history_audit = _audit_tracer_histories(
+        active,
+        registry,
+        candidate_parents,
+        local_tracer_inputs,
+    )
+
+    if duplicate_aliases:
+        provenance = _build_provenance(
+            registry,
+            active,
+            history_audit=history_audit,
+        )
+        return MultiTracerNodeRecovery(
+            target_node=target_node,
+            status="ABSTAIN",
+            reason_codes=(
+                DUPLICATE_TRACER_ALIAS_REASON_CODE,
+                f"canonical_tracers:{','.join(duplicate_aliases)}",
+            ),
+            edge_recoveries={},
+            active_tracers=active,
+            per_tracer_rmse={},
+            loto_sensitivity={tracer: None for tracer in active},
+            effective_rank=0.0,
+            condition_number=float("inf"),
+            conflict_detected=False,
+            reason_code=DUPLICATE_TRACER_ALIAS_REASON_CODE,
+            provenance=provenance,
+            diagnostics={
+                "history_audit": history_audit,
+                "duplicate_tracer_aliases": duplicate_aliases,
+                "joint_fit": False,
+            },
+        )
+
+    invalid_stable_response = tuple(
+        tracer
+        for tracer in active
+        if registry[tracer].kind == "stable_isotope"
+        and registry[tracer].decay_constant_per_day is not None
+    )
+
+    if invalid_stable_response:
+        provenance = _build_provenance(
+            registry,
+            active,
+            history_audit=history_audit,
+        )
+        return MultiTracerNodeRecovery(
+            target_node=target_node,
+            status="ABSTAIN",
+            reason_codes=(
+                INVALID_STABLE_ISOTOPE_RESPONSE_REASON_CODE,
+                f"stable_isotope_decay_constant:{','.join(invalid_stable_response)}",
+            ),
+            edge_recoveries={},
+            active_tracers=active,
+            per_tracer_rmse={},
+            loto_sensitivity={tracer: None for tracer in active},
+            effective_rank=0.0,
+            condition_number=float("inf"),
+            conflict_detected=False,
+            reason_code=INVALID_STABLE_ISOTOPE_RESPONSE_REASON_CODE,
+            provenance=provenance,
+            diagnostics={"history_audit": history_audit, "joint_fit": False},
+        )
+
+    history_reasons: list[str] = []
+    if history_audit["missing"]:
+        history_reasons.append(MISSING_TRACER_HISTORY_REASON_CODE)
+    if history_audit["invalid"]:
+        history_reasons.append(INVALID_TRACER_HISTORY_REASON_CODE)
+    if history_reasons:
+        provenance = _build_provenance(
+            registry,
+            active,
+            history_audit=history_audit,
+        )
+        detail_reasons = tuple(
+            f"{kind.lower()}:{','.join(history_audit[kind.lower()])}"
+            for kind in ("MISSING", "INVALID")
+            if history_audit[kind.lower()]
+        )
+        return MultiTracerNodeRecovery(
+            target_node=target_node,
+            status="ABSTAIN",
+            reason_codes=tuple(history_reasons) + detail_reasons,
+            edge_recoveries={},
+            active_tracers=active,
+            per_tracer_rmse={},
+            loto_sensitivity={tracer: None for tracer in active},
+            effective_rank=0.0,
+            condition_number=float("inf"),
+            conflict_detected=False,
+            reason_code=history_reasons[0],
+            provenance=provenance,
+            diagnostics={"history_audit": history_audit, "joint_fit": False},
+        )
+
     try:
         times = _integer_times(target_times)
     except ValueError as exc:
         return MultiTracerNodeRecovery(
-            target_node, "ABSTAIN", (f"invalid_target_times:{exc}",), {}, (), {}, {}, 0.0, float("inf"), False
+            target_node=target_node,
+            status="ABSTAIN",
+            reason_codes=(f"invalid_target_times:{exc}",),
+            edge_recoveries={},
+            active_tracers=active,
+            per_tracer_rmse={},
+            loto_sensitivity={},
+            effective_rank=0.0,
+            condition_number=float("inf"),
+            conflict_detected=False,
+            provenance=_build_provenance(registry, active, history_audit=history_audit),
+            diagnostics={"history_audit": history_audit},
         )
 
-    active = tuple(sorted(t for t in tracer_observations if t in registry and registry[t].enabled))
     if len(active) < cfg.min_required_tracers:
         return MultiTracerNodeRecovery(
-            target_node, "ABSTAIN", ("insufficient_tracers_available",), {}, active, {}, {}, 0.0, float("inf"), False
+            target_node=target_node,
+            status="ABSTAIN",
+            reason_codes=("insufficient_tracers_available",),
+            edge_recoveries={},
+            active_tracers=active,
+            per_tracer_rmse={},
+            loto_sensitivity={},
+            effective_rank=0.0,
+            condition_number=float("inf"),
+            conflict_detected=False,
+            provenance=_build_provenance(registry, active, history_audit=history_audit),
+            diagnostics={"history_audit": history_audit},
         )
 
     conflict, conflict_reason = _check_tracer_conflict(
-        {tracer: np.asarray(tracer_observations[tracer], dtype=float) for tracer in active},
+        {tracer: np.asarray(canonical_observations[tracer], dtype=float) for tracer in active},
         registry,
         cfg.conflict_z_score_threshold,
     )
     if conflict:
         return MultiTracerNodeRecovery(
-            target_node,
-            "ABSTAIN",
-            ("tracer_conflict_detected", conflict_reason),
-            {},
-            active,
-            {},
-            {tracer: None for tracer in active},
-            0.0,
-            float("inf"),
-            True,
-            diagnostics={"conflict_reason": conflict_reason, "joint_fit": False},
+            target_node=target_node,
+            status="ABSTAIN",
+            reason_codes=(TRACER_CONFLICT_REASON_CODE, "tracer_conflict_detected", conflict_reason),
+            edge_recoveries={},
+            active_tracers=active,
+            per_tracer_rmse={},
+            loto_sensitivity={tracer: None for tracer in active},
+            effective_rank=0.0,
+            condition_number=float("inf"),
+            conflict_detected=True,
+            reason_code=TRACER_CONFLICT_REASON_CODE,
+            provenance=_build_provenance(registry, active, history_audit=history_audit),
+            diagnostics={
+                "conflict_reason": conflict_reason,
+                "history_audit": history_audit,
+                "joint_fit": False,
+            },
         )
 
-    fit, failure = _fit_joint_transport(
-        target_node,
-        times,
-        active,
-        tracer_observations,
-        candidate_parents,
-        local_tracer_inputs,
-        cfg,
-        registry,
-        holdout_times=_integer_times(holdout_times) if holdout_times is not None and len(holdout_times) else None,
-    )
-    if fit is None:
-        return MultiTracerNodeRecovery(
+    try:
+        holdout_time_indices = (
+            _integer_times(holdout_times)
+            if holdout_times is not None and len(holdout_times)
+            else None
+        )
+        fit, failure = _fit_joint_transport(
             target_node,
-            "ABSTAIN",
-            (failure or "joint_fit_failed",),
-            {},
+            times,
             active,
-            {},
-            {tracer: None for tracer in active},
-            0.0,
-            float("inf"),
-            False,
-            diagnostics={"joint_fit": False},
+            canonical_observations,
+            candidate_parents,
+            local_tracer_inputs,
+            cfg,
+            registry,
+            holdout_times=holdout_time_indices,
+        )
+    except (IndexError, TypeError, ValueError) as exc:
+        provenance = _build_provenance(
+            registry,
+            active,
+            history_audit=history_audit,
+        )
+        return MultiTracerNodeRecovery(
+            target_node=target_node,
+            status="ABSTAIN",
+            reason_codes=(INVALID_TRACER_HISTORY_REASON_CODE, f"history_validation:{exc}"),
+            edge_recoveries={},
+            active_tracers=active,
+            per_tracer_rmse={},
+            loto_sensitivity={tracer: None for tracer in active},
+            effective_rank=0.0,
+            condition_number=float("inf"),
+            conflict_detected=False,
+            reason_code=INVALID_TRACER_HISTORY_REASON_CODE,
+            provenance=provenance,
+            diagnostics={"history_audit": history_audit, "joint_fit": False},
+        )
+    if fit is None:
+        failure_code = (
+            INVALID_TRACER_HISTORY_REASON_CODE
+            if failure and (
+                failure.startswith("insufficient_samples:")
+                or failure.startswith("nonfinite_joint_design")
+            )
+            else None
+        )
+        failure_reasons = (failure_code, failure) if failure_code else (failure or "joint_fit_failed",)
+        return MultiTracerNodeRecovery(
+            target_node=target_node,
+            status="ABSTAIN",
+            reason_codes=tuple(reason for reason in failure_reasons if reason),
+            edge_recoveries={},
+            active_tracers=active,
+            per_tracer_rmse={},
+            loto_sensitivity={tracer: None for tracer in active},
+            effective_rank=0.0,
+            condition_number=float("inf"),
+            conflict_detected=False,
+            reason_code=failure_code,
+            provenance=_build_provenance(registry, active, history_audit=history_audit),
+            diagnostics={"history_audit": history_audit, "joint_fit": False},
         )
 
     per_rmse = {
         tracer: weighted_rmse(fit.calibration_predictions[tracer], fit.calibration_values[tracer])
         for tracer in active
     }
-    hold_rmse, hold_r2 = _holdout_metrics(fit, holdout_times, holdout_tracer_observations, active)
+    hold_rmse, hold_r2 = _holdout_metrics(
+        fit,
+        holdout_times,
+        canonical_holdout_observations,
+        active,
+    )
     hold_normalized: dict[str, float] = {}
     for tracer, value in hold_rmse.items():
-        observed = _series_at_times(holdout_tracer_observations[tracer], _integer_times(holdout_times))
+        observed = _series_at_times(
+            canonical_holdout_observations[tracer],
+            _integer_times(holdout_times),
+        )
         finite = observed[np.isfinite(observed)]
         scale = max(float(np.std(finite)) if len(finite) else 0.0, float(registry[tracer].measurement_sd), 1e-8)
         hold_normalized[tracer] = float(value / scale)
@@ -582,20 +965,36 @@ def solve_joint_multitracer_node_inversion(
     ]
     if failed_holdout and cfg.enforce_holdout_gate:
         return MultiTracerNodeRecovery(
-            target_node,
-            "ABSTAIN",
-            (f"negative_joint_holdout_skill:{','.join(failed_holdout)}",),
-            fit.edge_recoveries,
-            active,
-            per_rmse,
-            {tracer: None for tracer in active},
-            fit.effective_rank,
-            fit.condition_number,
-            False,
+            target_node=target_node,
+            status="ABSTAIN",
+            reason_codes=(f"negative_joint_holdout_skill:{','.join(failed_holdout)}",),
+            edge_recoveries=fit.edge_recoveries,
+            active_tracers=active,
+            per_tracer_rmse=per_rmse,
+            loto_sensitivity={tracer: None for tracer in active},
+            effective_rank=fit.effective_rank,
+            condition_number=fit.condition_number,
+            conflict_detected=False,
             held_out_per_tracer_rmse=hold_rmse,
             held_out_per_tracer_r2=hold_r2,
             held_out_per_tracer_normalized_rmse=hold_normalized,
-            diagnostics={**fit.diagnostics, "holdout_gate_passed": False, "holdout_gate_enforced": True},
+            provenance=_build_provenance(
+                registry,
+                active,
+                holdout_evaluated=True,
+                history_audit=history_audit,
+            ),
+            diagnostics={
+                **fit.diagnostics,
+                "history_audit": history_audit,
+                "provenance_warnings": _build_provenance(
+                    registry,
+                    active,
+                    history_audit=history_audit,
+                )["warnings"],
+                "holdout_gate_passed": False,
+                "holdout_gate_enforced": True,
+            },
         )
 
     # Actual LOTO refits.  Sensitivity is the absolute change in the mean
@@ -614,7 +1013,7 @@ def solve_joint_multitracer_node_inversion(
             target_node,
             times,
             remaining,
-            tracer_observations,
+            canonical_observations,
             candidate_parents,
             local_tracer_inputs,
             cfg,
@@ -640,7 +1039,7 @@ def solve_joint_multitracer_node_inversion(
         fit.edge_recoveries[eid] = DynamicTTDRecovery(
             **{
                 **rec.__dict__,
-                "held_out_predictions": tuple(float(v) for v in fit.full_predictions[primary][_integer_times(holdout_times)])
+                "held_out_predictions": tuple(float(v) for v in fit.full_predictions[primary][holdout_time_indices])
                 if holdout_times is not None and len(holdout_times)
                 else (),
                 "forecast_rmse": hold_rmse.get(primary),
@@ -659,11 +1058,23 @@ def solve_joint_multitracer_node_inversion(
         effective_rank=fit.effective_rank,
         condition_number=fit.condition_number,
         conflict_detected=False,
-            held_out_per_tracer_rmse=hold_rmse,
-            held_out_per_tracer_r2=hold_r2,
-            held_out_per_tracer_normalized_rmse=hold_normalized,
+        held_out_per_tracer_rmse=hold_rmse,
+        held_out_per_tracer_r2=hold_r2,
+        held_out_per_tracer_normalized_rmse=hold_normalized,
+        provenance=_build_provenance(
+            registry,
+            active,
+            holdout_evaluated=bool(hold_rmse or hold_r2),
+            history_audit=history_audit,
+        ),
         diagnostics={
             **fit.diagnostics,
+            "history_audit": history_audit,
+            "provenance_warnings": _build_provenance(
+                registry,
+                active,
+                history_audit=history_audit,
+            )["warnings"],
             "holdout_gate_passed": True,
             "holdout_gate_enforced": cfg.enforce_holdout_gate,
             "holdout_gate_warning": failed_holdout,
@@ -674,7 +1085,15 @@ def solve_joint_multitracer_node_inversion(
 
 
 __all__ = [
+    "CLAIM_SCOPE",
+    "DUPLICATE_TRACER_ALIAS_REASON_CODE",
+    "INVALID_STABLE_ISOTOPE_RESPONSE_REASON_CODE",
+    "INVALID_TRACER_HISTORY_REASON_CODE",
+    "INFERENCE_FAMILY",
+    "MISSING_TRACER_HISTORY_REASON_CODE",
     "MultiTracerGraphConfig",
     "MultiTracerNodeRecovery",
+    "STABLE_ISOTOPE_WARNING_CODE",
+    "TRACER_CONFLICT_REASON_CODE",
     "solve_joint_multitracer_node_inversion",
 ]

@@ -195,6 +195,11 @@ def process_talensi():
     return _build_and_fit(samples, config, "Talensi")
 
 def main():
+    raise RuntimeError(
+        "The historical M2 field benchmark is retired because it uses old "
+        "Lower Anayari / Talensi inputs with zero-imputation. It is not a "
+        "current CR/UER result and must not be regenerated."
+    )
     m_res = process_manu()
     t_res = process_talensi()
 

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -28,6 +29,30 @@ from .well_active_learning import CampaignConfig, WellAction, rank_campaign_meas
 # ── measurement recommendation mapping ──────────────────────────────
 
 FLAG_TO_MEASUREMENTS: Dict[str, List[str]] = {
+    "geophysical_barrier_ambiguity": [
+        "ERT resistivity survey", "TEM sounding", "high-resolution ERT profile",
+    ],
+    "nitrate_source_ambiguity": [
+        "boron isotopes (d11B)", "nitrate dual isotopes (d15N/d18O)", "trace elements (B, Br)",
+    ],
+    "salinity_source_ambiguity": [
+        "chloride/bromide ratio (Cl/Br)", "strontium isotopes (87Sr/86Sr)", "ERT sounding",
+    ],
+    "redox_zone_ambiguity": [
+        "dissolved oxygen / redox potential", "dissolved Mn2+/Fe2+", "arsenic speciation (As3+/As5+)",
+    ],
+    "geophysical_k_ambiguity": [
+        "surface NMR (sNMR) water content/T2*", "pumping test", "permeability slug test",
+    ],
+    "geophysical_uncertainty": [
+        "surface NMR (sNMR) water content/T2*", "ERT/TEM line across the flow divide",
+    ],
+    "missing_boron": [
+        "boron (B) and d11B isotope analysis",
+    ],
+    "missing_geophysics": [
+        "ERT resistivity survey", "surface NMR sounding",
+    ],
     "age_reversal": [
         "groundwater age tracer", "tritium/14C/SF6/CFC",
     ],
@@ -138,10 +163,82 @@ _DEFAULT_SAMPLE_FIELDS = [
 # ── internal helpers ─────────────────────────────────────────────────
 
 def _parse_evidence_flags(edge: Edge) -> List[str]:
-    flags_str = (edge.attrs or {}).get("evidence_flags", "")
-    if not flags_str or not isinstance(flags_str, str):
-        return []
-    return [f.strip() for f in flags_str.split(",") if f.strip()]
+    attrs = edge.attrs or {}
+    flags: List[str] = []
+
+    def add_value(value: object) -> None:
+        if isinstance(value, str):
+            flags.extend(f.strip() for f in value.split(",") if f.strip())
+        elif isinstance(value, (list, tuple, set)):
+            flags.extend(str(f).strip() for f in value if str(f).strip())
+
+    for key in (
+        "evidence_flags",
+        "edge_flags",
+        "diagnostic_evidence_flags",
+        "nitrate_source_gates",
+    ):
+        add_value(attrs.get(key))
+
+    # Bridge component-level diagnostics into the same evidence vocabulary so
+    # the measurement recommender remains connected to fitted edge results.
+    cl_br = attrs.get("cl_br_metrics")
+    if isinstance(cl_br, dict):
+        source_u = str(cl_br.get("source_class_u", ""))
+        source_v = str(cl_br.get("source_class_v", ""))
+        if (
+            source_u != source_v
+            or source_u in {"", "unknown", "intermediate_or_mixed"}
+            or source_v in {"", "unknown", "intermediate_or_mixed"}
+        ):
+            flags.append("salinity_source_ambiguity")
+    if attrs.get("sr_provenance_invariant") is False:
+        flags.append("salinity_source_ambiguity")
+
+    geophys_probability = attrs.get("prob_geophys")
+    try:
+        low_geophys_probability = float(geophys_probability) < 0.75
+    except (TypeError, ValueError):
+        low_geophys_probability = False
+    if attrs.get("geophysical_barrier") is True or low_geophys_probability:
+        flags.append("geophysical_barrier_ambiguity")
+    if (
+        attrs.get("geophysics_enabled") is True
+        and attrs.get("k_geophys_m_day") is None
+    ):
+        flags.append("geophysical_k_ambiguity")
+    if attrs.get("geophysical_uncertainty") is True:
+        flags.append("geophysical_uncertainty")
+    for key in ("geophysical_k_cv", "k_geophys_cv"):
+        try:
+            if float(attrs.get(key)) >= 0.5:
+                flags.append("geophysical_uncertainty")
+                break
+        except (TypeError, ValueError):
+            continue
+    try:
+        k_mean = float(attrs.get("k_geophys_m_day"))
+        k_std = float(attrs.get("k_geophys_std_m_day"))
+        if k_mean > 0.0 and k_std / k_mean >= 0.5:
+            flags.append("geophysical_uncertainty")
+    except (TypeError, ValueError):
+        pass
+    if (
+        attrs.get("nitrate_source_enabled") is True
+        and not bool(attrs.get("nitrate_source_boron_used", False))
+    ):
+        flags.append("missing_boron")
+    if "qc_low_identifiability" in flags:
+        flags.append("nitrate_source_ambiguity")
+    try:
+        p_septic = float(attrs.get("nitrate_source_p_septic_sewage"))
+        p_animal = float(attrs.get("nitrate_source_p_animal_manure"))
+    except (TypeError, ValueError):
+        p_septic = p_animal = float("nan")
+    if math.isfinite(p_septic) and math.isfinite(p_animal) and abs(p_septic - p_animal) < 0.2:
+        flags.append("nitrate_source_ambiguity")
+
+    return list(dict.fromkeys(flags))
 
 
 def _compute_disagreement_score(
@@ -224,8 +321,19 @@ def _score_evidence_ambiguity(edge: Edge) -> tuple:
     tier_map = [
         ({"age_reversal"}, 0.7, "age_reversal"),
         ({"evap_candidate"}, 0.6, "isotope_evaporation"),
+        (
+            {"geophysical_barrier_ambiguity"},
+            0.65,
+            "geophysical_barrier_ambiguity",
+        ),
+        ({"nitrate_source_ambiguity"}, 0.65, "nitrate_source_ambiguity"),
+        ({"salinity_source_ambiguity"}, 0.6, "salinity_source_ambiguity"),
+        ({"geophysical_k_ambiguity"}, 0.55, "geophysical_k_ambiguity"),
+        ({"geophysical_uncertainty"}, 0.60, "geophysical_uncertainty"),
         ({"null_chemistry_similar", "null_chemistry_error"}, 0.5, "null_chemistry_similar"),
         ({"missing_evidence"}, 0.4, "missing_evidence"),
+        ({"missing_boron"}, 0.4, "missing_boron"),
+        ({"missing_geophysics"}, 0.4, "missing_geophysics"),
         ({"iso_missing_u", "iso_missing_v"}, 0.35, "missing_isotope_data"),
         ({"cl_missing"}, 0.3, "missing_chloride_data"),
         ({"null_common_lithology", "null_common_lithology_explicit"}, 0.2, "null_common_lithology"),
@@ -249,6 +357,40 @@ def _score_evidence_ambiguity(edge: Edge) -> tuple:
         best_reasons = sorted(all_flags)
 
     return (best_score, ", ".join(best_reasons))
+
+
+def _score_geophysical_uncertainty(edge: Edge) -> float:
+    """Return a bounded geophysical-K uncertainty score for acquisition utility.
+
+    The preferred input is an explicit coefficient of variation. A normalized
+    ``geophysical_uncertainty`` value is also accepted, and an absolute K
+    standard deviation is converted to a coefficient of variation when the
+    corresponding mean is present.
+    """
+    attrs = edge.attrs or {}
+    raw = attrs.get("geophysical_uncertainty")
+    if isinstance(raw, bool):
+        score = 1.0 if raw else 0.0
+    else:
+        try:
+            score = float(raw)
+        except (TypeError, ValueError):
+            score = 0.0
+    if score <= 0.0:
+        for key in ("geophysical_k_cv", "k_geophys_cv"):
+            try:
+                score = max(score, float(attrs.get(key)))
+            except (TypeError, ValueError):
+                continue
+    if score <= 0.0:
+        try:
+            mean_k = float(attrs.get("k_geophys_m_day"))
+            std_k = float(attrs.get("k_geophys_std_m_day"))
+            if mean_k > 0.0:
+                score = std_k / mean_k
+        except (TypeError, ValueError):
+            pass
+    return min(1.0, max(0.0, score))
 
 
 def _score_validation_error(
@@ -640,7 +782,34 @@ def rank_next_measurements(
         # Signal E: posterior uncertainty (Bayesian topology posterior)
         post_score, post_reason = _score_posterior_uncertainty(edge)
 
-        # Aggregate priority: 5 per-edge signals, weights sum to 1.00.
+        # Signal F: geophysical K uncertainty. When present, this replaces a
+        # configurable fraction of the generic posterior-uncertainty weight;
+        # edges without a geophysical uncertainty observation retain the
+        # legacy score exactly.
+        geophys_score = _score_geophysical_uncertainty(edge)
+        try:
+            geophys_weight_fraction = min(
+                1.0,
+                max(
+                    0.0,
+                    float(
+                        getattr(config, "geophysics_active_learning_weight", 0.5)
+                    ),
+                ),
+            )
+        except (TypeError, ValueError):
+            geophys_weight_fraction = 0.5
+        posterior_weight = 0.15
+        geophys_component = 0.0
+        if geophys_score > 0.0:
+            posterior_weight *= 1.0 - geophys_weight_fraction
+            geophys_component = (
+                0.15 * geophys_weight_fraction * geophys_score
+            )
+
+        # Aggregate priority. The geophysical term is activated only when a
+        # quantitative uncertainty is supplied, preserving the legacy score
+        # for ordinary chemistry-only edges.
         # Bootstrap instability is handled as a campaign-level warning to avoid
         # uniformly inflating every edge score without differentiating priorities.
         priority = (
@@ -648,7 +817,8 @@ def rank_next_measurements(
             + ev_score * 0.25
             + val_score * 0.25
             + md_score * 0.10
-            + post_score * 0.15
+            + post_score * posterior_weight
+            + geophys_component
         )
         priority = round(min(max(priority, 0.0), 1.0), 6)
 
@@ -664,6 +834,8 @@ def rank_next_measurements(
             all_reasons.extend(md_reasons)
         if post_reason:
             all_reasons.append(post_reason)
+        if geophys_score > 0.0:
+            all_reasons.append("geophysical_uncertainty")
 
         recs = _recommended_measurements(all_reasons)
         if require_concrete_actions and not recs:

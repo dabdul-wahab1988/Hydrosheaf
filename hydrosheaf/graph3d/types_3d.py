@@ -3,7 +3,7 @@ Data structures for 3D aquifer networks.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -69,6 +69,9 @@ class Node3D:
 
     # Chemical data
     concentrations: Optional[List[float]] = None
+
+    # Optional metadata and geophysical attributes
+    attrs: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         """Compute z_mASL if not provided."""
@@ -151,6 +154,11 @@ class Edge3D:
     # Layer transition
     layer_from: Optional[int] = None
     layer_to: Optional[int] = None
+
+    # Geophysics constraints
+    prob_geophys: float = 1.0
+    tau_geophys_years: Optional[float] = None
+    k_geophys_m_day: Optional[float] = None
 
 
 @dataclass

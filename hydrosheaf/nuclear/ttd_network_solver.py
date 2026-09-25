@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import time
-from typing import Any, Dict, Mapping, Optional, Tuple
+from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
 import networkx as nx
 import numpy as np
@@ -33,6 +33,218 @@ from .ttd_transport import (
     NodeMixingSpecification,
     build_local_recharge_distribution,
 )
+from .tracer_registry import build_default_tracer_registry
+
+
+NETWORK_TTD_INFERENCE_FAMILY = "network_ttd"
+NETWORK_TTD_CLAIM_SCOPE = "conditional_inference"
+NETWORK_TTD_FIELD_VALIDATION_STATUS = "not_performed"
+SOURCE_HISTORY_UNAVAILABLE_REASON_CODE = "SOURCE_HISTORY_UNAVAILABLE"
+
+
+def _canonical_provenance_tracer(tracer: str) -> str:
+    """Canonicalize the tracer aliases relevant to the provenance contract."""
+    compact = str(tracer).strip().upper()
+    compact = compact.replace(" ", "").replace("/", "").replace("-", "").replace("_", "")
+    compact = compact.replace("Δ", "DELTA")
+    return {
+        "18O": "d18O",
+        "D18O": "d18O",
+        "DELTA18O": "d18O",
+        "2H": "d2H",
+        "D2H": "d2H",
+        "DELTA2H": "d2H",
+        "H3": "3H",
+        "TRITIUM": "3H",
+        "C14": "14C",
+        "CARBON14": "14C",
+        "AR39": "39Ar",
+        "ARGON39": "39Ar",
+        "KR85": "85Kr",
+        "KRYPTON85": "85Kr",
+    }.get(compact, str(tracer).strip())
+
+
+def _fallback_tracer_profile(tracer: str) -> tuple[str, str, bool, bool, bool]:
+    """Return provenance-only metadata for kernels outside the default registry."""
+    canonical = _canonical_provenance_tracer(tracer)
+    if canonical in {"39Ar", "85Kr"}:
+        return canonical, "radioactive", True, True, True
+    if canonical in {"SF6", "CFC11", "CFC12", "CFC113"}:
+        return canonical, "dissolved_gas", True, True, True
+    if canonical in {"4He"}:
+        return canonical, "dissolved_gas", True, True, True
+    return canonical, "unknown", False, False, False
+
+
+def _source_history_from_system(system: Any, required: Sequence[str]) -> Optional[bool]:
+    """Use optional forward-system history metadata when a caller supplies it."""
+    explicit = getattr(system, "source_history_available", None)
+    if explicit is not None and not isinstance(explicit, Mapping):
+        try:
+            return bool(explicit)
+        except (TypeError, ValueError):
+            return False
+
+    histories = getattr(system, "source_histories", None)
+    if histories is None:
+        histories = getattr(system, "source_history", None)
+    if histories is None:
+        return None
+    if not isinstance(histories, Mapping):
+        return False
+
+    for tracer in required:
+        value = histories.get(tracer)
+        if value is None:
+            return False
+        try:
+            arr = np.asarray(value, dtype=float).reshape(-1)
+        except (TypeError, ValueError):
+            return False
+        if arr.size == 0 or not np.any(np.isfinite(arr)):
+            return False
+    return True
+
+
+def _tracer_provenance(tracer_ids: Sequence[str], system: Any = None) -> dict[str, Any]:
+    """Describe tracer families and source-history certainty without changing a fit."""
+    registry = build_default_tracer_registry()
+    canonical_ids: list[str] = []
+    kinds: dict[str, str] = {}
+    required_ids: list[str] = []
+    scalar_history_ids: list[str] = []
+    stable_used = False
+    radioactive_used = False
+    unknown_ids: list[str] = []
+
+    for tracer in tracer_ids:
+        canonical = _canonical_provenance_tracer(tracer)
+        if canonical in canonical_ids:
+            continue
+        canonical_ids.append(canonical)
+        spec = registry.get(canonical)
+        if spec is not None:
+            kind = spec.kind
+            required = bool(spec.source_history_required)
+            scalar_supported = bool(spec.supports_scalar_age_grid_kernel)
+        else:
+            canonical, kind, required, scalar_supported, known = _fallback_tracer_profile(canonical)
+            if not known:
+                unknown_ids.append(canonical)
+        kinds[canonical] = kind
+        stable_used = stable_used or kind == "stable_isotope"
+        radioactive_used = radioactive_used or kind == "radioactive"
+        if required:
+            required_ids.append(canonical)
+        if required and scalar_supported:
+            scalar_history_ids.append(canonical)
+
+    source_history_required = bool(required_ids)
+    source_history_available = (
+        _source_history_from_system(system, required_ids)
+        if source_history_required and system is not None
+        else None
+    )
+    if source_history_required and source_history_available is None:
+        # A scalar response matrix already contains the default/history input
+        # for the registered nuclear and gas kernels.  Stable-isotope systems
+        # are different: a matrix alone cannot prove that a dated recharge
+        # history was supplied.
+        if not stable_used and set(required_ids) == set(scalar_history_ids):
+            source_history_available = True
+
+    warnings: list[str] = []
+    if stable_used:
+        warnings.append("STABLE_ISOTOPE_SOURCE_HISTORY_CONDITIONAL")
+        if source_history_available is None:
+            warnings.append("STABLE_ISOTOPE_SOURCE_HISTORY_UNVERIFIED")
+        elif source_history_available is False:
+            warnings.append("STABLE_ISOTOPE_SOURCE_HISTORY_UNAVAILABLE")
+    if unknown_ids:
+        warnings.append("UNKNOWN_TRACER_CAPABILITY")
+
+    return {
+        "inference_family": NETWORK_TTD_INFERENCE_FAMILY,
+        "claim_scope": NETWORK_TTD_CLAIM_SCOPE,
+        "field_validation_status": NETWORK_TTD_FIELD_VALIDATION_STATUS,
+        "tracers": canonical_ids,
+        "tracer_kinds": kinds,
+        "stable_isotopes_used": stable_used,
+        "radioactive_tracers_used": radioactive_used,
+        "source_history_required": source_history_required,
+        "source_history_available": source_history_available,
+        "warnings": warnings,
+    }
+
+
+def _aggregate_tracer_provenance(
+    forward_systems: Optional[Mapping[str, MultiTracerForwardSystem]],
+) -> dict[str, Any]:
+    """Aggregate per-node provenance for a network result."""
+    systems = list((forward_systems or {}).values())
+    tracer_ids: list[str] = []
+    node_meta: dict[str, dict[str, Any]] = {}
+    for system in systems:
+        node_meta[str(getattr(system, "node_id", ""))] = _tracer_provenance(
+            getattr(system, "tracers", ()), system=system
+        )
+        for tracer in getattr(system, "tracers", ()):
+            canonical = _canonical_provenance_tracer(tracer)
+            if canonical not in tracer_ids:
+                tracer_ids.append(canonical)
+
+    aggregate = _tracer_provenance(tracer_ids)
+    availability = [
+        meta["source_history_available"]
+        for meta in node_meta.values()
+        if meta["source_history_required"]
+    ]
+    if availability:
+        if any(value is False for value in availability):
+            aggregate["source_history_available"] = False
+        elif all(value is True for value in availability):
+            aggregate["source_history_available"] = True
+        else:
+            aggregate["source_history_available"] = None
+    aggregate["node_provenance"] = node_meta
+    aggregate["source_history_unavailable_nodes"] = [
+        node_id
+        for node_id, meta in node_meta.items()
+        if meta["source_history_available"] is False
+    ]
+    aggregate["source_history_unknown_nodes"] = [
+        node_id
+        for node_id, meta in node_meta.items()
+        if meta["source_history_required"]
+        and meta["source_history_available"] is None
+    ]
+    aggregate["warnings"] = sorted(
+        set(aggregate.get("warnings", []))
+        | {
+            warning
+            for meta in node_meta.values()
+            for warning in meta.get("warnings", [])
+        }
+    )
+    return aggregate
+
+
+def _first_reason_code(reasons: Sequence[str]) -> Optional[str]:
+    """Return the first stable reason code while preserving all reasons."""
+    return str(reasons[0]) if reasons else None
+
+
+def _diagnostics_with_provenance(
+    diagnostics: Optional[Mapping[str, Any]],
+    provenance: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Attach provenance warnings and a serializable provenance snapshot."""
+    result = dict(diagnostics or {})
+    result.setdefault("provenance", dict(provenance))
+    if provenance.get("warnings"):
+        result.setdefault("provenance_warnings", list(provenance["warnings"]))
+    return result
 
 
 @dataclass(frozen=True)
@@ -51,6 +263,14 @@ class SingleNodeTTDResult:
     effective_degrees_of_freedom: float = float("nan")
     abstention_reasons: Tuple[str, ...] = ()
     diagnostics: Mapping[str, Any] = field(default_factory=dict)
+    inference_family: str = NETWORK_TTD_INFERENCE_FAMILY
+    claim_scope: str = NETWORK_TTD_CLAIM_SCOPE
+    field_validation_status: str = NETWORK_TTD_FIELD_VALIDATION_STATUS
+    stable_isotopes_used: bool = False
+    radioactive_tracers_used: bool = False
+    source_history_required: bool = False
+    source_history_available: Optional[bool] = None
+    reason_code: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -64,6 +284,14 @@ class NetworkTTDResult:
     network_sheaf_energy: float
     abstention_reasons: Tuple[str, ...] = ()
     diagnostics: Mapping[str, Any] = field(default_factory=dict)
+    inference_family: str = NETWORK_TTD_INFERENCE_FAMILY
+    claim_scope: str = NETWORK_TTD_CLAIM_SCOPE
+    field_validation_status: str = NETWORK_TTD_FIELD_VALIDATION_STATUS
+    stable_isotopes_used: bool = False
+    radioactive_tracers_used: bool = False
+    source_history_required: bool = False
+    source_history_available: Optional[bool] = None
+    reason_code: Optional[str] = None
 
     def node_g(self, node_id: str) -> Optional[np.ndarray]:
         res = self.node_results.get(node_id)
@@ -82,8 +310,14 @@ def _abstained_node_result(
     reasons: Tuple[str, ...],
     *,
     diagnostics: Optional[Mapping[str, Any]] = None,
+    system: Optional[Any] = None,
+    tracer_ids: Sequence[str] = (),
 ) -> SingleNodeTTDResult:
     """Create a consistently shaped abstention record for a node."""
+    provenance = _tracer_provenance(
+        tracer_ids or getattr(system, "tracers", ()),
+        system=system,
+    )
     return SingleNodeTTDResult(
         node_id=str(node_id),
         status="ABSTAIN",
@@ -96,7 +330,15 @@ def _abstained_node_result(
         chi_squared_per_observation=float("nan"),
         effective_degrees_of_freedom=float("nan"),
         abstention_reasons=tuple(reasons),
-        diagnostics=dict(diagnostics or {}),
+        diagnostics=_diagnostics_with_provenance(diagnostics, provenance),
+        inference_family=provenance["inference_family"],
+        claim_scope=provenance["claim_scope"],
+        field_validation_status=provenance["field_validation_status"],
+        stable_isotopes_used=provenance["stable_isotopes_used"],
+        radioactive_tracers_used=provenance["radioactive_tracers_used"],
+        source_history_required=provenance["source_history_required"],
+        source_history_available=provenance["source_history_available"],
+        reason_code=_first_reason_code(reasons),
     )
 
 
@@ -136,10 +378,34 @@ def _abstained_network_result(
     reasons: Tuple[str, ...],
     *,
     diagnostics: Optional[Mapping[str, Any]] = None,
+    forward_systems: Optional[Mapping[str, MultiTracerForwardSystem]] = None,
 ) -> NetworkTTDResult:
     """Create a consistently shaped network-level abstention result."""
+    provenance = _aggregate_tracer_provenance(forward_systems)
+    systems_by_node = {
+        str(node_id): system for node_id, system in (forward_systems or {}).items()
+    }
+    missing_provenance_nodes = [
+        str(node_id) for node_id in graph.nodes() if str(node_id) not in systems_by_node
+    ]
+    if missing_provenance_nodes and provenance["source_history_required"]:
+        provenance["source_history_available"] = None
+        provenance["source_history_unknown_nodes"] = sorted(
+            set(provenance.get("source_history_unknown_nodes", []))
+            | set(missing_provenance_nodes)
+        )
+        provenance["warnings"] = sorted(
+            set(provenance.get("warnings", []))
+            | {"SOURCE_HISTORY_STATUS_INCOMPLETE"}
+        )
     node_results = {
-        str(node_id): _abstained_node_result(str(node_id), grid, reasons)
+        str(node_id): _abstained_node_result(
+            str(node_id),
+            grid,
+            reasons,
+            system=systems_by_node.get(str(node_id)),
+            tracer_ids=getattr(systems_by_node.get(str(node_id)), "tracers", ()),
+        )
         for node_id in graph.nodes()
     }
     return NetworkTTDResult(
@@ -149,7 +415,15 @@ def _abstained_network_result(
         edge_discrepancies_l2={},
         network_sheaf_energy=float("nan"),
         abstention_reasons=tuple(reasons),
-        diagnostics=dict(diagnostics or {}),
+        diagnostics=_diagnostics_with_provenance(diagnostics, provenance),
+        inference_family=provenance["inference_family"],
+        claim_scope=provenance["claim_scope"],
+        field_validation_status=provenance["field_validation_status"],
+        stable_isotopes_used=provenance["stable_isotopes_used"],
+        radioactive_tracers_used=provenance["radioactive_tracers_used"],
+        source_history_required=provenance["source_history_required"],
+        source_history_available=provenance["source_history_available"],
+        reason_code=_first_reason_code(reasons),
     )
 
 
@@ -169,11 +443,24 @@ def solve_single_node_ttd(
     degrees-of-freedom calculation.  Use ``chi_squared_per_observation`` for a
     descriptive normalized misfit instead.
     """
+    provenance = _tracer_provenance(system.tracers, system=system)
+    if provenance["source_history_available"] is False:
+        return _abstained_node_result(
+            system.node_id,
+            grid,
+            (SOURCE_HISTORY_UNAVAILABLE_REASON_CODE,),
+            system=system,
+            diagnostics={
+                "message": "Required tracer source history was explicitly marked unavailable.",
+            },
+        )
+
     if not np.isfinite(float(lambda_smoothness)) or lambda_smoothness < 0.0:
         return _abstained_node_result(
             system.node_id,
             grid,
             (CODE_OPTIMIZATION_FAILURE,),
+            system=system,
             diagnostics={"message": "lambda_smoothness must be finite and non-negative"},
         )
 
@@ -183,6 +470,7 @@ def solve_single_node_ttd(
             system.node_id,
             grid,
             gate.reason_codes,
+            system=system,
             diagnostics={"gate_messages": gate.messages, "gate_metrics": gate.metrics},
         )
 
@@ -194,6 +482,7 @@ def solve_single_node_ttd(
             system.node_id,
             grid,
             (CODE_OPTIMIZATION_FAILURE,),
+            system=system,
             diagnostics={"message": "d2_matrix has an invalid shape or non-finite values"},
         )
 
@@ -240,6 +529,7 @@ def solve_single_node_ttd(
             system.node_id,
             grid,
             (CODE_OPTIMIZATION_FAILURE,),
+            system=system,
             diagnostics={
                 "iterations": getattr(opt, "nit", None),
                 "success": bool(getattr(opt, "success", False)),
@@ -255,6 +545,7 @@ def solve_single_node_ttd(
             system.node_id,
             grid,
             (CODE_OPTIMIZATION_FAILURE,),
+            system=system,
             diagnostics={"message": "optimizer returned zero or non-finite simplex mass"},
         )
     g_opt = g_opt / g_sum
@@ -277,14 +568,22 @@ def solve_single_node_ttd(
         shannon_entropy=ent,
         chi_squared_per_observation=chi2_per_observation,
         effective_degrees_of_freedom=float("nan"),
-        diagnostics={
+        diagnostics=_diagnostics_with_provenance({
             "iterations": opt.nit,
             "success": opt.success,
             "message": opt.message,
             **optimizer_metrics,
             "regularization_semantics": "mass-aware curvature on density-equivalent vector",
             "identifiability": "regularized point estimate; full TTD is not identified by tracer count alone",
-        },
+        }, provenance),
+        inference_family=provenance["inference_family"],
+        claim_scope=provenance["claim_scope"],
+        field_validation_status=provenance["field_validation_status"],
+        stable_isotopes_used=provenance["stable_isotopes_used"],
+        radioactive_tracers_used=provenance["radioactive_tracers_used"],
+        source_history_required=provenance["source_history_required"],
+        source_history_available=provenance["source_history_available"],
+        reason_code=None,
     )
 
 
@@ -330,6 +629,21 @@ def solve_network_ttd(
         assumption, not information supplied by the observations.
     """
     t_start = time.perf_counter()
+    network_provenance = _aggregate_tracer_provenance(forward_systems)
+
+    if network_provenance["source_history_unavailable_nodes"]:
+        return _abstained_network_result(
+            graph,
+            grid,
+            (SOURCE_HISTORY_UNAVAILABLE_REASON_CODE,),
+            forward_systems=forward_systems,
+            diagnostics={
+                "source_history_unavailable_nodes": network_provenance[
+                    "source_history_unavailable_nodes"
+                ],
+                "message": "At least one forward system explicitly lacks a required tracer history.",
+            },
+        )
 
     if (
         not np.isfinite(float(lambda_smoothness))
@@ -341,6 +655,7 @@ def solve_network_ttd(
             graph,
             grid,
             (CODE_OPTIMIZATION_FAILURE,),
+            forward_systems=forward_systems,
             diagnostics={
                 "message": "lambda_smoothness and lambda_graph must be finite and non-negative",
             },
@@ -353,6 +668,7 @@ def solve_network_ttd(
             graph,
             grid,
             topo_gate.reason_codes,
+            forward_systems=forward_systems,
             diagnostics={
                 "topology_messages": topo_gate.messages,
                 "topology_metrics": topo_gate.metrics,
@@ -366,6 +682,7 @@ def solve_network_ttd(
             graph,
             grid,
             (CODE_NODE_ID_COLLISION,),
+            forward_systems=forward_systems,
             diagnostics={
                 "message": "Distinct graph node objects collapse to the same string identifier.",
                 "node_ids": nodes,
@@ -380,6 +697,7 @@ def solve_network_ttd(
             graph,
             grid,
             (CODE_OPTIMIZATION_FAILURE,),
+            forward_systems=forward_systems,
             diagnostics={"message": "Cannot solve a network with zero nodes."},
         )
 
@@ -389,6 +707,7 @@ def solve_network_ttd(
             graph,
             grid,
             (CODE_MISSING_FORWARD_SYSTEM,),
+            forward_systems=forward_systems,
             diagnostics={
                 "missing_nodes": missing_systems,
                 "message": "Every graph node requires a validated multi-tracer forward system.",
@@ -434,6 +753,7 @@ def solve_network_ttd(
             graph,
             grid,
             tuple(gate_reasons),
+            forward_systems=forward_systems,
             diagnostics={
                 "node_gate_reports": node_gate_reports,
                 "message": "At least one node failed the pre-solve physical evidence gate.",
@@ -459,6 +779,7 @@ def solve_network_ttd(
             graph,
             grid,
             (CODE_MISSING_TRANSPORT_OPERATOR,),
+            forward_systems=forward_systems,
             diagnostics={"missing_edges": missing_transport},
         )
     if bad_transport_dimensions:
@@ -466,6 +787,7 @@ def solve_network_ttd(
             graph,
             grid,
             (CODE_OPTIMIZATION_FAILURE,),
+            forward_systems=forward_systems,
             diagnostics={
                 "bad_transport_dimensions": bad_transport_dimensions,
                 "message": "Transport operator dimensions do not match the network age grid.",
@@ -516,6 +838,7 @@ def solve_network_ttd(
             graph,
             grid,
             (CODE_MISSING_MIXING_SPEC,),
+            forward_systems=forward_systems,
             diagnostics={
                 "missing_nodes": missing_mixing,
                 "allow_default_mixing": bool(allow_default_mixing),
@@ -538,6 +861,7 @@ def solve_network_ttd(
                 graph,
                 grid,
                 (CODE_OPTIMIZATION_FAILURE,),
+                forward_systems=forward_systems,
                 diagnostics={
                     "message": f"Mixing specification node_id {spec.node_id!r} does not match {nid!r}.",
                 },
@@ -547,6 +871,7 @@ def solve_network_ttd(
                 graph,
                 grid,
                 (CODE_OPTIMIZATION_FAILURE,),
+                forward_systems=forward_systems,
                 diagnostics={
                     "message": f"Recharge distribution for {nid!r} does not match the network age grid.",
                 },
@@ -558,6 +883,7 @@ def solve_network_ttd(
                 graph,
                 grid,
                 (CODE_OPTIMIZATION_FAILURE,),
+                forward_systems=forward_systems,
                 diagnostics={
                     "node_id": nid,
                     "unknown_mixing_parents": unknown_parents,
@@ -678,6 +1004,7 @@ def solve_network_ttd(
             graph,
             grid,
             (CODE_OPTIMIZATION_FAILURE,),
+            forward_systems=forward_systems,
             diagnostics={
                 "iterations": getattr(opt, "nit", None),
                 "success": bool(getattr(opt, "success", False)),
@@ -697,10 +1024,12 @@ def solve_network_ttd(
                 graph,
                 grid,
                 (CODE_OPTIMIZATION_FAILURE,),
+                forward_systems=forward_systems,
                 diagnostics={"message": f"Node {nid!r} has invalid optimized simplex mass."},
             )
         g_norm = raw_g / g_sum
         sys = forward_systems.get(nid)
+        node_provenance = _tracer_provenance(sys.tracers, system=sys)
 
         chi2 = sys.chi_squared(g_norm)
         chi2_per_observation = chi2 / max(1, sys.n_tracers)
@@ -720,11 +1049,19 @@ def solve_network_ttd(
             shannon_entropy=ent,
             chi_squared_per_observation=chi2_per_observation,
             effective_degrees_of_freedom=float("nan"),
-            diagnostics={
+            diagnostics=_diagnostics_with_provenance({
                 "regularization_semantics": "mass-aware curvature on density-equivalent vector",
                 "identifiability": "regularized point estimate; full TTD is not identified by tracer count alone",
                 **optimizer_metrics,
-            },
+            }, node_provenance),
+            inference_family=node_provenance["inference_family"],
+            claim_scope=node_provenance["claim_scope"],
+            field_validation_status=node_provenance["field_validation_status"],
+            stable_isotopes_used=node_provenance["stable_isotopes_used"],
+            radioactive_tracers_used=node_provenance["radioactive_tracers_used"],
+            source_history_required=node_provenance["source_history_required"],
+            source_history_available=node_provenance["source_history_available"],
+            reason_code=None,
         )
 
     # Edge transport discrepancy metrics
@@ -758,7 +1095,7 @@ def solve_network_ttd(
         edge_discrepancies_l2=edge_l2,
         network_sheaf_energy=total_sheaf_energy,
         abstention_reasons=(),
-        diagnostics={
+        diagnostics=_diagnostics_with_provenance({
             "elapsed_seconds": elapsed,
             "iterations": opt.nit,
             "optimization_success": opt.success,
@@ -767,5 +1104,13 @@ def solve_network_ttd(
             "node_gate_reports": node_gate_reports,
             "mixing_assumption": mixing_assumption,
             "chi_squared_semantics": "chi_squared_per_observation is descriptive; reduced_chi_squared is NaN for non-parametric simplex fits",
-        },
+        }, network_provenance),
+        inference_family=network_provenance["inference_family"],
+        claim_scope=network_provenance["claim_scope"],
+        field_validation_status=network_provenance["field_validation_status"],
+        stable_isotopes_used=network_provenance["stable_isotopes_used"],
+        radioactive_tracers_used=network_provenance["radioactive_tracers_used"],
+        source_history_required=network_provenance["source_history_required"],
+        source_history_available=network_provenance["source_history_available"],
+        reason_code=None,
     )

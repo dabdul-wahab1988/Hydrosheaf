@@ -149,6 +149,11 @@ def _replace_tokens(text: str) -> str:
 
 
 def main() -> int:
+    raise RuntimeError(
+        "Retired for this thesis revision: the current M7 Figure 5 artifact was "
+        "built from the excluded Northern Ghana scope and seasonal field audit. "
+        "Do not assemble a manuscript that includes it; M7 is synthetic-only here."
+    )
     body = "\n\n".join(path.read_text(encoding="utf-8").strip() for path in SECTION_PATHS)
     assembled = _replace_tokens(f"# {TITLE}\n\n{body}\n")
     if assembled.count("![](") != 7:

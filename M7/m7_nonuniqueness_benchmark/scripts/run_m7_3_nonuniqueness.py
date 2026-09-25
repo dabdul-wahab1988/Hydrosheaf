@@ -43,7 +43,6 @@ from strong_inference import (  # noqa: E402
 from m7_3_analysis import (  # noqa: E402
     CORE_IONS,
     ENHANCED_IONS,
-    audit_ghana_workbook,
     bootstrap_evidence_contrasts,
     bootstrap_topology_age_contrasts,
     evaluate_evidence_conditions,
@@ -61,7 +60,6 @@ DEFAULT_OUTPUT = (
 )
 DEFAULT_SIMULATOR_WORKSPACE = REPO_ROOT / ".codex_work" / "m7_3_simulators"
 DEFAULT_BIN_DIR = REPO_ROOT / ".codex_work" / "modflow-bin"
-GHANA_WORKBOOK = REPO_ROOT / "data" / "FieldData" / "NorthenGhana" / "NorthernGhana.xlsx"
 
 
 def _git_head() -> str:
@@ -326,7 +324,18 @@ def run_benchmark(
         reaction_predictions,
     )
 
-    ghana_audit = audit_ghana_workbook(GHANA_WORKBOOK)
+    approved_field_scope = {
+        "field_data_used_in_locked_benchmark": False,
+        "approved_field_cohorts": ["central_region", "upper_east_region"],
+        "field_temporal_transfer": "ABSTAIN",
+        "field_flow_truth": "ABSTAIN",
+        "field_reaction_truth": "ABSTAIN",
+        "reason": (
+            "This locked M7 benchmark uses controlled synthetic truth. The two "
+            "approved Ghana cohorts are cross-sectional and are not a valid "
+            "replacement for the retired wet/dry field branch."
+        ),
+    }
 
     development.to_csv(output / "development_edge_features.csv", index=False)
     test.to_csv(output / "locked_test_edge_features.csv", index=False)
@@ -362,8 +371,8 @@ def run_benchmark(
         json.dumps(models, indent=2, default=_json_default),
         encoding="utf-8",
     )
-    (output / "ghana_data_scope_audit.json").write_text(
-        json.dumps(ghana_audit, indent=2, default=_json_default),
+    (output / "approved_field_scope.json").write_text(
+        json.dumps(approved_field_scope, indent=2, default=_json_default),
         encoding="utf-8",
     )
 
@@ -441,27 +450,11 @@ def run_benchmark(
             }
             for tier in ("core", "enhanced")
         },
-        "ghana_scope": {
-            "environmental_age_tracer_panel_available": ghana_audit[
-                "environmental_age_tracer_panel_available"
-            ],
-            "screen_intervals_available": ghana_audit["screen_intervals_available"],
-            "time_varying_head_series_available": ghana_audit[
-                "time_varying_head_series_available"
-            ],
-            "single_occasion_head_proxy_possible": ghana_audit[
-                "single_occasion_head_proxy_possible"
-            ],
-            "coordinates_masked": ghana_audit["coordinates_masked"],
-            "independent_field_connectivity_truth_available": ghana_audit[
-                "independent_field_connectivity_truth_available"
-            ],
-        },
+        "approved_field_scope": approved_field_scope,
         "claim_guardrail": (
             "Integration is evaluated as conditional uncertainty reduction. "
-            "Synthetic truth is model-conditioned. Ghana evidence supports "
-            "component diagnostics and non-identifiability mapping, not field "
-            "age, exact topology, or reaction truth."
+            "Synthetic truth is model-conditioned. No Ghana field data are used "
+            "in this locked M7 benchmark."
         ),
     }
     (output / "manifest.json").write_text(

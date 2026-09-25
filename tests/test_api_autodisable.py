@@ -7,11 +7,177 @@ from hydrosheaf.api import (
     auto_disable_missing_modules,
     fit_network_pipeline,
     fit_network_with_priors,
+    resolve_optional_modules,
 )
 from hydrosheaf.config import Config
+from hydrosheaf.graph.types import Edge
 
 
 class AutoDisableMissingModulesTests(unittest.TestCase):
+    @staticmethod
+    def _full_sheaf_samples():
+        ions = {
+            "Ca": 1.0,
+            "Mg": 1.0,
+            "Na": 1.0,
+            "K": 1.0,
+            "HCO3": 1.0,
+            "Cl": 1.0,
+            "SO4": 1.0,
+            "NO3": 1.0,
+            "F": 1.0,
+            "Fe": 1.0,
+            "PO4": 1.0,
+        }
+        return [
+            {
+                "site_id": "A",
+                **ions,
+                "18O": -5.0,
+                "2H": -35.0,
+                "3H": 2.0,
+                "sample_date": "2020-01-01",
+                "head_meas": 100.0,
+                "elevation": 110.0,
+                "apparent_resistivity_ohm_m": 100.0,
+            },
+            {
+                "site_id": "B",
+                **ions,
+                "18O": -5.1,
+                "2H": -35.5,
+                "3H": 1.8,
+                "sample_date": "2020-01-01",
+                "head_meas": 95.0,
+                "elevation": 105.0,
+                "apparent_resistivity_ohm_m": 120.0,
+            },
+        ]
+
+    def test_automatic_optional_stack_enables_available_components(self):
+        samples = self._full_sheaf_samples()
+        candidates = [
+            Edge(
+                edge_id="A->B",
+                u="A",
+                v="B",
+                attrs={"edge_confidence": 0.9, "length_m": 100.0},
+            )
+        ]
+
+        resolved, decisions = resolve_optional_modules(
+            samples,
+            Config(phreeqc_enabled=False),
+            candidate_edges=candidates,
+        )
+
+        self.assertTrue(resolved.sheaf_age_enabled)
+        self.assertTrue(resolved.sheaf_isotope_enabled)
+        self.assertTrue(resolved.sheaf_cl_enabled)
+        self.assertTrue(resolved.topology_posterior_enabled)
+        self.assertTrue(resolved.sheaf_cohomology_enabled)
+        self.assertTrue(resolved.hydraulic_hodge_enabled)
+        self.assertTrue(resolved.geophysics_enabled)
+        self.assertTrue(resolved.geophysics_conductivity_conditioning)
+        self.assertFalse(resolved.geophysics_snmr_k_enabled)
+        self.assertEqual(decisions["topology_posterior_enabled"]["status"], "auto_enabled")
+
+    def test_automatic_optional_stack_disables_modules_without_inputs(self):
+        samples = [{"site_id": "A"}, {"site_id": "B"}]
+        candidates = [Edge(edge_id="A->B", u="A", v="B")]
+
+        resolved, decisions = resolve_optional_modules(
+            samples,
+            Config(phreeqc_enabled=False),
+            candidate_edges=candidates,
+        )
+
+        self.assertFalse(resolved.sheaf_age_enabled)
+        self.assertFalse(resolved.sheaf_isotope_enabled)
+        self.assertFalse(resolved.sheaf_cl_enabled)
+        self.assertFalse(resolved.topology_posterior_enabled)
+        self.assertFalse(resolved.sheaf_cohomology_enabled)
+        self.assertFalse(resolved.hydraulic_hodge_enabled)
+        self.assertFalse(resolved.geophysics_enabled)
+        self.assertFalse(decisions["topology_posterior_enabled"]["enabled"])
+        self.assertEqual(
+            decisions["topology_posterior_enabled"]["status"], "auto_disabled"
+        )
+
+    def test_pipeline_reports_auto_disabled_optional_modules(self):
+        samples = [{"site_id": "A"}, {"site_id": "B"}]
+        with mock.patch("hydrosheaf.api.fit_network", return_value=[]):
+            _, extras = fit_network_pipeline(
+                samples,
+                [("A", "B")],
+                Config(phreeqc_enabled=False),
+            )
+
+        status = extras["optional_module_status"]
+        self.assertEqual(
+            status["topology_posterior_enabled"]["status"], "auto_disabled"
+        )
+        self.assertEqual(status["sheaf_cohomology_enabled"]["status"], "auto_disabled")
+        self.assertEqual(status["hydraulic_hodge_enabled"]["status"], "auto_disabled")
+        self.assertEqual(extras["stage_status"]["sheaf_refinement"]["status"], "auto_disabled")
+
+    def test_explicit_sheaf_stage_false_overrides_auto_topology(self):
+        samples = self._full_sheaf_samples()
+        config = Config(
+            phreeqc_enabled=False,
+            isotope_enabled=False,
+            nitrate_source_enabled=False,
+            sheaf_age_enabled=False,
+        )
+        with mock.patch("hydrosheaf.api.refine_edges_with_sheaf") as mocked_refine:
+            with mock.patch("hydrosheaf.api.fit_network", return_value=[]):
+                _, extras = fit_network_pipeline(
+                    samples,
+                    [("A", "B")],
+                    config,
+                    sheaf_refinement_enabled=False,
+                )
+
+        mocked_refine.assert_not_called()
+        self.assertEqual(
+            extras["stage_status"]["sheaf_refinement"]["status"],
+            "not_requested",
+        )
+        self.assertEqual(
+            extras["optional_module_status"]["topology_posterior_enabled"]["status"],
+            "auto_enabled",
+        )
+
+    def test_pipeline_passes_auto_enabled_stack_to_sheaf(self):
+        samples = self._full_sheaf_samples()
+        config = Config(
+            phreeqc_enabled=False,
+            isotope_enabled=False,
+            nitrate_source_enabled=False,
+            sheaf_age_enabled=False,
+        )
+        captured = {}
+
+        def _fake_refine(rows, edges, config_arg):
+            captured["config"] = config_arg
+            return list(edges)
+
+        with mock.patch(
+            "hydrosheaf.api.refine_edges_with_sheaf", side_effect=_fake_refine
+        ):
+            with mock.patch("hydrosheaf.api.fit_network", return_value=[]):
+                _, extras = fit_network_pipeline(samples, [("A", "B")], config)
+
+        self.assertTrue(captured["config"].topology_posterior_enabled)
+        self.assertTrue(captured["config"].sheaf_cohomology_enabled)
+        self.assertTrue(captured["config"].sheaf_isotope_enabled)
+        self.assertTrue(captured["config"].sheaf_cl_enabled)
+        self.assertTrue(captured["config"].hydraulic_hodge_enabled)
+        self.assertTrue(captured["config"].geophysics_enabled)
+        self.assertEqual(
+            extras["stage_status"]["sheaf_refinement"]["status"], "completed"
+        )
+
     def test_disables_all_when_data_missing(self):
         config = Config(
             phreeqc_enabled=True, isotope_enabled=True, nitrate_source_enabled=True

@@ -134,6 +134,10 @@ def process_site(site_name, csv_file, active_minerals, n_trials=30, max_edges=No
     return results
 
 def main():
+    raise RuntimeError(
+        "The historical M2 PSI runner consumes cached legacy field edges and "
+        "is retired; it is not valid for refined CR/UER inputs."
+    )
     parser = argparse.ArgumentParser(description="Generate M2 field edge process-stability probabilities.")
     parser.add_argument("--trials", type=int, default=30, help="Monte Carlo trials per edge.")
     parser.add_argument("--max-edges-per-site", type=int, default=None, help="Optional smoke-test edge limit per site.")

@@ -54,6 +54,10 @@ def load_samples(csv_file: Path) -> dict[str, dict[str, float]]:
 
 
 def main() -> None:
+    raise RuntimeError(
+        "This revision analysis consumes legacy M2 field edge outputs and is "
+        "retired; do not use it as current CR/UER evidence."
+    )
     parser = argparse.ArgumentParser(description="Audit PSI separation for selected degenerate reaction pairs.")
     parser.add_argument(
         "--max-edges-per-site",

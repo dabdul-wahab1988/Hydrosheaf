@@ -32,6 +32,11 @@ def _config() -> Config:
         sheaf_age_travel_cost_weight=0.0,
         sheaf_age_adjacency_enabled=True,
         sheaf_age_adjacency_weight=1.0,
+        # Keep this test focused on age-adjacency scoring. The automatic
+        # topology posterior is exercised separately and otherwise works on a
+        # private candidate copy, so annotations would not be written back to
+        # the local fixture edges inspected below.
+        topology_posterior_enabled=False,
         sheaf_max_iter=1,
     )
 

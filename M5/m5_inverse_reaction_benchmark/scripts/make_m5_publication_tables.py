@@ -17,8 +17,9 @@ from m5_common import ION_ORDER, REACTIONS, reaction_matrix  # noqa: E402
 
 
 BENCHMARK_DIR = Path(__file__).resolve().parents[1]
-RESULTS_DIR = BENCHMARK_DIR / "results"
-TABLES_DIR = BENCHMARK_DIR / "tables"
+RUN_DIR = REPO_ROOT / ".codex_work" / "runs" / "REFINED-CR-UER-20260922-01" / "M5_synthetic"
+RESULTS_DIR = RUN_DIR / "results"
+TABLES_DIR = RUN_DIR / "tables"
 METHOD_LABELS = {
     "bounded_ls": "Bounded LS",
     "lasso": "Lasso",
@@ -257,33 +258,6 @@ def supplementary_tables() -> None:
     ]
     write(pd.DataFrame(environment), "tableS9_software_environment.csv")
 
-    field = pd.read_csv(RESULTS_DIR / "ghana_field_pairs.csv")
-    field_rows = []
-    for region, group in field.groupby("region"):
-        field_rows.append(
-            {
-                "Region": region,
-                "Wet-dry pairs": len(group),
-                "Districts": group["district"].nunique(),
-                "Median MRS": group["mechanism_resolution_score"].median(),
-                "Median held-out RMSE (mmol/L)": group[
-                    "mean_heldout_rmse_mmolL"
-                ].median(),
-                "Median support stability": group["support_stability"].median(),
-                "Identifiable (%)": 100.0
-                * group["resolution_class"].eq("identifiable").mean(),
-                "Equivalence-class (%)": 100.0
-                * group["resolution_class"].eq("equivalence_class").mean(),
-                "Partially identifiable (%)": 100.0
-                * group["resolution_class"].eq(
-                    "partially_identifiable"
-                ).mean(),
-                "Non-identifiable (%)": 100.0
-                * group["resolution_class"].eq("non_identifiable").mean(),
-            }
-        )
-    write(pd.DataFrame(field_rows), "tableS10_northern_ghana_summary.csv")
-
     baseline_path = RESULTS_DIR / "phreeqc_inverse_baseline.csv"
     if baseline_path.exists():
         baseline = pd.read_csv(baseline_path)
@@ -335,28 +309,6 @@ def supplementary_tables() -> None:
             .sort_values("mean_evidence_score", ascending=False)
         )
         write(evidence_summary, "tableS12_hydrosheaf_core_evidence_gates.csv")
-
-    field_evidence_path = RESULTS_DIR / "ghana_field_hydrosheaf_core_evidence.csv"
-    if field_evidence_path.exists():
-        field_evidence = pd.read_csv(field_evidence_path)
-        field_evidence_summary = (
-            field_evidence.groupby(["region", "reaction", "family"])
-            .agg(
-                support_frequency=("selected", "mean"),
-                mean_evidence_score=(
-                    "hydrosheaf_core_evidence_score",
-                    "mean",
-                ),
-                median_penalty_scale=("penalty_scale", "median"),
-                n=("well_id", "count"),
-            )
-            .reset_index()
-            .sort_values(["region", "support_frequency"], ascending=[True, False])
-        )
-        write(
-            field_evidence_summary,
-            "tableS13_ghana_hydrosheaf_core_evidence.csv",
-        )
 
     data_tier_path = RESULTS_DIR / "data_tier_experiment.csv"
     if data_tier_path.exists():
@@ -441,36 +393,8 @@ def supplementary_tables() -> None:
             "tableS16_evidence_lifted_resolution.csv",
         )
 
-    external_resolution_path = (
-        RESULTS_DIR / "external_field_evidence_lifted_resolution.csv"
-    )
-    if external_resolution_path.exists():
-        external_resolution = pd.read_csv(external_resolution_path)
-        external_summary = (
-            external_resolution.groupby(["dataset", "data_tier", "class_id", "members"])
-            .agg(
-                mean_elri=("evidence_lifted_resolution_index", "mean"),
-                median_elri=("evidence_lifted_resolution_index", "median"),
-                mean_top_probability=("top_probability", "mean"),
-                conditionally_preferred_or_resolved_fraction=(
-                    "resolution_status",
-                    lambda values: values.isin(
-                        [
-                            "conditionally_preferred",
-                            "evidence_lifted_resolved",
-                        ]
-                    ).mean(),
-                ),
-                n_edges=("edge_id", "nunique"),
-                n_class_evaluations=("edge_id", "count"),
-            )
-            .reset_index()
-            .sort_values(["dataset", "data_tier", "class_id"])
-        )
-        write(
-            external_summary,
-            "tableS17_external_field_evidence_lifted_resolution.csv",
-        )
+    # The prior external-field table is intentionally not rebuilt from cached
+    # CSVs: M5 is synthetic-only, and a legacy file may still exist beside it.
 
 
 def main() -> None:

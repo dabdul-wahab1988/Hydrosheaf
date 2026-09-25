@@ -12,14 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "M6" / "m6_field_transfer_benchmark" / "configs" / "ghana_prospective_campaign.json"
 
 
-def test_protocol_declares_all_four_packages_and_abstain_gates() -> None:
+def test_protocol_declares_only_approved_cohorts_and_abstain_gates() -> None:
     protocol = json.loads(CONFIG.read_text(encoding="utf-8"))
     assert protocol["status"] == "PROTOCOL_ONLY"
     assert {item["package_id"] for item in protocol["current_field_packages"]} == {
-        "lower_anayari",
-        "northen_ghana",
-        "northern_ghana_new",
-        "talensi_mining_area",
+        "central_region",
+        "upper_east_region",
     }
     assert "independent_direct_adjacency_truth" not in protocol["estimands"]
     assert "direct_edge_gate" in protocol["analysis_gates"]
@@ -28,7 +26,8 @@ def test_protocol_declares_all_four_packages_and_abstain_gates() -> None:
 
 def test_readiness_audit_keeps_field_transfer_and_truth_gates_separate(tmp_path: Path) -> None:
     report = run(output=tmp_path / "RUN-GHANA-PROSPECTIVE-TEST")
-    assert report["module_status"]["four_package_transfer"] == "RUN"
+    assert report["module_status"]["approved_cohort_transfer"] == "RUN"
+    assert report["module_status"]["temporal_field_transfer"] == "ABSTAIN"
     assert report["module_status"]["geochemical_ratios"] == "RUN"
     assert all(row["reaction_screening"] == "RUN" for row in report["dataset_statuses"])
     assert report["module_status"]["independent_age_accuracy"] == "ABSTAIN"

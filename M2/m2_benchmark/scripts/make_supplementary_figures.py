@@ -250,42 +250,16 @@ def plot_s2_geochemical_validation() -> None:
     _save_supp(fig, "Manuscript_Supp_FigS2_Geochemical_Validation.png")
 
 def plot_s4_field_performance() -> None:
-    """Figure S3: Field Data Discovery Match (Ghana Site Residuals)."""
-    path = RESULT_DIR / "field_discovery_results.csv"
-    if not path.exists():
-        print("Skipping S3: Field discovery results not found.")
-        return
-
-    df = pd.read_csv(path)
-    df["site"] = df["edge_id"].apply(lambda x: "Manu" if "Manu" in x else "Talensi")
-
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 7))
-
-    sites = [("Manu", ax1, COLOR_PRIMARY, "Lower Anayari (Manu)"),
-             ("Talensi", ax2, COLOR_WARNING, "Talensi Mining Area")]
-
-    for site_name, ax, color, title in sites:
-        data = df[df["site"] == site_name]["chemistry_r2"]
-        ax.hist(data, bins=15, color=color, alpha=0.7, edgecolor="white")
-        ax.axvline(data.median(), color=COLOR_ACCENT, ls="--", lw=2,
-                   label=f"Median $R^2$: {data.median():.2f}")
-        ax.set_title(f"Discovery Fit: {title}", fontsize=FONT_TITLE, fontweight="bold")
-        ax.set_xlabel(r"Chemical Match ($R^2$)", fontsize=FONT_LABEL, fontweight="bold")
-        ax.set_ylabel("Edge Count", fontsize=FONT_LABEL, fontweight="bold")
-        ax.set_xlim(0, 1.05)
-        ax.legend(loc="upper left", fontsize=FONT_LEGEND)
-        ax.grid(True, which="major", ls="-", alpha=GRID_ALPHA)
-        ax.tick_params(labelsize=FONT_TICK)
-
-    fig.tight_layout()
-    _save_supp(fig, "Manuscript_Supp_FigS3_Ghana_Field_Residuals.png")
+    raise RuntimeError(
+        "The historical Ghana field-residual figure is retired; refusing to "
+        "read cached legacy field-discovery outputs."
+    )
 
 def main() -> None:
     print("Generating M2 Supplementary Figures for Manuscript...")
     plot_s1_age_parity()
     plot_s2_geochemical_validation()
-    plot_s4_field_performance()
-    print("Done. Figures saved to 'figures/Manuscript_Ready/'.")
+    print("Done. Synthetic/public-reference figures generated; legacy field figure skipped.")
 
 if __name__ == "__main__":
     main()

@@ -1,13 +1,13 @@
-"""Auditable harmonisation of the available groundwater field datasets.
+"""Read-only harmonisation of the approved refined field cohorts.
 
-The repository contains four field-data packages with deliberately different
-schemas and analytical coverage.  This module is the single, read-only
-boundary between those native files and HydroSheaf's internal sample schema.
-It converts concentrations to ``mmol/L``, preserves native values/metadata,
-records source hashes, and leaves unavailable observations as ``None`` rather
-than manufacturing zeros.  The loader does not infer flow truth or lithology
-from chemistry; mapped geology is accepted only through an explicitly supplied
-join table.
+For current field analysis, only the completed Central Region and Upper East
+Region integration workbooks are eligible inputs.  Historical field packages
+are deliberately not exposed through this loader, so a default field run
+cannot silently pool them with the approved cohorts.  Concentrations are read
+from the workbooks' explicit ``mmol/L`` fields; unavailable observations stay
+``None`` rather than being replaced by zero.  Mapped geology already present
+in the completed workbook is retained as context, never as flow or reaction
+truth.
 
 The public helpers are intentionally dependency-light (``pandas`` is used only
 for CSV/XLSX decoding) so that field-data audits can run without the inference
@@ -24,16 +24,12 @@ from typing import Any, Mapping, Optional, Sequence
 
 import pandas as pd
 
-from .units import mgL_to_mmolL
+from .units import get_species_molar_mass
 
 
 FIELD_DATA_RELATIVE_PATHS: dict[str, Path] = {
-    "lower_anayari": Path("LowerAnayari") / "manu.csv",
-    # The spelling is part of the on-disk provenance and is retained for
-    # compatibility with the canonical repository package.
-    "northen_ghana": Path("NorthenGhana") / "NorthernGhana.xlsx",
-    "northern_ghana_new": Path("NorthernGhanaNew") / "compiled UER data_new.xlsx",
-    "talensi_mining_area": Path("Talensi_MiningArea") / "talensi.csv",
+    "central_region": Path("CRdata") / "CentralRegion_completed.xlsx",
+    "upper_east_region": Path("UERdata") / "compiled UER data_new_completed.xlsx",
 }
 
 CANONICAL_IONS: tuple[str, ...] = (
@@ -50,12 +46,13 @@ CANONICAL_IONS: tuple[str, ...] = (
     "PO4",
     "SiO2",
     "Sr",
+    "B",
+    "Br",
+    "Mn",
+    "As",
+    "Li",
+    "Ba",
 )
-
-# Species not in data.units because they are optional diagnostic tracers in the
-# core model.  Values are mg per mmol (numerically the molar mass in g/mol).
-_OPTIONAL_MOLAR_MASS = {"SiO2": 60.0843, "Sr": 87.62}
-
 
 def _finite(value: Any) -> Optional[float]:
     try:
@@ -71,10 +68,10 @@ def _safe_mmol(value: Any, ion: str, *, unit: str = "mg/L") -> Optional[float]:
         return None
     if unit.lower().replace(" ", "") in {"mmol/l", "mmol_l", "mmoll"}:
         return number
-    if ion in _OPTIONAL_MOLAR_MASS:
-        return number / _OPTIONAL_MOLAR_MASS[ion]
     try:
-        return mgL_to_mmolL(number, ion)
+        # Concentration conversion uses the live registry rather than a
+        # field-module copy of optional molar masses.
+        return number / get_species_molar_mass(ion)
     except KeyError:
         return None
 
@@ -165,6 +162,11 @@ def _base_record(
         "temp_c": None,
         "18O": None,
         "2H": None,
+        # Explicit unit-bearing Boron field for nitrate source forensics.  The
+        # canonical ``B`` field remains mmol/L for chemistry vectors.
+        "B_ug_L": None,
+        "d11B": None,
+        "sr_ratio_87_86": None,
         "coordinate_quality": "unavailable",
         "geology_join_status": "unavailable",
         "geology_source_hash": None,
@@ -177,6 +179,52 @@ def _base_record(
 def _fill_mgL(record: dict[str, Any], source: Mapping[str, Any], mapping: Mapping[str, str]) -> None:
     for ion, column in mapping.items():
         record[ion] = _safe_mmol(source.get(column), ion)
+
+
+_OPTIONAL_DIAGNOSTIC_ALIASES: dict[str, tuple[str, ...]] = {
+    "B": ("B", "B_mg_L", "B mg/L", "Boron", "Boron_mg_L"),
+    "Br": ("Br", "Br_mg_L", "Br mg/L", "Bromide", "Bromide_mg_L"),
+    "Mn": ("Mn", "Mn_mg_L", "Mn mg/L", "Manganese", "Manganese_mg_L"),
+    "As": ("As", "As_mg_L", "As mg/L", "Arsenic", "Arsenic_mg_L"),
+    "Li": ("Li", "Li_mg_L", "Li mg/L", "Lithium", "Lithium_mg_L"),
+    "Ba": ("Ba", "Ba_mg_L", "Ba mg/L", "Barium", "Barium_mg_L"),
+    "SiO2": ("SiO2", "SiO2_mg_L", "SiO2 mg/L", "Silica", "Silica_mg_L"),
+    "Sr": ("Sr", "Sr_mg_L", "Sr mg/L", "Strontium", "Strontium_mg_L"),
+}
+
+
+def _fill_optional_diagnostics(
+    record: dict[str, Any], source: Mapping[str, Any]
+) -> None:
+    """Copy optional diagnostic tracers without inventing missing values."""
+    for ion, aliases in _OPTIONAL_DIAGNOSTIC_ALIASES.items():
+        if record.get(ion) is not None:
+            continue
+        for column in aliases:
+            if column in source:
+                value = _safe_mmol(source.get(column), ion)
+                if value is not None:
+                    record[ion] = value
+                    break
+
+    for column in ("B_ug_L", "B_ug/L", "B µg/L", "B (ug/L)", "Boron_ug_L"):
+        if column in source:
+            record["B_ug_L"] = _finite(source.get(column))
+            break
+    for column in ("d11B", "δ11B", "delta11B", "d11B_permil", "δ11B_permil"):
+        if column in source:
+            record["d11B"] = _finite(source.get(column))
+            break
+    for column in (
+        "sr_ratio_87_86",
+        "87Sr/86Sr",
+        "87Sr_86Sr",
+        "Sr87_Sr86",
+        "Sr_ratio",
+    ):
+        if column in source:
+            record["sr_ratio_87_86"] = _finite(source.get(column))
+            break
 
 
 def _fill_common(
@@ -196,6 +244,126 @@ def _fill_common(
     record["temp_c"] = _finite(source.get(temp))
     record["18O"] = _finite(source.get(d18))
     record["2H"] = _finite(source.get(d2h))
+
+
+def _load_refined_field_integration(
+    path: Path,
+    *,
+    dataset: str,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Read a completed field-integration sheet without imputing chemistry.
+
+    The completed workbook is the source artifact.  This loader deliberately
+    uses its harmonised ``GW_Field_Integration`` sheet rather than reconstructing
+    measurements from a different, older workbook or joining external files.
+    """
+
+    frame = pd.read_excel(path, sheet_name="GW_Field_Integration")
+    required = {
+        "node_id",
+        "site_id",
+        "sample_no",
+        "latitude_dd",
+        "longitude_dd",
+        "elevation_m",
+        "pH",
+        "ec_uS_cm",
+        "ca_mmol_L",
+        "mg_mmol_L",
+        "na_mmol_L",
+        "k_mmol_L",
+        "hco3_mmol_L",
+        "cl_mmol_L",
+        "so4_mmol_L",
+        "no3_mmol_L",
+    }
+    missing = sorted(required - set(frame.columns))
+    if missing:
+        raise ValueError(f"{path} is missing required integration columns: {missing}")
+    identifiers = frame["node_id"].astype("string").str.strip()
+    if identifiers.isna().any() or identifiers.eq("").any():
+        raise ValueError(f"{path} contains missing node_id values")
+    if identifiers.duplicated().any():
+        duplicate_ids = identifiers[identifiers.duplicated(keep=False)].tolist()
+        raise ValueError(f"{path} contains duplicate node_id values: {duplicate_ids[:5]}")
+
+    records: list[dict[str, Any]] = []
+    for row_index, row in frame.iterrows():
+        native = row.to_dict()
+        sample_id = str(native["node_id"]).strip()
+        site_id = str(native.get("site_id") or sample_id).strip()
+        record = _base_record(
+            dataset=dataset,
+            sample_id=sample_id,
+            site_id=site_id,
+            native_row=int(row_index) + 2,
+        )
+        record["sample_no"] = _finite(native.get("sample_no"))
+        record["community"] = native.get("community")
+        record["sample_type"] = native.get("sample_type")
+        record["lat"] = _finite(native.get("latitude_dd"))
+        record["lon"] = _finite(native.get("longitude_dd"))
+        record["utm_easting_m"] = _finite(native.get("utm_easting_m"))
+        record["utm_northing_m"] = _finite(native.get("utm_northing_m"))
+        record["elevation"] = _finite(native.get("elevation_m"))
+        record["elevation_source"] = native.get("elevation_source")
+        record["coordinate_quality"] = native.get("coordinate_quality") or "unavailable"
+        record["pH"] = _finite(native.get("pH"))
+        record["EC"] = _finite(native.get("ec_uS_cm"))
+        record["TDS"] = _finite(native.get("tds_mg_L"))
+        record["tds_source"] = native.get("tds_source")
+        record["well_depth"] = _finite(native.get("well_depth_m"))
+        record["static_water_level"] = _finite(native.get("swl_m"))
+        record["screen_top"] = _finite(native.get("screen_top_m"))
+        record["screen_bottom"] = _finite(native.get("screen_bottom_m"))
+        # Only the Central workbook supplies this calculated head field.  The
+        # Upper East elevation proxy is intentionally not promoted to head.
+        record["hydraulic_head"] = _finite(native.get("hydraulic_head_m"))
+        record["hydraulic_head_inference_tier"] = native.get("head_inference_tier")
+        record["18O"] = _finite(native.get("d18O_permil"))
+        record["2H"] = _finite(native.get("d2H_permil"))
+        record["3H"] = _finite(native.get("tritium_TU"))
+        record["d15N_NO3"] = _finite(native.get("d15N_NO3_permil_air"))
+        record["d18O_NO3"] = _finite(native.get("d18O_NO3_permil_VSMOW"))
+        record["d_excess"] = _finite(native.get("d_excess_permil"))
+        record["geology_join_status"] = native.get("geology_join_status") or "unavailable"
+        for field_name in (
+            "geology_stratigraphic_unit",
+            "geology_stratigraphic_formation",
+            "geology_symbol",
+            "geology_tectonic_domain",
+            "geology_sub_domain",
+            "geology_metamorphic_grade",
+            "geology_legend_text",
+            "geology_boundary_distance_m",
+            "cation_facies",
+            "anion_facies",
+            "facies_label",
+            "cbe_percent",
+            "cbe_class",
+            "sample_date",
+            "temperature_c",
+        ):
+            if field_name in native:
+                record[field_name] = native[field_name]
+        for ion in CANONICAL_IONS:
+            record[ion] = _finite(native.get(f"{ion.lower()}_mmol_L"))
+        record["B_ug_L"] = _finite(native.get("b_ug_L"))
+        record["d11B"] = _finite(native.get("d11B_permil"))
+        record["sr_ratio_87_86"] = _finite(native.get("sr_ratio_87_86"))
+        records.append(record)
+
+    metadata = {
+        "source_sheet": "GW_Field_Integration",
+        "native_columns": _native_columns(frame),
+        "sheet_names": list(pd.ExcelFile(path).sheet_names),
+        "source_dataset_label_ignored_for_cohort_identity": "dataset" in frame.columns,
+        "missing_value_policy": "preserve_missing_no_zero_imputation",
+        "hydraulic_head_policy": (
+            "use workbook hydraulic_head_m only; never substitute elevation"
+        ),
+    }
+    return records, metadata
 
 
 def _load_lower_anayari(path: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
@@ -230,6 +398,7 @@ def _load_lower_anayari(path: Path) -> tuple[list[dict[str, Any]], dict[str, Any
         record["coordinate_quality"] = "decimal_source_labels"
         _fill_common(record, native, ec="EC", tds="TDS", temp="Temp")
         _fill_mgL(record, native, mapping)
+        _fill_optional_diagnostics(record, native)
         records.append(record)
     return records, {"native_columns": _native_columns(frame), "sheet_names": []}
 
@@ -270,6 +439,7 @@ def _load_talensi(path: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         record["Sal"] = _finite(native.get("Sal"))
         _fill_common(record, native, ec="EC", tds="TDS", temp="Temp")
         _fill_mgL(record, native, mapping)
+        _fill_optional_diagnostics(record, native)
         records.append(record)
     return records, {"native_columns": _native_columns(frame), "sheet_names": []}
 
@@ -328,6 +498,7 @@ def _load_northern_ghana(path: Path) -> tuple[list[dict[str, Any]], dict[str, An
                 d2h="d2H_permil",
             )
             _fill_mgL(record, native, mapping)
+            _fill_optional_diagnostics(record, native)
             records.append(record)
     return records, {"native_columns": sheet_columns, "sheet_names": ["Dry", "Wet"]}
 
@@ -389,6 +560,7 @@ def _load_northern_ghana_new(
             d2h="δ2H",
         )
         _fill_mgL(record, native, mapping)
+        _fill_optional_diagnostics(record, native)
         record["3H"] = _finite(native.get("    3H"))
         record["d15N"] = _finite(native.get("d15N-NO3 (Air)"))
         record["d18O_NO3"] = _finite(native.get("d18O-NO3 (VSMOW)"))
@@ -566,7 +738,21 @@ class FieldDataset:
         keys = tuple(
             dict.fromkeys(
                 CANONICAL_IONS
-                + ("pH", "18O", "2H", "elevation", "well_depth", "static_water_level")
+                + (
+                    "pH",
+                    "18O",
+                    "2H",
+            "B_ug_L",
+            "d11B",
+            "sr_ratio_87_86",
+            "elevation",
+            "well_depth",
+            "static_water_level",
+            "hydraulic_head",
+            "3H",
+            "d15N_NO3",
+            "d18O_NO3",
+        )
             )
         )
         return {
@@ -597,17 +783,10 @@ def default_field_data_root(repo_root: Optional[Path] = None) -> Path:
     return Path(__file__).resolve().parents[2] / "data" / "FieldData"
 
 
-def _default_geology_join_path(field_root: Path) -> Optional[Path]:
-    # This helper is retained for the alternate workbook; canonical packages
-    # use the package-specific sidecars selected in ``load_field_dataset``.
-    candidate = field_root.parent.parent / "outputs" / "2026-09-05_northern_ghana_geology_join" / "NorthernGhanaNew_geology_join.csv"
-    return candidate if candidate.exists() else None
-
-
 def _load_auxiliary_tables(path: Path, sheet_names: Sequence[str]) -> dict[str, tuple[Mapping[str, Any], ...]]:
     tables: dict[str, tuple[Mapping[str, Any], ...]] = {}
     for sheet in sheet_names:
-        if sheet == "GW":
+        if sheet in {"GW", "GW_Field_Integration"}:
             continue
         try:
             frame = pd.read_excel(path, sheet_name=sheet)
@@ -626,76 +805,36 @@ def load_field_dataset(
     geology_join_path: Optional[Path] = None,
     elevation_dem_path: Optional[Path] = None,
 ) -> FieldDataset:
-    """Load one of the four canonical field-data packages."""
+    """Load one approved refined field cohort by canonical name.
 
-    key = str(name).strip().lower()
+    Historical or otherwise excluded dataset names are rejected, not mapped
+    onto one of the approved cohorts.
+    """
+
+    key = "_".join(str(name).strip().lower().replace("-", " ").split())
     aliases = {
-        "loweranayari": "lower_anayari",
-        "manu": "lower_anayari",
-        "northenghana": "northen_ghana",
-        "northern_ghana": "northen_ghana",
-        "northernghananew": "northern_ghana_new",
-        "northern_ghana_new": "northern_ghana_new",
-        "talensi": "talensi_mining_area",
-        "talensi_miningarea": "talensi_mining_area",
+        "central": "central_region",
+        "cr": "central_region",
+        "upper_east": "upper_east_region",
+        "uer": "upper_east_region",
     }
     key = aliases.get(key, key)
     if key not in FIELD_DATA_RELATIVE_PATHS:
         raise ValueError(f"Unknown field dataset {name!r}; choose {sorted(FIELD_DATA_RELATIVE_PATHS)}")
+    if geology_join_path is not None or elevation_dem_path is not None:
+        raise ValueError(
+            "The approved-cohort loader reads completed integration workbooks; "
+            "external sidecar joins are not accepted."
+        )
     root = default_field_data_root(field_root)
     source = root / FIELD_DATA_RELATIVE_PATHS[key]
     if not source.exists():
         raise FileNotFoundError(source)
-
-    join_root = root.parent.parent / "outputs" / "2026-09-05_multi_geology_join"
-    if key == "lower_anayari":
-        records, metadata = _load_lower_anayari(source)
-        join = geology_join_path or (join_root / "LowerAnayari_geology_join.csv")
-        if join.exists():
-            _attach_geology_join(records, join, key_mode="sample_id")
-            metadata["geology_join_path"] = str(join)
-            metadata["geology_join_sha256"] = _sha256(join)
-    elif key == "talensi_mining_area":
-        records, metadata = _load_talensi(source)
-        join = geology_join_path or (join_root / "Talensi_geology_join.csv")
-        if join.exists():
-            _attach_geology_join(records, join, key_mode="sample_id")
-            metadata["geology_join_path"] = str(join)
-            metadata["geology_join_sha256"] = _sha256(join)
-    elif key == "northen_ghana":
-        records, metadata = _load_northern_ghana(source)
-        join = geology_join_path or (join_root / "NorthernGhanaData_geology_join.csv")
-        if join.exists():
-            _attach_geology_join(records, join, key_mode="well_season")
-            metadata["geology_join_path"] = str(join)
-            metadata["geology_join_sha256"] = _sha256(join)
-    else:
-        join_path = geology_join_path
-        if join_path is None:
-            join_path = _default_geology_join_path(root)
-        dem_path = elevation_dem_path
-        if dem_path is None:
-            candidate_dem = root / "derived" / "uer_elevations_dem.csv"
-            if candidate_dem.exists():
-                dem_path = candidate_dem
-        records, metadata = _load_northern_ghana_new(
-            source,
-            geology_join_path=join_path,
-            elevation_dem_path=dem_path,
-        )
-
-    auxiliary = {}
-    if key == "northern_ghana_new":
-        auxiliary = _load_auxiliary_tables(source, metadata.get("sheet_names", ()))
-    metadata.setdefault("canonical_ion_unit", "mmol/L")
-    metadata.setdefault("source_ion_unit", "mg/L")
-    metadata.setdefault(
-        "source_ion_unit_status",
-        "declared_by_header_or_units_row"
-        if key in {"northen_ghana", "northern_ghana_new"}
-        else "not_declared_in_native_header_loader_contract_only",
-    )
-    metadata.setdefault("missing_value_policy", "preserve_none_no_zero_imputation")
+    records, metadata = _load_refined_field_integration(source, dataset=key)
+    metadata["canonical_ion_unit"] = "mmol/L"
+    metadata["source_ion_unit"] = "completed_workbook_mmoll_columns"
+    metadata["source_ion_unit_status"] = "explicit_column_names"
+    auxiliary = _load_auxiliary_tables(source, metadata.get("sheet_names", ()))
     return FieldDataset(
         name=key,
         source_path=str(source),
@@ -712,14 +851,18 @@ def load_all_field_datasets(
     geology_join_path: Optional[Path] = None,
     elevation_dem_path: Optional[Path] = None,
 ) -> dict[str, FieldDataset]:
-    """Load all four packages without mutating any source file."""
+    """Load only the approved Central Region and Upper East Region cohorts."""
+
+    if geology_join_path is not None or elevation_dem_path is not None:
+        raise ValueError(
+            "The approved-cohort loader reads completed integration workbooks; "
+            "external sidecar joins are not accepted."
+        )
 
     return {
         key: load_field_dataset(
             key,
             field_root=field_root,
-            geology_join_path=geology_join_path,
-            elevation_dem_path=elevation_dem_path,
         )
         for key in FIELD_DATA_RELATIVE_PATHS
     }
@@ -762,7 +905,7 @@ def field_data_manifest(
     field_root: Optional[Path] = None,
     geology_join_path: Optional[Path] = None,
 ) -> dict[str, Any]:
-    """Return JSON-serialisable provenance and coverage for all packages."""
+    """Return JSON-serialisable provenance and coverage for approved cohorts."""
 
     datasets = load_all_field_datasets(
         field_root=field_root,

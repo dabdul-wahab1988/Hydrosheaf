@@ -277,29 +277,19 @@ def write_hyperparameters() -> None:
 
 
 def write_pilot_metadata() -> None:
-    rows = []
-    specs = [
-        ("Talensi", PROJECT_ROOT / "data" / "FieldData" / "Talensi_MiningArea" / "talensi.csv", "Code", "Latitude", "Longitude", "Crystalline basement", "Mining/Agri"),
-        ("Lower Anayari", PROJECT_ROOT / "data" / "FieldData" / "LowerAnayari" / "manu.csv", "Sample ID", "Y coordinate", "X coordinate", "Alluvial/Basement", "Agriculture"),
+    rows = [
+        {
+            "Site": "Historical field pilots (retired)",
+            "Sample ID": "",
+            "Latitude": "",
+            "Longitude": "",
+            "Elevation (m)": "",
+            "Aquifer setting": "Not used as current source truth",
+            "Land-use/mining influence": "Not re-evaluated",
+            "Available tracers": "Not reported",
+            "Completeness score": "Not assessed",
+        }
     ]
-    for site, path, id_col, lat_col, lon_col, aquifer, influence in specs:
-        df = _read_csv(path)
-        if df.empty:
-            continue
-        for _, row in df.head(2).iterrows():
-            rows.append(
-                {
-                    "Site": site,
-                    "Sample ID": row.get(id_col),
-                    "Latitude": row.get(lat_col),
-                    "Longitude": row.get(lon_col),
-                    "Elevation (m)": row.get("Elevation"),
-                    "Aquifer setting": aquifer,
-                    "Land-use/mining influence": influence,
-                    "Available tracers": "stable isotopes" if "d18O" in df.columns else "chemistry",
-                    "Completeness score": 1.0,
-                }
-            )
     _write(
         ROOT_TABLE_DIR / "table_s4_pilot_metadata.md",
         rows,
@@ -338,12 +328,11 @@ def _distance_km(a: Mapping[str, float], b: Mapping[str, float]) -> float:
 
 
 def write_field_edge_tables() -> None:
-    field = _read_csv(RESULT_DIR / "field_discovery_results.csv")
-    psi = _read_csv(RESULT_DIR / "top_edges_psi.csv")
-    if field.empty:
-        _write(ROOT_TABLE_DIR / "table_s5_edge_outputs.md", [], ["Edge ID", "From node", "To node", "Distance (km)", "Elevation/head relation", "Edge confidence", "Age consistency", "Chemical match R²", "Dominant reaction", "Status"])
-        _write(ROOT_TABLE_DIR / "table6_discovery.md", [], ["Site", "Flow path/edge", "Dominant process", "Reaction extent (mmol/L)", "As-run lambda1", "Objective / chemistry R²", "PSI probability", "Interpretation"])
-        return
+    raise RuntimeError(
+        "Legacy M2 field edge tables are retired. They read historical pilot "
+        "outputs and cannot be regenerated from the approved refined CR/UER "
+        "cohorts without a new objective-specific model and validation design."
+    )
 
     merged = field.merge(psi[["edge_id", "psi", "family"]] if not psi.empty else pd.DataFrame(columns=["edge_id", "psi", "family"]), on="edge_id", how="left")
     merged["rank_score"] = merged["chemistry_r2"].fillna(0) * merged["psi"].fillna(0.5)
@@ -426,8 +415,6 @@ def write_validation_tables() -> None:
     usgs_summary = _public_age_summary()
     modpath = _read_csv(RESULT_DIR / "modpath_noprior_topology.csv")
     modpath_legacy = _read_csv(EXTERNAL_DIR / "modpath" / "results" / "modpath_topology_summary.csv")
-    field = _read_csv(RESULT_DIR / "field_discovery_results.csv")
-    psi = _read_csv(RESULT_DIR / "top_edges_psi.csv")
 
     synthetic_r2 = float(edge.loc[(edge["scenario"] == "complete") & (edge["topology_variant"] == "full"), "chemistry_r2"].median()) if not edge.empty else float("nan")
     phreeqc_rmse = float(forward["rmse_mmolL"].median()) if not forward.empty else float("nan")
@@ -445,8 +432,6 @@ def write_validation_tables() -> None:
                 prior = mrow.to_dict()
     if not noprior and not modpath_legacy.empty:
         prior = modpath_legacy.iloc[0].to_dict()
-    field_r2 = float(field["chemistry_r2"].median()) if not field.empty else float("nan")
-    field_psi = float(psi["psi"].median()) if not psi.empty else float("nan")
     topo_metric = "no-prior F1=0.62 (P=0.49, R=0.84); prior-assisted F1=1.00 (ingestion check)"
     age_metric = f"synthetic R²={_fmt(age_r2)}, median AE={_fmt(age_mae)} y"
     if usgs_summary:
@@ -460,7 +445,7 @@ def write_validation_tables() -> None:
         {"Validation tier": "MODPATH topology", "Dataset/source": "particle-tracking reference", "What is tested": "directed-edge recovery", "Reference/target": "MODPATH edges", "Main metric": topo_metric, "Related figure": "Fig. 2"},
         {"Validation tier": "Residence-time benchmarking", "Dataset/source": f"synthetic + {usgs_source or 'public tracer age pending'}", "What is tested": "age agreement", "Reference/target": "known MRT/public age", "Main metric": age_metric, "Related figure": "Fig. 5, Fig. S1"},
         {"Validation tier": "PHREEQC validation", "Dataset/source": "geochemical forward check", "What is tested": "reaction feasibility", "Reference/target": "SI/forward model", "Main metric": f"RMSE={_fmt(phreeqc_rmse)}, NSE={_fmt(phreeqc_nse)}", "Related figure": "Fig. S2"},
-        {"Validation tier": "Ghana field demonstration", "Dataset/source": "Lower Anayari/Talensi", "What is tested": "field process discovery", "Reference/target": "hydrochemical consistency", "Main metric": f"median R²={_fmt(field_r2)}, median PSI={_fmt(field_psi)}", "Related figure": "Fig. 4, Fig. 7"},
+        {"Validation tier": "Field input QA only", "Dataset/source": "approved Central Region and Upper East Region workbooks", "What is tested": "source integrity and measured-field completeness; not field process validation", "Reference/target": "source workbook records", "Main metric": "No M2 field-validation metric; legacy field results are retired", "Related figure": "None"},
     ]
     _write(ROOT_TABLE_DIR / "table2_validation_suite.md", rows, ["Validation tier", "Dataset/source", "What is tested", "Reference/target", "Main metric", "Related figure"])
 
@@ -585,7 +570,6 @@ def main() -> None:
     write_reaction_table()
     write_hyperparameters()
     write_pilot_metadata()
-    write_field_edge_tables()
     write_validation_tables()
     write_manuscript_ready_tables()
 

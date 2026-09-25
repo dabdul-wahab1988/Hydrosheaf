@@ -1,6 +1,6 @@
 """Standardized mineral library for geochemical reactions."""
 
-from typing import Dict, Mapping
+from typing import Dict, Mapping, Optional, Tuple
 
 # Type alias for reaction stoichiometry: ion -> coefficient
 Stoich = Mapping[str, float]
@@ -61,16 +61,16 @@ MINERAL_LIBRARY: Dict[str, Stoich] = {
     # Clinopyroxene (Diopside): CaMgSi2O6 + 4CO2 + 2H2O -> Ca++ + Mg++ + 4HCO3- + 2H4SiO4
     "diopside": {"Ca": 1, "Mg": 1, "HCO3": 4, "SiO2": 2},
     # Serpentine: Mg3Si2O5(OH)4 + 6CO2 + 5H2O -> 3Mg++ + 6HCO3- + 2H4SiO4
-    "serpentine": {"Mg": 3, "HCO3": 6},
+    "serpentine": {"Mg": 3, "HCO3": 6, "SiO2": 2},
     # Talc: Mg3Si4O10(OH)2 + 6CO2 + 5H2O -> 3Mg++ + 6HCO3- + 4H4SiO4
-    "talc": {"Mg": 3, "HCO3": 6},
+    "talc": {"Mg": 3, "HCO3": 6, "SiO2": 4},
     # Crystalline Basement Weathering (Granite/Gneiss)
-    # Biotite: K(Mg,Fe)3AlSi3O10(OH)2 -> Releases K, Mg, Fe, and often Fluoride
-    # Simplified Stoichiometry: 1 K, 1.5 Mg, 1.5 Fe, 0.2 F, 7.2 HCO3
-    "biotite": {"K": 1, "Mg": 1.5, "Fe": 1.5, "F": 0.2, "HCO3": 7.2},
-    # Chlorite (Weathering product/Metamorphic): (Mg,Fe)5Al2Si3O10(OH)8
-    # Simplified Stoichiometry: 3 Mg, 2 Fe, 10 HCO3
-    "chlorite": {"Mg": 3, "Fe": 2, "HCO3": 10},
+    # Biotite: K(Mg,Fe)3AlSi3O10(OH)2 -> Releases K, Mg, Fe, and often Fluoride + SiO2
+    # Simplified Stoichiometry: 1 K, 1.5 Mg, 1.5 Fe, 0.2 F, 7.2 HCO3, 2 SiO2
+    "biotite": {"K": 1, "Mg": 1.5, "Fe": 1.5, "F": 0.2, "HCO3": 7.2, "SiO2": 2},
+    # Chlorite (Weathering product/Metamorphic): (Mg,Fe)5Al2Si3O10(OH)8 -> releases Mg, Fe, HCO3, SiO2
+    # Simplified Stoichiometry: 3 Mg, 2 Fe, 10 HCO3, 2 SiO2
+    "chlorite": {"Mg": 3, "Fe": 2, "HCO3": 10, "SiO2": 2},
     # Sulfides & Redox
     # Pyrite (Aerobic Oxidation): FeS2 + ... -> Fe(OH)3 + 2 SO4-- + 4 H+
     "pyrite_oxidation_aerobic": {"SO4": 2, "Fe": 1},
@@ -85,10 +85,13 @@ MINERAL_LIBRARY: Dict[str, Stoich] = {
     # Microbially mediated redox processes.  These are process-level aqueous
     # net reactions rather than minerals and require diagnostic ions in the
     # inverse dictionary.
-    # 2 CH2O + SO4-- -> H2S + 2 HCO3-
-    "sulfate_reduction": {"SO4": -1, "HCO3": 2},
+    # Thermodynamic Redox Ladder: O2 -> NO3 -> Mn(IV) -> Fe(III) -> SO4
+    # Mn(IV) reduction (manganese reduction): MnO2 + CH2O + ... -> Mn++ + HCO3-
+    "manganese_reduction": {"Mn": 1, "HCO3": 1},
     # Simplified Fe(III)-oxide reduction aqueous signature.
     "iron_reduction": {"Fe": 1, "HCO3": 1},
+    # 2 CH2O + SO4-- -> H2S + 2 HCO3-
+    "sulfate_reduction": {"SO4": -1, "HCO3": 2},
     # Generic/Legacy Proxies (for backward compatibility)
     "NaSil": {"Na": 1, "HCO3": 1},
     "CaMgSil": {
@@ -98,8 +101,8 @@ MINERAL_LIBRARY: Dict[str, Stoich] = {
     },  # Updated to match typical Anorthite/Pyroxene mix
     
     # Process proxies used when diagnostic indicator ions are unavailable.
-    "SO4_input": {"SO4": 1}, # Generic sulfate source (Atmospheric/diffuse salts)
-    "NO3_input": {"NO3": 1}, # Generic nitrate source (Fertilizer/Septic)
+    "SO4_input": {"SO4": 1},  # Generic sulfate source (Atmospheric/diffuse salts)
+    "NO3_input": {"NO3": 1},  # Generic nitrate source (Fertilizer/Septic)
 }
 
 
@@ -109,3 +112,54 @@ def get_mineral_stoich(name: str) -> Stoich:
     if normalized in MINERAL_LIBRARY:
         return MINERAL_LIBRARY[normalized]
     raise ValueError(f"Mineral '{name}' not found in library.")
+
+
+SR_RATIO_TOLERANCE_DEFAULT = 0.0005
+
+
+def check_strontium_provenance(
+    sr_ratio_u: Optional[float],
+    sr_ratio_v: Optional[float],
+    tolerance: float = SR_RATIO_TOLERANCE_DEFAULT,
+) -> Tuple[bool, float]:
+    """Check whether 87Sr/86Sr isotopic ratio is preserved along candidate flowpath.
+
+    Strontium isotopic ratios act as a rigid provenance invariant (alpha_e = 1.0,
+    reaction offset = 0) in non-reactive transport. Divergent ratios indicate flow across
+    distinct crystalline/lithologic basements.
+    """
+    import math
+
+    if sr_ratio_u is None or sr_ratio_v is None:
+        return True, 1.0
+    delta_sr = abs(float(sr_ratio_u) - float(sr_ratio_v))
+    if delta_sr <= tolerance:
+        return True, 1.0
+    penalty = math.exp(-0.5 * ((delta_sr - tolerance) / (2.0 * tolerance)) ** 2)
+    return False, max(1e-6, penalty)
+
+
+# Alias for backwards compatibility
+MINERAL_STOICHIOMETRY = MINERAL_LIBRARY
+
+
+def check_cl_br_source(cl_br_ratio: Optional[float]) -> str:
+    """Classify salinity source based on Cl/Br molar ratio.
+
+    Typical groundwater hydrochemical regimes:
+    - Halite dissolution / road salt: > 1000
+    - Domestic / animal sewage / wastewater: 300 - 800
+    - Precipitation / pristine recharge: 50 - 150
+    - Basinal brines / sedimentary formation waters: < 40
+    """
+    if cl_br_ratio is None or cl_br_ratio <= 0:
+        return "unknown"
+    if cl_br_ratio > 1000.0:
+        return "halite_dissolution"
+    elif 250.0 <= cl_br_ratio <= 850.0:
+        return "domestic_or_animal_wastewater"
+    elif 40.0 <= cl_br_ratio <= 180.0:
+        return "precipitation_or_recharge"
+    elif cl_br_ratio < 40.0:
+        return "sedimentary_brine"
+    return "intermediate_or_mixed"

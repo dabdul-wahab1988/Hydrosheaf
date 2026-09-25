@@ -54,6 +54,10 @@ DEFAULT_MEASUREMENT_COSTS: Dict[str, float] = {
     "isotopes_d18O_d2H": 3.0,
     "age_tracer": 6.0,
     "connectivity_tracer": 10.0,
+    "trace_elements_boron": 3.5,
+    "nitrate_boron_isotopes": 5.0,
+    "geophysics_ert_survey": 4.0,
+    "geophysics_snmr": 8.0,
 }
 
 DEFAULT_TRAVEL_COST_PER_WELL: float = 3.0
@@ -132,6 +136,14 @@ def topology_contrast_surrogate(context: Mapping[str, Any]) -> Tuple[float, floa
         return (35.0 if active_in else 50.0), 2.0
     if measurement_type == "major_ions":
         return (14.0 if active_in else 10.0), 0.8
+    if measurement_type == "trace_elements_boron":
+        return (0.35 if active_in else 0.05), 0.03
+    if measurement_type == "nitrate_boron_isotopes":
+        return (12.0 if active_in else 4.0), 1.0
+    if measurement_type == "geophysics_ert_survey":
+        return (45.0 if (active_in or active_out) else 120.0), 5.0
+    if measurement_type == "geophysics_snmr":
+        return (0.18 if (active_in or active_out) else 0.05), 0.02
     return (1.0 if (active_in or active_out) else 0.0), 0.20
 
 

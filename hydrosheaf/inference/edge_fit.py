@@ -2,7 +2,7 @@
 
 import math
 from dataclasses import dataclass, field, replace
-from typing import Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
 from ..config import Config
 from ..log import get_logger
@@ -13,6 +13,7 @@ from ..models.mixing import fit_evaporation
 from ..models.reactions import ReactionFit, build_reaction_dictionary, fit_reactions
 from ..models.evidence_lifted import reaction_panel_diagnostics
 from ..models.ratios import compare_ratio_diagnostics
+from ..data.minerals import check_cl_br_source, check_strontium_provenance
 from ..isotopes import extract_isotopes, isotope_penalty
 from ..physics.kinetic_limit import apply_kinetic_penalties
 
@@ -113,6 +114,9 @@ class EdgeResult:
     edge_prob_head: Optional[float] = None
     edge_prob_distance: Optional[float] = None
     edge_prob_layer: Optional[float] = None
+    edge_prob_geophys: Optional[float] = None
+    geophysical_k_m_day: Optional[float] = None
+    geophysical_tau_years: Optional[float] = None
     edge_horizontal_gradient: Optional[float] = None
     edge_vertical_gradient: Optional[float] = None
     edge_residence_time_days: Optional[float] = None
@@ -128,11 +132,28 @@ class EdgeResult:
     gibbs_metrics: Dict[str, object] = field(default_factory=dict)
     gibbs_used: bool = False
     isotope_consistency_penalty: float = 0.0
+    # Conservative tracer diagnostics.  These are attached whenever the
+    # corresponding observations are present; enabling a diagnostic penalty
+    # is a separate configuration decision.
+    cl_br_metrics: Dict[str, object] = field(default_factory=dict)
+    cl_br_source_u: Optional[str] = None
+    cl_br_source_v: Optional[str] = None
+    sr_ratio_u: Optional[float] = None
+    sr_ratio_v: Optional[float] = None
+    sr_provenance_invariant: Optional[bool] = None
+    sr_provenance_factor: float = 1.0
+    sr_provenance_score_penalty: float = 0.0
     qc_flags: List[str] = field(default_factory=list)
     nitrate_source_p_manure: Optional[float] = None
+    nitrate_source_p_septic_sewage: Optional[float] = None
+    nitrate_source_p_animal_manure: Optional[float] = None
+    nitrate_source_boron_used: bool = False
+    nitrate_source_d11b_used: bool = False
     nitrate_source_logit: Optional[float] = None
     nitrate_source_evidence: List[str] = field(default_factory=list)
     nitrate_source_gates: List[str] = field(default_factory=list)
+    nitrate_source_fractions: Dict[str, float] = field(default_factory=dict)
+    nitrate_source_diagnostics: Dict[str, float] = field(default_factory=dict)
     gamma_std: Optional[float] = None
     gamma_ci_low: Optional[float] = None
     gamma_ci_high: Optional[float] = None
@@ -197,6 +218,37 @@ def _information_score(residual_norm: float, n_observations: int, n_parameters: 
     n = max(1, int(n_observations))
     rss = max(float(residual_norm), 1e-300)
     return n * math.log(rss / n) + 2.0 * max(1, int(n_parameters))
+
+
+def _optional_float(value: object) -> Optional[float]:
+    try:
+        number = float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _extract_sr_ratio(sample: Optional[Mapping[str, object]]) -> Optional[float]:
+    """Extract an explicitly labelled 87Sr/86Sr observation.
+
+    A total Sr concentration is not an isotope ratio and is deliberately not
+    used as a provenance invariant.  Only explicit ratio column aliases are
+    accepted here.
+    """
+    if sample is None:
+        return None
+    for key in (
+        "sr_ratio_87_86",
+        "87Sr/86Sr",
+        "87Sr_86Sr",
+        "Sr87_Sr86",
+        "sr_ratio",
+        "Sr_ratio",
+    ):
+        value = _optional_float(sample.get(key))
+        if value is not None:
+            return value
+    return None
 
 
 def _bounds_for_bayesian(
@@ -331,8 +383,8 @@ def fit_edge(
 
     candidates: List[Dict[str, object]] = []
     target_y = [v_val - u_val for v_val, u_val in zip(x_v, x_u)]
-    weights_phys = list(config.conservative_weights)
-    active_weights = list(config.weights)
+    weights_phys = list(config.get_conservative_weights(config.ion_order))
+    active_weights = list(config.get_weights(config.ion_order))
     
     if getattr(config, "compositional_weighting", False):
         for i, val in enumerate(x_v):
@@ -460,6 +512,58 @@ def fit_edge(
         # Penalize reactions that are implausibly fast for the available residence time.
         kin_penalty = apply_kinetic_penalties(chem_fit.extents, labels, residence_time_days or residence_time_days, config)
 
+        cl_br_penalty = 0.0
+        cl_br_metrics: Dict[str, object] = {}
+        cl_br_source_u: Optional[str] = None
+        cl_br_source_v: Optional[str] = None
+        ion_order = config.ion_order
+        if "Cl" in ion_order and "Br" in ion_order:
+            idx_cl = ion_order.index("Cl")
+            idx_br = ion_order.index("Br")
+            cl_u, br_u = x_u[idx_cl], x_u[idx_br]
+            cl_v, br_v = x_v[idx_cl], x_v[idx_br]
+            if br_u > 1e-6 and br_v > 1e-6 and cl_u > 1e-6 and cl_v > 1e-6:
+                ratio_u = cl_u / br_u
+                ratio_v = cl_v / br_v
+                log_diff = abs(math.log(ratio_v / ratio_u))
+                cl_br_source_u = check_cl_br_source(ratio_u)
+                cl_br_source_v = check_cl_br_source(ratio_v)
+                cl_br_metrics = {
+                    "ratio_cl_br_u": ratio_u,
+                    "ratio_cl_br_v": ratio_v,
+                    "ratio_cl_br_log_diff": log_diff,
+                    "source_class_u": cl_br_source_u,
+                    "source_class_v": cl_br_source_v,
+                    "is_halite_v": ratio_v
+                    > float(getattr(config, "cl_br_halite_threshold", 1000.0)),
+                    "is_recharge_v": ratio_v
+                    <= float(getattr(config, "cl_br_recharge_threshold", 150.0)),
+                }
+                if getattr(config, "cl_br_ratio_enabled", False):
+                    cl_br_penalty = float(
+                        getattr(config, "cl_br_weight", 1.0)
+                    ) * (log_diff**2)
+
+        sr_ratio_u = _extract_sr_ratio(obs_u)
+        sr_ratio_v = _extract_sr_ratio(obs_v)
+        sr_provenance_invariant: Optional[bool] = None
+        sr_provenance_factor = 1.0
+        sr_penalty = 0.0
+        if sr_ratio_u is not None and sr_ratio_v is not None:
+            sr_provenance_invariant, sr_provenance_factor = (
+                check_strontium_provenance(
+                    sr_ratio_u,
+                    sr_ratio_v,
+                    tolerance=float(
+                        getattr(config, "sr_provenance_tolerance", 0.0005)
+                    ),
+                )
+            )
+            if getattr(config, "sr_provenance_enabled", False):
+                sr_penalty = float(
+                    getattr(config, "sr_provenance_weight", 1.0)
+                ) * (-math.log(max(sr_provenance_factor, 1e-6)))
+
         chem_target_for_score = list(cand.get("chem_target", []))  # type: ignore[arg-type]
         mean_v = _weighted_mean(chem_target_for_score, active_weights)
         sst = sum(
@@ -480,6 +584,8 @@ def fit_edge(
             + iso_consistency_penalty
             + kin_penalty
             + ratio_fit_penalty
+            + cl_br_penalty
+            + sr_penalty
         )
 
         n_params = int(cand.get("transport_k", 1)) + len(
@@ -560,6 +666,14 @@ def fit_edge(
             gibbs_penalty=gibbs_penalty_val, gibbs_metrics=gibbs_metrics_val, gibbs_used=gibbs_used,
             isotope_consistency_penalty=iso_consistency_penalty, reaction_fit=final_reaction_fit,
             residual_vector=list(final_reaction_fit.residual), chemistry_r2=chem_r2,
+            cl_br_metrics=cl_br_metrics,
+            cl_br_source_u=cl_br_source_u,
+            cl_br_source_v=cl_br_source_v,
+            sr_ratio_u=sr_ratio_u,
+            sr_ratio_v=sr_ratio_v,
+            sr_provenance_invariant=sr_provenance_invariant,
+            sr_provenance_factor=sr_provenance_factor,
+            sr_provenance_score_penalty=sr_penalty,
             observed_ions=list(config.ion_order),
             reaction_panel_diagnostics=panel_diagnostics,
             ratio_fit_penalty=ratio_fit_penalty,

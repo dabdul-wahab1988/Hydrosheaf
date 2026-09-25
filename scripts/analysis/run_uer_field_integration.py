@@ -28,6 +28,12 @@ OUT_DIR = ROOT / "outputs" / "uer_field_integration"
 
 
 def main() -> None:
+    raise RuntimeError(
+        "Retired: this legacy UER network promotes DEM elevation to hydraulic "
+        "head and labels topographic candidates as groundwater flowpaths. The "
+        "completed UER workbook contains no measured head series or independent "
+        "flow-path truth, so this output is not regenerated."
+    )
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     print(f"Loading field integration dataset from {DATA_CSV.name}...")
     df = pd.read_csv(DATA_CSV)

@@ -499,6 +499,11 @@ The machine-readable branch ledger is [`objective5_branch_evidence.csv`](objecti
 
 
 def main() -> None:
+    raise RuntimeError(
+        "Retired: the Objective 5 closure consumes legacy UER flow-edge and "
+        "frontier artifacts. It cannot be reused as a current result until the "
+        "O5 graph and minimax components are separated and provenance-checked."
+    )
     source_paths = {
         "uer_report": UER_RUN_DIR / "UER_OBJECTIVE_5_FULL_REPORT.md",
         "uer_frontier": UER_RUN_DIR / "tables" / "uer_objective5_minimax_pareto_frontier.csv",

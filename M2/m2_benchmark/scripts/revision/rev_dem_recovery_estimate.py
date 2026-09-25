@@ -54,6 +54,10 @@ def km(a: np.ndarray, b: np.ndarray) -> float:
 
 
 def main() -> None:
+    raise RuntimeError(
+        "This revision analysis is based on legacy field pilots and cached "
+        "field edges; it is retired and not current CR/UER evidence."
+    )
     sigma_dh = np.sqrt(2.0) * SIGMA_ELEV
     dz_needed = norm.ppf(EDGE_P_MIN) * sigma_dh
     print(f"sigma_dh = sqrt(2) x {SIGMA_ELEV} = {sigma_dh:.3f} m")

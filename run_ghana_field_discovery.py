@@ -5,6 +5,12 @@ from hydrosheaf.inference.network_fit import infer_edges, fit_network
 from hydrosheaf.config import default_config
 
 def run():
+    raise RuntimeError(
+        "This historical field-discovery runner uses retired Lower Anayari / "
+        "Talensi inputs and zero-imputes missing chemistry. It is disabled; "
+        "the approved CR/UER workflow performs input QA only and makes no "
+        "field-flow or process-truth claim."
+    )
     # 1. Setup
     repo_root = Path(".").resolve()
     result_dir = repo_root / "M2" / "m2_benchmark" / "results"

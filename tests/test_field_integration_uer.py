@@ -1,11 +1,11 @@
-"""Automated test suite for Upper East Region (UER / NorthernGhanaNew) field integration dataset.
+"""Automated checks for the refined Upper East Region field integration dataset.
 
 Verifies:
 1. Complete elevation coverage (237/237) and DEM reconciliation.
 2. Coordinate normalization and UTM Zone 30N projection.
 3. Complete primary hydrochemistry and charge balance error (CBE).
 4. Spatial and probabilistic graph edge inference using completed elevations.
-5. Multi-sheet Excel workbook integrity and immutable provenance of the raw source.
+5. Multi-sheet completed workbook integrity and immutable provenance.
 """
 
 from __future__ import annotations
@@ -21,18 +21,17 @@ from hydrosheaf.graph.build import infer_edges_from_coordinates, infer_edges_pro
 ROOT = Path(__file__).resolve().parents[1]
 DERIVED_CSV = ROOT / "data" / "FieldData" / "derived" / "uer_field_integration_dataset.csv"
 DEM_CSV = ROOT / "data" / "FieldData" / "derived" / "uer_elevations_dem.csv"
-COMPLETED_XLSX = ROOT / "data" / "FieldData" / "NorthernGhanaNew" / "compiled UER data_new_completed.xlsx"
-RAW_XLSX = ROOT / "data" / "FieldData" / "NorthernGhanaNew" / "compiled UER data_new.xlsx"
-EXPECTED_RAW_SHA256 = "e3ab58394f8d3cc1e62874496cbe526e713e4fbff460957d16dbcd2cdda30f11"
+COMPLETED_XLSX = ROOT / "data" / "FieldData" / "UERdata" / "compiled UER data_new_completed.xlsx"
+EXPECTED_COMPLETED_SHA256 = "a802efa607100269f42b52e428ed43f20cd19cfd46cd0e2d2502c1c10420dff7"
 
 
-def test_raw_workbook_provenance_hash_is_unmutated() -> None:
-    """The original raw compiled workbook must retain its exact provenance SHA-256."""
-    assert RAW_XLSX.exists(), f"Raw workbook missing: {RAW_XLSX}"
-    with RAW_XLSX.open("rb") as handle:
+def test_completed_workbook_provenance_hash_is_stable() -> None:
+    """The current approved completed workbook has a pinned provenance hash."""
+    assert COMPLETED_XLSX.exists(), f"Completed workbook missing: {COMPLETED_XLSX}"
+    with COMPLETED_XLSX.open("rb") as handle:
         digest = hashlib.sha256(handle.read()).hexdigest()
-    assert digest == EXPECTED_RAW_SHA256, (
-        f"Raw workbook has been modified! Expected {EXPECTED_RAW_SHA256}, got {digest}"
+    assert digest == EXPECTED_COMPLETED_SHA256, (
+        f"Completed workbook has changed! Expected {EXPECTED_COMPLETED_SHA256}, got {digest}"
     )
 
 
@@ -94,34 +93,12 @@ def test_uer_hydrogeochemistry_and_charge_balance() -> None:
     assert acceptable_rate >= 0.95, f"Only {acceptable_rate:.1%} of samples have CBE <= 10%"
 
 
-def test_uer_graph_edge_inference_with_completed_elevations() -> None:
-    """Topological graph edge inference must include all 237 nodes without drops."""
-    ds = load_field_dataset("northern_ghana_new")
+def test_uer_elevation_is_not_promoted_to_hydraulic_head() -> None:
+    """DEM elevations are context only and cannot produce field flow edges."""
+    ds = load_field_dataset("upper_east_region")
     assert ds.n_records == 237
     assert ds.coverage()["elevation"] == 237
-
-    samples = ds.as_records()
-    for s in samples:
-        # Standardize keys expected by build.py
-        s["hydraulic_head"] = s["elevation"]
-
-    # 1. Simple downhill edge inference
-    edges_simple = infer_edges_from_coordinates(samples, max_neighbors=2, allow_uphill=False)
-    assert len(edges_simple) > 100, f"Expected >100 downhill edges, got {len(edges_simple)}"
-
-    # All simple edges must satisfy downhill gradient when allow_uphill=False
-    node_elevs = {s["site_id"]: s["elevation"] for s in samples}
-    for edge in edges_simple:
-        u_elev = node_elevs[edge.u]
-        v_elev = node_elevs[edge.v]
-        assert u_elev > v_elev, f"Edge {edge.edge_id} violates downhill flow: {u_elev} <= {v_elev}"
-
-    # 2. Probabilistic edge inference with Tier C heuristic head
-    edges_prob = infer_edges_probabilistic(samples, radius_km=25.0, max_neighbors=3, p_min=0.5)
-    assert len(edges_prob) > 200, f"Expected >200 probabilistic edges, got {len(edges_prob)}"
-    assert edges_prob[0].attrs["source_tier"] == "C/C"
-    assert "distance_km" in edges_prob[0].attrs
-    assert "p_uv" in edges_prob[0].attrs
+    assert all(sample["hydraulic_head"] is None for sample in ds.records)
 
 
 def test_completed_workbook_structure_and_sheets() -> None:
