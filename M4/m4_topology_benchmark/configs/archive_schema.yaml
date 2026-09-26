@@ -1,0 +1,34 @@
+required_fields:
+  - archive_id
+  - archive_name
+  - archive_role
+  - source_url
+  - source_doi
+  - local_archive_root
+  - zip_file
+  - modflow_version
+  - modpath_version
+  - model_name
+  - simulation_type
+  - coordinate_system
+  - length_unit
+  - time_unit
+  - endpoint_files
+  - pathline_files
+  - grid_files
+  - head_files
+  - budget_files
+  - particle_release_definition
+  - source_node_definition
+  - receptor_node_definition
+  - node_mapping_strategy
+  - edge_mapping_strategy
+  - candidate_edge_strategy
+  - independent_validation_allowed
+  - prior_assisted_allowed
+  - capture_zone_polygon_available
+  - travel_time_harmonised
+  - allowed_claim
+  - required_guardrail
+  - notes
+

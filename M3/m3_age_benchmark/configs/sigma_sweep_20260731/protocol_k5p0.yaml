@@ -1,0 +1,40 @@
+schema_version: "1.0"
+protocol_id: m3-identified-ttd-sigmasweep-k5p0-20260731
+status: development
+claim_authority: implementation_only
+
+inference:
+  sigma_multiplier: 5.0
+  feasibility_tolerance: 1.0e-7
+  age_grid_segments:
+    - {start: 0.0, stop: 100.0, step: 1.0}
+    - {start: 100.0, stop: 2000.0, step: 25.0}
+    - {start: 2000.0, stop: 50000.0, step: 500.0}
+  age_fraction_cutoffs_years: [70.0, 11700.0]
+  maximum_fraction_widths:
+    anthropocene: 0.25
+    holocene: 0.25
+    pleistocene: 0.25
+
+observations:
+  gas_correction_mode: usgs_dgm
+  c14_correction_mode: selected
+  use_helium4: false
+  minimum_conditioning_tracers: 1
+  held_out_tracers: [3H, SF6, CFC11, CFC12, CFC113, 14C]
+
+leakage_controls:
+  forbidden_fit_fields:
+    - reference_age_years
+    - Rpt_TotAge_yrs
+    - Rpt_SatAge_yrs
+    - FracAnthropocene
+    - FracHolocene
+    - FracPleistocene
+  graph_mode: disabled_local_only
+
+reporting:
+  empirical_target: held_out_tracer_concentration
+  overwrite_completed_run: false
+  field_validation_claim: forbidden
+

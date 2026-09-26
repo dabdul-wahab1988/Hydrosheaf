@@ -49,8 +49,9 @@ class Config:
     reaction_processes_enabled: List[str] = field(
         default_factory=lambda: [
             "denitrification",
-            "sulfate_reduction",
+            "manganese_reduction",
             "iron_reduction",
+            "sulfate_reduction",
         ]
     )
     redox_so4_min_mmol_l: float = 0.05
@@ -88,9 +89,14 @@ class Config:
     edge_map_prior_weight: float = 0.0
     edge_map_candidate_multiplier: int = 5
     edge_map_p_min: float = 0.1
-    sheaf_isotope_enabled: bool = True
-    sheaf_cl_enabled: bool = True
-    sheaf_age_enabled: bool = True
+    # Capability-gated sheaf evidence terms. ``None`` means automatic: the
+    # term is enabled when one candidate edge has the required endpoint data
+    # and disabled otherwise. Explicit True/False values remain overrides.
+    sheaf_isotope_enabled: Optional[bool] = None
+    sheaf_cl_enabled: Optional[bool] = None
+    # Age evidence is enabled when a configured tracer or an age posterior is
+    # present, and auto-disabled otherwise.
+    sheaf_age_enabled: Optional[bool] = None
     sheaf_iso_sigma_d18o: float = 0.2
     sheaf_iso_sigma_d2h: float = 1.0
     sheaf_weight_head_prior: float = 1.0
@@ -118,10 +124,19 @@ class Config:
     sheaf_evap_gate_strength: float = 1.0
     sheaf_max_iter: int = 3
     sheaf_soft_beta: float = 1.0  # Soft selection sharpness (inverse temperature)
+    # Jointly estimate chemical node states and edge reaction extents with
+    # fixed transport maps.  Set False only to reproduce the legacy
+    # pre-fitted-offset workflow from frozen historical analyses.
+    sheaf_joint_reaction_enabled: bool = True
+    sheaf_joint_reaction_max_iter: int = 1000
+    sheaf_joint_reaction_tol: float = 1e-7
     # Sheaf cohomology diagnostics
-    sheaf_cohomology_enabled: bool = False
+    # Optional sheaf diagnostics use tri-state defaults.  ``None`` means
+    # enabled when their required evidence is available and disabled when it
+    # is not; explicit booleans remain user overrides.
+    sheaf_cohomology_enabled: Optional[bool] = None
     # Hydraulic Hodge diagnostics and posterior coupling
-    hydraulic_hodge_enabled: bool = False
+    hydraulic_hodge_enabled: Optional[bool] = None
     hydraulic_hodge_weight: float = 1.0
     hydraulic_hodge_leverage_weight: float = 0.5
     hydraulic_hodge_reference_distance_km: float = 0.0
@@ -146,7 +161,7 @@ class Config:
     # MODFLOW head source selection
     modflow_head_format: str = "ascii"  # "ascii" (.fhd) or "binary" (.hds)
     # Bayesian topology posterior
-    topology_posterior_enabled: bool = False
+    topology_posterior_enabled: Optional[bool] = None
     topology_posterior_samples: int = 2000
     topology_posterior_burnin: int = 500
     topology_posterior_chains: int = 1
@@ -252,6 +267,47 @@ class Config:
     gibbs_weight: float = 0.5
     gibbs_tds_precipitation: float = 100.0
     gibbs_tds_evaporation: float = 1000.0
+
+    # Conservative Tracers: Bromide and Cl/Br molar ratio
+    cl_br_ratio_enabled: bool = False
+    cl_br_weight: float = 1.0
+    cl_br_halite_threshold: float = 1000.0
+    cl_br_recharge_threshold: float = 150.0
+    cl_br_wastewater_min: float = 300.0
+    cl_br_wastewater_max: float = 800.0
+    # 87Sr/86Sr is a provenance invariant whenever explicitly labelled ratio
+    # observations are present. Missing ratios leave legacy edge scores
+    # unchanged, so this can be active by default without fabricating data.
+    sr_provenance_enabled: bool = True
+    sr_provenance_tolerance: float = 0.0005
+    sr_provenance_weight: float = 1.0
+
+    # Geophysics Structural & Hydrodynamic Constraints
+    # Geophysical conditioning is automatic by default and is activated only
+    # when profiles, rasters, or node/edge geophysical observations exist.
+    geophysics_enabled: Optional[bool] = None
+    geophysics_barrier_enabled: Optional[bool] = None
+    geophysics_barrier_dyke_penalty: float = 1e-4
+    geophysics_sigma_struct: float = 100.0
+    geophysics_conductivity_conditioning: Optional[bool] = None
+    # Backwards-compatible explicit name used by the topology posterior.  The
+    # older ``geophysics_conductivity_conditioning`` name remains accepted, but
+    # both pathways are now resolved through ``geophysics_ec_crossval_enabled``.
+    geophysics_ec_crossval_enabled: Optional[bool] = None
+    geophysics_fluid_ec_enabled: Optional[bool] = None
+    geophysics_fluid_ec_weight: float = 0.5
+    geophysics_snmr_k_enabled: Optional[bool] = None
+    geophysics_snmr_csdr: float = 1.0e-9
+    geophysics_active_learning_weight: float = 0.5
+    geophysics_bedrock_elevation_raster: Optional[str] = None
+    geophysics_ert_profiles: List[str] = field(default_factory=list)
+    geophysics_node_crs: Optional[str] = None
+    geophysics_strict_inputs: bool = True
+    # Node3D.z is positive depth below the local ground surface.  External
+    # rasters/profiles may use elevation above mean sea level and are converted
+    # at the adapter boundary before barrier checks are applied.
+    geophysics_z_positive_down: bool = True
+
     # Mineral Library settings
     active_minerals: List[str] = field(
         default_factory=lambda: [
@@ -288,6 +344,11 @@ class Config:
     nitrate_source_min_mg_L: float = 10.0
     nitrate_isotope_n15_col: str = "d15N"
     nitrate_isotope_o18_col: str = "d18O_NO3"
+    nitrate_isotope_boron_col: str = "B_ug_L"
+    nitrate_isotope_boron_unit: str = "ug/L"
+    nitrate_isotope_d11b_col: str = "d11B"
+    nitrate_isotope_boron_enabled: bool = True
+    nitrate_isotope_include_subsources: bool = True
     nitrate_isotope_mixing_enabled: bool = True
     nitrate_isotope_water_o18_col: str = "d18O"
     nitrate_isotope_process_constraints_enabled: bool = True
@@ -457,24 +518,95 @@ class Config:
     iterative_jacobian_max_iter: int = 3
     reacted_ttd_enabled: bool = False # Convolve kinetics over TTD
 
+    def get_weights(self, ion_order: Optional[List[str]] = None) -> List[float]:
+        """Return ordinary objective weights aligned to an active ion panel.
+
+        The default configuration historically stores eleven weights.  When a
+        caller expands or subsets ``ion_order`` without manually rebuilding the
+        weight vector, the legacy weights are matched by species and new
+        species receive the neutral default weight of 1.0.  Explicit vectors
+        that already match the requested panel retain positional semantics for
+        backwards compatibility.
+        """
+        order = list(ion_order if ion_order is not None else self.ion_order)
+        if len(self.weights) == len(order):
+            return [float(value) for value in self.weights]
+        source_order = (
+            DEFAULT_ION_ORDER
+            if len(self.weights) == len(DEFAULT_ION_ORDER)
+            else list(self.ion_order[: len(self.weights)])
+        )
+        by_species = {
+            ion: float(value) for ion, value in zip(source_order, self.weights)
+        }
+        return [by_species.get(ion, 1.0) for ion in order]
+
+    def get_conservative_weights(self, ion_order: Optional[List[str]] = None) -> List[float]:
+        """Return conservative weights aligned to the given or active ion order."""
+        order = list(ion_order if ion_order is not None else self.ion_order)
+        if len(self.conservative_weights) == len(order):
+            return [float(value) for value in self.conservative_weights]
+
+        source_order = (
+            DEFAULT_ION_ORDER
+            if len(self.conservative_weights) == len(DEFAULT_ION_ORDER)
+            else list(self.ion_order[: len(self.conservative_weights)])
+        )
+        by_species = {
+            ion: float(value)
+            for ion, value in zip(source_order, self.conservative_weights)
+        }
+        weights: List[float] = []
+        for ion in order:
+            if ion in by_species:
+                weights.append(by_species[ion])
+            elif ion == "Cl":
+                weights.append(1.0)
+            elif ion == "Br":
+                weights.append(2.0)
+            elif ion in ("18O", "2H", "d18O", "d2H"):
+                weights.append(1.5)
+            else:
+                weights.append(0.01)
+        return weights
+
     def validate(self) -> None:
         # if len(self.ion_order) != 10:
         #     raise ValueError("ion_order must have 10 entries.")
         if self.unit_mode not in {"mmol_L", "meq_L"}:
             raise ValueError("unit_mode must be 'mmol_L' or 'meq_L'.")
-        if len(self.weights) != len(self.ion_order):
-            raise ValueError("weights must match ion_order length.")
-        if len(self.conservative_weights) != len(self.ion_order):
-            # Auto-align if default mismatch (backward compatibility for tests)
-            if len(self.weights) == len(self.ion_order):
-                # Fallback to standard weights if conservative ones are stale
-                self.conservative_weights = list(self.weights)
-            else:
-                raise ValueError("conservative_weights must match ion_order length.")
+        # Normalize both weight vectors once at the configuration boundary so
+        # every downstream solver sees the same active-panel contract.
+        self.weights = self.get_weights()
+        self.conservative_weights = self.get_conservative_weights()
         if any(w < 0 for w in self.weights):
             raise ValueError("weights must be non-negative.")
         if any(w < 0 for w in self.conservative_weights):
             raise ValueError("conservative_weights must be non-negative.")
+        if self.nitrate_isotope_boron_unit.lower() not in {
+            "ug/l",
+            "µg/l",
+            "ppb",
+            "mg/l",
+            "mmol/l",
+        }:
+            raise ValueError(
+                "nitrate_isotope_boron_unit must be one of ug/L, mg/L, mmol/L, or ppb."
+            )
+        if self.geophysics_sigma_struct <= 0:
+            raise ValueError("geophysics_sigma_struct must be positive.")
+        if self.geophysics_barrier_dyke_penalty <= 0:
+            raise ValueError("geophysics_barrier_dyke_penalty must be positive.")
+        if not 0.0 <= self.geophysics_fluid_ec_weight <= 1.0:
+            raise ValueError("geophysics_fluid_ec_weight must be between 0 and 1.")
+        if not 0.0 <= self.geophysics_active_learning_weight <= 1.0:
+            raise ValueError(
+                "geophysics_active_learning_weight must be between 0 and 1."
+            )
+        if self.sr_provenance_tolerance <= 0:
+            raise ValueError("sr_provenance_tolerance must be positive.")
+        if self.sr_provenance_weight < 0:
+            raise ValueError("sr_provenance_weight must be non-negative.")
         if self.lambda_sparse < 0 or self.lambda_l1 < 0:
 
             raise ValueError("lambda penalties must be non-negative.")
@@ -592,6 +724,12 @@ class Config:
             raise ValueError("sheaf_evap_gate_strength must be non-negative.")
         if self.sheaf_max_iter < 1:
             raise ValueError("sheaf_max_iter must be at least 1.")
+        if not isinstance(self.sheaf_joint_reaction_enabled, bool):
+            raise ValueError("sheaf_joint_reaction_enabled must be boolean.")
+        if self.sheaf_joint_reaction_max_iter < 1:
+            raise ValueError("sheaf_joint_reaction_max_iter must be at least 1.")
+        if not math.isfinite(self.sheaf_joint_reaction_tol) or self.sheaf_joint_reaction_tol < 0:
+            raise ValueError("sheaf_joint_reaction_tol must be finite and non-negative.")
         if self.edge_gradient_min < 0:
             raise ValueError("edge_gradient_min must be non-negative.")
         if self.edge_depth_mismatch < 0:
@@ -767,10 +905,16 @@ class Config:
             raise ValueError("aquitard_leakage_p must be between 0 and 1.")
         if self.screen_overlap_threshold < 0:
             raise ValueError("screen_overlap_threshold must be non-negative.")
-        if self.sheaf_cohomology_enabled not in {True, False}:
-            raise ValueError("sheaf_cohomology_enabled must be boolean.")
-        if self.hydraulic_hodge_enabled not in {True, False}:
-            raise ValueError("hydraulic_hodge_enabled must be boolean.")
+        for flag_name in (
+            "sheaf_isotope_enabled",
+            "sheaf_cl_enabled",
+            "sheaf_age_enabled",
+            "sheaf_cohomology_enabled",
+            "hydraulic_hodge_enabled",
+            "topology_posterior_enabled",
+        ):
+            if getattr(self, flag_name) not in {None, True, False}:
+                raise ValueError(f"{flag_name} must be boolean or None.")
         if self.hydraulic_hodge_weight < 0:
             raise ValueError("hydraulic_hodge_weight must be non-negative.")
         if self.hydraulic_hodge_leverage_weight < 0:

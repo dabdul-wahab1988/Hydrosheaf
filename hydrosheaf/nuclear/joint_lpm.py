@@ -14,8 +14,6 @@ import numpy as np
 
 from ..log import get_logger
 from .input_history import InputHistory, build_default_tritium_input
-
-logger = get_logger(__name__)
 from .multi_tracer import build_atmospheric_tracer_input
 from .nuclides import CARBON14, TRITIUM, ARGON39, KRYPTON85
 from .tracer_inputs import (
@@ -23,6 +21,9 @@ from .tracer_inputs import (
     normalize_tracer_key,
     standardize_gas_observations,
 )
+from .tracer_registry import build_default_tracer_registry, canonicalize_tracer_alias
+
+logger = get_logger(__name__)
 
 
 SUPPORTED_LPM_MODELS = (
@@ -108,6 +109,30 @@ def _finite_float(value: Any) -> Optional[float]:
     if not math.isfinite(number):
         return None
     return number
+
+
+def _stable_isotope_tracer_id(tracer: str) -> Optional[str]:
+    """Return the registry ID for a stable-water-isotope alias, if any."""
+    canonical = canonicalize_tracer_alias(tracer)
+    return canonical if canonical in {"d18O", "d2H"} else None
+
+
+def _reject_unsupported_scalar_isotope_kernel(tracer: str) -> None:
+    """Reject stable isotopes before scalar-kernel construction can proceed."""
+    tracer_id = _stable_isotope_tracer_id(tracer)
+    if tracer_id is None:
+        return
+
+    spec = build_default_tracer_registry()[tracer_id]
+    if spec.supports_scalar_age_grid_kernel:
+        return
+
+    raise ValueError(
+        f"Stable-isotope tracer {spec.display_name} ({spec.tracer_id!r}) cannot be represented "
+        "by the scalar age-grid response kernel. Stable isotopes require a "
+        "recharge-history-aware time-history inference workflow; use that pathway "
+        "instead of assigning radioactive-style decay to d18O/d2H."
+    )
 
 
 def _sigma(
@@ -486,6 +511,7 @@ def tracer_response_kernel(
     if not math.isfinite(float(sample_year)):
         raise ValueError("sample_year must be finite.")
 
+    _reject_unsupported_scalar_isotope_kernel(tracer)
     key = normalize_tracer_key(tracer)
     hists = {
         normalize_tracer_key(history_key): history

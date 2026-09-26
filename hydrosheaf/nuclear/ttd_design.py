@@ -24,6 +24,14 @@ from ..calibration.bayesian_active_learning import (
     select_measurement_batch,
 )
 from .joint_lpm import tracer_response_kernel
+from .ttd_certified_design import (
+    AmbiguityEvaluation,
+    CertifiedCandidateTracer,
+    CertifiedDesignCertificate,
+    evaluate_worst_case_ambiguity,
+    solve_budgeted_minimax_design,
+    solve_certified_measurement_design,
+)
 from .ttd_identified import AgeFunctional
 
 _PROBABILITY_SEMANTICS = {
@@ -151,6 +159,11 @@ def _probability_gate(ensemble: TtdHypothesisEnsemble) -> Optional[dict[str, Any
         return {
             "status": "ABSTAIN",
             "reason": "no_probability_model",
+            "certified_design_available": True,
+            "certified_design_recommendation": (
+                "Use solve_certified_measurement_design() or solve_budgeted_minimax_design() "
+                "for minimax ambiguity-resolving tracer selection without inventing prior probabilities."
+            ),
             "selected_option_id": None,
             "rankings": [],
         }
@@ -289,10 +302,16 @@ def select_ttd_measurement_batch(
 
 
 __all__ = [
+    "AmbiguityEvaluation",
     "CandidateTracerMeasurement",
+    "CertifiedCandidateTracer",
+    "CertifiedDesignCertificate",
     "TracerDesignScenario",
     "TtdHypothesisEnsemble",
     "build_ttd_measurement_options",
+    "evaluate_worst_case_ambiguity",
     "rank_ttd_measurements",
     "select_ttd_measurement_batch",
+    "solve_budgeted_minimax_design",
+    "solve_certified_measurement_design",
 ]

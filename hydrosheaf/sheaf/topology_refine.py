@@ -7,6 +7,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 from ..config import Config
 from ..log import get_logger
 from ..data.schema import parse_numeric, vector_from_sample
+from ..data.validation import resolve_optional_modules
 
 logger = get_logger("sheaf.topology_refine")
 
@@ -65,6 +66,7 @@ from .directed_section import (
     compute_edge_section_residuals,
     solve_directed_section,
 )
+from .joint_reaction import solve_joint_reaction_section
 from .isotope_metrics import (
     IsotopeStats,
     compute_evaporation_probability,
@@ -687,12 +689,32 @@ def _score_candidates(
             iso_cost *= weight_iso
             if "iso_missing_u" in flags or "iso_missing_v" in flags:
                 iso_missing = True
+        else:
+            # Capability gating removes the isotope term from the numeric
+            # score, but missing isotope evidence must remain visible to the
+            # evidence ladder. Otherwise an edge with no isotope observations
+            # could be labelled PROBABLE merely because the term was skipped.
+            _, _, _, missing_flags = _edge_iso_cost(
+                node_u, node_v, stats, config
+            )
+            flags.extend(missing_flags)
+            iso_missing = any(
+                flag in {"iso_missing_u", "iso_missing_v"}
+                for flag in missing_flags
+            )
 
         cl_cost = 0.0
         cl_ratio = None
         if getattr(config, "sheaf_cl_enabled", True):
             cl_cost, cl_ratio = _edge_cl_cost(node_u.cl, node_v.cl, pi_evap)
             cl_cost *= weight_cl
+            if cl_ratio is None:
+                flags.append("cl_missing")
+                cl_missing = True
+        else:
+            # As with isotopes, retain the data-availability flag without
+            # applying a chloride consistency cost when the term is disabled.
+            _, cl_ratio = _edge_cl_cost(node_u.cl, node_v.cl, pi_evap)
             if cl_ratio is None:
                 flags.append("cl_missing")
                 cl_missing = True
@@ -977,6 +999,16 @@ def refine_edges_with_sheaf(
 ) -> List[Edge]:
     sample_map = _sample_map(samples)
     source_candidates = list(candidates)
+    # Resolve capability-gated defaults at the lowest sheaf entry point as
+    # well as in the high-level API.  This keeps direct callers safe: the
+    # default topology/cohomology/Hodge layers activate only when their
+    # required evidence is available, while explicit booleans remain
+    # overrides for controlled analyses and tests.
+    config, _module_status = resolve_optional_modules(
+        samples,
+        config,
+        candidate_edges=source_candidates,
+    )
     use_posterior = bool(getattr(config, "topology_posterior_enabled", False))
     if use_posterior:
         # Posterior selection annotates every candidate with probabilities and
@@ -1101,6 +1133,9 @@ def refine_edges_with_sheaf(
 
     global_weight = _get_config_float(config, "sheaf_weight_global", 1.0)
     max_iter = _get_config_int(config, "sheaf_max_iter", 3)
+    use_joint_reaction = bool(
+        getattr(config, "sheaf_joint_reaction_enabled", True)
+    )
 
     node_vectors = _build_node_vectors(sample_map, config)
     node_ids = list(
@@ -1115,6 +1150,7 @@ def refine_edges_with_sheaf(
         for node_id, values in node_vectors.items()
         if values is not None
     }
+    final_joint_solution = None
 
     iter_count = max_iter if (has_chemistry or use_hydraulic_hodge) else 0
     for iter_idx in range(iter_count):
@@ -1137,33 +1173,84 @@ def refine_edges_with_sheaf(
             if not selected_maps:
                 break
 
-            node_estimates = solve_directed_section(
-                node_ids,
-                selected_maps,
-                node_vectors,
-                obs_weight=1.0,
-                diag_eps=1e-6,
-            )
+            if use_joint_reaction:
+                joint_solution = solve_joint_reaction_section(
+                    node_ids,
+                    selected_maps,
+                    node_vectors,
+                    config.ion_order,
+                    species_weights=config.get_weights(config.ion_order),
+                    obs_weight=1.0,
+                    diag_eps=1e-6,
+                    lambda_l1=config.lambda_l1_value(),
+                    lambda_l2=config.lambda_l2,
+                    max_iter=_get_config_int(
+                        config, "sheaf_joint_reaction_max_iter", 1000
+                    ),
+                    tol=_get_config_float(
+                        config, "sheaf_joint_reaction_tol", 1e-7
+                    ),
+                )
+                node_estimates = joint_solution.node_states
+                current_energy = joint_solution.objective
+                logger.science(
+                    "Iter %s: Joint State-Reaction Objective = %.4f "
+                    "(converged=%s, optimality=%.3e)",
+                    iter_idx + 1,
+                    current_energy,
+                    joint_solution.converged,
+                    joint_solution.optimality,
+                )
+                # Score every candidate with maps reconstructed from the
+                # jointly estimated states.  Only the selected maps belong
+                # to the joint objective; assigning zero residual to every
+                # unselected candidate here would bias the next topology
+                # update toward edges that were never evaluated.
+                edge_maps = build_edge_maps(
+                    candidate_list,
+                    node_estimates,
+                    config,
+                    prior_weight=_get_config_float(
+                        config, "sheaf_weight_head_prior", 1.0
+                    ),
+                )
+                residuals = compute_edge_section_residuals(
+                        edge_maps,
+                        node_estimates,
+                        config.get_weights(config.ion_order),
+                )
+            else:
+                node_estimates = solve_directed_section(
+                    node_ids,
+                    selected_maps,
+                    node_vectors,
+                    obs_weight=1.0,
+                    diag_eps=1e-6,
+                )
 
-            current_energy = sum(
-                (node_estimates[nid][d] - (val[d] if val else 0.0)) ** 2
-                for nid, val in node_vectors.items()
-                if val is not None
-                for d in range(len(val))
-            )
-            logger.science(
-                f"Iter {iter_idx+1}: Global Section Energy = {current_energy:.4f}"
-            )
+                current_energy = sum(
+                    (node_estimates[nid][d] - (val[d] if val else 0.0)) ** 2
+                    for nid, val in node_vectors.items()
+                    if val is not None
+                    for d in range(len(val))
+                )
+                logger.science(
+                    f"Iter {iter_idx+1}: Global Section Energy = {current_energy:.4f}"
+                )
 
-            edge_maps = build_edge_maps(
-                candidate_list,
-                node_estimates,
-                config,
-                prior_weight=_get_config_float(config, "sheaf_weight_head_prior", 1.0),
-            )
-            residuals = compute_edge_section_residuals(
-                edge_maps, node_estimates, config.weights
-            )
+                edge_maps = build_edge_maps(
+                    candidate_list,
+                    node_estimates,
+                    config,
+                    prior_weight=_get_config_float(
+                        config, "sheaf_weight_head_prior", 1.0
+                    ),
+                )
+                residuals = compute_edge_section_residuals(
+                    edge_maps,
+                    node_estimates,
+                    config.get_weights(config.ion_order),
+                )
 
         head_penalties: Dict[str, float] = {}
         if use_hydraulic_hodge and selected:
@@ -1195,6 +1282,62 @@ def refine_edges_with_sheaf(
 
         selected = updated
 
+    # Bayesian topology posterior.  Run this before the final section solve
+    # so reported reaction extents and residuals belong to the returned graph,
+    # rather than the local-soft-selection graph used to initialise MCMC.
+    if getattr(config, "topology_posterior_enabled", False):
+        from ..inference.topology_posterior import (
+            TopologyPosteriorError,
+            attach_posterior_attrs,
+            make_topology_cost_fn,
+            run_topology_posterior,
+            select_posterior_edges,
+        )
+
+        try:
+            cost_fn = make_topology_cost_fn(
+                sample_map=sample_map,
+                config=config,
+                node_info=node_info,
+                stats=stats,
+                reference_distance_km=reference_distance_km,
+            )
+            posterior_result = run_topology_posterior(
+                universe=candidate_list,
+                cost_fn=cost_fn,
+                config=config,
+                initial_edges=selected,
+                seed=int(getattr(config, "topology_posterior_seed", 42)),
+            )
+            probability_threshold = getattr(
+                config,
+                "topology_posterior_probability_threshold",
+                getattr(config, "topology_posterior_threshold", 0.5),
+            )
+            selected = select_posterior_edges(
+                candidate_edges=candidate_list,
+                posterior_result=posterior_result,
+                max_neighbors=max_neighbors,
+                probability_threshold=float(probability_threshold),
+            )
+            attach_posterior_attrs(
+                selected_edges=selected,
+                candidate_edges=candidate_list,
+                posterior_result=posterior_result,
+                mode="select",
+            )
+        except TopologyPosteriorError:
+            raise
+        except Exception as exc:
+            logger.error(
+                "Topology posterior selection failed; no local-sheaf fallback is allowed.",
+                exc_info=True,
+            )
+            raise TopologyPosteriorError(
+                "Enabled topology posterior selection did not complete.",
+                cause=exc,
+            ) from exc
+
     final_residuals: Dict[str, float] = {}
     if has_chemistry and node_estimates:
         edge_maps = build_edge_maps(
@@ -1203,9 +1346,30 @@ def refine_edges_with_sheaf(
             config,
             prior_weight=_get_config_float(config, "sheaf_weight_head_prior", 1.0),
         )
-        final_residuals = compute_edge_section_residuals(
-            edge_maps, node_estimates, config.weights
-        )
+        if use_joint_reaction and edge_maps:
+            final_joint_solution = solve_joint_reaction_section(
+                node_ids,
+                list(edge_maps.values()),
+                node_vectors,
+                config.ion_order,
+                species_weights=config.get_weights(config.ion_order),
+                obs_weight=1.0,
+                diag_eps=1e-6,
+                lambda_l1=config.lambda_l1_value(),
+                lambda_l2=config.lambda_l2,
+                max_iter=_get_config_int(
+                    config, "sheaf_joint_reaction_max_iter", 1000
+                ),
+                tol=_get_config_float(config, "sheaf_joint_reaction_tol", 1e-7),
+            )
+            node_estimates = final_joint_solution.node_states
+            final_residuals = final_joint_solution.edge_residuals
+        else:
+            final_residuals = compute_edge_section_residuals(
+                edge_maps,
+                node_estimates,
+                config.get_weights(config.ion_order),
+            )
 
     for edge in selected:
         score_obj = scores.get(edge.edge_id)
@@ -1221,6 +1385,28 @@ def refine_edges_with_sheaf(
         attrs["sheaf_score_global"] = score_obj.local_score + global_weight * float(
             final_residuals.get(edge.edge_id, 0.0)
         )
+        if final_joint_solution is not None:
+            attrs["sheaf_joint_reaction_scope"] = "fixed_transport_maps"
+            attrs["sheaf_joint_reaction_status"] = (
+                "converged" if final_joint_solution.converged else "max_iter"
+            )
+            attrs["sheaf_joint_reaction_objective"] = float(
+                final_joint_solution.objective
+            )
+            attrs["sheaf_joint_reaction_iterations"] = int(
+                final_joint_solution.iterations
+            )
+            attrs["sheaf_joint_reaction_optimality"] = float(
+                final_joint_solution.optimality
+            )
+            attrs["sheaf_joint_reaction_labels"] = list(
+                final_joint_solution.reaction_labels.get(edge.edge_id, [])
+            )
+            attrs["sheaf_joint_reaction_extents"] = list(
+                final_joint_solution.reaction_extents.get(edge.edge_id, [])
+            )
+        elif not use_joint_reaction:
+            attrs["sheaf_joint_reaction_status"] = "disabled"
         # Evidence ladder (Phase 0-1)
         if score_obj.evidence_class:
             attrs["evidence_class"] = score_obj.evidence_class
@@ -1278,60 +1464,5 @@ def refine_edges_with_sheaf(
                 "Hydraulic Hodge diagnostics failed; continuing.",
                 exc_info=True,
             )
-
-    # Bayesian topology posterior
-    if getattr(config, "topology_posterior_enabled", False):
-        from ..inference.topology_posterior import (
-            TopologyPosteriorError,
-            attach_posterior_attrs,
-            make_topology_cost_fn,
-            run_topology_posterior,
-            select_posterior_edges,
-            validate_unique_edge_ids,
-        )
-
-        try:
-            cost_fn = make_topology_cost_fn(
-                sample_map=sample_map,
-                config=config,
-                node_info=node_info,
-                stats=stats,
-                reference_distance_km=reference_distance_km,
-            )
-            posterior_result = run_topology_posterior(
-                universe=candidate_list,
-                cost_fn=cost_fn,
-                config=config,
-                initial_edges=selected,
-                seed=int(getattr(config, "topology_posterior_seed", 42)),
-            )
-            probability_threshold = getattr(
-                config,
-                "topology_posterior_probability_threshold",
-                getattr(config, "topology_posterior_threshold", 0.5),
-            )
-            selected = select_posterior_edges(
-                candidate_edges=candidate_list,
-                posterior_result=posterior_result,
-                max_neighbors=max_neighbors,
-                probability_threshold=float(probability_threshold),
-            )
-            attach_posterior_attrs(
-                selected_edges=selected,
-                candidate_edges=candidate_list,
-                posterior_result=posterior_result,
-                mode="select",
-            )
-        except TopologyPosteriorError:
-            raise
-        except Exception as exc:
-            logger.error(
-                "Topology posterior selection failed; no local-sheaf fallback is allowed.",
-                exc_info=True,
-            )
-            raise TopologyPosteriorError(
-                "Enabled topology posterior selection did not complete.",
-                cause=exc,
-            ) from exc
 
     return selected

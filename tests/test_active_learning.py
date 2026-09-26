@@ -261,15 +261,19 @@ def test_falsified_manuscript_note():
 
 def test_top_k_truncates():
     """With many candidate edges, top_k limits results."""
-    # Build many edges via variant selected sets
+    # Build many edges with valid endpoints and concrete measurements
+    edges = [
+        _make_edge(f"N{i}->N{i+1}", f"N{i}", f"N{i+1}", attrs={"evidence_flags": "missing_isotopes"})
+        for i in range(50)
+    ]
     variants = {
-        "baseline": {"selected_edge_ids": [f"E{i}" for i in range(50)]},
+        "baseline": {"selected_edge_ids": [e.edge_id for e in edges]},
         "null_model_defaults": {"selected_edge_ids": []},
-        "assumption_calibrated": {"selected_edge_ids": [f"E{i}" for i in range(0, 50, 2)]},
+        "assumption_calibrated": {"selected_edge_ids": [edges[i].edge_id for i in range(0, 50, 2)]},
     }
     report = _make_benchmark_report(variants=variants)
 
-    result = rank_next_measurements(benchmark_report=report, top_k=5)
+    result = rank_next_measurements(benchmark_report=report, candidate_edges=edges, top_k=5)
     assert result["summary"]["n_recommendations"] == 5
     assert len(result["recommendations"]) == 5
     assert result["recommendations"][0]["rank"] == 1
@@ -280,6 +284,10 @@ def test_output_files_written():
     """When output_dir provided, JSON/CSV/MD files are written."""
     with _make_temp_dir() as tmp:
         out_dir = str(Path(tmp) / "out")
+        edges = [
+            _make_edge("E1", "A", "B", attrs={"evidence_flags": "missing_isotopes"}),
+            _make_edge("E2", "B", "C", attrs={"evidence_flags": "missing_age"}),
+        ]
         variants = {
             "baseline": {"selected_edge_ids": ["E1", "E2"]},
             "null_model_defaults": {"selected_edge_ids": ["E2"]},
@@ -289,6 +297,7 @@ def test_output_files_written():
 
         result = rank_next_measurements(
             benchmark_report=report,
+            candidate_edges=edges,
             top_k=10,
             output_dir=out_dir,
         )
@@ -381,11 +390,18 @@ def test_priority_score_with_validation_labels(tmp_path):
         "null_model_defaults": {"selected_edge_ids": ["E_A"]},
         "assumption_calibrated": {"selected_edge_ids": ["E_A", "E_B", "E_D"]},
     }
-    report = _make_benchmark_report(variants=variants)
+    edges = [
+        _make_edge("E_A", "well_A", "well_B"),
+        _make_edge("E_B", "well_B", "well_C"),
+        _make_edge("E_C", "well_C", "well_D"),
+        _make_edge("E_D", "well_D", "well_E"),
+    ]
 
+    report = _make_benchmark_report(variants=variants)
     result = rank_next_measurements(
         benchmark_report=report,
         validation_report=validation_report,
+        candidate_edges=edges,
         top_k=10,
     )
 
@@ -508,3 +524,112 @@ def test_csv_columns_match(tmp_path):
                 "uncertainty_reasons", "recommended_measurements",
                 "expected_benefit", "validation_status"):
         assert col in header, f"Missing CSV column: {col}"
+
+
+def test_rejection_missing_endpoints():
+    """Edges with missing endpoints must be rejected and recorded in summary."""
+    edges = [
+        _make_edge("E_valid", "A", "B", attrs={"evidence_flags": "missing_isotopes"}),
+        _make_edge("E_no_u", "", "B", attrs={"evidence_flags": "missing_isotopes"}),
+        _make_edge("E_no_v", "A", "", attrs={"evidence_flags": "missing_isotopes"}),
+    ]
+    report = _make_benchmark_report(variants={
+        "baseline": {"selected_edge_ids": ["E_valid", "E_no_u", "E_no_v"]},
+    })
+    result = rank_next_measurements(
+        benchmark_report=report,
+        candidate_edges=edges,
+        reject_missing_endpoints=True,
+    )
+    assert len(result["recommendations"]) == 1
+    assert result["recommendations"][0]["edge_id"] == "E_valid"
+    assert result["summary"]["n_edges_excluded"] == 2
+    excluded_ids = [ex["edge_id"] for ex in result["summary"]["excluded_recommendations"]]
+    assert "E_no_u" in excluded_ids
+    assert "E_no_v" in excluded_ids
+
+
+def test_rejection_no_concrete_measurements():
+    """Edges with no actionable field/lab measurement must be rejected when required."""
+    edges = [
+        _make_edge("E_concrete", "A", "B", attrs={"evidence_flags": "missing_isotopes"}),
+        _make_edge("E_no_action", "C", "D"),  # no flags, fully agreeing
+    ]
+    report = _make_benchmark_report(variants={
+        "baseline": {"selected_edge_ids": ["E_concrete", "E_no_action"]},
+        "null_model_defaults": {"selected_edge_ids": ["E_concrete", "E_no_action"]},
+        "assumption_calibrated": {"selected_edge_ids": ["E_concrete", "E_no_action"]},
+    })
+    result = rank_next_measurements(
+        benchmark_report=report,
+        candidate_edges=edges,
+        require_concrete_actions=True,
+    )
+    rec_ids = [r["edge_id"] for r in result["recommendations"]]
+    assert "E_concrete" in rec_ids
+    assert "E_no_action" not in rec_ids
+    assert any(ex["edge_id"] == "E_no_action" and ex["reason"] == "no_concrete_measurement"
+               for ex in result["summary"]["excluded_recommendations"])
+
+
+def test_deterministic_tie_breaking():
+    """Edges with identical priority scores must sort deterministically by edge_id."""
+    edges = [
+        _make_edge("Edge_Z", "Z", "W", attrs={"evidence_flags": "missing_isotopes"}),
+        _make_edge("Edge_A", "A", "B", attrs={"evidence_flags": "missing_isotopes"}),
+        _make_edge("Edge_M", "M", "N", attrs={"evidence_flags": "missing_isotopes"}),
+    ]
+    report = _make_benchmark_report(variants={
+        "baseline": {"selected_edge_ids": ["Edge_Z", "Edge_A", "Edge_M"]},
+        "null_model_defaults": {"selected_edge_ids": ["Edge_Z", "Edge_A", "Edge_M"]},
+        "assumption_calibrated": {"selected_edge_ids": ["Edge_Z", "Edge_A", "Edge_M"]},
+    })
+    result = rank_next_measurements(
+        benchmark_report=report,
+        candidate_edges=edges,
+        top_k=10,
+    )
+    rec_ids = [r["edge_id"] for r in result["recommendations"]]
+    assert rec_ids == ["Edge_A", "Edge_M", "Edge_Z"], (
+        f"Expected deterministic alphabetical tie-breaking: {rec_ids}"
+    )
+
+
+def test_bootstrap_instability_campaign_warning():
+    """Bootstrap instability produces summary warning and does not inflate edge priority scores."""
+    edges = [
+        _make_edge("E1", "A", "B", attrs={"evidence_flags": "missing_isotopes"}),
+    ]
+    variants = {"baseline": {"selected_edge_ids": ["E1"]}}
+
+    # Stable report
+    report_stable = _make_benchmark_report(variants=variants)
+    result_stable = rank_next_measurements(
+        benchmark_report=report_stable,
+        candidate_edges=edges,
+    )
+
+    # Unstable report
+    report_unstable = _make_benchmark_report(
+        variants=variants,
+        uncertainty={
+            "improvement_summary_ci": {
+                "delta_f1": [0.05, 0.85],
+                "probability_delta_f1_gt_0": 0.80,
+            }
+        },
+    )
+    result_unstable = rank_next_measurements(
+        benchmark_report=report_unstable,
+        candidate_edges=edges,
+    )
+
+    # Edge priority score is identical (not uniformly boosted by constant)
+    score_s = result_stable["recommendations"][0]["priority_score"]
+    score_u = result_unstable["recommendations"][0]["priority_score"]
+    assert score_s == score_u, "Edge priority score should not be inflated by campaign-level bootstrap instability"
+
+    # Campaign summary reports warning
+    assert result_unstable["summary"]["bootstrap_instability_detected"] is True
+    assert result_unstable["summary"]["bootstrap_instability_warning"] is not None
+    assert "warnings" in result_unstable["summary"]

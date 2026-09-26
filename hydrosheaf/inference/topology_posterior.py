@@ -17,6 +17,7 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Set, 
 import numpy as np
 
 from ..config import Config
+from ..data.minerals import check_strontium_provenance
 from ..graph.types import Edge
 from ..log import get_logger
 
@@ -115,16 +116,124 @@ def _get_config_int(config: Any, name: str, default: int) -> int:
     return int(_get_config_float(config, name, float(default)))
 
 
-def _edge_prior_probability(edge: Any) -> float:
+def _edge_prior_probability(edge: Any, config: Optional[Config] = None) -> float:
     attrs = _get_edge_attrs(edge)
     value = attrs.get(
         "prior_edge_probability",
-        attrs.get("edge_confidence", attrs.get("p_uv", 0.5)),
+        attrs.get("edge_confidence", attrs.get("p_uv", None)),
     )
+    if value is None:
+        value = getattr(edge, "prob_combined", getattr(edge, "p_uv", 0.5))
+
     try:
         probability = float(value)
     except (TypeError, ValueError):
         probability = 0.5
+
+    if config is not None and getattr(config, "geophysics_enabled", False):
+        if attrs.get("geophysical_barrier") is True or attrs.get("barrier_detected") is True:
+            penalty = float(getattr(config, "geophysics_barrier_dyke_penalty", 0.05))
+            probability *= penalty
+
+        p_geophys = attrs.get("prob_geophys", getattr(edge, "prob_geophys", None))
+        if p_geophys is not None and not hasattr(edge, "prob_combined"):
+            try:
+                probability *= float(p_geophys)
+            except (TypeError, ValueError):
+                pass
+
+        rho_u = attrs.get("rho_u") or attrs.get("apparent_resistivity_u")
+        rho_v = attrs.get("rho_v") or attrs.get("apparent_resistivity_v")
+        if rho_u is not None and rho_v is not None:
+            try:
+                sigma_struct = float(getattr(config, "geophysics_sigma_struct", 100.0))
+                delta_rho = abs(float(rho_u) - float(rho_v))
+                if delta_rho > 2.0 * sigma_struct:
+                    probability *= math.exp(-delta_rho / (3.0 * sigma_struct))
+            except (TypeError, ValueError):
+                pass
+
+        ec_crossval_enabled = bool(
+            getattr(config, "geophysics_ec_crossval_enabled", False)
+            or getattr(config, "geophysics_conductivity_conditioning", False)
+            or getattr(config, "geophysics_fluid_ec_enabled", False)
+        )
+        if ec_crossval_enabled:
+            def _first_numeric(*keys: str) -> Optional[float]:
+                for key in keys:
+                    raw = attrs.get(key)
+                    try:
+                        if raw is not None:
+                            value = float(raw)
+                            if math.isfinite(value):
+                                return value
+                    except (TypeError, ValueError):
+                        continue
+                return None
+
+            ec_u = _first_numeric(
+                "ec_u",
+                "fluid_ec_u",
+                "formation_conductivity_u",
+                "conductivity_u",
+                "ert_conductivity_u",
+            )
+            ec_v = _first_numeric(
+                "ec_v",
+                "fluid_ec_v",
+                "formation_conductivity_v",
+                "conductivity_v",
+                "ert_conductivity_v",
+            )
+            if ec_u is not None and ec_v is not None:
+                try:
+                    ratio = float(ec_u) / max(1e-3, float(ec_v))
+                    if ratio > 3.0 or ratio < 0.333:
+                        probability *= float(
+                            getattr(config, "geophysics_fluid_ec_weight", 0.5)
+                        )
+                except (TypeError, ValueError):
+                    pass
+
+    # 87Sr/86Sr is a non-reactive provenance invariant. The edge fit records
+    # the diagnostic, while the topology prior must also see it when endpoint
+    # ratios are available; otherwise a divergent-lithology edge could be
+    # selected before chemistry is evaluated.
+    if config is not None and bool(getattr(config, "sr_provenance_enabled", False)):
+        def _first_sr_ratio(*keys: str) -> Optional[float]:
+            for key in keys:
+                raw = attrs.get(key)
+                try:
+                    if raw is not None:
+                        value = float(raw)
+                        if math.isfinite(value):
+                            return value
+                except (TypeError, ValueError):
+                    continue
+            return None
+
+        sr_u = _first_sr_ratio(
+            "sr_ratio_u",
+            "sr_ratio_87_86_u",
+            "87Sr/86Sr_u",
+            "Sr87_Sr86_u",
+        )
+        sr_v = _first_sr_ratio(
+            "sr_ratio_v",
+            "sr_ratio_87_86_v",
+            "87Sr/86Sr_v",
+            "Sr87_Sr86_v",
+        )
+        if sr_u is not None and sr_v is not None:
+            _invariant, sr_factor = check_strontium_provenance(
+                sr_u,
+                sr_v,
+                tolerance=float(
+                    getattr(config, "sr_provenance_tolerance", 0.0005)
+                ),
+            )
+            probability *= float(sr_factor)
+
     if not math.isfinite(probability):
         probability = 0.5
     return min(1.0 - 1e-12, max(1e-12, probability))
@@ -190,6 +299,7 @@ def _log_posterior(
     cost_cache: Dict[str, float],
     beta: float,
     edge_penalty: float,
+    config: Optional[Config] = None,
 ) -> float:
     """Compute unnormalized log-posterior for a given edge set.
 
@@ -201,7 +311,7 @@ def _log_posterior(
     # Full Bernoulli prior over all edges in the universe
     included_ids = {_get_edge_id(e) for e in edge_set}
     for e in universe:
-        p = _edge_prior_probability(e)
+        p = _edge_prior_probability(e, config)
         if _get_edge_id(e) in included_ids:
             logp += math.log(p)
         else:
@@ -454,12 +564,12 @@ def _gibbs_edge_update(
             "Neither state in a topology Gibbs update satisfies constraints."
         )
     absent_logp = (
-        _log_posterior(absent, universe, cost_fn, cost_cache, beta, edge_penalty)
+        _log_posterior(absent, universe, cost_fn, cost_cache, beta, edge_penalty, config)
         if absent_valid
         else -math.inf
     )
     present_logp = (
-        _log_posterior(present, universe, cost_fn, cost_cache, beta, edge_penalty)
+        _log_posterior(present, universe, cost_fn, cost_cache, beta, edge_penalty, config)
         if present_valid
         else -math.inf
     )
@@ -643,8 +753,11 @@ def run_topology_posterior(
             "edge_log_odds": {},
             "map_edges": [],
             "entropy": 0.0,
+            "joint_graph_entropy": 0.0,
             "marginal_edge_entropy": 0.0,
             "entropy_definition": "sum_of_marginal_bernoulli_edge_entropies",
+            "graph_ensemble": [],
+            "n_unique_graphs": 0,
             "n_edges_mean": 0.0,
             "n_edges_ci95": (0.0, 0.0),
             "acceptance_rate": 0.0,
@@ -664,6 +777,7 @@ def run_topology_posterior(
         }
 
     aggregate_counts: Dict[str, int] = {edge_id: 0 for edge_id in edge_ids}
+    graph_counts: Dict[Tuple[str, ...], int] = {}
     chain_counts: List[Dict[str, int]] = []
     chain_edge_traces: List[Dict[str, List[int]]] = []
     chain_n_edges: List[List[int]] = []
@@ -719,11 +833,11 @@ def run_topology_posterior(
             current = [
                 edge
                 for edge in universe_list
-                if rng.random() < _edge_prior_probability(edge)
+                if rng.random() < _edge_prior_probability(edge, config)
             ]
         initial_edge_ids_by_chain.append([_get_edge_id(edge) for edge in current])
         current_logp = _log_posterior(
-            current, universe_list, cost_fn, cost_cache, beta, edge_penalty
+            current, universe_list, cost_fn, cost_cache, beta, edge_penalty, config
         )
         if current_logp > best_logp:
             best_logp = current_logp
@@ -768,6 +882,7 @@ def run_topology_posterior(
                         cost_cache,
                         beta,
                         edge_penalty,
+                        config,
                     )
                 log_ratio = proposed_logp - current_logp
                 if log_ratio >= 0.0 or rng.random() < math.exp(log_ratio):
@@ -777,7 +892,9 @@ def run_topology_posterior(
                         acceptance_count += 1
 
             if iteration >= n_burnin:
-                included = {_get_edge_id(edge) for edge in current}
+                included_tuple = tuple(sorted(_get_edge_id(edge) for edge in current))
+                graph_counts[included_tuple] = graph_counts.get(included_tuple, 0) + 1
+                included = set(included_tuple)
                 for edge_id in edge_ids:
                     present = int(edge_id in included)
                     counts[edge_id] += present
@@ -803,12 +920,33 @@ def run_topology_posterior(
         for eid, p in edge_probabilities.items()
     }
 
-    # Sum of marginal Bernoulli edge entropies. This is not the entropy of the
-    # joint graph posterior because dependencies among edges are not represented.
+    # Sum of marginal Bernoulli edge entropies (preserved for baseline comparison).
     marginal_edge_entropy = 0.0
     for p in edge_probabilities.values():
         if 0.0 < p < 1.0:
             marginal_edge_entropy -= p * math.log(p) + (1.0 - p) * math.log(1.0 - p)
+
+    # Discrete probability-bearing ensemble of posterior graphs.
+    sorted_graphs = sorted(
+        graph_counts.items(),
+        key=lambda item: (-item[1], item[0]),
+    )
+    graph_ensemble = [
+        {
+            "graph_id": f"G{idx:04d}",
+            "edge_ids": edges_tuple,
+            "probability": float(count / n_post_samples),
+            "count": int(count),
+        }
+        for idx, (edges_tuple, count) in enumerate(sorted_graphs)
+    ]
+
+    # Exact joint Shannon entropy of the discrete posterior graph ensemble.
+    joint_graph_entropy = 0.0
+    for g in graph_ensemble:
+        p = g["probability"]
+        if p > 0.0:
+            joint_graph_entropy -= p * math.log(p)
 
     flattened_n_edges = [value for trace in chain_n_edges for value in trace]
     n_edges_mean = float(np.mean(flattened_n_edges)) if flattened_n_edges else 0.0
@@ -917,8 +1055,12 @@ def run_topology_posterior(
         "edge_log_odds": edge_log_odds,
         "map_edges": [_get_edge_id(e) for e in best_edges],
         "entropy": marginal_edge_entropy,
+        "joint_graph_entropy": joint_graph_entropy,
         "marginal_edge_entropy": marginal_edge_entropy,
         "entropy_definition": "sum_of_marginal_bernoulli_edge_entropies",
+        "joint_entropy_definition": "joint_shannon_entropy_over_mcmc_graph_ensemble",
+        "graph_ensemble": graph_ensemble,
+        "n_unique_graphs": len(graph_ensemble),
         "n_edges_mean": n_edges_mean,
         "n_edges_ci95": n_edges_ci95,
         "acceptance_rate": acceptance_rate,
@@ -963,11 +1105,13 @@ def make_topology_cost_fn(
       3. Projected-gradient alignment cost when *gradient_map* provided.
       4. Local head-plane residuals when *local_residuals* provided.
     """
-    from ..data.schema import vector_from_sample
+    from ..data.field import CANONICAL_IONS
+    from ..data.schema import normalize_sample, vector_from_sample
     from ..sheaf.hydraulic_hodge import head_hodge_graph_cost
     from ..sheaf.isotope_metrics import compute_isotope_stats
     from ..sheaf.topology_refine import _build_node_info, _score_candidates
     from ..sheaf.directed_section import build_edge_maps, solve_directed_section
+    from ..sheaf.joint_reaction import solve_joint_reaction_section
 
     if stats is None:
         stats = compute_isotope_stats(sample_map.values(), config)
@@ -975,7 +1119,27 @@ def make_topology_cost_fn(
         node_info = _build_node_info(sample_map, stats, config)
 
     node_vectors = {}
+    panel_order = list(dict.fromkeys([*config.ion_order, *CANONICAL_IONS]))
+    node_panels: Dict[str, Dict[str, float]] = {}
     for node_id, sample in sample_map.items():
+        normalized_panel = normalize_sample(
+            sample,
+            panel_order,
+            config.detection_limit_policy,
+        )
+        panel = {}
+        for ion in panel_order:
+            value = normalized_panel.get(ion)
+            if value is None:
+                continue
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(numeric):
+                panel[ion] = numeric
+        if panel:
+            node_panels[str(node_id)] = panel
         values, _ = vector_from_sample(
             sample,
             config.ion_order,
@@ -984,6 +1148,10 @@ def make_topology_cost_fn(
         )
         if values is not None:
             node_vectors[node_id] = values
+
+    adaptive_panels = bool(node_panels) and any(
+        len(panel) < len(config.ion_order) for panel in node_panels.values()
+    )
 
     global_weight = _get_config_float(config, "sheaf_weight_global", 1.0)
     hydraulic_weight = _get_config_float(config, "hydraulic_hodge_weight", 1.0)
@@ -1057,7 +1225,36 @@ def make_topology_cost_fn(
         )
         local_cost = sum(s.local_score for s in scores.values())
 
-        if node_vectors:
+        if adaptive_panels:
+            try:
+                # Sparse observations are evaluated only on the endpoint
+                # intersection panel. This preserves the no-fabricated-zero
+                # contract and lets cohomology expose the resulting adaptive
+                # obstruction energy to the topology posterior.
+                adaptive_maps = build_edge_maps(
+                    edges,
+                    node_panels,
+                    config,
+                    prior_weight=0.0,
+                )
+                if adaptive_maps:
+                    from ..sheaf.cohomology import compute_cohomology
+
+                    adaptive_diagnostics = compute_cohomology(
+                        list(adaptive_maps.values())
+                    )
+                    global_cost = float(
+                        adaptive_diagnostics.get("obstruction_energy", 0.0)
+                    )
+                else:
+                    global_cost = 0.0
+            except Exception:
+                logger.warning(
+                    "Adaptive sheaf section solve failed; assigning high cost penalty.",
+                    exc_info=True,
+                )
+                global_cost = 1e6
+        elif node_vectors:
             try:
                 maps = build_edge_maps(
                     edges,
@@ -1065,18 +1262,40 @@ def make_topology_cost_fn(
                     config,
                     prior_weight=0.0,
                 )
-                node_estimates = solve_directed_section(
-                    list(node_vectors.keys()),
-                    list(maps.values()),
-                    node_vectors,
-                    obs_weight=1.0,
-                    diag_eps=1e-6,
-                )
                 from ..sheaf.directed_section import compute_edge_section_residuals
 
-                residuals = compute_edge_section_residuals(
-                    maps, node_estimates, config.weights
-                )
+                if bool(getattr(config, "sheaf_joint_reaction_enabled", True)):
+                    joint_solution = solve_joint_reaction_section(
+                        list(node_vectors.keys()),
+                        list(maps.values()),
+                        node_vectors,
+                        config.ion_order,
+                        species_weights=config.get_weights(config.ion_order),
+                        obs_weight=1.0,
+                        diag_eps=1e-6,
+                        lambda_l1=config.lambda_l1_value(),
+                        lambda_l2=config.lambda_l2,
+                        max_iter=_get_config_int(
+                            config, "sheaf_joint_reaction_max_iter", 1000
+                        ),
+                        tol=_get_config_float(
+                            config, "sheaf_joint_reaction_tol", 1e-7
+                        ),
+                    )
+                    residuals = joint_solution.edge_residuals
+                else:
+                    node_estimates = solve_directed_section(
+                        list(node_vectors.keys()),
+                        list(maps.values()),
+                        node_vectors,
+                        obs_weight=1.0,
+                        diag_eps=1e-6,
+                    )
+                    residuals = compute_edge_section_residuals(
+                        maps,
+                        node_estimates,
+                        config.get_weights(config.ion_order),
+                    )
                 global_cost = sum(residuals.values())
             except Exception:
                 logger.warning(
@@ -1380,4 +1599,64 @@ def attach_posterior_attrs(
         attrs["posterior_selection_max_neighbors"] = posterior_result.get(
             "selection_max_neighbors"
         )
+        attrs["posterior_joint_graph_entropy"] = posterior_result.get(
+            "joint_graph_entropy", entropy
+        )
         edge.attrs = attrs
+
+
+def extract_topology_hypotheses(
+    posterior_result: Dict[str, Any],
+    min_probability: float = 0.0,
+    max_hypotheses: Optional[int] = None,
+) -> Tuple[List[str], List[float], List[Tuple[str, ...]]]:
+    """Extract discrete topology hypotheses from posterior result for Bayesian active learning.
+
+    Parameters
+    ----------
+    posterior_result : dict
+        Result dictionary returned by ``run_topology_posterior``.
+    min_probability : float
+        Minimum empirical posterior probability required to retain a graph.
+    max_hypotheses : int, optional
+        Maximum number of discrete graph hypotheses to retain.
+
+    Returns
+    -------
+    tuple of (hypothesis_ids, prior_probabilities, edge_tuples)
+        Aligned lists of string hypothesis IDs, normalized probabilities summing to 1.0,
+        and tuples of included edge IDs.
+    """
+    ensemble = posterior_result.get("graph_ensemble", [])
+    if not ensemble and isinstance(posterior_result.get("attrs"), Mapping):
+        ensemble = posterior_result["attrs"].get("posterior_graph_ensemble", [])
+    if not ensemble:
+        map_edges = tuple(
+            sorted(
+                posterior_result.get(
+                    "map_edges",
+                    posterior_result.get("selected_edge_ids", []),
+                )
+            )
+        )
+        return (["G0000"], [1.0], [map_edges])
+
+    filtered = [g for g in ensemble if float(g.get("probability", 0.0)) >= float(min_probability)]
+    if not filtered:
+        filtered = list(ensemble[:1])
+    if max_hypotheses is not None and max_hypotheses > 0 and len(filtered) > max_hypotheses:
+        filtered = filtered[:max_hypotheses]
+
+    raw_probs = [float(g["probability"]) for g in filtered]
+    total = sum(raw_probs)
+    if total <= 0.0:
+        norm_probs = [1.0 / len(filtered)] * len(filtered)
+    else:
+        norm_probs = [p / total for p in raw_probs]
+
+    ids = [str(g.get("graph_id", f"G{i:04d}")) for i, g in enumerate(filtered)]
+    edge_tuples = [
+        tuple(g.get("edge_ids", g.get("graph_edges", g.get("edges", ()))))
+        for g in filtered
+    ]
+    return ids, norm_probs, edge_tuples

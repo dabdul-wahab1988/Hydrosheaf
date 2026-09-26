@@ -89,7 +89,7 @@ def _dataset_statuses(
 
 def _render_readiness(report: dict[str, Any]) -> str:
     lines = [
-        "# Ghana prospective campaign readiness",
+        "# Refined Ghana cohort readiness",
         "",
         "Read-only audit against `HS-GHANA-PROSPECTIVE-01`.",
         "",
@@ -106,8 +106,10 @@ def _render_readiness(report: dict[str, Any]) -> str:
             "",
             "## Interpretation",
             "",
-            "The four supplied packages can support harmonisation, chemistry transfer, "
-            "ratio diagnostics, mapped-geology sensitivity, and hold-forward tests. "
+            "The approved Central Region and Upper East Region cohorts can support "
+            "harmonisation and descriptive chemistry screening. They are separate "
+            "cross-sectional cohorts; they do not support a seasonal or temporal "
+            "hold-forward test. "
             "Independent age, direct-adjacency, and reaction-truth scoring remains "
             "ABSTAIN until the protocol's prospective measurements and labels are "
             "collected without leakage.",
@@ -159,7 +161,8 @@ def run(*, repo_root: Path = REPO_ROOT, config: Path = DEFAULT_CONFIG, output: P
         "field_inventory": field_inventory,
         "module_status": {
             "canonical_loader_and_units": "RUN",
-            "four_package_transfer": "RUN" if all(row["field_transfer"] == "RUN" for row in statuses) else "PARTIAL",
+            "approved_cohort_transfer": "RUN" if all(row["field_transfer"] == "RUN" for row in statuses) else "PARTIAL",
+            "temporal_field_transfer": "ABSTAIN",
             "geochemical_ratios": "RUN",
             "mapped_geology_context": "RUN",
             "independent_age_accuracy": "ABSTAIN",
@@ -168,9 +171,9 @@ def run(*, repo_root: Path = REPO_ROOT, config: Path = DEFAULT_CONFIG, output: P
             "reason_for_abstain": "No independent co-timed labels and no prospective blind-confirmation run are present.",
         },
         "claim_boundary": (
-            "Current Ghana packages are field-transfer/context evidence. They do "
-            "not validate groundwater age, direct adjacency, or unique reaction "
-            "families."
+            "The approved Central Region and Upper East Region packages are "
+            "separate field-context cohorts. They do not validate groundwater age, "
+            "direct adjacency, temporal transfer, or unique reaction families."
         ),
     }
     write_json(output / "readiness.json", report)

@@ -689,18 +689,12 @@ def reaction_support_summary(
 
 
 def audit_ghana_workbook(workbook_path: Path) -> Dict[str, object]:
-    """Create a machine-readable scope audit for the canonical Ghana workbook
-    (data/FieldData/NorthenGhana/NorthernGhana.xlsx, Dry/Wet sheets).
+    """Retired legacy audit; current field cohorts are cross-sectional only."""
 
-    An earlier revision audited a different, antecedent study's own derived
-    workbook (Wells_Nodes/Hydrochemistry_Seasonal/Graph_Edges/
-    Coordinate_Masking_Note sheets, including a fabricated per-record
-    Sampling_Date field with no equivalent in the real raw data); that
-    workbook has been removed (DECISIONS.md). This audit reads the two
-    canonical Dry/Wet sheets directly and reports what they do and do not
-    contain, including that no graph edges or per-record sampling dates
-    exist in the canonical source.
-    """
+    raise RuntimeError(
+        "The legacy workbook audit is disabled. The locked M7 benchmark is "
+        "synthetic-only; Central/UER field QA is reported separately."
+    )
 
     workbook_path = Path(workbook_path)
     dry = pd.read_excel(workbook_path, sheet_name="Dry").assign(Season="Dry")

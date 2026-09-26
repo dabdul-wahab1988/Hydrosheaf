@@ -56,6 +56,26 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
         "infer_edges_3d_probabilistic",
     ),
     "build_network_3d": (".graph3d.build_3d", "build_network_3d"),
+    "load_geophysical_observations": (
+        ".graph3d.build_3d",
+        "load_geophysical_observations",
+    ),
+    "attach_configured_geophysics": (
+        ".graph3d.build_3d",
+        "attach_configured_geophysics",
+    ),
+    "attach_bedrock_elevation_raster": (
+        ".graph3d.build_3d",
+        "attach_bedrock_elevation_raster",
+    ),
+    "geophysical_barrier_check": (
+        ".graph3d.build_3d",
+        "geophysical_barrier_check",
+    ),
+    "compute_geophysical_transit_time": (
+        ".graph3d.build_3d",
+        "compute_geophysical_transit_time",
+    ),
     "calibrate_ec_tds": (".models.ec_tds", "calibrate_ec_tds"),
     "predict_ec_tds": (".models.ec_tds", "predict_ec_tds"),
     "build_reaction_dictionary": (".models.reactions", "build_reaction_dictionary"),
@@ -106,12 +126,25 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
     "robust_zscore": (".coda_sbp", "robust_zscore"),
     "infer_node_posteriors": (".nitrate_source_v2", "infer_node_posteriors"),
     "NitrateSourceResult": (".nitrate_source_v2", "NitrateSourceResult"),
+    "IsotopeSample": (".models.nitrate_isotopes", "IsotopeSample"),
+    "SourceIsotopes": (".models.nitrate_isotopes", "SourceIsotopes"),
+    "compute_isotope_prob": (".models.nitrate_isotopes", "compute_isotope_prob"),
+    "load_endmember_database": (
+        ".models.nitrate_isotopes",
+        "load_endmember_database",
+    ),
+    "ChemicalRegistry": (".data.units", "ChemicalRegistry"),
+    "ChemicalSpecies": (".data.units", "ChemicalSpecies"),
+    "SPECIES_REGISTRY": (".data.units", "SPECIES_REGISTRY"),
     "attach_temporal_results": (".api", "attach_temporal_results"),
     "auto_disable_missing_modules": (".api", "auto_disable_missing_modules"),
+    "resolve_optional_modules": (".api", "resolve_optional_modules"),
     "build_vadose_priors": (".api", "build_vadose_priors"),
     "validate_required_inputs": (".api", "validate_required_inputs"),
     "fit_network_pipeline": (".api", "fit_network_pipeline"),
     "fit_network_with_priors": (".api", "fit_network_with_priors"),
+    "fit_ttd_network": (".api", "fit_ttd_network"),
+    "fit_history_ttd": (".api", "fit_history_ttd"),
     "fit_temporal_edges": (".api", "fit_temporal_edges"),
     "PhysicsPrior": (".physics.priors", "PhysicsPrior"),
     "apply_physics_priors": (".physics.priors", "apply_physics_priors"),
@@ -156,6 +189,26 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
     "update_hypothesis_posterior": (
         ".calibration.bayesian_active_learning",
         "update_hypothesis_posterior",
+    ),
+    "rank_next_measurements": (
+        ".calibration.active_learning",
+        "rank_next_measurements",
+    ),
+    "rank_campaign_measurements": (
+        ".calibration.well_active_learning",
+        "rank_campaign_measurements",
+    ),
+    "CampaignConfig": (
+        ".calibration.well_active_learning",
+        "CampaignConfig",
+    ),
+    "WellAction": (
+        ".calibration.well_active_learning",
+        "WellAction",
+    ),
+    "load_predictive_scenarios_file": (
+        ".calibration.well_active_learning",
+        "load_predictive_scenarios_file",
     ),
     "tracer_response_kernel": (
         ".nuclear.joint_lpm",
@@ -210,6 +263,52 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
         ".nuclear.ttd_design",
         "select_ttd_measurement_batch",
     ),
+    "CertifiedCandidateTracer": (
+        ".nuclear.ttd_certified_design",
+        "CertifiedCandidateTracer",
+    ),
+    "AmbiguityEvaluation": (
+        ".nuclear.ttd_certified_design",
+        "AmbiguityEvaluation",
+    ),
+    "CertifiedDesignCertificate": (
+        ".nuclear.ttd_certified_design",
+        "CertifiedDesignCertificate",
+    ),
+    "evaluate_worst_case_ambiguity": (
+        ".nuclear.ttd_certified_design",
+        "evaluate_worst_case_ambiguity",
+    ),
+    "solve_certified_measurement_design": (
+        ".nuclear.ttd_certified_design",
+        "solve_certified_measurement_design",
+    ),
+    "solve_budgeted_minimax_design": (
+        ".nuclear.ttd_certified_design",
+        "solve_budgeted_minimax_design",
+    ),
+    "ACMD": (".acmd", "ACMD"),
+    "ACMDLoop": (".acmd", "ACMDLoop"),
+    "ACMDAction": (".acmd", "ACMDAction"),
+    "ACMDMode": (".acmd", "ACMDMode"),
+    "ACMDStatus": (".acmd", "ACMDStatus"),
+    "ACMDCertificate": (".acmd", "ACMDCertificate"),
+    "ACMDStepRecord": (".acmd", "ACMDStepRecord"),
+    "ChemACMD": (".reactive_transport.chem_acmd", "ChemACMD"),
+    "ChemicalAction": (".reactive_transport.chem_acmd", "ChemicalAction"),
+    "ChemicalPolytope": (".reactive_transport.chem_acmd", "ChemicalPolytope"),
+    "compile_geochemical_polytope": (
+        ".reactive_transport.chem_acmd",
+        "compile_geochemical_polytope",
+    ),
+    "build_isotope_mass_action": (
+        ".reactive_transport.chem_acmd",
+        "build_isotope_mass_action",
+    ),
+    "reaction_stoichiometry_from_config": (
+        ".reactive_transport.chem_acmd",
+        "reaction_stoichiometry_from_config",
+    ),
     "GraphCompatibilityAudit": (
         ".nuclear.ttd_graph",
         "GraphCompatibilityAudit",
@@ -219,6 +318,65 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
         ".nuclear.ttd_graph",
         "audit_ttd_graph_compatibility",
     ),
+    "TTDGrid": (".nuclear.ttd_grid", "TTDGrid"),
+    "build_multiscale_ttd_grid": (
+        ".nuclear.ttd_grid",
+        "build_multiscale_ttd_grid",
+    ),
+    "build_uniform_ttd_grid": (".nuclear.ttd_grid", "build_uniform_ttd_grid"),
+    "build_mass_aware_curvature_matrix": (
+        ".nuclear.ttd_grid",
+        "build_mass_aware_curvature_matrix",
+    ),
+    "TracerObservation": (".nuclear.ttd_kernel_builder", "TracerObservation"),
+    "NodeTracerPanel": (".nuclear.ttd_kernel_builder", "NodeTracerPanel"),
+    "MultiTracerForwardSystem": (
+        ".nuclear.ttd_kernel_builder",
+        "MultiTracerForwardSystem",
+    ),
+    "build_forward_system": (
+        ".nuclear.ttd_kernel_builder",
+        "build_forward_system",
+    ),
+    "build_network_forward_systems": (
+        ".nuclear.ttd_kernel_builder",
+        "build_network_forward_systems",
+    ),
+    "EdgeTransportOperator": (
+        ".nuclear.ttd_transport",
+        "EdgeTransportOperator",
+    ),
+    "build_advection_dispersion_operator": (
+        ".nuclear.ttd_transport",
+        "build_advection_dispersion_operator",
+    ),
+    "build_local_recharge_distribution": (
+        ".nuclear.ttd_transport",
+        "build_local_recharge_distribution",
+    ),
+    "NodeMixingSpecification": (
+        ".nuclear.ttd_transport",
+        "NodeMixingSpecification",
+    ),
+    "DiagnosticGateReport": (
+        ".nuclear.ttd_diagnostics",
+        "DiagnosticGateReport",
+    ),
+    "audit_node_physical_evidence": (
+        ".nuclear.ttd_diagnostics",
+        "audit_node_physical_evidence",
+    ),
+    "audit_graph_topology": (".nuclear.ttd_diagnostics", "audit_graph_topology"),
+    "SingleNodeTTDResult": (
+        ".nuclear.ttd_network_solver",
+        "SingleNodeTTDResult",
+    ),
+    "NetworkTTDResult": (".nuclear.ttd_network_solver", "NetworkTTDResult"),
+    "solve_single_node_ttd": (
+        ".nuclear.ttd_network_solver",
+        "solve_single_node_ttd",
+    ),
+    "solve_network_ttd": (".nuclear.ttd_network_solver", "solve_network_ttd"),
     # NEW WORKFLOW
     "analyze_dataset": (".workflows.auto", "analyze_dataset"),
     "ClaimRecord": (".validation", "ClaimRecord"),
@@ -254,10 +412,26 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
         ".validation",
         "validate_sparse_inverse_reaction_model",
     ),
+    "ASSUMPTION_CATALOGUE": (".validation", "ASSUMPTION_CATALOGUE"),
+    "AssumptionAudit": (".validation", "AssumptionAudit"),
+    "AssumptionReport": (".validation", "AssumptionReport"),
+    "AssumptionStatus": (".validation", "AssumptionStatus"),
+    "assess_model_assumptions": (".validation", "assess_model_assumptions"),
+    "diagnose_error_independence": (".validation", "diagnose_error_independence"),
+    "diagnose_laboratory_bias": (".validation", "diagnose_laboratory_bias"),
+    "diagnose_missingness_at_random": (
+        ".validation",
+        "diagnose_missingness_at_random",
+    ),
+    "diagnose_tracer_conservativeness": (
+        ".validation",
+        "diagnose_tracer_conservativeness",
+    ),
+    "diagnose_vertical_datum": (".validation", "diagnose_vertical_datum"),
 }
 
 __all__ = list(_EXPORTS)
-__version__ = "0.5.1"
+__version__ = "0.7.0"
 
 
 def __getattr__(name: str) -> Any:

@@ -102,6 +102,7 @@ from hydrosheaf.validation import (  # noqa: E402
     fit_discrepancy_calibrator,
     score_locked_discrepancy,
 )
+from hydrosheaf.reproducibility import reproducible_now_iso  # noqa: E402
 from independent_lattice_generator import (  # noqa: E402
     IndependentLatticeAquifer,
     generate_independent_lattice,
@@ -4403,7 +4404,7 @@ def run_ensemble_benchmark(
             else "PASS_SCOPED_EXECUTION" if execution_gate
             else "FAIL"
         ),
-        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "created_at_utc": reproducible_now_iso(),
         "git_revision": _git_revision(),
         "git_worktree_dirty": _git_worktree_dirty(),
         "source_hashes": {

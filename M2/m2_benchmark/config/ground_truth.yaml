@@ -1,0 +1,195 @@
+benchmark:
+  name: m2_hydrosheaf_synthetic_benchmark
+  version: 1
+  random_seed: 240504
+  n_realisations: 100
+  description: >
+    Locked synthetic aquifer benchmark for M2 Hydrosheaf validation. All
+    concentrations are stored in mmol/L, isotopes in per mil, tracer units as
+    named, and residence times in years.
+
+ion_order:
+  - Ca
+  - Mg
+  - Na
+  - K
+  - HCO3
+  - Cl
+  - SO4
+  - NO3
+  - F
+  - Fe
+  - PO4
+
+active_minerals:
+  - calcite
+  - dolomite
+  - gypsum
+  - halite
+  - albite
+  - pyrite_oxidation_aerobic
+
+signed_reaction_labels:
+  - CaNa_exch
+  - MgNa_exch
+
+noise:
+  major_ion_rel_sigma: 0.035
+  isotope_sigma_permil: 0.5
+  tritium_sigma_tu: 0.2
+  c14_sigma_pmc: 2.0
+
+nodes:
+  RCH:
+    role: recharge zone
+    age_class: young
+    mrt_years: 8
+    xy: [0.0, 0.0]
+    head_m: 125.0
+    chemistry_mmolL: {Ca: 1.0, Mg: 0.35, Na: 0.7, K: 0.05, HCO3: 2.1, Cl: 0.45, SO4: 0.18, NO3: 0.12, F: 0.01, Fe: 0.0, PO4: 0.0}
+    isotopes: {d18O: -4.5, d2H: -24.0}
+    tracers: {tritium_TU: 4.2, c14_pmc: 98.0}
+  MODERN:
+    role: modern recharge pulse
+    age_class: young
+    mrt_years: 5
+    xy: [-0.5, -0.3]
+    head_m: 126.0
+    chemistry_mmolL: {Ca: 0.8, Mg: 0.25, Na: 0.45, K: 0.04, HCO3: 1.5, Cl: 0.25, SO4: 0.12, NO3: 0.08, F: 0.005, Fe: 0.0, PO4: 0.0}
+    isotopes: {d18O: -4.7, d2H: -25.5}
+    tracers: {tritium_TU: 4.8, c14_pmc: 100.0}
+  LAT_SAL:
+    role: saline lateral tributary
+    age_class: intermediate
+    mrt_years: 120
+    xy: [3.0, 3.0]
+    head_m: 118.0
+    chemistry_mmolL: {Ca: 1.5, Mg: 0.8, Na: 5.0, K: 0.08, HCO3: 2.6, Cl: 4.6, SO4: 0.6, NO3: 0.05, F: 0.03, Fe: 0.0, PO4: 0.0}
+    isotopes: {d18O: -3.2, d2H: -18.0}
+    tracers: {tritium_TU: 0.5, c14_pmc: 78.0}
+  LAT_CARB:
+    role: carbonate-rich lateral tributary
+    age_class: intermediate
+    mrt_years: 90
+    xy: [4.0, -2.5]
+    head_m: 117.0
+    chemistry_mmolL: {Ca: 2.8, Mg: 1.6, Na: 1.2, K: 0.06, HCO3: 6.0, Cl: 0.7, SO4: 0.35, NO3: 0.04, F: 0.02, Fe: 0.0, PO4: 0.0}
+    isotopes: {d18O: -4.0, d2H: -22.0}
+    tracers: {tritium_TU: 0.9, c14_pmc: 82.0}
+
+generated_node_order:
+  - SH15
+  - SH30
+  - INT1
+  - INT2
+  - MIX20
+  - MIX40
+  - MIX60
+  - DILUTE
+  - DEEP
+  - DISCH
+
+generated_nodes:
+  SH15: {role: shallow evaporated node, age_class: young, mrt_years: 15, xy: [1.0, 0.7], head_m: 123.0}
+  SH30: {role: strongly evaporated node, age_class: young, mrt_years: 25, xy: [1.0, -0.7], head_m: 122.0}
+  INT1: {role: intermediate carbonate evolution, age_class: intermediate, mrt_years: 60, xy: [2.0, 0.2], head_m: 120.0}
+  INT2: {role: intermediate evaporite evolution, age_class: intermediate, mrt_years: 150, xy: [3.0, 0.0], head_m: 116.0}
+  MIX20: {role: 20 percent lateral mixing node, age_class: intermediate, mrt_years: 260, xy: [4.0, 0.2], head_m: 113.0}
+  MIX40: {role: 40 percent lateral mixing node, age_class: old, mrt_years: 520, xy: [5.0, 0.1], head_m: 110.0}
+  MIX60: {role: 60 percent lateral mixing node, age_class: old, mrt_years: 900, xy: [6.0, -0.1], head_m: 106.0}
+  DILUTE: {role: mixed-age recharge pulse node, age_class: mixed, mrt_years: 300, xy: [7.0, -0.2], head_m: 104.0}
+  DEEP: {role: deep confined terminal node, age_class: fossil, mrt_years: 4500, xy: [8.0, -0.1], head_m: 99.0}
+  DISCH: {role: regional discharge node, age_class: old, mrt_years: 2500, xy: [9.0, 0.0], head_m: 96.0}
+
+generation_edges:
+  - edge_id: RCH->SH15
+    u: RCH
+    v: SH15
+    process: evaporation
+    f_evap: 0.15
+    reactions: {calcite: 0.20}
+  - edge_id: RCH->SH30
+    u: RCH
+    v: SH30
+    process: evaporation
+    f_evap: 0.30
+    reactions: {calcite: 0.25, gypsum: 0.05}
+  - edge_id: SH15->INT1
+    u: SH15
+    v: INT1
+    process: carbonate_weathering
+    reactions: {calcite: 2.50, dolomite: 0.20}
+  - edge_id: INT1->INT2
+    u: INT1
+    v: INT2
+    process: evaporite_weathering
+    reactions: {dolomite: 0.80, halite: 1.20, gypsum: 0.30}
+  - edge_id: INT2->MIX20
+    u: INT2
+    v: MIX20
+    process: lateral_mixing
+    mix_from: LAT_SAL
+    f_mix: 0.20
+    reactions: {calcite: 0.30, CaNa_exch: -0.15}
+  - edge_id: MIX20->MIX40
+    u: MIX20
+    v: MIX40
+    process: lateral_mixing
+    mix_from: LAT_SAL
+    f_mix: 0.40
+    reactions: {halite: 0.35, CaNa_exch: -0.25}
+  - edge_id: MIX40->MIX60
+    u: MIX40
+    v: MIX60
+    process: lateral_mixing
+    mix_from: LAT_CARB
+    f_mix: 0.60
+    reactions: {dolomite: 0.30, gypsum: 0.10, CaNa_exch: -0.20}
+  - edge_id: MIX60->DILUTE
+    u: MIX60
+    v: DILUTE
+    process: dilution_recharge_pulse
+    mix_from: MODERN
+    dilution_fraction: 0.35
+    reactions: {calcite: 0.10}
+  - edge_id: DILUTE->DEEP
+    u: DILUTE
+    v: DEEP
+    process: confined_exchange
+    reactions: {halite: 0.45, CaNa_exch: -0.60, gypsum: 0.05}
+  - edge_id: DEEP->DISCH
+    u: DEEP
+    v: DISCH
+    process: regional_discharge
+    reactions: {calcite: 0.10, dolomite: 0.05}
+
+lateral_truth_edges:
+  - {edge_id: LAT_SAL->MIX20, u: LAT_SAL, v: MIX20, confidence: 0.70}
+  - {edge_id: LAT_SAL->MIX40, u: LAT_SAL, v: MIX40, confidence: 0.75}
+  - {edge_id: LAT_CARB->MIX60, u: LAT_CARB, v: MIX60, confidence: 0.75}
+
+false_edges:
+  - {edge_id: RCH->DEEP, u: RCH, v: DEEP, confidence: 0.20}
+  - {edge_id: LAT_SAL->SH15, u: LAT_SAL, v: SH15, confidence: 0.20}
+  - {edge_id: DISCH->RCH, u: DISCH, v: RCH, confidence: 0.10}
+  - {edge_id: LAT_CARB->DEEP, u: LAT_CARB, v: DEEP, confidence: 0.20}
+
+topology_variants:
+  full:
+    description: all true edges plus one low-confidence false edge
+  sparse:
+    description: 30 percent of true edges removed per realisation
+  dense:
+    description: all true edges plus three additional false edges
+  reversed:
+    description: two true edge directions inverted
+
+degradation_scenarios:
+  complete:
+    description: all chemistry, isotope, tracer, and head fields available
+  ion_incomplete:
+    description: Mg and SO4 removed from 50 percent of nodes
+  tracer_absent:
+    description: nuclear tracers retained only for recharge and terminal nodes
+  head_absent:
+    description: hydraulic head fields removed before topology scoring

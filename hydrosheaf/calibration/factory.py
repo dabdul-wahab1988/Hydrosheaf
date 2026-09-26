@@ -45,6 +45,22 @@ def _map_int(settings, cfg, key, default_val=0):
         setattr(cfg, key, int(default_val))
 
 
+def _map_bool(settings, cfg, key):
+    """Copy a boolean setting to config when it is explicitly specified."""
+    if key not in settings or not hasattr(cfg, key):
+        return
+    value = settings[key]
+    if isinstance(value, bool):
+        setattr(cfg, key, value)
+        return
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "1", "yes", "on"}:
+            setattr(cfg, key, True)
+        elif normalized in {"false", "0", "no", "off"}:
+            setattr(cfg, key, False)
+
+
 def setup_transport_adapter(config, settings=None):
     """Helper to setup transport adapter from config settings."""
     s = settings if settings else config.adapter_settings
@@ -613,6 +629,9 @@ def setup_topology_adapter(config, settings=None):
     _map_float(s, cfg, "edge_map_p_min", default_val=0.1)
     _map_int(s, cfg, "edge_map_candidate_multiplier", default_val=5)
     _map_int(s, cfg, "sheaf_max_iter", default_val=3)
+    _map_bool(s, cfg, "sheaf_joint_reaction_enabled")
+    _map_int(s, cfg, "sheaf_joint_reaction_max_iter")
+    _map_float(s, cfg, "sheaf_joint_reaction_tol")
 
     # Isotope keys
     for key, attr in (("isotope_d18o_key", "isotope_d18o_key"),

@@ -1,0 +1,40 @@
+archive_id: "great_miami_oh"
+archive_name: "Great Miami River Basin MODFLOW 6/MODPATH 7"
+archive_role: "secondary_confirmation_archive"
+validation_tier: "tier_2_great_miami"
+source_url: "https://www.sciencebase.gov/catalog/item/60d0e65fd34e86b19a0a0ff0"
+source_doi: "10.5066/P9X4C9R6"
+local_archive_root: "M4/data/Teir_2"
+zip_file: "output.zip"
+modflow_version: "MODFLOW 6"
+modpath_version: 7
+model_name: "gca_Modpath1"
+simulation_type: "MODPATH7 particle-tracking archive"
+coordinate_system: "model_coordinates_archive_units"
+length_unit: "model_length_units"
+time_unit: "days"
+endpoint_files:
+  - "output/output.gca_Modpath1/gca_Modpath1.endpoint7"
+pathline_files:
+  - "output/output.gca_Modpath1/gca_Modpath1.pathline7"
+endpoint_file_in_zip: "output/output.gca_Modpath1/gca_Modpath1.endpoint7"
+pathline_file_in_zip: "output/output.gca_Modpath1/gca_Modpath1.pathline7"
+grid_files: []
+head_files: []
+budget_files: []
+particle_release_definition: "Archive-defined MODPATH 7 particle releases."
+source_node_definition: "MODPATH endpoint initial cell where available."
+receptor_node_definition: "MODPATH endpoint final cell where available."
+node_mapping_strategy: "MODPATH endpoint/pathline cell IDs."
+edge_mapping_strategy: "Endpoint-pathline source-receptor projection consistency diagnostics only."
+candidate_edge_strategy: "Not used for central independent Hydrosheaf validation in the current manuscript."
+independent_validation_allowed: false
+prior_assisted_allowed: false
+capture_zone_polygon_available: false
+travel_time_harmonised: false
+node_match_distance: 250.0
+time_unit_days: 1.0
+allowed_claim: "Great Miami archive processing can be inspected as secondary MODPATH ingestion compatibility evidence."
+required_guardrail: "Do not use Great Miami outputs as central Hydrosheaf independent validation until a scenario-specific independent graph is configured and reviewed."
+notes: "Secondary archive retained for compatibility checks and supplementary diagnostics only."
+

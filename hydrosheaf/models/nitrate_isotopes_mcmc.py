@@ -72,7 +72,11 @@ class HierarchicalMCMCMixingResult:
     warnings: List[str] = field(default_factory=list)
 
 
-def _extract_source_parameters(sources: List[SourceIsotopes]) -> Dict[str, np.ndarray]:
+def _extract_source_parameters(
+    sources: List[SourceIsotopes],
+    include_boron: bool = False,
+    include_d11b: bool = False,
+) -> Dict[str, np.ndarray]:
     d15N_means = np.array([s.d15N_mean for s in sources], dtype=float)
     d15N_stds = np.array([max(s.d15N_std, 1e-12) for s in sources], dtype=float)
     d18O_means = np.array([s.d18O_mean for s in sources], dtype=float)
@@ -85,8 +89,9 @@ def _extract_source_parameters(sources: List[SourceIsotopes]) -> Dict[str, np.nd
         max_abs_cov = float(np.sqrt(var_n * var_o) * 0.999999)
         source_cov_no.append(max(-max_abs_cov, min(max_abs_cov, cov)))
     source_cov_no = np.array(source_cov_no, dtype=float)
-    source_means = np.column_stack([d15N_means, d18O_means])
-    return {
+
+    cols = [d15N_means, d18O_means]
+    out: Dict[str, np.ndarray] = {
         "d15N_means": d15N_means,
         "d15N_stds": d15N_stds,
         "d18O_means": d18O_means,
@@ -94,8 +99,26 @@ def _extract_source_parameters(sources: List[SourceIsotopes]) -> Dict[str, np.nd
         "d15N_vars": d15N_vars,
         "d18O_vars": d18O_vars,
         "source_cov_no": source_cov_no,
-        "source_means": source_means,
     }
+
+    if include_boron:
+        ln_b_means = np.array([s.ln_B_mean if s.ln_B_mean is not None else 0.0 for s in sources], dtype=float)
+        ln_b_stds = np.array([max(s.ln_B_std if s.ln_B_std is not None else 0.5, 1e-12) for s in sources], dtype=float)
+        cols.append(ln_b_means)
+        out["ln_B_means"] = ln_b_means
+        out["ln_B_stds"] = ln_b_stds
+        out["ln_B_vars"] = np.square(ln_b_stds)
+
+    if include_d11b:
+        d11b_means = np.array([s.d11B_mean if s.d11B_mean is not None else 0.0 for s in sources], dtype=float)
+        d11b_stds = np.array([max(s.d11B_std if s.d11B_std is not None else 3.0, 1e-12) for s in sources], dtype=float)
+        cols.append(d11b_means)
+        out["d11B_means"] = d11b_means
+        out["d11B_stds"] = d11b_stds
+        out["d11B_vars"] = np.square(d11b_stds)
+
+    out["source_means"] = np.column_stack(cols)
+    return out
 
 
 def _normalize_prior_vector(prior_values: np.ndarray) -> np.ndarray:
@@ -187,7 +210,18 @@ def run_mcmc_mixing_hierarchical(
     if len(sample_ids) != n_obs:
         raise ValueError("sample_ids length must match number of samples.")
 
-    obs = np.array([[float(s.d15N), float(s.d18O)] for s in samples], dtype=float)
+    has_b = all(s.ln_B is not None for s in samples) and all(src.ln_B_mean is not None for src in sources)
+    has_d11b = all(s.d11B is not None for s in samples) and all(src.d11B_mean is not None for src in sources)
+
+    obs_cols = [[float(s.d15N), float(s.d18O)] for s in samples]
+    if has_b:
+        for idx, s in enumerate(samples):
+            obs_cols[idx].append(float(s.ln_B if s.ln_B is not None else 0.0))
+    if has_d11b:
+        for idx, s in enumerate(samples):
+            obs_cols[idx].append(float(s.d11B if s.d11B is not None else 0.0))
+    obs = np.array(obs_cols, dtype=float)
+
     if prior_alpha is None:
         prior_alpha_arr = np.ones(n_sources, dtype=float)
     else:
@@ -209,7 +243,7 @@ def run_mcmc_mixing_hierarchical(
             warnings_list=warnings_list,
         )
 
-    source_params = _extract_source_parameters(sources)
+    source_params = _extract_source_parameters(sources, include_boron=has_b, include_d11b=has_d11b)
     d15N_stds = source_params["d15N_stds"]
     d18O_stds = source_params["d18O_stds"]
     d15N_vars = source_params["d15N_vars"]
@@ -352,7 +386,11 @@ def run_mcmc_mixing(
     The model assumes the observed isotope signature is a linear mixture
     of source signatures with covariance-aware uncertainties:
 
-        [d15N_obs, d18O_obs] ~ MVN(mu_mix, Sigma_mix)
+        [d15N_obs, d18O_obs, ln_B_obs, d11B_obs] ~ MVN(mu_mix, Sigma_mix)
+
+    The Boron dimensions are included only when the observed sample and every
+    supplied source contain the corresponding parameter.  This preserves the
+    legacy two-isotope model while allowing a fully specified 3D or 4D model.
 
     where mu_mix is the fraction-weighted source mean vector and Sigma_mix
     includes fraction-weighted source covariance plus residual noise terms.
@@ -389,6 +427,18 @@ def run_mcmc_mixing(
     source_names = [s.name for s in sources]
     warnings_list = []
 
+    # Determine the observed model dimension before extracting source arrays.
+    # These flags must be local to this non-hierarchical path as well as to the
+    # hierarchical implementation above.  Keeping a tracer dimension only when
+    # it is complete across the sample and all endmembers avoids silently
+    # inserting synthetic Boron values into a legacy two-isotope fit.
+    has_b = sample.ln_B is not None and all(
+        src.ln_B_mean is not None for src in sources
+    )
+    has_d11b = sample.d11B is not None and all(
+        src.d11B_mean is not None for src in sources
+    )
+
     try:
         pm, az, nutpie = _load_mcmc_dependencies()
     except Exception as exc:
@@ -405,7 +455,11 @@ def run_mcmc_mixing(
         prior_alpha = [1.0] * n_sources
 
     # Extract source parameters
-    source_params = _extract_source_parameters(sources)
+    source_params = _extract_source_parameters(
+        sources,
+        include_boron=has_b,
+        include_d11b=has_d11b,
+    )
     d15N_stds = source_params["d15N_stds"]
     d18O_stds = source_params["d18O_stds"]
     d15N_vars = source_params["d15N_vars"]
@@ -433,15 +487,47 @@ def run_mcmc_mixing(
         mix_var_o = pm.math.dot(fractions_sq, d18O_vars) + sigma_O**2
         mix_cov_no = pm.math.dot(fractions_sq, source_cov_no)
 
-        cov_row_1 = pm.math.stack([mix_var_n, mix_cov_no])
-        cov_row_2 = pm.math.stack([mix_cov_no, mix_var_o])
-        mix_covariance = pm.math.stack([cov_row_1, cov_row_2])
+        if not has_b and not has_d11b:
+            cov_row_1 = pm.math.stack([mix_var_n, mix_cov_no])
+            cov_row_2 = pm.math.stack([mix_cov_no, mix_var_o])
+            mix_covariance = pm.math.stack([cov_row_1, cov_row_2])
+            obs_arr = np.array([obs_d15N, obs_d18O], dtype=float)
+        elif has_b and has_d11b:
+            sigma_B = pm.HalfNormal("sigma_B", sigma=max(float(np.mean(source_params["ln_B_stds"])), 1e-6))
+            sigma_d11b = pm.HalfNormal("sigma_d11b", sigma=max(float(np.mean(source_params["d11B_stds"])), 1e-6))
+            mix_var_b = pm.math.dot(fractions_sq, source_params["ln_B_vars"]) + sigma_B**2
+            mix_var_d11b = pm.math.dot(fractions_sq, source_params["d11B_vars"]) + sigma_d11b**2
+            z = pm.math.zeros_like(mix_cov_no)
+            cov_row_1 = pm.math.stack([mix_var_n, mix_cov_no, z, z])
+            cov_row_2 = pm.math.stack([mix_cov_no, mix_var_o, z, z])
+            cov_row_3 = pm.math.stack([z, z, mix_var_b, z])
+            cov_row_4 = pm.math.stack([z, z, z, mix_var_d11b])
+            mix_covariance = pm.math.stack([cov_row_1, cov_row_2, cov_row_3, cov_row_4])
+            obs_arr = np.array([obs_d15N, obs_d18O, float(sample.ln_B), float(sample.d11B)], dtype=float)
+        elif has_b:
+            sigma_B = pm.HalfNormal("sigma_B", sigma=max(float(np.mean(source_params["ln_B_stds"])), 1e-6))
+            mix_var_b = pm.math.dot(fractions_sq, source_params["ln_B_vars"]) + sigma_B**2
+            z = pm.math.zeros_like(mix_cov_no)
+            cov_row_1 = pm.math.stack([mix_var_n, mix_cov_no, z])
+            cov_row_2 = pm.math.stack([mix_cov_no, mix_var_o, z])
+            cov_row_3 = pm.math.stack([z, z, mix_var_b])
+            mix_covariance = pm.math.stack([cov_row_1, cov_row_2, cov_row_3])
+            obs_arr = np.array([obs_d15N, obs_d18O, float(sample.ln_B)], dtype=float)
+        else:
+            sigma_d11b = pm.HalfNormal("sigma_d11b", sigma=max(float(np.mean(source_params["d11B_stds"])), 1e-6))
+            mix_var_d11b = pm.math.dot(fractions_sq, source_params["d11B_vars"]) + sigma_d11b**2
+            z = pm.math.zeros_like(mix_cov_no)
+            cov_row_1 = pm.math.stack([mix_var_n, mix_cov_no, z])
+            cov_row_2 = pm.math.stack([mix_cov_no, mix_var_o, z])
+            cov_row_3 = pm.math.stack([z, z, mix_var_d11b])
+            mix_covariance = pm.math.stack([cov_row_1, cov_row_2, cov_row_3])
+            obs_arr = np.array([obs_d15N, obs_d18O, float(sample.d11B)], dtype=float)
 
         pm.MvNormal(
             "obs_isotopes",
             mu=pred_isotopes,
             cov=mix_covariance,
-            observed=np.array([obs_d15N, obs_d18O], dtype=float),
+            observed=obs_arr,
         )
 
         # Sample

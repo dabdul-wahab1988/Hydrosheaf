@@ -159,26 +159,52 @@ def test_age_permutation_rebuilds_the_monotone_transform() -> None:
     )
 
 
-def test_field_predictions_cannot_access_future_wet_batches() -> None:
-    workbook = ROOT / "data" / "FieldData" / "NorthenGhana" / "NorthernGhana.xlsx"
-    dry = pd.read_excel(workbook, sheet_name="Dry").assign(Season="Dry")
-    wet = pd.read_excel(workbook, sheet_name="Wet").assign(Season="Wet")
-    hydro = pd.concat([dry, wet], ignore_index=True)
-    static_columns = [
-        "Well_ID",
-        "Region",
-        "District",
-        "Latitude",
-        "Longitude",
-        "Elevation_m",
-        "Borehole_Depth_m",
-        "Static_Water_Level_m",
-        "Distance_River_km",
-        "Distance_Farm_km",
-        "Distance_Settlement_km",
-    ]
-    wells = dry[static_columns].copy()
-    original = run_prequential_frames(wells, hydro).predictions
+def test_prequential_helper_has_no_future_label_leakage_on_synthetic_rows() -> None:
+    n_wells = 40
+    wells = pd.DataFrame(
+        {
+            "Well_ID": [f"S{i:03d}" for i in range(n_wells)],
+            "Latitude": [5.0 + i * 0.001 for i in range(n_wells)],
+            "Longitude": [-1.0 - i * 0.001 for i in range(n_wells)],
+            "Elevation_m": [100.0 + i for i in range(n_wells)],
+            "Static_Water_Level_m": [10.0 + (i % 5) for i in range(n_wells)],
+            "Borehole_Depth_m": [45.0 + i % 7 for i in range(n_wells)],
+            "Distance_River_km": [1.0 + i % 3 for i in range(n_wells)],
+            "Distance_Farm_km": [0.5 + i % 4 for i in range(n_wells)],
+            "Distance_Settlement_km": [0.7 + i % 6 for i in range(n_wells)],
+            "Region": ["A" if i % 2 else "B" for i in range(n_wells)],
+        }
+    )
+    base_ions = {
+        "Ca_mg_L": 20.0,
+        "Mg_mg_L": 10.0,
+        "Na_mg_L": 10.0,
+        "K_mg_L": 5.0,
+        "HCO3_mg_L": 90.0,
+        "Cl_mg_L": 20.0,
+        "SO4_mg_L": 10.0,
+        "NO3_mg_L": 5.0,
+        "F_mg_L": 0.2,
+        "Sr_mg_L": 0.1,
+        "SiO2_mg_L": 15.0,
+    }
+    hydro_rows = []
+    for i in range(n_wells):
+        for season, multiplier in (("Dry", 1.0), ("Wet", 1.02 + 0.0005 * i)):
+            row = {
+                "Well_ID": f"S{i:03d}",
+                "Season": season,
+                **{ion: value * multiplier for ion, value in base_ions.items()},
+                "pH": 7.0 + (i % 4) * 0.05,
+                "EC_uS_cm": 350.0 + i,
+                "TDS_mg_L": 225.0 + i,
+                "Temperature_C": 25.0,
+                "d18O_permil": -4.0 + i * 0.001,
+                "d2H_permil": -25.0 + i * 0.01,
+            }
+            hydro_rows.append(row)
+    hydro = pd.DataFrame(hydro_rows)
+    original = run_prequential_frames(wells, hydro, n_batches=8).predictions
 
     # Batch assignment depends only on which wells are eligible (a
     # scale-invariant charge-balance screen), not on chemistry magnitude, so
@@ -195,7 +221,7 @@ def test_field_predictions_cannot_access_future_wet_batches() -> None:
         & altered_hydro["Well_ID"].astype(str).isin(later_wells)
     )
     altered_hydro.loc[future, list(ION_COLUMNS)] *= 1000.0
-    altered = run_prequential_frames(wells, altered_hydro).predictions
+    altered = run_prequential_frames(wells, altered_hydro, n_batches=8).predictions
 
     columns = [
         "issue_batch_index",

@@ -8,8 +8,30 @@ from typing import Dict, List
 
 from . import TemporalNode, TimeSeriesSample
 from ..log import get_logger
+from ..nuclear.tracer_inputs import normalize_tracer_key
 
 logger = get_logger(__name__)
+
+
+# Time-series files commonly mix water isotopes with age tracers.  Store these
+# fields under the same canonical IDs used by the nuclear history loaders so
+# residence-time extraction does not need a second alias table.
+_CANONICAL_TIME_SERIES_TRACERS = frozenset(
+    {
+        "d18O",
+        "d2H",
+        "3H",
+        "14C",
+        "SF6",
+        "39Ar",
+        "85Kr",
+        "4He",
+        "3H/3He",
+        "CFC11",
+        "CFC12",
+        "CFC113",
+    }
+)
 
 
 def load_time_series_csv(
@@ -120,21 +142,20 @@ def load_time_series_csv(
             except ValueError:
                 pass
 
-        # Isotopes and Nuclear Tracers
-        nuclear_keys = [
-            "18O", "2H", "d18O", "d2H",
-            "3H", "tritium", "H3", "H-3", "Tritium",
-            "14C", "C14", "carbon14", "C-14", "Radiocarbon",
-            "85Kr", "Kr85", "Krypton-85"
-        ]
-        
-        for iso_key in nuclear_keys:
-            if iso_key in row:
-                try:
-                    isotopes[iso_key] = float(row[iso_key])
-                except ValueError:
-                    pass
-
+        # Stable isotopes and nuclear/gas tracers.  Canonicalization is based
+        # on the shared nuclear tracer contract, so headers such as ``δ18O``,
+        # ``delta2H``, ``H-3``, ``Radiocarbon``, ``SF6`` and ``Krypton-85``
+        # all land under one stable key in ``TimeSeriesSample.isotopes``.
+        for raw_key, raw_value in row.items():
+            tracer_key = normalize_tracer_key(raw_key)
+            if tracer_key not in _CANONICAL_TIME_SERIES_TRACERS:
+                continue
+            if raw_value is None or str(raw_value).strip() == "":
+                continue
+            try:
+                isotopes[tracer_key] = float(raw_value)
+            except (TypeError, ValueError):
+                continue
 
         # Create sample
         sample = TimeSeriesSample(

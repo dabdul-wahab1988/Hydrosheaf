@@ -11,7 +11,7 @@ consistent.  A non-zero obstruction energy flags a physical inconsistency
 (e.g. a cycle where chemistry cannot be simultaneously satisfied).
 """
 
-from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
 
 import networkx as nx
 import numpy as np
@@ -55,31 +55,106 @@ def _node_index_map(edge_maps: Iterable[DirectedEdgeMap]) -> Tuple[Dict[str, int
     return idx, node_list
 
 
+def _is_uniform_sheaf(edge_maps_list: Sequence[Any], dim: int) -> bool:
+    """Check if all edge maps share identical offset dimensions and have no varying species."""
+    for em in edge_maps_list:
+        if len(getattr(em, "offset", [])) != dim:
+            return False
+        if getattr(em, "species", None) is not None:
+            return False
+    return True
+
+
+def _build_adaptive_stalks(
+    edge_maps_list: Sequence[Any],
+) -> Tuple[Dict[str, List[str]], Dict[str, int], int]:
+    """Map each node to its stalk basis coordinates and compute column offsets."""
+    node_bases: Dict[str, Set[str]] = {}
+    for em in edge_maps_list:
+        u, v = em.edge.u, em.edge.v
+        if u not in node_bases:
+            node_bases[u] = set()
+        if v not in node_bases:
+            node_bases[v] = set()
+        if getattr(em, "species", None):
+            node_bases[u].update(em.species)
+            node_bases[v].update(em.species)
+        else:
+            n_d = len(em.offset)
+            coords = [str(i) for i in range(n_d)]
+            node_bases[u].update(coords)
+            node_bases[v].update(coords)
+
+    sorted_nodes = sorted(node_bases.keys())
+    node_stalks: Dict[str, List[str]] = {n: sorted(node_bases[n]) for n in sorted_nodes}
+    col_offsets: Dict[str, int] = {}
+    curr = 0
+    for n in sorted_nodes:
+        col_offsets[n] = curr
+        curr += len(node_stalks[n])
+    total_cols = curr
+    return node_stalks, col_offsets, total_cols
+
+
+def build_adaptive_coboundary_and_rhs(
+    edge_maps: Iterable[DirectedEdgeMap],
+) -> Tuple[csr_matrix, np.ndarray, int, int]:
+    """Build coboundary matrix D and rhs vector b for dimension-varying cellular stalks."""
+    edge_maps_list = [_resolve_edge_map(em) for em in edge_maps]
+    node_stalks, col_offsets, total_cols = _build_adaptive_stalks(edge_maps_list)
+
+    total_rows = sum(len(em.offset) for em in edge_maps_list)
+    D = lil_matrix((total_rows, total_cols), dtype=float)
+    b = np.zeros(total_rows, dtype=float)
+
+    curr_row = 0
+    for em in edge_maps_list:
+        u, v = em.edge.u, em.edge.v
+        w_sqrt = float(em.weight) ** 0.5
+        alpha = float(em.alpha)
+        species = getattr(em, "species", None)
+        u_basis = node_stalks[u]
+        v_basis = node_stalks[v]
+        u_off = col_offsets[u]
+        v_off = col_offsets[v]
+
+        for d, off_val in enumerate(em.offset):
+            row = curr_row + d
+            b[row] = -w_sqrt * float(off_val)
+            coord = species[d] if species and d < len(species) else str(d)
+            if coord in u_basis:
+                col_u = u_off + u_basis.index(coord)
+                D[row, col_u] = w_sqrt * alpha
+            if coord in v_basis:
+                col_v = v_off + v_basis.index(coord)
+                D[row, col_v] = -w_sqrt
+
+        curr_row += len(em.offset)
+
+    return D.tocsr(), b, total_cols, total_rows
+
+
 def build_coboundary_matrix(
     edge_maps: Iterable[DirectedEdgeMap],
-    dim: int,
+    dim: Optional[int] = None,
 ) -> csr_matrix:
     """Build the sparse coboundary matrix D for the sheaf section problem.
 
     Each edge e contributes one row per species dimension:
         D_e_row = [..., sqrt(w_e) * alpha_e, ..., -sqrt(w_e), ...]
-    where the nonzeros are at columns u and v.
-
-    Parameters
-    ----------
-    edge_maps : iterable of DirectedEdgeMap
-        The directed edge maps from the section solver.
-    dim : int
-        Number of chemical species dimensions.
-
-    Returns
-    -------
-    D : csr_matrix, shape (n_edges * dim, n_nodes * dim)
-        Sparse coboundary matrix.
+    where the nonzeros are at columns u and v. Supports uniform and adaptive stalks.
     """
+    edge_maps_list = [_resolve_edge_map(em) for em in edge_maps]
+    if not edge_maps_list:
+        return csr_matrix((0, 0))
+    if dim is None:
+        dim = len(getattr(edge_maps_list[0], "offset", [])) or 1
+    if not _is_uniform_sheaf(edge_maps_list, dim):
+        D, _, _, _ = build_adaptive_coboundary_and_rhs(edge_maps_list)
+        return D
+
     idx, node_list = _node_index_map(edge_maps)
     n_nodes = len(node_list)
-    edge_maps_list = [_resolve_edge_map(em) for em in edge_maps]
     n_edges = len(edge_maps_list)
     n_rows = n_edges * dim
     n_cols = n_nodes * dim
@@ -107,13 +182,21 @@ def build_coboundary_matrix(
 
 def build_rhs_vector(
     edge_maps: Sequence[DirectedEdgeMap],
-    dim: int,
+    dim: Optional[int] = None,
 ) -> np.ndarray:
     """Build the right-hand side vector b for the affine coboundary equation.
 
     b_e = -sqrt(w_e) * offset_e[d]
     """
     edge_maps_list = [_resolve_edge_map(em) for em in edge_maps]
+    if not edge_maps_list:
+        return np.zeros(0)
+    if dim is None:
+        dim = len(getattr(edge_maps_list[0], "offset", [])) or 1
+    if not _is_uniform_sheaf(edge_maps_list, dim):
+        _, b, _, _ = build_adaptive_coboundary_and_rhs(edge_maps_list)
+        return b
+
     n_edges = len(edge_maps_list)
     n_rows = n_edges * dim
     b = np.zeros(n_rows)
@@ -164,14 +247,18 @@ def compute_cohomology(
             "affine_global_section_exists": True,
         }
 
-    if dim is None:
-        dim = len(edge_maps_list[0].offset)
+    detected_dim = dim if dim is not None else len(edge_maps_list[0].offset)
+    is_uniform = _is_uniform_sheaf(edge_maps_list, detected_dim)
 
-    idx, node_list = _node_index_map(edge_maps_list)
-    n_nodes = len(node_list)
-
-    D = build_coboundary_matrix(edge_maps_list, dim)
-    b = build_rhs_vector(edge_maps_list, dim)
+    if is_uniform:
+        idx, node_list = _node_index_map(edge_maps_list)
+        n_nodes = len(node_list)
+        D = build_coboundary_matrix(edge_maps_list, detected_dim)
+        b = build_rhs_vector(edge_maps_list, detected_dim)
+        n_vertex_dofs = n_nodes * detected_dim
+        n_edge_dofs = D.shape[0]
+    else:
+        D, b, n_vertex_dofs, n_edge_dofs = build_adaptive_coboundary_and_rhs(edge_maps_list)
 
     # Numerical rank.  Hydrosheaf matrices are small (n_nodes * dim is
     # typically < 2000), so a dense SVD via np.linalg.matrix_rank is safe.
@@ -183,8 +270,6 @@ def compute_cohomology(
     else:
         rank_D = 0
 
-    n_vertex_dofs = n_nodes * dim
-    n_edge_dofs = D.shape[0]
     h0_dim = max(0, n_vertex_dofs - rank_D)
     h1_dim = max(0, n_edge_dofs - rank_D)
 

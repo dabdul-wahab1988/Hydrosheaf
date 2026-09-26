@@ -95,6 +95,82 @@ from .graph_ttd_inversion import (
     solve_dynamic_virtual_benchmark,
     verify_truth_blindness,
 )
+from .dynamic_edge_kernel import (
+    DynamicEdgeKernel,
+    build_lag_curvature_matrix,
+    build_temporal_smoothness_matrix,
+    build_phase_basis_matrix,
+    build_harmonic_basis_matrix,
+)
+from .graph_tracer_forward import (
+    convolve_causal_dynamic_kernel,
+    simulate_dynamic_graph_transport,
+    validate_candidate_graph,
+)
+from .tracer_registry import (
+    TracerSpec,
+    build_default_tracer_registry,
+)
+from .dynamic_kernel_inversion import (
+    DynamicTTDInversionConfig,
+    DynamicTTDRecovery,
+    solve_dynamic_node_inversion,
+)
+from .multi_tracer_graph_inversion import (
+    MultiTracerGraphConfig,
+    MultiTracerNodeRecovery,
+    solve_joint_multitracer_node_inversion,
+)
+from .ttd_grid import (
+    TTDGrid,
+    build_multiscale_ttd_grid,
+    build_uniform_ttd_grid,
+    build_d1_difference_matrix,
+    build_d2_curvature_matrix,
+    build_mass_aware_curvature_matrix,
+    shannon_entropy,
+    wasserstein_1d,
+)
+from .ttd_kernel_builder import (
+    TracerObservation,
+    NodeTracerPanel,
+    MultiTracerForwardSystem,
+    build_forward_system,
+    build_network_forward_systems,
+)
+from .ttd_transport import (
+    EdgeTransportOperator,
+    build_advection_dispersion_operator,
+    build_local_recharge_distribution,
+    NodeMixingSpecification,
+)
+from .ttd_diagnostics import (
+    DiagnosticGateReport,
+    audit_node_physical_evidence,
+    audit_graph_topology,
+)
+from .ttd_network_solver import (
+    SingleNodeTTDResult,
+    NetworkTTDResult,
+    solve_single_node_ttd,
+    solve_network_ttd,
+)
+
+# Worker A may land the history-aware implementation after this public export
+# patch. Keep the established nuclear package importable in the interim, but
+# expose the direct exports as soon as the implementation module is present.
+_HISTORY_TTD_EXPORTS = False
+try:
+    from .history_ttd import (
+        HistoryTracerObservation,  # noqa: F401
+        HistoryTTDResult,  # noqa: F401
+        fit_history_ttd,  # noqa: F401
+    )
+except ModuleNotFoundError as exc:
+    if exc.name not in {f"{__name__}.history_ttd", "hydrosheaf.nuclear.history_ttd"}:
+        raise
+else:
+    _HISTORY_TTD_EXPORTS = True
 
 __all__ = [
     "Nuclide",
@@ -197,31 +273,37 @@ __all__ = [
     "MultiTracerGraphConfig",
     "MultiTracerNodeRecovery",
     "solve_joint_multitracer_node_inversion",
+    "TTDGrid",
+    "build_multiscale_ttd_grid",
+    "build_uniform_ttd_grid",
+    "build_d1_difference_matrix",
+    "build_d2_curvature_matrix",
+    "build_mass_aware_curvature_matrix",
+    "shannon_entropy",
+    "wasserstein_1d",
+    "TracerObservation",
+    "NodeTracerPanel",
+    "MultiTracerForwardSystem",
+    "build_forward_system",
+    "build_network_forward_systems",
+    "EdgeTransportOperator",
+    "build_advection_dispersion_operator",
+    "build_local_recharge_distribution",
+    "NodeMixingSpecification",
+    "DiagnosticGateReport",
+    "audit_node_physical_evidence",
+    "audit_graph_topology",
+    "SingleNodeTTDResult",
+    "NetworkTTDResult",
+    "solve_single_node_ttd",
+    "solve_network_ttd",
 ]
 
-from .dynamic_edge_kernel import (
-    DynamicEdgeKernel,
-    build_lag_curvature_matrix,
-    build_temporal_smoothness_matrix,
-    build_phase_basis_matrix,
-    build_harmonic_basis_matrix,
-)
-from .graph_tracer_forward import (
-    convolve_causal_dynamic_kernel,
-    simulate_dynamic_graph_transport,
-    validate_candidate_graph,
-)
-from .tracer_registry import (
-    TracerSpec,
-    build_default_tracer_registry,
-)
-from .dynamic_kernel_inversion import (
-    DynamicTTDInversionConfig,
-    DynamicTTDRecovery,
-    solve_dynamic_node_inversion,
-)
-from .multi_tracer_graph_inversion import (
-    MultiTracerGraphConfig,
-    MultiTracerNodeRecovery,
-    solve_joint_multitracer_node_inversion,
-)
+if _HISTORY_TTD_EXPORTS:
+    __all__.extend(
+        [
+            "HistoryTracerObservation",
+            "HistoryTTDResult",
+            "fit_history_ttd",
+        ]
+    )

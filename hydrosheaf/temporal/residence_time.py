@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 
 from . import TemporalNode
+from ..nuclear.tracer_inputs import normalize_tracer_key
 
 try:
     from hydrosheaf.nuclear.invert import infer_age_from_tracer
@@ -77,6 +78,47 @@ def estimate_residence_time(
     return tau, uncertainty, used
 
 
+def _set_result_metadata(
+    details: Dict[str, object],
+    *,
+    inference_family: str,
+    tracers_requested: List[str],
+    tracers_accepted: Optional[List[str]] = None,
+    aggregation: Optional[str] = None,
+    selected_tracer: Optional[str] = None,
+) -> Dict[str, object]:
+    """Attach additive, machine-readable semantics to a residence-time result.
+
+    The public residence-time API intentionally keeps its existing five-value
+    return tuple and existing ``details`` entries.  This helper only adds a
+    namespaced metadata record so callers can distinguish the estimator family
+    from whether the returned value came from one tracer or a consensus.
+    """
+    accepted = list(tracers_accepted or [])
+    if aggregation is None:
+        if len(accepted) > 1:
+            aggregation = "multi_tracer_consensus"
+        elif len(accepted) == 1:
+            aggregation = "per_tracer_fit"
+        else:
+            aggregation = "no_accepted_fit"
+
+    existing = details.get("result_metadata")
+    metadata: Dict[str, object] = dict(existing) if isinstance(existing, dict) else {}
+    metadata.update(
+        {
+            "inference_family": inference_family,
+            "aggregation": aggregation,
+            "tracers_requested": list(tracers_requested),
+            "tracers_accepted": accepted,
+        }
+    )
+    if selected_tracer is not None:
+        metadata["selected_tracer"] = selected_tracer
+    details["result_metadata"] = metadata
+    return metadata
+
+
 def estimate_residence_time_with_details(
     node_u: TemporalNode,
     node_v: TemporalNode,
@@ -85,12 +127,19 @@ def estimate_residence_time_with_details(
     ion_order: Optional[List[str]] = None,
     hydraulic_params: Optional[Dict[str, float]] = None,
 ) -> Tuple[float, float, str, Dict[str, object], List[str]]:
-    """Estimate residence time and return diagnostics for multi-tracer consensus.
+    """Estimate residence time and return diagnostics for a temporal fit.
 
     Returns
     -------
     Tuple[float, float, str, Dict[str, object], List[str]]
         (tau_days, uncertainty_days, method_used, details, flags)
+
+    ``details`` retains its existing entries and additionally contains a
+    ``result_metadata`` mapping for the cross-correlation and TTD paths.  Its
+    ``inference_family`` identifies the estimator (for example,
+    ``finite_grid_nonnegative_ttd``), while ``aggregation`` identifies whether
+    the reported value is a ``per_tracer_fit`` or a
+    ``multi_tracer_consensus``.
     """
     if method == "cross_correlation":
         return _estimate_residence_time_cross_correlation_consensus(
@@ -157,11 +206,14 @@ def _parse_tracer_candidates(tracer_ion: str) -> List[str]:
     if not raw:
         return []
     if raw.lower() == "auto":
-        return ["Cl", "18O", "2H"]
+        return [normalize_tracer_key(item) for item in ("Cl", "18O", "2H")]
     if "," in raw:
-        return [item.strip() for item in raw.split(",") if item.strip()]
-    return [raw]
-
+        return [
+            normalize_tracer_key(item.strip())
+            for item in raw.split(",")
+            if item.strip()
+        ]
+    return [normalize_tracer_key(raw)]
 
 def _extract_tracer_series(
     node: TemporalNode,
@@ -171,9 +223,15 @@ def _extract_tracer_series(
     if not node.samples:
         return None
 
-    if ion_order is not None and tracer in ion_order:
+    canonical_tracer = normalize_tracer_key(tracer)
+    canonical_ion_order = (
+        [normalize_tracer_key(item) for item in ion_order]
+        if ion_order is not None
+        else None
+    )
+    if canonical_ion_order is not None and canonical_tracer in canonical_ion_order:
         try:
-            tracer_idx = ion_order.index(tracer)
+            tracer_idx = canonical_ion_order.index(canonical_tracer)
         except ValueError:
             tracer_idx = None
         if tracer_idx is not None:
@@ -181,34 +239,16 @@ def _extract_tracer_series(
                 [float(s.concentrations[tracer_idx]) for s in node.samples], dtype=float
             )
 
-    synonyms: List[str] = []
-    if tracer in {"18O", "d18O"}:
-        synonyms = ["18O", "d18O"]
-    elif tracer in {"2H", "d2H"}:
-        synonyms = ["2H", "d2H"]
-    elif tracer in {"3H", "tritium", "H3"}:
-        synonyms = ["3H", "tritium", "H3", "H-3"]
-    elif tracer in {"14C", "C14", "carbon14"}:
-        synonyms = ["14C", "C14", "carbon14", "C-14"]
-    else:
-        synonyms = [tracer]
-
-
     values: List[float] = []
     for sample in node.samples:
         if not sample.isotopes:
             return None
-        if tracer in sample.isotopes:
-            values.append(float(sample.isotopes[tracer]))
-            continue
-        found = False
-        for key in synonyms:
-            if key in sample.isotopes:
-                values.append(float(sample.isotopes[key]))
-                found = True
-                break
-        if not found:
+        canonical_isotopes: Dict[str, float] = {}
+        for key, value in sample.isotopes.items():
+            canonical_isotopes.setdefault(normalize_tracer_key(key), float(value))
+        if canonical_tracer not in canonical_isotopes:
             return None
+        values.append(canonical_isotopes[canonical_tracer])
 
     return np.array(values, dtype=float)
 
@@ -452,6 +492,11 @@ def _estimate_residence_time_cross_correlation_consensus(
     lmwl_slope = float((hydraulic_params or {}).get("lmwl_slope", 8.0))
 
     details: Dict[str, object] = {"candidates": {}}
+    _set_result_metadata(
+        details,
+        inference_family="cross_correlation_lag",
+        tracers_requested=tracers,
+    )
     flags: List[str] = []
 
     # Gates
@@ -506,7 +551,7 @@ def _estimate_residence_time_cross_correlation_consensus(
             candidate_flags.append("high_uncertainty")
 
         gate_weight = 1.0
-        if tracer in {"18O", "2H", "d18O", "d2H"}:
+        if normalize_tracer_key(tracer) in {"d18O", "d2H"}:
             gate_weight *= isotope_weight
         if tracer == "Cl":
             gate_weight *= cl_weight
@@ -532,8 +577,20 @@ def _estimate_residence_time_cross_correlation_consensus(
         if used_phy == "gradient" and tau_phy > 0:
             flags.append("tau_fallback_physics")
             details["physics"] = {"tau_days": tau_phy, "uncertainty_days": unc_phy}
+            _set_result_metadata(
+                details,
+                inference_family="darcy_gradient",
+                tracers_requested=tracers,
+                aggregation="physics_fallback",
+            )
             return tau_phy, unc_phy, "gradient", details, flags
         flags.append("tau_failed_all_tracers")
+        _set_result_metadata(
+            details,
+            inference_family="cross_correlation_lag",
+            tracers_requested=tracers,
+            aggregation="no_accepted_fit",
+        )
         return 0.0, 0.0, "cross_correlation_failed", details, flags
 
     # Disagreement handling across accepted tracers
@@ -571,6 +628,15 @@ def _estimate_residence_time_cross_correlation_consensus(
                 blended_unc = float(
                     np.sqrt(1.0 / (p_best + p_phy) + (0.5 * spread_days) ** 2)
                 )
+                metadata = _set_result_metadata(
+                    details,
+                    inference_family="cross_correlation_lag",
+                    tracers_requested=tracers,
+                    tracers_accepted=[item[0] for item in accepted],
+                    aggregation="per_tracer_fit",
+                    selected_tracer=best_tracer,
+                )
+                metadata["physics_prior_applied"] = True
                 return (
                     float(blended_tau),
                     float(blended_unc),
@@ -579,6 +645,14 @@ def _estimate_residence_time_cross_correlation_consensus(
                     flags,
                 )
 
+        _set_result_metadata(
+            details,
+            inference_family="cross_correlation_lag",
+            tracers_requested=tracers,
+            tracers_accepted=[item[0] for item in accepted],
+            aggregation="per_tracer_fit",
+            selected_tracer=best_tracer,
+        )
         return (
             best_tau,
             inflated_unc,
@@ -604,6 +678,12 @@ def _estimate_residence_time_cross_correlation_consensus(
             "accepted_tracers": [item[0] for item in accepted],
             "weights": {item[0]: float(item[3]) for item in accepted},
         }
+    )
+    _set_result_metadata(
+        details,
+        inference_family="cross_correlation_lag",
+        tracers_requested=tracers,
+        tracers_accepted=[item[0] for item in accepted],
     )
     return (
         float(consensus_tau),
@@ -802,6 +882,17 @@ def _estimate_residence_time_ttd_convolution_consensus(
     attenuation_k_grid = np.linspace(0.0, max(0.0, k_max), k_steps, dtype=float)
 
     details: Dict[str, object] = {"candidates": {}}
+    result_metadata = _set_result_metadata(
+        details,
+        inference_family="finite_grid_nonnegative_ttd",
+        tracers_requested=tracers,
+    )
+    result_metadata["lag_grid"] = {
+        "dt_days": float(dt_days),
+        "max_lag_days": float(max_lag_days),
+        "smoothness_lambda": float(smoothness_lambda),
+        "attenuation_k_grid": [float(k) for k in attenuation_k_grid],
+    }
     flags: List[str] = []
 
     # Gates reuse
@@ -868,7 +959,7 @@ def _estimate_residence_time_ttd_convolution_consensus(
             candidate_flags.append("ttd_low_r2")
 
         gate_weight = 1.0
-        if tracer in {"18O", "2H", "d18O", "d2H"}:
+        if normalize_tracer_key(tracer) in {"d18O", "d2H"}:
             gate_weight *= isotope_weight
         if tracer == "Cl":
             gate_weight *= cl_weight
@@ -894,8 +985,20 @@ def _estimate_residence_time_ttd_convolution_consensus(
         if used_phy == "gradient" and tau_phy > 0:
             flags.append("tau_fallback_physics")
             details["physics"] = {"tau_days": tau_phy, "uncertainty_days": unc_phy}
+            _set_result_metadata(
+                details,
+                inference_family="darcy_gradient",
+                tracers_requested=tracers,
+                aggregation="physics_fallback",
+            )
             return tau_phy, unc_phy, "gradient", details, flags
         flags.append("ttd_failed_all_tracers")
+        _set_result_metadata(
+            details,
+            inference_family="finite_grid_nonnegative_ttd",
+            tracers_requested=tracers,
+            aggregation="no_accepted_fit",
+        )
         return 0.0, 0.0, "ttd_failed", details, flags
 
     taus = [item[1] for item in accepted]
@@ -933,6 +1036,15 @@ def _estimate_residence_time_ttd_convolution_consensus(
                 blended_unc = float(
                     np.sqrt(1.0 / (p_best + p_phy) + (0.5 * spread_days) ** 2)
                 )
+                metadata = _set_result_metadata(
+                    details,
+                    inference_family="finite_grid_nonnegative_ttd",
+                    tracers_requested=tracers,
+                    tracers_accepted=[item[0] for item in accepted],
+                    aggregation="per_tracer_fit",
+                    selected_tracer=best_tracer,
+                )
+                metadata["physics_prior_applied"] = True
                 return (
                     float(blended_tau),
                     float(blended_unc),
@@ -941,6 +1053,14 @@ def _estimate_residence_time_ttd_convolution_consensus(
                     flags,
                 )
 
+        _set_result_metadata(
+            details,
+            inference_family="finite_grid_nonnegative_ttd",
+            tracers_requested=tracers,
+            tracers_accepted=[item[0] for item in accepted],
+            aggregation="per_tracer_fit",
+            selected_tracer=best_tracer,
+        )
         return best_tau, inflated_unc, f"ttd_consensus({best_tracer})", details, flags
 
     total_w = sum(item[3] for item in accepted) or 1.0
@@ -958,6 +1078,12 @@ def _estimate_residence_time_ttd_convolution_consensus(
             "accepted_tracers": [item[0] for item in accepted],
             "weights": {item[0]: float(item[3]) for item in accepted},
         }
+    )
+    _set_result_metadata(
+        details,
+        inference_family="finite_grid_nonnegative_ttd",
+        tracers_requested=tracers,
+        tracers_accepted=[item[0] for item in accepted],
     )
     return float(consensus_tau), float(consensus_unc), "ttd_consensus", details, flags
 
@@ -1244,7 +1370,7 @@ def _estimate_residence_time_bayesian_lag_consensus(
             candidate_flags.append("bayes_low_r2")
 
         gate_weight = 1.0
-        if tracer in {"18O", "2H", "d18O", "d2H"}:
+        if normalize_tracer_key(tracer) in {"d18O", "d2H"}:
             gate_weight *= isotope_weight
         if tracer == "Cl":
             gate_weight *= cl_weight
@@ -1374,7 +1500,8 @@ def _estimate_residence_time_tracer_decay(
     import datetime
 
     def get_mean_date_val(node, vals):
-        if vals.size == 0: return None, None
+        if vals.size == 0:
+            return None, None
         ts = np.array([s.timestamp.timestamp() for s in node.samples])
         # Use mean timestamp and value
         mean_ts = np.mean(ts)

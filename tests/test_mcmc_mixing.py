@@ -212,6 +212,46 @@ class MCMCMixingTests(unittest.TestCase):
         self.assertAlmostEqual(total, 1.0, places=2)
 
     @unittest.skipIf(not check_pymc_available(), "PyMC not available")
+    def test_mcmc_with_boron_and_d11b(self):
+        """The non-hierarchical path must support the complete 4D tracer panel."""
+        sources = [
+            SourceIsotopes(
+                name="Septic_Sewage",
+                d15N_mean=12.0,
+                d15N_std=4.0,
+                d18O_mean=5.0,
+                d18O_std=4.0,
+                ln_B_mean=6.21,
+                ln_B_std=0.5,
+                d11B_mean=5.0,
+                d11B_std=3.0,
+            ),
+            SourceIsotopes(
+                name="Animal_Manure",
+                d15N_mean=15.0,
+                d15N_std=5.0,
+                d18O_mean=5.0,
+                d18O_std=5.0,
+                ln_B_mean=3.91,
+                ln_B_std=0.6,
+                d11B_mean=25.0,
+                d11B_std=5.0,
+            ),
+        ]
+        result = run_mcmc_mixing(
+            sample=IsotopeSample(d15N=12.0, d18O=5.0, B=500.0, d11B=6.0),
+            sources=sources,
+            n_samples=20,
+            n_chains=1,
+            warmup=10,
+            random_seed=42,
+        )
+
+        self.assertIsInstance(result, MCMCMixingResult)
+        self.assertEqual(set(result.source_fractions), {"Septic_Sewage", "Animal_Manure"})
+        self.assertAlmostEqual(sum(result.source_fractions.values()), 1.0, places=2)
+
+    @unittest.skipIf(not check_pymc_available(), "PyMC not available")
     def test_insufficient_sources_raises(self):
         """Test that single source raises error."""
         if not check_pymc_available():

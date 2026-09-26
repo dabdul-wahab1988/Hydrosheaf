@@ -225,38 +225,10 @@ def test_data_tier_simulation_is_deterministic_for_same_scenario() -> None:
     np.testing.assert_allclose(first[2], second[2])
 
 
-def test_external_field_transfer_smoke_uses_requested_northern_workbook() -> None:
-    class_map, _ = equivalence_classes()
-    edges = m5._legacy_northern_ghana_external_edges()
-    assert len(edges) == 160
+def test_legacy_m5_field_loaders_are_disabled() -> None:
+    import pytest
 
-    edge_id, upstream, downstream = edges[0]
-    pair_rows, evidence_rows = m5._external_field_edge_outputs(
-        dataset="NorthernGhana.xlsx",
-        edge_id=edge_id,
-        upstream=upstream,
-        downstream=downstream,
-        hyperparameters={
-            "lambda_l1": 0.01,
-            "lambda_l2": 0.005,
-            "support_threshold_mmolL": 0.015,
-        },
-        class_map=class_map,
-    )
-    assert {row["data_tier"] for row in pair_rows} == {
-        "core",
-        "available_plus_lite",
-    }
-    assert len(evidence_rows) == 2 * len(REACTION_LABELS)
-
-    resolution = m5._evidence_lifted_resolution_frame(
-        m5.pd.DataFrame(evidence_rows),
-        class_map,
-        score_column="combined_evidence_score",
-        group_columns=["dataset", "edge_id", "data_tier"],
-        evidence_source="unit_test",
-    )
-    assert not resolution.empty
-    assert set(resolution["members"]).issuperset(
-        {"anorthite;calcite", "CaNa_exch;NaCa_exch"}
-    )
+    with pytest.raises(RuntimeError, match="legacy seasonal edge builder is disabled"):
+        m5._legacy_northern_ghana_external_edges()
+    with pytest.raises(RuntimeError, match="synthetic-only"):
+        m5.load_ghana_pairs()

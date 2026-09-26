@@ -1,0 +1,40 @@
+archive_id: "savage_milford_nh"
+archive_name: "USGS Savage Municipal Water-Supply Well MODFLOW-2005/MODPATH 5"
+archive_role: "main_archive_deep_validation"
+validation_tier: "tier_1_savage"
+source_url: "https://www.usgs.gov/data/modflow-2005-modpath-and-moc3d-used-groundwater-flow-simulation-pathlines-analysis-and-solute"
+source_doi: "10.5066/F7J102FK"
+local_archive_root: "M4/data/Teir_1"
+zip_file: "output.zip"
+modflow_version: "MODFLOW-2005"
+modpath_version: 5
+model_name: "D2010_base_calibration"
+simulation_type: "steady_state_particle_tracking"
+coordinate_system: "model_coordinates_archive_units"
+length_unit: "model_length_units"
+time_unit: "days"
+endpoint_files:
+  - "output/output.D2010_base_calibration-MP/base-MP.end"
+pathline_files:
+  - "output/output.D2010_base_calibration-MP/base-MP.path"
+endpoint_file_in_zip: "output/output.D2010_base_calibration-MP/base-MP.end"
+pathline_file_in_zip: "output/output.D2010_base_calibration-MP/base-MP.path"
+grid_files: []
+head_files: []
+budget_files: []
+particle_release_definition: "Archive-defined MODPATH particle releases in base calibration scenario."
+source_node_definition: "MODPATH endpoint initial_cell."
+receptor_node_definition: "MODPATH endpoint final_cell."
+node_mapping_strategy: "Grid-cell nodes from endpoint initial_cell/final_cell and pathline cell IDs."
+edge_mapping_strategy: "Aggregate particle-supported directed endpoint source-receptor pairs."
+candidate_edge_strategy: "All directed non-self cell-node pairs for confusion-matrix denominator; inferred scenarios use proximity/head proxy rules."
+independent_validation_allowed: true
+prior_assisted_allowed: true
+capture_zone_polygon_available: false
+travel_time_harmonised: false
+node_match_distance: 500.0
+time_unit_days: 1.0
+allowed_claim: "Savage MODPATH endpoint and pathline files can be transformed into a model-conditioned directed reference graph for reduced-order topology benchmarking."
+required_guardrail: "MODPATH is a model-conditioned advective reference, not absolute field truth; endpoint/pathline projection is topology evidence, not full pathline-shape, capture-zone polygon, or independent travel-time validation."
+notes: "Main archive for manuscript figures and tables. Great Miami and Long Island are not used to support the central independent Hydrosheaf performance claim."
+

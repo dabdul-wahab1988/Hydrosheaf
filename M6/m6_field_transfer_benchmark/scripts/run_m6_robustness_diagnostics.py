@@ -168,6 +168,10 @@ def discrimination():
 
 
 def main():
+    raise RuntimeError(
+        "The historical M6 robustness diagnostics are retired: their static "
+        "Northern Ghana MRS input is not an approved current cohort."
+    )
     data = m6.load_all()
     ng = data["northern_ghana"]
     clf = m6.TransferClassifier()

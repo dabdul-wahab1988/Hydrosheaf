@@ -1,10 +1,9 @@
-"""Read-only inventory and harmonisation diagnostic for the field datasets.
+"""Read-only inventory of the approved refined field cohorts.
 
-This module inventories the four field-data products used by the groundwater
-workflows.  It does not alter source files, infer undocumented units, merge
-observations, or create a modelling input table.  Harmonisation is limited to
-reporting conservative aliases for a small canonical vocabulary and marking
-where a field's unit or meaning is not declared.
+Only the completed Central Region and Upper East Region workbooks are in the
+active inventory. Historical packages remain outside current field analyses.
+This module does not alter source files, infer undocumented units, merge
+observations, or create a modelling input table.
 
 Run from the repository root with::
 
@@ -30,15 +29,11 @@ import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_DATASETS: dict[str, Path] = {
-    "LowerAnayari/manu": Path("data/FieldData/LowerAnayari/manu.csv"),
-    "NorthenGhana/NorthernGhana": Path(
-        "data/FieldData/NorthenGhana/NorthernGhana.xlsx"
+    "central_region": Path(
+        "data/FieldData/CRdata/CentralRegion_completed.xlsx"
     ),
-    "NorthernGhanaNew/compiled UER data_new": Path(
-        "data/FieldData/NorthernGhanaNew/compiled UER data_new.xlsx"
-    ),
-    "Talensi_MiningArea/talensi": Path(
-        "data/FieldData/Talensi_MiningArea/talensi.csv"
+    "upper_east_region": Path(
+        "data/FieldData/UERdata/compiled UER data_new_completed.xlsx"
     ),
 }
 
@@ -48,6 +43,7 @@ REQUESTED_FIELDS = ("SiO2", "Sr", "Fe", "depth", "date")
 # not enough to establish a unit; unit inference is handled separately.
 CANONICAL_ALIASES: dict[str, tuple[str, ...]] = {
     "sample_id": (
+        "node_id",
         "sample id",
         "sample_id",
         "well_id",
@@ -59,12 +55,13 @@ CANONICAL_ALIASES: dict[str, tuple[str, ...]] = {
         "number",
     ),
     "site_group": ("station", "community", "community_code", "town"),
-    "latitude": ("latitude", "lat", "latituted", "y coordinate"),
-    "longitude": ("longitude", "lon", "long", "x coordinate"),
+    "latitude": ("latitude", "latitude_dd", "lat", "latituted", "y coordinate"),
+    "longitude": ("longitude", "longitude_dd", "lon", "long", "x coordinate"),
     "elevation": ("elevation", "elevation_m", "elev", "elevation m"),
     "depth": (
         "borehole_depth_m",
         "borehole depth m",
+        "well_depth_m",
         "well_depth",
         "well depth",
         "screen_depth",
@@ -78,9 +75,11 @@ CANONICAL_ALIASES: dict[str, tuple[str, ...]] = {
         "hydraulic head",
         "water_table_elevation",
         "piezometric_head",
+        "hydraulic_head_m",
     ),
     "water_level": (
         "static_water_level_m",
+        "swl_m",
         "static water level m",
         "static water level",
         "water_level",

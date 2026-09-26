@@ -1,0 +1,106 @@
+{
+  "schema": "hydrosheaf-ttd-graph-virtual-benchmark-config-v1",
+  "protocol": "docs/TTD_GRAPH_VIRTUAL_BENCHMARK_PROTOCOL.md",
+  "run_family": "TTD-GRAPH-VIRTUAL-V1",
+  "claim_boundary": "controlled-synthetic recovery and calibrated abstention only; not field validation or universal superiority",
+  "truth_blind_inference": true,
+  "generator_families_required_for_headline_claim": [
+    "independent_analytic_source_mixing_network",
+    "independent_particle_transport_network"
+  ],
+  "static": {
+    "seeds": [101, 203, 307, 401],
+    "n_time_steps": 240,
+    "time_step_days": 1.0,
+    "young_water_threshold_days": 60,
+    "input_sampling_fraction": 0.78,
+    "output_sampling_fraction": 0.76,
+    "input_missing_fraction": 0.11,
+    "output_missing_fraction": 0.12,
+    "held_out_fraction": 0.25,
+    "scenarios": [
+      "nominal",
+      "sparse_sampling",
+      "wrong_forcing",
+      "local_recharge_omitted",
+      "reversed_graph",
+      "random_graph",
+      "edge_removed"
+    ]
+  },
+  "dynamic": {
+    "seeds": [503, 607, 701, 809],
+    "n_time_steps": 360,
+    "time_step_days": 1.0,
+    "holdout_fraction": 0.25,
+    "season_period_days": 60.0,
+    "observation_noise_sd": 0.03,
+    "observation_keep_probability": 0.75,
+    "scenarios": [
+      "nominal",
+      "sparse_sampling",
+      "wrong_forcing",
+      "unmodelled_local_recharge",
+      "wrong_topology",
+      "reversed_graph",
+      "random_graph",
+      "edge_removed_graph"
+    ]
+  },
+  "particle": {
+    "seeds": [1729],
+    "n_particles": 600,
+    "n_steps": 160,
+    "max_lag_steps": 36,
+    "scenarios": [
+      "nominal",
+      "sparse",
+      "wrong_forcing",
+      "local_recharge_misspecification",
+      "wrong_topology"
+    ]
+  },
+  "required_comparators": [
+    "local_lumped_ttd_baseline",
+    "source_mixing_graph_correct_topology_control",
+    "reversed_graph_control",
+    "random_graph_control",
+    "edge_removed_graph_control",
+    "seasonal_phase_lag_baseline",
+    "particle_lag_mixing_baseline"
+  ],
+  "primary_estimands": [
+    "young_water_fraction",
+    "mean_age_days",
+    "age_interval",
+    "source_fraction",
+    "held_out_prediction"
+  ],
+  "required_metrics": [
+    "interval_coverage",
+    "mean_interval_width",
+    "abstention_rate",
+    "appropriate_abstention_rate",
+    "held_out_rmse",
+    "topology_precision",
+    "topology_recall",
+    "false_edge_acceptance_rate"
+  ],
+  "claim_gate": {
+    "status_without_two_independent_generator_families": "ABSTAIN",
+    "status_without_held_out_cases": "ABSTAIN",
+    "status_when_negative_control_harms_are_not_reported": "ABSTAIN",
+    "field_validation": "DEFERRED"
+  },
+  "external_watres": {
+    "role": "external_catchment_temporal_ttd_component_benchmark",
+    "doi": "10.5281/zenodo.15658651",
+    "record_url": "https://zenodo.org/records/15658651",
+    "download_opt_in": true,
+    "eligible_for_groundwater_graph_claim": false
+  },
+  "field_transfer": {
+    "role": "data_readiness_and_prospective_campaign_design",
+    "eligible_for_dynamic_graph_ttd_validation": false
+  }
+}

@@ -21,6 +21,16 @@ DEFAULT_DB_PATH = (
 class IsotopeSample:
     d15N: float
     d18O: float
+    B: Optional[float] = None  # Boron concentration (ug/L or mg/L)
+    d11B: Optional[float] = None  # delta-11B (permil)
+    ln_B: Optional[float] = None  # ln(B in ug/L)
+    sample_id: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if self.ln_B is None and self.B is not None:
+            val = float(self.B)
+            if val > 0:
+                self.ln_B = math.log(val)
 
 
 @dataclass
@@ -32,6 +42,12 @@ class SourceIsotopes:
     d18O_std: float
     d15N_d18O_corr: Optional[float] = None
     d15N_d18O_cov: Optional[float] = None
+    ln_B_mean: Optional[float] = None
+    ln_B_std: Optional[float] = None
+    d11B_mean: Optional[float] = None
+    d11B_std: Optional[float] = None
+    B_mean: Optional[float] = None
+    B_std: Optional[float] = None
 
     def covariance_d15N_d18O(self) -> float:
         if self.d15N_d18O_cov is not None:
@@ -367,7 +383,10 @@ def compute_process_prior_probs(
 
 
 @lru_cache(maxsize=8)
-def _load_isotope_endmembers_cached(path_str: str) -> List[SourceIsotopes]:
+def _load_isotope_endmembers_cached(
+    path_str: str,
+    include_subsources: bool = False,
+) -> List[SourceIsotopes]:
     """Load endmember definitions from JSON."""
     path = Path(path_str)
     if not path.exists():
@@ -376,8 +395,35 @@ def _load_isotope_endmembers_cached(path_str: str) -> List[SourceIsotopes]:
     with open(path, "r", encoding="utf-8") as handle:
         data = json.load(handle)
 
+    raw_sources = data.get("sources", {})
+    has_subsources = "Septic_Sewage" in raw_sources or "Animal_Manure" in raw_sources
+    has_legacy_manure = "Manure" in raw_sources
+
     sources = []
-    for name, params in data.get("sources", {}).items():
+    for name, params in raw_sources.items():
+        if has_subsources and has_legacy_manure:
+            if include_subsources:
+                if name == "Manure":
+                    continue
+            else:
+                if name in ("Septic_Sewage", "Animal_Manure"):
+                    continue
+        ln_b_params = params.get("ln_B")
+        d11b_params = params.get("d11B")
+        b_params = params.get("B")
+
+        ln_b_mean = _parse_optional_float(ln_b_params.get("mean")) if isinstance(ln_b_params, dict) else None
+        ln_b_std = _parse_optional_float(ln_b_params.get("std")) if isinstance(ln_b_params, dict) else None
+
+        b_mean = _parse_optional_float(b_params.get("mean")) if isinstance(b_params, dict) else None
+        b_std = _parse_optional_float(b_params.get("std")) if isinstance(b_params, dict) else None
+        if ln_b_mean is None and b_mean is not None and b_mean > 0:
+            ln_b_mean = math.log(b_mean)
+            ln_b_std = 0.5 if b_std is None else max(0.1, b_std / b_mean)
+
+        d11b_mean = _parse_optional_float(d11b_params.get("mean")) if isinstance(d11b_params, dict) else None
+        d11b_std = _parse_optional_float(d11b_params.get("std")) if isinstance(d11b_params, dict) else None
+
         sources.append(
             SourceIsotopes(
                 name=name,
@@ -395,14 +441,36 @@ def _load_isotope_endmembers_cached(path_str: str) -> List[SourceIsotopes]:
                     if isinstance(params.get("covariance"), dict)
                     else params.get("d15N_d18O_cov")
                 ),
+                ln_B_mean=ln_b_mean,
+                ln_B_std=ln_b_std,
+                d11B_mean=d11b_mean,
+                d11B_std=d11b_std,
+                B_mean=b_mean,
+                B_std=b_std,
             )
         )
     return sources
 
 
-def load_isotope_endmembers(path: Path = DEFAULT_DB_PATH) -> List[SourceIsotopes]:
+def load_isotope_endmembers(
+    path: Path = DEFAULT_DB_PATH,
+    include_subsources: bool = False,
+) -> List[SourceIsotopes]:
     # Return a shallow copy to keep call-site behavior mutable-safe.
-    return list(_load_isotope_endmembers_cached(str(path)))
+    return list(_load_isotope_endmembers_cached(str(path), include_subsources=include_subsources))
+
+
+def load_endmember_database(path: Path = DEFAULT_DB_PATH) -> Dict[str, SourceIsotopes]:
+    """Return dictionary of all endmembers including specialized trace subsources."""
+    all_sources = list(_load_isotope_endmembers_cached(str(path), include_subsources=True))
+    db = {s.name: s for s in all_sources}
+    legacy = list(_load_isotope_endmembers_cached(str(path), include_subsources=False))
+    for s in legacy:
+        if s.name not in db:
+            db[s.name] = s
+    if "Manure" not in db and "Animal_Manure" in db:
+        db["Manure"] = db["Animal_Manure"]
+    return db
 
 
 def compute_isotope_prob(
@@ -415,8 +483,10 @@ def compute_isotope_prob(
 
     P(Source|Sample) is proportional to P(Sample|Source) * P(Source).
 
-    P(Sample|Source) ~ N( [d15N, d18O], Sigma )
-    where Sigma can include source-specific covariance terms.
+    When Boron (ln_B) and/or delta-11B are provided in the sample and present in sources,
+    evaluates a 3D or 4D multivariate likelihood:
+        [d15N, d18O, ln_B, d11B]^T ~ N(mu_mix, Sigma_mix)
+    which disentangles septic sewage from animal manure. Otherwise evaluates exact 2D likelihood.
     """
     if not sources:
         return {}
@@ -426,7 +496,15 @@ def compute_isotope_prob(
     likelihoods: Dict[str, float] = {}
     x_n = float(sample.d15N)
     x_o = float(sample.d18O)
-    two_pi = 2.0 * math.pi
+
+    # Check for active Boron tracers
+    has_b = sample.ln_B is not None and all(s.ln_B_mean is not None for s in sources)
+    has_d11b = sample.d11B is not None and all(s.d11B_mean is not None for s in sources)
+    x_b = float(sample.ln_B) if has_b and sample.ln_B is not None else 0.0
+    x_d11b = float(sample.d11B) if has_d11b and sample.d11B is not None else 0.0
+
+    k_dim = 2 + (1 if has_b else 0) + (1 if has_d11b else 0)
+    norm_const = (2.0 * math.pi) ** (k_dim / 2.0)
 
     for src in sources:
         var_n = max(float(src.d15N_std) ** 2, 1e-24)
@@ -435,18 +513,35 @@ def compute_isotope_prob(
         max_abs_cov = math.sqrt(var_n * var_o) * 0.999999
         cov_no = max(-max_abs_cov, min(max_abs_cov, cov_no))
 
-        det = var_n * var_o - cov_no * cov_no
-        if det <= 1e-30:
-            det = 1e-30
+        det_2d = var_n * var_o - cov_no * cov_no
+        if det_2d <= 1e-30:
+            det_2d = 1e-30
 
         dx_n = x_n - float(src.d15N_mean)
         dx_o = x_o - float(src.d18O_mean)
-        inv00 = var_o / det
-        inv11 = var_n / det
-        inv01 = -cov_no / det
+        inv00 = var_o / det_2d
+        inv11 = var_n / det_2d
+        inv01 = -cov_no / det_2d
         quad = inv00 * dx_n * dx_n + 2.0 * inv01 * dx_n * dx_o + inv11 * dx_o * dx_o
+
+        det_total = det_2d
+
+        if has_b and src.ln_B_mean is not None:
+            std_b = max(float(src.ln_B_std if src.ln_B_std is not None else 0.5), 1e-6)
+            var_b = std_b ** 2
+            dx_b = x_b - float(src.ln_B_mean)
+            quad += (dx_b * dx_b) / var_b
+            det_total *= var_b
+
+        if has_d11b and src.d11B_mean is not None:
+            std_d11b = max(float(src.d11B_std if src.d11B_std is not None else 3.0), 1e-6)
+            var_d11b = std_d11b ** 2
+            dx_d11b = x_d11b - float(src.d11B_mean)
+            quad += (dx_d11b * dx_d11b) / var_d11b
+            det_total *= var_d11b
+
         exponent = -0.5 * quad
-        norm = 1.0 / (two_pi * math.sqrt(det))
+        norm = 1.0 / (norm_const * math.sqrt(det_total))
         lik = norm * math.exp(exponent)
 
         # Apply prior

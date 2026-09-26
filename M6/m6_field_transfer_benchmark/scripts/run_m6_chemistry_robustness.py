@@ -117,6 +117,10 @@ def run_uncertainty_cascade(config, site):
     return psi_data
 
 def main():
+    raise RuntimeError(
+        "Retired: this robustness extension is hard-coded to superseded Manu/Talensi "
+        "field cases and is not an analysis of the approved Central/UER cohorts."
+    )
     RESULT_DIR.mkdir(parents=True, exist_ok=True)
     weights = [1.0] * len(ION_ORDER)
 

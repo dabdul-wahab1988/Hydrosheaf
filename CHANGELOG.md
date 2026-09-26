@@ -1,0 +1,109 @@
+# Changelog
+
+## 0.7.0 (2026-09-26)
+
+### New Features
+
+- **Active Certified Measurement Design (ACMD)**: Added unified active closed-loop sequential learning architecture (`ACMDLoop`, `ACMDAction`, `ACMDCertificate`, and facade `ACMD`) integrating robust worst-case ambiguity reduction ($W(S)$ over polyhedral compatible sets $\mathcal{P}_t$) and Bayesian Expected Information Gain (EIG) over hypothesis ensembles.
+- **Dynamic Mobilization Logistics**: Implemented standalone and incremental cost accounting that automatically discounts travel mobilization fees to zero once a spatial well or spring target has been visited.
+- **Certificate Integrity**: Added SHA-256 hashing of the declared problem and decision trajectory, candidate attainment bounds, cumulative expenditures, and linear-program witness vectors $(x, x')$; the digest does not authenticate the physical model.
+- **Empirical Model Assumption Diagnostics**: Added standardized assumption audit suite (`ASSUMPTION_CATALOGUE`, `AssumptionReport`, `assess_model_assumptions`) with diagnostics for error independence (Durbin-Watson), laboratory analytical bias, missingness at random (Little's MCAR test), tracer conservativeness, and vertical datum reference consistency.
+- **Multi-criteria Decision Modes**: Implemented `ACMDMode` (`ROBUST_MINIMAX`, `PROBABILISTIC_EIG`, `HYBRID`) with definitive terminal states (`CERTIFIED`, `IMPOSSIBILITY_WITNESS`, `ALREADY_RESOLVED`, `BUDGET_EXHAUSTED`, `INCONSISTENT_EVIDENCE`, `ABSTAIN`).
+- **Conditional Hydrochemical Design**: Added `ChemACMD` and a bounded reaction--mixing polytope compiler. Named stoichiometric reactions, explicit extent and concentration intervals, endmember fractions, and site-declared linear isotope-mass responses can be used for robust minimax measurement selection. Certificates apply to the declared linear model; the adapter does not derive quantitative extent bounds from PHREEQC saturation indices or supply universal isotope signatures.
+
+### Validation
+
+- Added full unit and simulation test suite (`tests/test_acmd.py`) exercising multi-step active closed-loop convergence, oracle simulations, travel cost discounting, and probability gate abstentions.
+- Added comprehensive assumption diagnostic regression suite (`tests/test_assumption_diagnostics.py`).
+- Added synthetic reaction-confounding, mixing, bound, inconsistency, and certificate tests (`tests/test_chem_acmd.py`).
+
+## 0.6.0 (2026-09-16)
+
+### New Features
+
+- **Evidence-gated active learning**: Added predictive campaign selection with explicit `ABSTAIN` outcomes when topology, predictive, or diagnostic evidence is insufficient.
+- **Joint sheaf-reaction inference**: Added chemical node-state and edge-reaction extent inference with fixed transport maps, while retaining a legacy compatibility switch.
+- **Certified tracer design**: Added worst-case ambiguity evaluation and budgeted minimax measurement-design helpers without inventing prior probabilities.
+- **Field integration utilities**: Added geology-aware field loading, completed DEM attachment, UER integration scripts, and bounded Objective 5 audit tooling.
+
+### Validation
+
+- Expanded regression coverage for active learning, joint reaction inference, certified tracer design, field integration, and Objective 5 audit gates.
+
+## 0.5.0 (2026-01-25)
+
+### New Features
+
+- **PEST++ and MODFLOW**: Auto-download support for calibration and transport executables.
+- **Vadose Zone Tuning**: Added hyperparameter tuning utilities and diagnostics.
+
+### Enhancements
+
+- **Dependency Enforcement**: Removed optional fallbacks; core scientific dependencies are now required.
+- **Sheaf Solver**: Replaced the custom solver with `scipy.optimize` for improved robustness.
+- **Scientific Logging**: Expanded CLI and core inference logging for reproducibility.
+- **Plotting**: Improved scientific plots for rigor and reproducible output.
+- **Web Application**: Updated frontend/back-end to match core engine features, with improved plots and download actions.
+
+### Documentation
+
+- **Setup Guidance**: Added a no-compilation quick start and refreshed README guidance.
+
+### Maintenance
+
+- Repository reorganization and targeted test fixes.
+
+## 0.4.0 (2026-01-15)
+
+### New Features
+
+- **Web Interface**: Launched a full-stack graphical user interface to make Hydrosheaf accessible to a broader audience.
+  - **React Frontend**: Modern "Dark Ocean" themed dashboard with glassmorphism effects for managing groundwater projects.
+  - **FastAPI Backend**: Robust REST API handling project storage, sample data validation, and analysis orchestration.
+  - **Interactive Network Editor**: Visual tools for defining flow networks and observing connections.
+  - **Real-time Analysis**: Asynchronous execution of inverse models with live progress updates via WebSockets.
+
+### Documentation
+
+- **Web Quickstart**: Added instructions for installing and running the web application stack.
+- **Integration Roadmap**: Added `web/INTEGRATION_ROADMAP.md` outlining future frontend/backend synchronization steps.
+
+## 0.3.0 (2026-01-09)
+
+### New Features
+
+- **Dual Isotope Nitrate Apportionment**: Integrated a Bayesian mixing model using $\delta^{15}\text{N}$ and $\delta^{18}\text{O}_{\text{NO}_3}$ to rigorously distinguish manure/sewage from fertilizer sources. Priorities isotopic evidence over hydrochemical proxies when available.
+- **Comparison with Commercial Software**: Added detailed technical comparison with PHREEQC, NETPATH, and GWB, highlighting Hydrosheaf's advantages in sparse optimization and automated network inference.
+
+### Enhancements
+
+- **Endmember Database**: Added `nitrate_endmembers.json` with literature-validated isotopic signatures (Kendall 1998).
+- **Hybrid Inference Logic**: Robust fallback mechanism ensures seamless operation whether isotope data is present or absent.
+
+## 0.2.0 (2025-01-09)
+
+### Major Extensions
+
+- **Reactive Transport**: Added kinetic validation of inverse results using Arrhenius-corrected rates and Damköhler number analysis.
+- **3D Flow Networks**: Implemented 3D graph inference with vertical anisotropy and a Bayesian topographic prior for flow direction without head data.
+- **Temporal Dynamics**: Added time-series support, residence time estimation via cross-correlation center-of-mass, and seasonal decomposition.
+- **Uncertainty Quantification**: Integrated Bayesian MCMC (NUTS) for reaction extent posteriors and bias-corrected bootstrap (BCa) for confidence intervals.
+
+### Enhancements
+
+- **Nitrate Discrimination**: Added robust "Low Nitrate" gating and Compositional Data Analysis (CoDA) for manure vs. fertilizer distinction.
+- **Thermodynamic Constraints**: Expanded PHREEQC integration to enforce saturation index (SI) bounds on reaction fitting.
+- **Documentation**: Substantially updated `Technical Reference` with mathematically rigorous, unit-tested examples.
+
+### Verification
+
+- Added comprehensive test suite `tests/` merging previous scattered tests.
+- Verified all numerical examples in documentation against `tests/test_doc_examples.py`.
+
+## 0.1.0
+
+- Initial package scaffold, core transport/reaction fitting, CLI, and tests.
+- PHREEQC integration scaffolding with SI-based constraints and bounds.
+- Endmembers JSON loader and constraint-aware outputs.
+- Probabilistic edge inference with head/DTW/topography fallback and edge confidence metadata.
+- Optional isotope penalties with LMWL configuration and diagnostics.

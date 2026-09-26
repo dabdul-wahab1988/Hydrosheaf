@@ -16,6 +16,13 @@ from .ttd_losses import (
     wavelet_band_loss,
     evaluate_composite_ttd_loss,
 )
+from .nitrate_isotopes import (
+    IsotopeSample,
+    SourceIsotopes,
+    compute_isotope_prob,
+    load_endmember_database,
+    load_isotope_endmembers,
+)
 
 __all__ = [
     "LossConfig",
@@ -32,4 +39,9 @@ __all__ = [
     "cross_spectral_coherence_error",
     "wavelet_band_loss",
     "evaluate_composite_ttd_loss",
+    "IsotopeSample",
+    "SourceIsotopes",
+    "compute_isotope_prob",
+    "load_endmember_database",
+    "load_isotope_endmembers",
 ]

@@ -18,6 +18,7 @@ import platform
 import sys
 from typing import Iterable, Mapping, Sequence
 
+from hydrosheaf.reproducibility import reproducible_now_iso
 from hydrosheaf.validation.programme_contract import assert_truth_blind
 
 
@@ -396,7 +397,7 @@ def write_virtual_benchmark_artifacts(
     manifest = {
         "schema": "hydrosheaf-ttd-graph-virtual-run-v1",
         "run_id": _text(run_id, name="run_id"),
-        "created_utc": datetime.now(timezone.utc).isoformat(),
+        "created_utc": reproducible_now_iso(),
         "protocol_path": str(protocol.resolve()),
         "protocol_sha256": hashlib.sha256(protocol.read_bytes()).hexdigest(),
         "config": dict(config),

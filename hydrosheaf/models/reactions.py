@@ -21,8 +21,9 @@ INDICATOR_IONS = {
     "chlorite": ["Mg", "Fe"],
     "fluorite": ["F", "Ca"],
     "sylvite": ["K", "Cl"],
-    "sulfate_reduction": ["SO4", "HCO3"],
+    "manganese_reduction": ["Mn", "HCO3"],
     "iron_reduction": ["Fe", "HCO3"],
+    "sulfate_reduction": ["SO4", "HCO3"],
 }
 
 # A sentinel distinguishes an old call that does not request geology-aware
@@ -229,18 +230,63 @@ def build_reaction_dictionary(
     ):
         reactions.append(("denit", {"HCO3": kappa, "NO3": -1}, False, 1.0))
 
-    # Redox coverage is added only when its diagnostic aqueous species are
-    # measured.  Concentration gates use upstream observations only, avoiding
-    # downstream-label leakage in predictive applications.
+    # Thermodynamic Redox Ladder: O2 -> NO3 -> Mn(IV) -> Fe(III) -> SO4.
+    # Redox coverage is added only when diagnostic aqueous species are measured.
+    # Concentration and DO/Eh gates use upstream observations only.
     no3_value = _sample_float(sample, "NO3") if sample is not None else None
     so4_value = _sample_float(sample, "SO4") if sample is not None else None
+    do_value = _sample_float(sample, "DO") if sample is not None else None
+    if do_value is None and sample is not None:
+        do_value = _sample_float(sample, "do_mg_l") or _sample_float(sample, "dissolved_oxygen")
+    eh_value = _sample_float(sample, "Eh") if sample is not None else None
+    if eh_value is None and sample is not None:
+        eh_value = _sample_float(sample, "ORP")
+
+    # High dissolved oxygen (DO > 2.0 mg/L) or high Eh (> 400 mV) thermodynamically suppresses metal/sulfate reduction
+    is_strongly_oxic = (do_value is not None and do_value > 2.0) or (eh_value is not None and eh_value > 400.0)
+
     redox_compatible = (
-        sample is None
-        or no3_value is None
-        or no3_value <= float(config.redox_no3_max_mmol_l)
+        (not is_strongly_oxic)
+        and (
+            sample is None
+            or no3_value is None
+            or no3_value <= float(config.redox_no3_max_mmol_l)
+        )
     )
+
+    # 1. Manganese Reduction (Mn(IV) -> Mn(II)): precedes iron reduction
     if (
-        "sulfate_reduction" in enabled_processes
+        ("manganese_reduction" in enabled_processes or not enabled_processes)
+        and {"Mn", "HCO3"}.issubset(available)
+        and redox_compatible
+    ):
+        reactions.append(
+            (
+                "manganese_reduction",
+                get_mineral_stoich("manganese_reduction"),
+                False,
+                1.0,
+            )
+        )
+
+    # 2. Iron Reduction (Fe(III) -> Fe(II))
+    if (
+        ("iron_reduction" in enabled_processes or not enabled_processes)
+        and {"Fe", "HCO3"}.issubset(available)
+        and redox_compatible
+    ):
+        reactions.append(
+            (
+                "iron_reduction",
+                get_mineral_stoich("iron_reduction"),
+                False,
+                1.0,
+            )
+        )
+
+    # 3. Sulfate Reduction (SO4 -> H2S): occurs under strongly reducing conditions
+    if (
+        ("sulfate_reduction" in enabled_processes or not enabled_processes)
         and {"SO4", "HCO3"}.issubset(available)
         and redox_compatible
         and (
@@ -257,19 +303,18 @@ def build_reaction_dictionary(
                 1.0,
             )
         )
-    if (
-        "iron_reduction" in enabled_processes
-        and {"Fe", "HCO3"}.issubset(available)
-        and redox_compatible
-    ):
-        reactions.append(
-            (
-                "iron_reduction",
-                get_mineral_stoich("iron_reduction"),
-                False,
-                1.0,
-            )
+
+    # 4. Geogenic Arsenic Mobilization (coupled to Fe-reduction and/or alkaline pH desorption)
+    if "As" in available:
+        ph_val = _sample_float(sample, "pH") if sample is not None else None
+        fe_val = _sample_float(sample, "Fe") if sample is not None else None
+        as_favored = (
+            redox_compatible
+            or (ph_val is not None and ph_val >= 8.0)
+            or (fe_val is not None and fe_val > 0.01)
         )
+        if as_favored:
+            reactions.append(("arsenic_mobilization", {"As": 1}, False, 1.0))
 
     if config.exchange_enabled:
         # Bidirectional Exchange: Forward = Ca/Mg release (salinization), Reverse = Na release (freshening)

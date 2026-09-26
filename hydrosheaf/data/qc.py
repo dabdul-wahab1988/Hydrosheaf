@@ -6,6 +6,7 @@ CHARGE_EQUIV: Dict[str, int] = {
     "Ca": 2,
     "Mg": 2,
     "Na": 1,
+    "K": 1,
     "HCO3": -1,
     "Cl": -1,
     "SO4": -2,

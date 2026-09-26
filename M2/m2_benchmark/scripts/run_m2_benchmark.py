@@ -967,17 +967,10 @@ def write_main_tables(
             f"FN={int(mod.get('false_negative_edges', 0))}; F1={float(mod.get('edge_f1', np.nan)):.2f}"
         )
         modpath_status = "completed topology-only comparison"
-    field_path = BENCHMARK_ROOT / "results" / "field_discovery_results.csv"
-    field_metric = "run Ghana field discovery workflow"
-    field_status = "field demonstration pending"
-    if field_path.exists():
-        field = pd.read_csv(field_path)
-        if not field.empty:
-            field_metric = (
-                f"n_edges={len(field)}; median chemistry R2={float(field['chemistry_r2'].median()):.3f}; "
-                "generated graph, no independent process truth"
-            )
-            field_status = "completed field-hydrochemistry demonstration"
+    field_metric = (
+        "ABSTAIN: no current M2 field analysis; historical field outputs are retired"
+    )
+    field_status = "not run; approved refined-cohort input QA is not M2 validation"
 
     table4 = pd.DataFrame(
         [
@@ -1018,12 +1011,12 @@ def write_main_tables(
                 "proxy completed; live external pending",
             ],
             [
-                "Data-limited pilot scenario",
-                "Lower Anayari (Manu) and Talensi field pilot datasets",
-                "end-to-end generated-edge and reaction outputs under sparse field inputs",
+                "Field transfer status",
+                "No current M2 field cohort",
+                "not evaluated by the locked synthetic M2 benchmark",
                 field_metric,
-                "workflow remains interpretable when optional tracers, source graph edges, or PHREEQC inputs are absent",
-                "data/FieldData/LowerAnayari/manu.csv; data/FieldData/Talensi_MiningArea/talensi.csv",
+                "requires a separately specified design and independent field truth",
+                "approved CR/UER workbooks are used for input QA only",
                 field_status,
             ],
         ],
@@ -1102,12 +1095,12 @@ def write_main_tables(
                 "10.3133/tm6A43",
             ],
             [
-                "Corrected Northern Ghana aquifer workbook",
-                "160 boreholes, 320 dry/wet hydrochemical records, isotope fields, Sr, SiO2, coordinates, depth, static water level, and distance covariates; no supplied graph-edge or saturation-index sheet",
-                "data/FieldData/NorthenGhana/NorthernGhana.xlsx plus optional data/FieldData/NorthenGhana/SI.pdf",
-                "field hydrochemistry and generated sparse graph-edge demonstration",
-                "source DOI/URL to confirm if manuscript requires public citation",
-                "public source citation to be supplied in manuscript if available",
+                "Approved refined field cohorts (Central Region and Upper East Region)",
+                "Completed source workbooks; cohort-specific measured fields and explicit missingness",
+                "data/FieldData/CRdata/CentralRegion_completed.xlsx; data/FieldData/UERdata/compiled UER data_new_completed.xlsx",
+                "input integrity and descriptive QA only; not M2 field validation",
+                "verified source workbook hashes and reconciled integration mirrors",
+                "field input QA manifest",
             ],
         ],
         columns=[

@@ -13,6 +13,7 @@ from hydrosheaf.inference.topology_posterior import (
     make_topology_cost_fn,
     select_posterior_edges,
     validate_unique_edge_ids,
+    extract_topology_hypotheses,
 )
 from hydrosheaf.sheaf.topology_refine import refine_edges_with_sheaf
 
@@ -580,6 +581,51 @@ class TestPosteriorSelectionContracts(unittest.TestCase):
             selected = refine_edges_with_sheaf(samples, candidates, config)
 
         self.assertEqual([edge.edge_id for edge in selected], ["A->B"])
+
+
+    def test_graph_ensemble_properties(self):
+        """Graph ensemble should contain valid probabilities summing to 1.0."""
+        universe = [
+            _make_edge("A->B", "A", "B", confidence=0.7),
+            _make_edge("B->C", "B", "C", confidence=0.4),
+        ]
+        cfg = Config()
+        cfg.topology_posterior_samples = 300
+        cfg.topology_posterior_burnin = 50
+
+        result = run_topology_posterior(universe, _simple_cost_fn, cfg, seed=42)
+        ensemble = result["graph_ensemble"]
+        self.assertGreater(len(ensemble), 0)
+        self.assertEqual(len(ensemble), result["n_unique_graphs"])
+
+        # Probabilities must sum to 1.0
+        total_prob = sum(g["probability"] for g in ensemble)
+        self.assertAlmostEqual(total_prob, 1.0, places=5)
+
+        # Ensemble should be sorted by probability descending
+        probs = [g["probability"] for g in ensemble]
+        self.assertEqual(probs, sorted(probs, reverse=True))
+
+        # Joint graph entropy must be non-negative and finite
+        self.assertGreaterEqual(result["joint_graph_entropy"], 0.0)
+
+    def test_extract_topology_hypotheses(self):
+        """extract_topology_hypotheses should extract aligned hypotheses and probabilities."""
+        universe = [
+            _make_edge("A->B", "A", "B", confidence=0.6),
+            _make_edge("B->C", "B", "C", confidence=0.5),
+        ]
+        cfg = Config()
+        cfg.topology_posterior_samples = 300
+        cfg.topology_posterior_burnin = 50
+
+        result = run_topology_posterior(universe, _simple_cost_fn, cfg, seed=42)
+        ids, probs, edge_tuples = extract_topology_hypotheses(result, max_hypotheses=5)
+
+        self.assertEqual(len(ids), len(probs))
+        self.assertEqual(len(ids), len(edge_tuples))
+        self.assertLessEqual(len(ids), 5)
+        self.assertAlmostEqual(sum(probs), 1.0, places=5)
 
 
 if __name__ == "__main__":

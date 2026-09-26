@@ -4,14 +4,14 @@ import copy
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
 from .coda_sbp import ilr_from_sbp, robust_zscore
 from .config import Config
-from .data.units import mgL_to_mmolL
+from .data.units import get_species_molar_mass, mgL_to_mmolL
 from .models import nitrate_isotopes
 import yaml
 
@@ -33,6 +33,11 @@ class NitrateSourceResult:
     gating_flags: List[str]
     ilr_valid: bool
     reason_code: Optional[str] = None
+    # Optional source-resolved outputs enabled by Boron/d11B endmembers.
+    p_septic_sewage: Optional[float] = None
+    p_animal_manure: Optional[float] = None
+    boron_used: bool = False
+    d11b_used: bool = False
     # MCMC-specific fields
     mcmc_result: Optional["MCMCMixingResult"] = None
     source_fractions: Optional[Dict[str, float]] = None
@@ -75,6 +80,86 @@ def _load_nitrate_config_cached(path_str: str) -> Dict[str, Any]:
 def load_nitrate_config(path: Path = DEFAULT_CONFIG_PATH) -> dict:
     return copy.deepcopy(_load_nitrate_config_cached(str(path)))
 
+
+def _optional_float(value: Any) -> Optional[float]:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _boron_to_ug_l(value: Any, unit: str) -> Optional[float]:
+    """Normalize an observed Boron concentration to the endmember unit (ug/L)."""
+    number = _optional_float(value)
+    if number is None or number < 0.0:
+        return None
+    normalized = unit.lower().replace(" ", "")
+    if normalized in {"ug/l", "µg/l", "ppb"}:
+        return number
+    if normalized == "mg/l":
+        return number * 1000.0
+    if normalized in {"mmol/l", "mmol_l", "mmoll"}:
+        return number * get_species_molar_mass("B") * 1000.0
+    raise ValueError(f"Unsupported Boron concentration unit: {unit!r}")
+
+
+def _build_isotope_sample(
+    sample: Mapping[str, Any],
+    *,
+    n15_col: str,
+    o18_col: str,
+    boron_col: str,
+    boron_unit: str,
+    d11b_col: str,
+    sample_id: Optional[str] = None,
+) -> Optional[nitrate_isotopes.IsotopeSample]:
+    """Build one isotope sample while preserving explicit Boron units."""
+    d15 = _optional_float(sample.get(n15_col))
+    d18 = _optional_float(sample.get(o18_col))
+    if d15 is None or d18 is None:
+        return None
+
+    boron_ug_l: Optional[float] = None
+    if boron_col in sample and sample.get(boron_col) is not None:
+        boron_ug_l = _boron_to_ug_l(sample.get(boron_col), boron_unit)
+    elif "B_ug_L" in sample and sample.get("B_ug_L") is not None:
+        boron_ug_l = _boron_to_ug_l(sample.get("B_ug_L"), "ug/L")
+    elif boron_col == "B_ug_L" and "B" in sample and sample.get("B") is not None:
+        # Harmonised field records store the fallback chemistry value as B in
+        # mmol/L. Use it only when the explicit unit-bearing field is absent.
+        boron_ug_l = _boron_to_ug_l(sample.get("B"), "mmol/L")
+
+    d11b = _optional_float(sample.get(d11b_col))
+    return nitrate_isotopes.IsotopeSample(
+        sample_id=sample_id,
+        d15N=d15,
+        d18O=d18,
+        B=boron_ug_l,
+        d11B=d11b,
+    )
+
+
+def _source_probabilities(
+    source_probs: Mapping[str, float],
+) -> Tuple[float, float, Optional[float], Optional[float]]:
+    """Map legacy and Boron-resolved names to stable result fields."""
+    if "Manure" in source_probs:
+        p_manure = float(source_probs.get("Manure", 0.0))
+    else:
+        p_manure = float(source_probs.get("Animal_Manure", 0.0))
+    p_fertilizer = float(source_probs.get("Fertilizer", 1.0 - p_manure))
+    p_septic = (
+        float(source_probs["Septic_Sewage"])
+        if "Septic_Sewage" in source_probs
+        else None
+    )
+    p_animal = (
+        float(source_probs["Animal_Manure"])
+        if "Animal_Manure" in source_probs
+        else None
+    )
+    return p_manure, p_fertilizer, p_septic, p_animal
 
 
 
@@ -327,6 +412,13 @@ def infer_node_posteriors(
     iso_enabled = file_conf.get("nitrate_isotope_mixing_enabled", True)
     n15_col = file_conf.get("nitrate_isotope_n15_col", "d15N")
     o18_col = file_conf.get("nitrate_isotope_o18_col", "d18O_NO3")
+    boron_col = file_conf.get("nitrate_isotope_boron_col", "B_ug_L")
+    boron_unit = file_conf.get("nitrate_isotope_boron_unit", "ug/L")
+    d11b_col = file_conf.get("nitrate_isotope_d11b_col", "d11B")
+    boron_enabled = bool(file_conf.get("nitrate_isotope_boron_enabled", True))
+    include_subsources = bool(
+        file_conf.get("nitrate_isotope_include_subsources", True)
+    )
     water_o18_col = file_conf.get("nitrate_isotope_water_o18_col", "d18O")
     process_constraints_enabled = file_conf.get(
         "nitrate_isotope_process_constraints_enabled", True
@@ -353,6 +445,7 @@ def infer_node_posteriors(
     )
 
     if config is not None:
+        iso_enabled = config.nitrate_isotope_mixing_enabled
         mcmc_enabled = config.isotope_mcmc_enabled
         mcmc_n_samples = config.isotope_mcmc_n_samples
 
@@ -360,18 +453,46 @@ def infer_node_posteriors(
         mcmc_target_accept = config.isotope_mcmc_target_accept
         mcmc_warmup = config.isotope_mcmc_warmup
         mcmc_hierarchical_enabled = config.isotope_mcmc_hierarchical_enabled
+        n15_col = config.nitrate_isotope_n15_col
+        o18_col = config.nitrate_isotope_o18_col
         water_o18_col = config.nitrate_isotope_water_o18_col
+        boron_col = config.nitrate_isotope_boron_col
+        boron_unit = config.nitrate_isotope_boron_unit
+        d11b_col = config.nitrate_isotope_d11b_col
+        boron_enabled = config.nitrate_isotope_boron_enabled
+        include_subsources = config.nitrate_isotope_include_subsources
         process_constraints_enabled = (
             config.nitrate_isotope_process_constraints_enabled
         )
         isotope_qc_enabled = config.nitrate_isotope_qc_enabled
 
-    iso_sources = []
+    iso_sources: List[nitrate_isotopes.SourceIsotopes] = []
+    trace_iso_sources: List[nitrate_isotopes.SourceIsotopes] = []
     if iso_enabled:
-        iso_sources = nitrate_isotopes.load_isotope_endmembers()
+        # Keep the legacy panel for two-isotope observations.  The specialized
+        # sewage/manure panel is selected only when a sample actually carries a
+        # Boron tracer, preserving existing p_manure semantics for old records.
+        iso_sources = nitrate_isotopes.load_isotope_endmembers(
+            include_subsources=False
+        )
+        if include_subsources and boron_enabled:
+            trace_iso_sources = nitrate_isotopes.load_isotope_endmembers(
+                include_subsources=True
+            )
+
+    def _sources_for_sample(
+        iso_sample: nitrate_isotopes.IsotopeSample,
+    ) -> List[nitrate_isotopes.SourceIsotopes]:
+        if trace_iso_sources and (
+            iso_sample.ln_B is not None or iso_sample.d11B is not None
+        ):
+            return trace_iso_sources
+        return iso_sources
 
     # Threshold for Background
     min_mg_L = float(file_conf.get("nitrate_source_min_mg_L", 10.0))
+    if config is not None:
+        min_mg_L = float(config.nitrate_source_min_mg_L)
     # Convert to internal units (likely mol/L if using mgL_to_mmolL)
     min_conc = mgL_to_mmolL(min_mg_L, "NO3")
 
@@ -410,6 +531,7 @@ def infer_node_posteriors(
         node_id: str,
         sample: Dict[str, Any],
         iso_sample: nitrate_isotopes.IsotopeSample,
+        sources: List[nitrate_isotopes.SourceIsotopes],
     ) -> Tuple[Optional[Dict[str, float]], List[str]]:
         if not process_constraints_enabled:
             return None, []
@@ -435,7 +557,7 @@ def infer_node_posteriors(
         )
         process_probs, process_flags, _ = nitrate_isotopes.compute_process_prior_probs(
             sample=iso_sample,
-            sources=iso_sources,
+            sources=sources,
             water_d18O=water_o18_float,
             denitrification_extent=denit_extent,
             process_config=process_constraints_conf,
@@ -450,36 +572,45 @@ def infer_node_posteriors(
 
             hier_samples: List[nitrate_isotopes.IsotopeSample] = []
             hier_node_ids: List[str] = []
+            hier_trace_flags: List[bool] = []
             pooled_process_priors: List[Dict[str, float]] = []
             for node_id, sample in node_rows:
                 no3_val = sample.get("NO3", 0.0)
                 if no3_val < min_conc:
                     continue
-                d15_val = sample.get(n15_col)
-                d18_val = sample.get(o18_col)
-                if d15_val is None or d18_val is None:
+                iso_sample = _build_isotope_sample(
+                    sample,
+                    n15_col=n15_col,
+                    o18_col=o18_col,
+                    boron_col=boron_col if boron_enabled else "__disabled__",
+                    boron_unit=boron_unit,
+                    d11b_col=d11b_col if boron_enabled else "__disabled__",
+                    sample_id=node_id,
+                )
+                if iso_sample is None:
                     continue
-                try:
-                    d15_float = float(d15_val)
-                    d18_float = float(d18_val)
-                except (TypeError, ValueError):
-                    continue
-                if math.isnan(d15_float) or math.isnan(d18_float):
-                    continue
-                iso_sample = nitrate_isotopes.IsotopeSample(d15_float, d18_float)
+                sample_sources = _sources_for_sample(iso_sample)
                 process_prior_probs, process_flags = _compute_process_priors(
-                    node_id, sample, iso_sample
+                    node_id, sample, iso_sample, sample_sources
                 )
                 hier_samples.append(iso_sample)
                 hier_node_ids.append(node_id)
+                hier_trace_flags.append(sample_sources is trace_iso_sources)
                 if process_prior_probs:
                     pooled_process_priors.append(process_prior_probs)
                 hierarchical_flags[node_id] = list(process_flags)
             if len(hier_samples) >= 2:
                 prior_alpha = None
+                hier_sources = (
+                    trace_iso_sources
+                    if trace_iso_sources
+                    and hier_trace_flags
+                    and all(hier_trace_flags)
+                    else iso_sources
+                )
                 if pooled_process_priors:
                     avg_prior: Dict[str, float] = {}
-                    for source in iso_sources:
+                    for source in hier_sources:
                         values = [
                             p.get(source.name, 0.0) for p in pooled_process_priors
                         ]
@@ -491,11 +622,11 @@ def infer_node_posteriors(
                             avg_prior.get(source.name, 0.0) * process_mcmc_alpha_scale,
                             1e-3,
                         )
-                        for source in iso_sources
+                        for source in hier_sources
                     ]
                 hier_result = run_mcmc_mixing_hierarchical(
                     samples=hier_samples,
-                    sources=iso_sources,
+                    sources=hier_sources,
                     sample_ids=hier_node_ids,
                     n_samples=mcmc_n_samples,
                     n_chains=mcmc_n_chains,
@@ -558,14 +689,24 @@ def infer_node_posteriors(
                     and not math.isnan(d15_float)
                     and not math.isnan(d18_float)
                 ):
-
-                    iso_s = nitrate_isotopes.IsotopeSample(d15_float, d18_float)
+                    iso_s = _build_isotope_sample(
+                        sample,
+                        n15_col=n15_col,
+                        o18_col=o18_col,
+                        boron_col=boron_col if boron_enabled else "__disabled__",
+                        boron_unit=boron_unit,
+                        d11b_col=d11b_col if boron_enabled else "__disabled__",
+                        sample_id=node_id,
+                    )
+                    if iso_s is None:
+                        continue
+                    sample_sources = _sources_for_sample(iso_s)
                     process_flags: List[str] = list(hierarchical_flags.get(node_id, []))
                     process_prior_probs: Optional[Dict[str, float]] = None
 
                     if process_constraints_enabled and node_id not in hierarchical_results:
                         process_prior_probs, computed_flags = _compute_process_priors(
-                            node_id, sample, iso_s
+                            node_id, sample, iso_s, sample_sources
                         )
                         for flag in computed_flags:
                             if flag not in process_flags:
@@ -580,19 +721,19 @@ def infer_node_posteriors(
 
                             prior_alpha = None
                             if process_prior_probs:
-                                prior_alpha = [
-                                    max(
-                                        process_prior_probs.get(source.name, 0.0)
-                                        * process_mcmc_alpha_scale,
-                                        1e-3,
-                                    )
-                                    for source in iso_sources
+                                    prior_alpha = [
+                                        max(
+                                            process_prior_probs.get(source.name, 0.0)
+                                            * process_mcmc_alpha_scale,
+                                            1e-3,
+                                        )
+                                    for source in sample_sources
                                 ]
 
                             # Run MCMC Bayesian mixing
                             mcmc_result = run_mcmc_mixing(
                                 sample=iso_s,
-                                sources=iso_sources,
+                                sources=sample_sources,
                                 n_samples=mcmc_n_samples,
                                 n_chains=mcmc_n_chains,
                                 target_accept=mcmc_target_accept,
@@ -600,8 +741,14 @@ def infer_node_posteriors(
                                 prior_alpha=prior_alpha,
                             )
 
-                        p_man = mcmc_result.source_fractions.get("Manure", 0.0)
+                        p_man, p_fert, p_septic, p_animal = _source_probabilities(
+                            mcmc_result.source_fractions
+                        )
                         evidence_list = [f"d15N={d15_float:.1f}", f"d18O={d18_float:.1f}"]
+                        if iso_s.ln_B is not None:
+                            evidence_list.append(f"ln_B={iso_s.ln_B:.2f}")
+                        if iso_s.d11B is not None:
+                            evidence_list.append(f"d11B={iso_s.d11B:.1f}")
                         if mcmc_result.warnings:
                             evidence_list.extend(mcmc_result.warnings[:2])
                         qc_diagnostics: Optional[Dict[str, float]] = None
@@ -610,7 +757,7 @@ def infer_node_posteriors(
                             qc_diagnostics, qc_flags = (
                                 nitrate_isotopes.compute_isotope_qc_diagnostics(
                                     sample=iso_s,
-                                    sources=iso_sources,
+                                    sources=sample_sources,
                                     source_probs=mcmc_result.source_fractions,
                                     qc_config=isotope_qc_conf,
                                     prior_probs=process_prior_probs,
@@ -624,12 +771,12 @@ def infer_node_posteriors(
                                 ["mcmc_isotope_mixing"] + process_flags + qc_flags
                             )
                         )
+                        if p_septic is not None or p_animal is not None:
+                            isotope_flags.append("boron_d11b_isotope_mixing")
 
                         results[node_id] = NitrateSourceResult(
                             p_manure=p_man,
-                            p_fertilizer=mcmc_result.source_fractions.get(
-                                "Fertilizer", 1.0 - p_man
-                            ),
+                            p_fertilizer=p_fert,
                             logit_score=None,
                             top_evidence=evidence_list,
                             gating_flags=isotope_flags,
@@ -640,22 +787,26 @@ def infer_node_posteriors(
                             ci_lower=mcmc_result.ci_lower,
                             ci_upper=mcmc_result.ci_upper,
                             diagnostics=qc_diagnostics,
+                            p_septic_sewage=p_septic,
+                            p_animal_manure=p_animal,
+                            boron_used=iso_s.ln_B is not None,
+                            d11b_used=iso_s.d11B is not None,
                         )
                         used_isotope_model = True
                     else:
                         # Analytical mixing model
                         probs = nitrate_isotopes.compute_isotope_prob(
-                            iso_s, iso_sources, prior_probs=process_prior_probs
+                            iso_s, sample_sources, prior_probs=process_prior_probs
                         )
 
-                        p_man = probs.get("Manure", 0.0)
+                        p_man, p_fert, p_septic, p_animal = _source_probabilities(probs)
                         qc_diagnostics = None
                         qc_flags: List[str] = []
                         if isotope_qc_enabled:
                             qc_diagnostics, qc_flags = (
                                 nitrate_isotopes.compute_isotope_qc_diagnostics(
                                     sample=iso_s,
-                                    sources=iso_sources,
+                                    sources=sample_sources,
                                     source_probs=probs,
                                     qc_config=isotope_qc_conf,
                                     prior_probs=process_prior_probs,
@@ -666,10 +817,12 @@ def infer_node_posteriors(
                                 ["dual_isotope_priority"] + process_flags + qc_flags
                             )
                         )
+                        if p_septic is not None or p_animal is not None:
+                            isotope_flags.append("boron_d11b_isotope_mixing")
 
                         results[node_id] = NitrateSourceResult(
                             p_manure=p_man,
-                            p_fertilizer=1.0 - p_man,
+                            p_fertilizer=p_fert,
                             logit_score=None,
                             top_evidence=[f"d15N={d15_float:.1f}", f"d18O={d18_float:.1f}"],
                             gating_flags=isotope_flags,
@@ -677,6 +830,10 @@ def infer_node_posteriors(
                             reason_code="Dual Isotope Mixing",
                             source_fractions=probs,
                             diagnostics=qc_diagnostics,
+                            p_septic_sewage=p_septic,
+                            p_animal_manure=p_animal,
+                            boron_used=iso_s.ln_B is not None,
+                            d11b_used=iso_s.d11B is not None,
                         )
                         used_isotope_model = True
             except Exception:

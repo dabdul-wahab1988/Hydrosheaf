@@ -1,0 +1,155 @@
+{
+  "schema": "ghana-prospective-campaign-v1",
+  "protocol_id": "HS-GHANA-PROSPECTIVE-01",
+  "status": "PROTOCOL_ONLY",
+  "purpose": "Pre-register an independent integrated field benchmark for direct adjacency, transport age, and reaction-family identifiability.",
+  "current_field_packages": [
+    {
+      "package_id": "central_region",
+      "path": "data/FieldData/CRdata/CentralRegion_completed.xlsx",
+      "role": "refined Central Region hydrochemistry and well-construction cohort",
+      "independent_labels_available": false
+    },
+    {
+      "package_id": "upper_east_region",
+      "path": "data/FieldData/UERdata/compiled UER data_new_completed.xlsx",
+      "role": "refined Upper East Region chemistry, isotope and tracer cohort",
+      "independent_labels_available": false
+    }
+  ],
+  "estimands": {
+    "direct_adjacency": {
+      "unit": "directed well-to-well edge",
+      "label_states": ["direct", "indirect", "ambiguous", "unobserved"],
+      "independent_label_rule": "Use a pre-registered hydraulic/tracer/pathline reference independent of HydroSheaf. Label direct only when P(direct | independent evidence) >= 0.95 and every supported indirect alternative is <= 0.05; otherwise retain ambiguous.",
+      "age_likelihood": "Compare endpoint age increment to an independently estimated segment travel-time posterior; endpoint-age ordering alone is direction/reachability evidence, not a direct-edge label."
+    },
+    "transport_age": {
+      "unit": "years",
+      "reference": "multi-tracer age or breakthrough posterior with uncertainty and model diagnostics",
+      "required_uncertainty": true
+    },
+    "reaction_family": {
+      "label_states": ["carbonate", "silicate_exchange", "sulfate_reduction", "denitrification", "iron_reduction", "other", "ambiguous"],
+      "independent_label_rule": "Use an independent mineralogical, isotopic, or controlled-tracer determination not used as an inference feature."
+    }
+  },
+  "required_measurements": {
+    "identity_and_geometry": [
+      "stable_site_id",
+      "exact_latitude_longitude",
+      "coordinate_crs",
+      "elevation_and_vertical_datum",
+      "screen_top_m",
+      "screen_bottom_m",
+      "well_construction_record"
+    ],
+    "hydraulics_and_transport": [
+      "repeated_hydraulic_heads_with_timestamps",
+      "pumping_or_rest_status",
+      "hydraulic_conductivity_or_transmissivity",
+      "specific_storage_or_declared_surrogate",
+      "independent_flow_or_breakthrough_observation"
+    ],
+    "environmental_age": [
+      "tritium_with_uncertainty",
+      "sf6_or_cfc_with_uncertainty",
+      "c14_with_uncertainty_for_old_water",
+      "helium_or_argon_support_when_available",
+      "recharge_history_and_sampling_date"
+    ],
+    "chemistry_and_isotopes": [
+      "Ca",
+      "Mg",
+      "Na",
+      "K",
+      "HCO3_or_alkalinity",
+      "Cl",
+      "SO4",
+      "NO3",
+      "F",
+      "Fe_speciation",
+      "PO4",
+      "SiO2",
+      "Sr",
+      "pH",
+      "temperature",
+      "ec",
+      "dic_or_alkalinity",
+      "delta18O_and_delta2H",
+      "nitrate_isotopes_when_redox_is_claimed"
+    ],
+    "reaction_and_geology": [
+      "depth_resolved_lithology_or_packer_interval",
+      "mineralogy_or_xrd_on_representative_intervals",
+      "mapped_geology_layer_and_source_hash",
+      "geology_key",
+      "user_supplied_geology_dictionary",
+      "independent_reaction_reference"
+    ]
+  },
+  "geology_dictionary_contract": {
+    "required_entry": ["geology_key", "formation_name", "mineral_associations", "confidence", "source"],
+    "example_shape": {
+      "geology_key": "USER_DEFINED_KEY",
+      "formation_name": "documented formation name",
+      "mineral_associations": ["calcite", "dolomite", "feldspar"],
+      "confidence": "declared_by_user",
+      "source": "citation_or_field_log"
+    },
+    "use": "Apply as a bounded prior/context term. Never convert a surface-map association into screened lithology, flow truth, or a reaction label; unmatched or boundary records remain unknown."
+  },
+  "ratio_diagnostics": {
+    "use": "diagnostic and prior evidence only; do not append ratios to a reaction matrix that already contains their numerator and denominator ions",
+    "definitions": {
+      "Na_Cl": "ln(Na / Cl)",
+      "Ca_Mg": "ln(Ca / Mg)",
+      "HCO3_CaMg_equiv": "ln(HCO3 / (2*(Ca + Mg)))",
+      "Ca_Sr": "ln(Ca / Sr)",
+      "SiO2_HCO3": "ln(SiO2 / HCO3)",
+      "F_Ca": "ln(F / Ca)",
+      "NO3_Cl": "ln(NO3 / Cl)",
+      "SO4_Cl": "ln(SO4 / Cl)"
+    },
+    "edge_score": "Use a covariance-weighted endpoint change r_e = r(v) - r(u), with detection limits and missing pairs retained explicitly; report n_available and abstain when the declared minimum pair count is not met."
+  },
+  "phases": [
+    {
+      "phase": 1,
+      "name": "freeze_and_audit",
+      "requirements": ["source_hashes", "units", "coordinate_crs", "geology_join_manifest", "missingness_rules", "predeclared_estimands"]
+    },
+    {
+      "phase": 2,
+      "name": "baseline_and_pilot",
+      "requirements": ["screen_approved_cohorts_separately", "run_ratio_and_geology_sensitivity_only_when_inputs_are_measured", "choose_sites_by_information_gain", "do_not_use_future_labels"]
+    },
+    {
+      "phase": 3,
+      "name": "blind_prediction",
+      "requirements": ["freeze_candidate_edges", "publish_edge_age_reaction_posteriors", "timestamp_predictions", "seal_prediction_hashes"]
+    },
+    {
+      "phase": 4,
+      "name": "independent_confirmation",
+      "requirements": ["collect_heads_and_screen_intervals", "collect_age_tracers", "collect_independent_flow_or_breakthrough", "collect_mineralogy_or_isotope_reaction_evidence"]
+    },
+    {
+      "phase": 5,
+      "name": "locked_scoring",
+      "requirements": ["score_only_predeclared_labels", "cluster_holdout_by_flow_system", "report_direct_indirect_ambiguous_separately", "calibrate_abstention"]
+    }
+  ],
+  "analysis_gates": {
+    "no_label_leakage": "No independent confirmation field may be used to generate the prediction being scored.",
+    "split_policy": "Hold out complete wells or connected flow-system clusters; never split repeated samples from one well across train and test.",
+    "direct_edge_gate": "Require the independent label rule and a finite segment travel-time posterior; otherwise ABSTAIN for direct adjacency.",
+    "age_gate": "Require at least one declared age tracer plus uncertainty and a transport model/segment estimate; endpoint ages alone receive only direction compatibility.",
+    "reaction_gate": "Require the declared ion panel, units, charge-balance/QC status, and an independent reference for accuracy scoring; otherwise report screening identifiability only.",
+    "geology_gate": "Mapped geology is metadata/context. A geology dictionary prior cannot create field truth or override an unmatched join."
+  },
+  "success_definition": {
+    "complete_integrated_benchmark": "A run may be called integrated only if the same pre-registered well IDs have co-timed chemistry, age, heads/screens, geology/lithology, and independent edge/reaction labels, with a frozen crosswalk and held-out confirmation.",
+    "current_status": "The refined Central Region and Upper East Region cohorts are separate cross-sectional transfer/context panels. They do not satisfy the integrated blind-confirmation definition and must remain ABSTAIN/screening for field age, direct adjacency, temporal transfer, and reaction-truth claims."
+  }
+}

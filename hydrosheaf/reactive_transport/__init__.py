@@ -74,4 +74,19 @@ __all__ = [
     "KineticParameters",
     "ReactiveTransportResult",
     "ValidationSummary",
+    "ChemicalAction",
+    "ChemicalPolytope",
+    "ChemACMD",
+    "compile_geochemical_polytope",
+    "build_isotope_mass_action",
+    "reaction_stoichiometry_from_config",
 ]
+
+
+def __getattr__(name: str):
+    """Load the LP-backed design adapter only when requested."""
+    if name in {"ChemicalAction", "ChemicalPolytope", "ChemACMD", "compile_geochemical_polytope", "build_isotope_mass_action", "reaction_stoichiometry_from_config"}:
+        from . import chem_acmd
+
+        return getattr(chem_acmd, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

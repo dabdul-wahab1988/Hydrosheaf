@@ -612,16 +612,17 @@ def _validate_batch_scenarios(options: Sequence[MeasurementOption]) -> list[str]
     return names
 
 
-def _joint_eig_qmc(
+def _joint_log_posterior_qmc(
     prior: np.ndarray,
     options: Sequence[MeasurementOption],
     scenario_index: int,
     *,
     samples: int,
     seed: int,
-) -> float:
+) -> np.ndarray:
+    """Sample joint observations and their hypothesis posteriors with Sobol QMC."""
     if not options:
-        return 0.0
+        return np.log(np.clip(prior, _PROBABILITY_FLOOR, None))[None, :]
     exponent = int(math.ceil(math.log2(max(64, int(samples)))))
     n_samples = 2**exponent
     sampler = qmc.Sobol(d=len(options) + 1, scramble=True, seed=int(seed))
@@ -651,6 +652,22 @@ def _joint_eig_qmc(
             - 0.5 * math.log(2.0 * math.pi)
         )
     log_posterior -= logsumexp(log_posterior, axis=1, keepdims=True)
+    return log_posterior
+
+
+def _joint_eig_qmc(
+    prior: np.ndarray,
+    options: Sequence[MeasurementOption],
+    scenario_index: int,
+    *,
+    samples: int,
+    seed: int,
+) -> float:
+    if not options:
+        return 0.0
+    log_posterior = _joint_log_posterior_qmc(
+        prior, options, scenario_index, samples=samples, seed=seed
+    )
     posterior = np.exp(log_posterior)
     posterior_entropy = -np.sum(
         posterior * np.where(posterior > 0.0, log_posterior, 0.0), axis=1
@@ -691,6 +708,52 @@ def _robust_joint_eig(
         + config.robustness_weight * worst_eig
     )
     return mean_eig, worst_eig, robust_eig, rows
+
+
+def _robust_joint_decision_risk_reduction(
+    prior: np.ndarray,
+    options: Sequence[MeasurementOption],
+    config: AcquisitionConfig,
+    decision_values: np.ndarray,
+) -> float:
+    """Estimate robust Brier-risk reduction from the entire measurement batch.
+
+    Uses the same joint observation model and Sobol draws as joint EIG. A
+    batch addition must be valued relative to the previously selected batch,
+    because a repeated measurement cannot resolve already known targets.
+    """
+    names = _validate_batch_scenarios(options)
+    if not names:
+        return 0.0
+    weights = _normalise_probabilities(
+        [scenario.weight for scenario in options[0].scenarios],
+        name="scenario_weights",
+        minimum_size=1,
+    )
+    centered_values = decision_values - prior @ decision_values
+    prior_risk = float(np.mean(prior @ (centered_values**2)))
+    labels = sorted(option.option_id for option in options)
+    reductions = []
+    for scenario_index in range(len(names)):
+        posterior = np.exp(
+            _joint_log_posterior_qmc(
+                prior,
+                options,
+                scenario_index,
+                samples=config.batch_qmc_samples,
+                seed=_stable_seed(config.random_seed + scenario_index, labels),
+            )
+        )
+        posterior_variance = (
+            posterior @ (centered_values**2) - (posterior @ centered_values) ** 2
+        )
+        reductions.append(
+            float(np.clip(prior_risk - np.mean(posterior_variance), 0.0, prior_risk))
+        )
+    return float(
+        (1.0 - config.robustness_weight) * np.dot(weights, reductions)
+        + config.robustness_weight * min(reductions)
+    )
 
 
 def select_measurement_batch(

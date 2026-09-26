@@ -116,7 +116,11 @@ class SheafTopologyTests(unittest.TestCase):
         edges = infer_edges(samples, method="probabilistic_sheaf", config=config)
         self.assertEqual(len(edges), 1)
         flags = edges[0].attrs.get("sheaf_flags") or ""
-        self.assertIn("iso_missing", flags)
+        # Isotope evidence is now capability-gated: with no endpoint isotope
+        # pair it contributes no numeric cost, while the missing-data flag is
+        # retained for the evidence ladder and audit trail.
+        self.assertIn("iso_missing_u", flags)
+        self.assertIn("iso_missing_v", flags)
 
     def test_depth_gating_limits_evaporation(self):
         samples = [

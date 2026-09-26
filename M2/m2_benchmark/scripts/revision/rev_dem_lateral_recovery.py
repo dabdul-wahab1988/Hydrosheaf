@@ -34,6 +34,10 @@ def km(la1, lo1, la2, lo2):
 
 
 def main() -> None:
+    raise RuntimeError(
+        "This revision analysis is based on legacy field pilots and cached "
+        "field edges; it is retired and not current CR/UER evidence."
+    )
     dem = pd.read_csv(ROOT / "data" / "FieldData" / "derived" / "well_elevations_dem.csv")
     man_raw = pd.read_csv(ROOT / "data" / "FieldData" / "LowerAnayari" / "manu.csv")
     station = {str(r["Sample ID"]): str(r["Station"]) for _, r in man_raw.iterrows()}

@@ -110,7 +110,11 @@ def validate_edge_forward(
         )
 
         # Compute metrics
-        metrics = compute_consistency_metrics(x_transport, x_v_observed, config.weights)
+        metrics = compute_consistency_metrics(
+            x_transport,
+            x_v_observed,
+            config.get_weights(config.ion_order),
+        )
         result.rmse = metrics["rmse"]
         result.nse = metrics["nse"]
         result.pbias = metrics["pbias"]
@@ -161,7 +165,9 @@ def validate_edge_forward(
         # Compute consistency metrics
         if x_v_forward:
             metrics = compute_consistency_metrics(
-                x_v_forward, x_v_observed, config.weights
+                x_v_forward,
+                x_v_observed,
+                config.get_weights(config.ion_order),
             )
             result.rmse = metrics["rmse"]
             result.nse = metrics["nse"]

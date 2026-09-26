@@ -1,20 +1,3 @@
-# Public repository boundary: keep executable Python source/tests/scripts,
-# the root README, and the small package/repository metadata needed to install
-# and validate the source. Manuscripts, results, data, figures, and temporary
-# research material stay outside the public checkout.
-*
-!*/
-!*.py
-!/README.md
-!/pyproject.toml
-!/uv.lock
-!/.gitignore
-!/.gitattributes
-!/LICENSE
-!/.github/
-!/.github/workflows/
-!/.github/workflows/ci.yml
-
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -263,20 +246,78 @@ M8/m8_calibration_benchmark/.simulator_workspaces/
 !M8/m8_calibration_benchmark/provenance/
 !M8/m8_calibration_benchmark/provenance/**
 
-# Final public-repository boundary. Keep this block last so legacy exceptions
-# above cannot re-include research material in the public checkout.
+# ---------------------------------------------------------------------------
+# Public source-only boundary
+# ---------------------------------------------------------------------------
+# The research checkout contains private manuscripts, reviewer material,
+# generated figures/tables/results, and local analysis products.  Keep those
+# files in the working tree, but publish only source/configuration plus the
+# small set of runtime and test fixtures required for a fresh checkout.
+# This final allowlist intentionally overrides the historical exceptions above.
+#
+# Directories are re-included so Git can reach the explicitly allowed files;
+# files not matched by an allow rule remain ignored.
 *
 !*/
 !*.py
-!/README.md
-!/pyproject.toml
-!/uv.lock
+!*.yaml
+!*.yml
+
+# Public repository metadata.
 !/.gitignore
 !/.gitattributes
+!/CHANGELOG.md
 !/LICENSE
-!/.github/
-!/.github/workflows/
-!/.github/workflows/ci.yml
+!/README.md
+
+# Packaging metadata.
+!/pyproject.toml
+!/uv.lock
+
+# Required package runtime databases (not generated outputs).
+!/hydrosheaf/databases/
+!/hydrosheaf/databases/*.dat
+!/hydrosheaf/databases/nitrate_endmembers.json
+
+# Static test fixtures and public synthetic inputs.
+!/tests/fixtures/
+!/tests/fixtures/*.json
+!/configs/
+!/configs/ttd_graph_virtual_benchmark_v1.json
+!/M6/m6_field_transfer_benchmark/configs/ghana_prospective_campaign.json
+!/docs/
+!/docs/TTD_GRAPH_VIRTUAL_BENCHMARK_PROTOCOL.md
+!/docs/AGE_ADJACENCY_TWO_TIER_QA.md
+!/data/
+!/data/synthetic/
+!/data/synthetic/*.csv
+
+# Local workspaces and dependency trees stay private even when they contain
+# Python/YAML files; they are not project source.
+/.codex_work/
+**/.codex_work/
+/.r-lib/
+**/.r-lib/
+**/node_modules/
+/.venv/
+**/.venv/
+/build/
+**/build/
+/dist/
+**/dist/
+/outputs/
+**/outputs/
+!/hydrosheaf/outputs/
+!/hydrosheaf/outputs/*.py
+/scratch/
+**/scratch/
+/tmp/
+**/tmp/
+/pymc_cache/
+**/pymc_cache/
+/draftbychapter/
+/M9_ttd_graph_paper/
+**/revision_9_9_2026/
 
 # Python manuscript/preparation helpers are retained locally but are not part
 # of the public source checkout.
@@ -284,7 +325,6 @@ M8/m8_calibration_benchmark/.simulator_workspaces/
 /M2/M2_ready/
 /bundle_project_files.py
 /generate_m2_md_tables.py
-/hydrosheaf/outputs/tables.py
 /M2.3/analysis/python/build_manuscript.py
 /M2/m2_benchmark/figures/Manuscript_Ready/
 /M2/m2_benchmark/scripts/make_publication_figures.py

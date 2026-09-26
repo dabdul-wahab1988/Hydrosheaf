@@ -177,6 +177,11 @@ def _to_markdown(frame: pd.DataFrame) -> str:
 
 
 def main() -> None:
+    raise RuntimeError(
+        "The historical M6 null-sensitivity analysis is retired. Its design "
+        "uses the excluded legacy seasonal cohort and cannot be presented as "
+        "CR/UER field evidence."
+    )
     data = m6.load_all()
     config = _null_config()
     all_rows: list[dict[str, object]] = []

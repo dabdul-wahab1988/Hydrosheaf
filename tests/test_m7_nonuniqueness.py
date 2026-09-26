@@ -155,17 +155,9 @@ def test_core_chemistry_config_zero_weights_excluded_ions() -> None:
         strong_config(measured_ions=["not_an_ion"])
 
 
-def test_ghana_scope_audit_enforces_data_limited_claim() -> None:
-    workbook = ROOT / "data" / "FieldData" / "NorthenGhana" / "NorthernGhana.xlsx"
-    audit = audit_ghana_workbook(workbook)
-    assert audit["n_wells"] == 160
-    assert audit["n_hydrochemistry_rows"] == 320
-    assert audit["environmental_age_tracer_panel_available"] is False
-    assert audit["screen_intervals_available"] is False
-    assert audit["single_occasion_head_proxy_possible"] is True
-    assert audit["time_varying_head_series_available"] is False
-    assert audit["coordinates_masked"] is True
-    assert audit["independent_field_connectivity_truth_available"] is False
+def test_legacy_ghana_workbook_audit_is_disabled() -> None:
+    with pytest.raises(RuntimeError, match="locked M7 benchmark is synthetic-only"):
+        audit_ghana_workbook(ROOT / "must_not_be_opened.xlsx")
 
 
 def test_locked_result_decisions_trace_to_raw_artifacts() -> None:

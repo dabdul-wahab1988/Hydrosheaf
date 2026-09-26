@@ -1,0 +1,1 @@
+{"meta": {"units": "mg/L", "ion_order": ["Ca", "Mg", "Na", "HCO3", "Cl", "SO4", "NO3", "F"]}, "endmembers": [{"id": "test", "composition": {"Ca": 40.0, "Mg": 24.0, "Na": 23.0, "HCO3": 61.0, "Cl": 35.0, "SO4": 96.0, "NO3": 62.0, "F": 19.0}}]}

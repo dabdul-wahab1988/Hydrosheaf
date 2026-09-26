@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -23,10 +24,35 @@ import numpy as np
 
 from ..config import Config as HConfig
 from ..graph.types import Edge
+from .well_active_learning import CampaignConfig, WellAction, rank_campaign_measurements
 
 # ── measurement recommendation mapping ──────────────────────────────
 
 FLAG_TO_MEASUREMENTS: Dict[str, List[str]] = {
+    "geophysical_barrier_ambiguity": [
+        "ERT resistivity survey", "TEM sounding", "high-resolution ERT profile",
+    ],
+    "nitrate_source_ambiguity": [
+        "boron isotopes (d11B)", "nitrate dual isotopes (d15N/d18O)", "trace elements (B, Br)",
+    ],
+    "salinity_source_ambiguity": [
+        "chloride/bromide ratio (Cl/Br)", "strontium isotopes (87Sr/86Sr)", "ERT sounding",
+    ],
+    "redox_zone_ambiguity": [
+        "dissolved oxygen / redox potential", "dissolved Mn2+/Fe2+", "arsenic speciation (As3+/As5+)",
+    ],
+    "geophysical_k_ambiguity": [
+        "surface NMR (sNMR) water content/T2*", "pumping test", "permeability slug test",
+    ],
+    "geophysical_uncertainty": [
+        "surface NMR (sNMR) water content/T2*", "ERT/TEM line across the flow divide",
+    ],
+    "missing_boron": [
+        "boron (B) and d11B isotope analysis",
+    ],
+    "missing_geophysics": [
+        "ERT resistivity survey", "surface NMR sounding",
+    ],
     "age_reversal": [
         "groundwater age tracer", "tritium/14C/SF6/CFC",
     ],
@@ -88,7 +114,44 @@ FLAG_TO_MEASUREMENTS: Dict[str, List[str]] = {
         "independent connectivity evidence",
         "MODPATH/pathline check", "tracer test",
     ],
+    "false_positive": [
+        "tracer test", "hydraulic head survey", "geochemical pathway verification",
+    ],
+    "incorrectly selected (FP)": [
+        "tracer test", "hydraulic head survey", "geochemical pathway verification",
+    ],
+    "false_negative": [
+        "tracer test", "isotope connectivity survey", "groundwater age tracer",
+    ],
+    "missed detection (FN)": [
+        "tracer test", "isotope connectivity survey", "groundwater age tracer",
+    ],
+    "correctly selected (TP)": [
+        "independent connectivity evidence", "tracer test",
+    ],
+    "observed_present": [
+        "independent connectivity evidence", "tracer test",
+    ],
+    "assumption-sensitive (calibrated selects, baseline does not)": [
+        "major ion chemistry", "d18O/d2H sampling", "hydraulic head survey",
+    ],
+    "calibration-removed (baseline selected, calibrated removed)": [
+        "major ion chemistry", "d18O/d2H sampling", "hydraulic head survey",
+    ],
+    "null-model-ambiguous (only null-model-defaults selects)": [
+        "major ion chemistry", "lithologic log / aquifer unit assignment",
+    ],
+    "null-model-rejects (baseline+calibrated agree, null-model-default disagrees)": [
+        "major ion chemistry", "lithologic log / aquifer unit assignment",
+    ],
+    "mixed-disagreement": [
+        "major ion chemistry", "d18O/d2H sampling",
+    ],
 }
+
+# Backward-compatible public name retained for callers that used the older
+# reason-oriented mapping name.
+REASON_TO_MEASUREMENTS = FLAG_TO_MEASUREMENTS
 
 # Default field keys to check for missing data (configurable via HConfig)
 _DEFAULT_SAMPLE_FIELDS = [
@@ -100,11 +163,82 @@ _DEFAULT_SAMPLE_FIELDS = [
 # ── internal helpers ─────────────────────────────────────────────────
 
 def _parse_evidence_flags(edge: Edge) -> List[str]:
-    """Parse comma-separated evidence_flags from edge attrs."""
-    flags_str = (edge.attrs or {}).get("evidence_flags", "")
-    if not flags_str or not isinstance(flags_str, str):
-        return []
-    return [f.strip() for f in flags_str.split(",") if f.strip()]
+    attrs = edge.attrs or {}
+    flags: List[str] = []
+
+    def add_value(value: object) -> None:
+        if isinstance(value, str):
+            flags.extend(f.strip() for f in value.split(",") if f.strip())
+        elif isinstance(value, (list, tuple, set)):
+            flags.extend(str(f).strip() for f in value if str(f).strip())
+
+    for key in (
+        "evidence_flags",
+        "edge_flags",
+        "diagnostic_evidence_flags",
+        "nitrate_source_gates",
+    ):
+        add_value(attrs.get(key))
+
+    # Bridge component-level diagnostics into the same evidence vocabulary so
+    # the measurement recommender remains connected to fitted edge results.
+    cl_br = attrs.get("cl_br_metrics")
+    if isinstance(cl_br, dict):
+        source_u = str(cl_br.get("source_class_u", ""))
+        source_v = str(cl_br.get("source_class_v", ""))
+        if (
+            source_u != source_v
+            or source_u in {"", "unknown", "intermediate_or_mixed"}
+            or source_v in {"", "unknown", "intermediate_or_mixed"}
+        ):
+            flags.append("salinity_source_ambiguity")
+    if attrs.get("sr_provenance_invariant") is False:
+        flags.append("salinity_source_ambiguity")
+
+    geophys_probability = attrs.get("prob_geophys")
+    try:
+        low_geophys_probability = float(geophys_probability) < 0.75
+    except (TypeError, ValueError):
+        low_geophys_probability = False
+    if attrs.get("geophysical_barrier") is True or low_geophys_probability:
+        flags.append("geophysical_barrier_ambiguity")
+    if (
+        attrs.get("geophysics_enabled") is True
+        and attrs.get("k_geophys_m_day") is None
+    ):
+        flags.append("geophysical_k_ambiguity")
+    if attrs.get("geophysical_uncertainty") is True:
+        flags.append("geophysical_uncertainty")
+    for key in ("geophysical_k_cv", "k_geophys_cv"):
+        try:
+            if float(attrs.get(key)) >= 0.5:
+                flags.append("geophysical_uncertainty")
+                break
+        except (TypeError, ValueError):
+            continue
+    try:
+        k_mean = float(attrs.get("k_geophys_m_day"))
+        k_std = float(attrs.get("k_geophys_std_m_day"))
+        if k_mean > 0.0 and k_std / k_mean >= 0.5:
+            flags.append("geophysical_uncertainty")
+    except (TypeError, ValueError):
+        pass
+    if (
+        attrs.get("nitrate_source_enabled") is True
+        and not bool(attrs.get("nitrate_source_boron_used", False))
+    ):
+        flags.append("missing_boron")
+    if "qc_low_identifiability" in flags:
+        flags.append("nitrate_source_ambiguity")
+    try:
+        p_septic = float(attrs.get("nitrate_source_p_septic_sewage"))
+        p_animal = float(attrs.get("nitrate_source_p_animal_manure"))
+    except (TypeError, ValueError):
+        p_septic = p_animal = float("nan")
+    if math.isfinite(p_septic) and math.isfinite(p_animal) and abs(p_septic - p_animal) < 0.2:
+        flags.append("nitrate_source_ambiguity")
+
+    return list(dict.fromkeys(flags))
 
 
 def _compute_disagreement_score(
@@ -187,8 +321,19 @@ def _score_evidence_ambiguity(edge: Edge) -> tuple:
     tier_map = [
         ({"age_reversal"}, 0.7, "age_reversal"),
         ({"evap_candidate"}, 0.6, "isotope_evaporation"),
+        (
+            {"geophysical_barrier_ambiguity"},
+            0.65,
+            "geophysical_barrier_ambiguity",
+        ),
+        ({"nitrate_source_ambiguity"}, 0.65, "nitrate_source_ambiguity"),
+        ({"salinity_source_ambiguity"}, 0.6, "salinity_source_ambiguity"),
+        ({"geophysical_k_ambiguity"}, 0.55, "geophysical_k_ambiguity"),
+        ({"geophysical_uncertainty"}, 0.60, "geophysical_uncertainty"),
         ({"null_chemistry_similar", "null_chemistry_error"}, 0.5, "null_chemistry_similar"),
         ({"missing_evidence"}, 0.4, "missing_evidence"),
+        ({"missing_boron"}, 0.4, "missing_boron"),
+        ({"missing_geophysics"}, 0.4, "missing_geophysics"),
         ({"iso_missing_u", "iso_missing_v"}, 0.35, "missing_isotope_data"),
         ({"cl_missing"}, 0.3, "missing_chloride_data"),
         ({"null_common_lithology", "null_common_lithology_explicit"}, 0.2, "null_common_lithology"),
@@ -212,6 +357,40 @@ def _score_evidence_ambiguity(edge: Edge) -> tuple:
         best_reasons = sorted(all_flags)
 
     return (best_score, ", ".join(best_reasons))
+
+
+def _score_geophysical_uncertainty(edge: Edge) -> float:
+    """Return a bounded geophysical-K uncertainty score for acquisition utility.
+
+    The preferred input is an explicit coefficient of variation. A normalized
+    ``geophysical_uncertainty`` value is also accepted, and an absolute K
+    standard deviation is converted to a coefficient of variation when the
+    corresponding mean is present.
+    """
+    attrs = edge.attrs or {}
+    raw = attrs.get("geophysical_uncertainty")
+    if isinstance(raw, bool):
+        score = 1.0 if raw else 0.0
+    else:
+        try:
+            score = float(raw)
+        except (TypeError, ValueError):
+            score = 0.0
+    if score <= 0.0:
+        for key in ("geophysical_k_cv", "k_geophys_cv"):
+            try:
+                score = max(score, float(attrs.get(key)))
+            except (TypeError, ValueError):
+                continue
+    if score <= 0.0:
+        try:
+            mean_k = float(attrs.get("k_geophys_m_day"))
+            std_k = float(attrs.get("k_geophys_std_m_day"))
+            if mean_k > 0.0:
+                score = std_k / mean_k
+        except (TypeError, ValueError):
+            pass
+    return min(1.0, max(0.0, score))
 
 
 def _score_validation_error(
@@ -436,6 +615,11 @@ def rank_next_measurements(
     config: Optional[HConfig] = None,
     top_k: int = 20,
     output_dir: Optional[str] = None,
+    reject_missing_endpoints: bool = True,
+    require_concrete_actions: bool = True,
+    method: str = "legacy_heuristic",
+    posterior_ensemble: Optional[dict] = None,
+    campaign_config: Optional[CampaignConfig] = None,
 ) -> dict:
     """Rank edges by priority for the next field/lab measurement campaign.
 
@@ -457,12 +641,35 @@ def rank_next_measurements(
         Maximum number of recommendations to return.
     output_dir : str, optional
         When provided, writes JSON/CSV/MD output files.
+    reject_missing_endpoints : bool
+        When True, excludes candidate edges where well endpoints u or v are missing.
+    require_concrete_actions : bool
+        When True, excludes edges for which no actionable field/lab measurement
+        could be mapped from uncertainty reasons or evidence flags.
 
     Returns
     -------
     dict
         ``recommendations`` list, ``summary``, and ``inputs_used``.
     """
+    if method == "bayesian_campaign":
+        if posterior_ensemble is None:
+            raise ValueError(
+                "posterior_ensemble must be provided when method='bayesian_campaign'."
+            )
+        if candidate_edges is None:
+            raise ValueError(
+                "candidate_edges must be provided when method='bayesian_campaign'."
+            )
+        return rank_campaign_measurements(
+            posterior_result=posterior_ensemble,
+            benchmark_report=benchmark_report,
+            candidate_edges=candidate_edges,
+            samples=samples,
+            validation_report=validation_report,
+            config=campaign_config,
+            output_dir=output_dir,
+        )
     variants = benchmark_report.get("variants", {})
     if not variants:
         result = {
@@ -518,7 +725,7 @@ def rank_next_measurements(
     # ── Calibrated-variant selected set (for validation scoring) ─────
     ac_selected = variant_selected_sets.get("assumption_calibrated", set())
 
-    # ── Report-level bootstrap instability ──────────────────────────
+    # ── Report-level bootstrap instability (campaign-level signal) ───
     boot_modulation, boot_reason = _compute_bootstrap_instability_modulation(
         benchmark_report,
     )
@@ -532,8 +739,25 @@ def rank_next_measurements(
 
     # ── Score each edge ─────────────────────────────────────────────
     scored: List[dict] = []
-    for edge_id in all_edge_ids:
-        edge = edge_lookup.get(edge_id, Edge(edge_id=edge_id, u="", v=""))
+    excluded: List[dict] = []
+    for edge_id in sorted(all_edge_ids):
+        edge = edge_lookup.get(edge_id)
+        if edge is None:
+            u_parsed, v_parsed = ("", "")
+            if "->" in edge_id:
+                parts = edge_id.split("->", 1)
+                u_parsed, v_parsed = parts[0].strip(), parts[1].strip()
+            edge = Edge(edge_id=edge_id, u=u_parsed, v=v_parsed)
+
+        u_val = str(edge.u or "").strip()
+        v_val = str(edge.v or "").strip()
+        if reject_missing_endpoints and (not u_val or not v_val):
+            excluded.append({
+                "edge_id": edge_id,
+                "reason": "missing_endpoints",
+                "detail": f"Missing valid endpoints (u='{u_val}', v='{v_val}')",
+            })
+            continue
 
         # Which variants select this edge?
         vs = {
@@ -544,40 +768,64 @@ def rank_next_measurements(
         # Signal A: disagreement
         disagree_score, disagree_reason = _compute_disagreement_score(edge_id, vs)
 
-        # Signal B: bootstrap instability (report-level, same for all edges)
-        bootstrap_score = boot_modulation
-
-        # Signal C: evidence ambiguity
+        # Signal B: evidence ambiguity
         ev_score, ev_reason = _score_evidence_ambiguity(edge)
 
-        # Signal D: validation error
+        # Signal C: validation error
         val_score, val_status, val_reason = _score_validation_error(
             edge_id, validation_report, val_obs_by_edge, ac_selected,
         )
 
-        # Signal E: missing data
+        # Signal D: missing data
         md_score, md_reasons = _score_missing_data(edge, samples, config)
 
-        # Signal F: posterior uncertainty (Bayesian topology posterior)
+        # Signal E: posterior uncertainty (Bayesian topology posterior)
         post_score, post_reason = _score_posterior_uncertainty(edge)
 
-        # Aggregate priority
+        # Signal F: geophysical K uncertainty. When present, this replaces a
+        # configurable fraction of the generic posterior-uncertainty weight;
+        # edges without a geophysical uncertainty observation retain the
+        # legacy score exactly.
+        geophys_score = _score_geophysical_uncertainty(edge)
+        try:
+            geophys_weight_fraction = min(
+                1.0,
+                max(
+                    0.0,
+                    float(
+                        getattr(config, "geophysics_active_learning_weight", 0.5)
+                    ),
+                ),
+            )
+        except (TypeError, ValueError):
+            geophys_weight_fraction = 0.5
+        posterior_weight = 0.15
+        geophys_component = 0.0
+        if geophys_score > 0.0:
+            posterior_weight *= 1.0 - geophys_weight_fraction
+            geophys_component = (
+                0.15 * geophys_weight_fraction * geophys_score
+            )
+
+        # Aggregate priority. The geophysical term is activated only when a
+        # quantitative uncertainty is supplied, preserving the legacy score
+        # for ordinary chemistry-only edges.
+        # Bootstrap instability is handled as a campaign-level warning to avoid
+        # uniformly inflating every edge score without differentiating priorities.
         priority = (
             disagree_score * 0.25
-            + bootstrap_score * 0.10
-            + ev_score * 0.20
-            + val_score * 0.20
+            + ev_score * 0.25
+            + val_score * 0.25
             + md_score * 0.10
-            + post_score * 0.15
+            + post_score * posterior_weight
+            + geophys_component
         )
         priority = round(min(max(priority, 0.0), 1.0), 6)
 
-        # Collect reasons
+        # Collect edge-specific uncertainty reasons
         all_reasons = []
         if disagree_reason:
             all_reasons.append(disagree_reason)
-        if boot_reason:
-            all_reasons.append(boot_reason)
         if ev_reason:
             all_reasons.append(ev_reason)
         if val_reason:
@@ -586,6 +834,17 @@ def rank_next_measurements(
             all_reasons.extend(md_reasons)
         if post_reason:
             all_reasons.append(post_reason)
+        if geophys_score > 0.0:
+            all_reasons.append("geophysical_uncertainty")
+
+        recs = _recommended_measurements(all_reasons)
+        if require_concrete_actions and not recs:
+            excluded.append({
+                "edge_id": edge_id,
+                "reason": "no_concrete_measurement",
+                "detail": "No actionable field/lab measurement could be mapped from uncertainty reasons",
+            })
+            continue
 
         evidence_class = (edge.attrs or {}).get("evidence_class", "")
         if not evidence_class:
@@ -593,10 +852,11 @@ def rank_next_measurements(
 
         scored.append({
             "edge_id": edge_id,
-            "u": edge.u or "",
-            "v": edge.v or "",
+            "u": u_val,
+            "v": v_val,
             "priority_score": priority,
             "uncertainty_reasons": all_reasons,
+            "recommended_measurements": recs if recs else ["review edge evidence"],
             "evidence_flags": _parse_evidence_flags(edge),
             "evidence_reason": (edge.attrs or {}).get("evidence_reason", ""),
             "evidence_class": evidence_class,
@@ -606,15 +866,15 @@ def rank_next_measurements(
             "validation_status": val_status,
         })
 
-    # ── Sort by priority descending ─────────────────────────────────
-    scored.sort(key=lambda x: x["priority_score"], reverse=True)
+    # ── Sort by priority descending with deterministic tie-breaking on edge_id ───
+    scored.sort(key=lambda x: (-x["priority_score"], str(x["edge_id"])))
     top = scored[:top_k]
 
     # ── Build final recommendation dicts ────────────────────────────
     recommendations = []
     for i, item in enumerate(top):
         reasons = item["uncertainty_reasons"]
-        recs = _recommended_measurements(reasons)
+        recs = item["recommended_measurements"]
         status_item = {
             "baseline_selected": item["baseline_selected"],
             "null_model_default_selected": item["null_model_default_selected"],
@@ -627,7 +887,7 @@ def rank_next_measurements(
             "v": item["v"],
             "priority_score": item["priority_score"],
             "uncertainty_reasons": reasons,
-            "recommended_measurements": recs if recs else ["review edge evidence"],
+            "recommended_measurements": recs,
             "expected_benefit": _compute_expected_benefit(
                 item["priority_score"], reasons, item["evidence_class"],
                 item["validation_status"],
@@ -645,9 +905,15 @@ def rank_next_measurements(
     summary = {
         "n_recommendations": len(recommendations),
         "top_priority_score": recommendations[0]["priority_score"] if recommendations else 0.0,
-        "n_edges_scored": len(scored),
+        "n_edges_scored": len(all_edge_ids),
+        "n_edges_actionable": len(scored),
+        "n_edges_excluded": len(excluded),
+        "excluded_recommendations": excluded,
         "bootstrap_instability_detected": bool(boot_reason),
+        "bootstrap_instability_warning": boot_reason if boot_reason else None,
     }
+    if boot_reason:
+        summary["warnings"] = [f"Bootstrap instability detected: {boot_reason}"]
 
     result = {
         "recommendations": recommendations,
@@ -732,8 +998,12 @@ def _write_active_learning_md(path: Path, result: dict) -> None:
         f"- **Top priority score**: {summary['top_priority_score']:.4f}",
     ]
 
-    if summary.get("bootstrap_instability_detected"):
+    if summary.get("bootstrap_instability_warning"):
+        lines.append(f"- **Bootstrap instability warning**: {summary['bootstrap_instability_warning']}")
+    elif summary.get("bootstrap_instability_detected"):
         lines.append("- **Bootstrap instability**: detected in benchmark delta CIs")
+    if summary.get("n_edges_excluded", 0) > 0:
+        lines.append(f"- **Edges excluded (missing endpoints / non-concrete)**: {summary['n_edges_excluded']}")
     lines.append("")
 
     if not recs:
@@ -819,3 +1089,13 @@ def _write_active_learning_md(path: Path, result: dict) -> None:
 
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
+
+
+__all__ = [
+    "rank_next_measurements",
+    "rank_campaign_measurements",
+    "WellAction",
+    "CampaignConfig",
+    "FLAG_TO_MEASUREMENTS",
+    "REASON_TO_MEASUREMENTS",
+]

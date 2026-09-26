@@ -1,0 +1,152 @@
+{
+    "sources": {
+        "Septic_Sewage": {
+            "d15N": {
+                "mean": 12.0,
+                "std": 4.0
+            },
+            "d18O": {
+                "mean": 5.0,
+                "std": 4.0
+            },
+            "B": {
+                "mean": 500.0,
+                "std": 200.0,
+                "unit": "ug/L"
+            },
+            "ln_B": {
+                "mean": 6.21,
+                "std": 0.5
+            },
+            "d11B": {
+                "mean": 5.0,
+                "std": 3.0
+            },
+            "description": "Human wastewater and septic effluent. High B (from detergents and domestic waste) and low d11B (0 to 12 permil)."
+        },
+        "Animal_Manure": {
+            "d15N": {
+                "mean": 15.0,
+                "std": 5.0
+            },
+            "d18O": {
+                "mean": 5.0,
+                "std": 5.0
+            },
+            "B": {
+                "mean": 50.0,
+                "std": 25.0,
+                "unit": "ug/L"
+            },
+            "ln_B": {
+                "mean": 3.91,
+                "std": 0.6
+            },
+            "d11B": {
+                "mean": 25.0,
+                "std": 5.0
+            },
+            "description": "Livestock waste / animal manure. Moderate to low B and high d11B (18 to 35 permil)."
+        },
+        "Manure": {
+            "d15N": {
+                "mean": 15.0,
+                "std": 5.0
+            },
+            "d18O": {
+                "mean": 5.0,
+                "std": 5.0
+            },
+            "B": {
+                "mean": 150.0,
+                "std": 100.0,
+                "unit": "ug/L"
+            },
+            "ln_B": {
+                "mean": 4.8,
+                "std": 1.0
+            },
+            "d11B": {
+                "mean": 18.0,
+                "std": 8.0
+            },
+            "description": "Legacy lumped animal waste and septic effluent. Use Septic_Sewage or Animal_Manure when Boron is available."
+        },
+        "Fertilizer": {
+            "d15N": {
+                "mean": 0.0,
+                "std": 3.0
+            },
+            "d18O": {
+                "mean": 20.0,
+                "std": 5.0
+            },
+            "B": {
+                "mean": 5.0,
+                "std": 5.0,
+                "unit": "ug/L"
+            },
+            "ln_B": {
+                "mean": 1.6,
+                "std": 0.8
+            },
+            "d11B": {
+                "mean": -2.0,
+                "std": 4.0
+            },
+            "description": "Synthetic NH4/NO3 fertilizers. Low d15N, negligible B. d18O varies by nitrification status."
+        },
+        "Soil_N": {
+            "d15N": {
+                "mean": 5.0,
+                "std": 2.0
+            },
+            "d18O": {
+                "mean": 5.0,
+                "std": 3.0
+            },
+            "B": {
+                "mean": 20.0,
+                "std": 10.0,
+                "unit": "ug/L"
+            },
+            "ln_B": {
+                "mean": 2.99,
+                "std": 0.5
+            },
+            "d11B": {
+                "mean": 10.0,
+                "std": 5.0
+            },
+            "description": "Natural soil organic nitrogen nitrification."
+        },
+        "Precipitation": {
+            "d15N": {
+                "mean": 0.0,
+                "std": 2.0
+            },
+            "d18O": {
+                "mean": 45.0,
+                "std": 10.0
+            },
+            "B": {
+                "mean": 2.0,
+                "std": 1.5,
+                "unit": "ug/L"
+            },
+            "ln_B": {
+                "mean": 0.69,
+                "std": 0.5
+            },
+            "d11B": {
+                "mean": 30.0,
+                "std": 8.0
+            },
+            "description": "Atmospheric deposition."
+        }
+    },
+    "metadata": {
+        "reference": "Kendall (1998); Xue et al. (2009); Widory et al. (2004, 2005)",
+        "notes": "Boron and d11B allow uncoupling of Septic_Sewage (detergent B, low d11B) from Animal_Manure (high d11B) and Fertilizer (negligible B)."
+    }
+}
