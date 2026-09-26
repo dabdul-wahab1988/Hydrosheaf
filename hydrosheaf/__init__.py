@@ -287,6 +287,28 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
         ".nuclear.ttd_certified_design",
         "solve_budgeted_minimax_design",
     ),
+    "ACMD": (".acmd", "ACMD"),
+    "ACMDLoop": (".acmd", "ACMDLoop"),
+    "ACMDAction": (".acmd", "ACMDAction"),
+    "ACMDMode": (".acmd", "ACMDMode"),
+    "ACMDStatus": (".acmd", "ACMDStatus"),
+    "ACMDCertificate": (".acmd", "ACMDCertificate"),
+    "ACMDStepRecord": (".acmd", "ACMDStepRecord"),
+    "ChemACMD": (".reactive_transport.chem_acmd", "ChemACMD"),
+    "ChemicalAction": (".reactive_transport.chem_acmd", "ChemicalAction"),
+    "ChemicalPolytope": (".reactive_transport.chem_acmd", "ChemicalPolytope"),
+    "compile_geochemical_polytope": (
+        ".reactive_transport.chem_acmd",
+        "compile_geochemical_polytope",
+    ),
+    "build_isotope_mass_action": (
+        ".reactive_transport.chem_acmd",
+        "build_isotope_mass_action",
+    ),
+    "reaction_stoichiometry_from_config": (
+        ".reactive_transport.chem_acmd",
+        "reaction_stoichiometry_from_config",
+    ),
     "GraphCompatibilityAudit": (
         ".nuclear.ttd_graph",
         "GraphCompatibilityAudit",
@@ -390,10 +412,26 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
         ".validation",
         "validate_sparse_inverse_reaction_model",
     ),
+    "ASSUMPTION_CATALOGUE": (".validation", "ASSUMPTION_CATALOGUE"),
+    "AssumptionAudit": (".validation", "AssumptionAudit"),
+    "AssumptionReport": (".validation", "AssumptionReport"),
+    "AssumptionStatus": (".validation", "AssumptionStatus"),
+    "assess_model_assumptions": (".validation", "assess_model_assumptions"),
+    "diagnose_error_independence": (".validation", "diagnose_error_independence"),
+    "diagnose_laboratory_bias": (".validation", "diagnose_laboratory_bias"),
+    "diagnose_missingness_at_random": (
+        ".validation",
+        "diagnose_missingness_at_random",
+    ),
+    "diagnose_tracer_conservativeness": (
+        ".validation",
+        "diagnose_tracer_conservativeness",
+    ),
+    "diagnose_vertical_datum": (".validation", "diagnose_vertical_datum"),
 }
 
 __all__ = list(_EXPORTS)
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 
 def __getattr__(name: str) -> Any:

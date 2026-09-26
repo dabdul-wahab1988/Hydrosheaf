@@ -23,6 +23,7 @@ The framework integrates:
 - **Sheaf Cohomology Diagnostics** for detecting global flow-consistency obstructions (cycles where chemistry constraints cannot be simultaneously satisfied).
 - **Optimal Transport and Causal Discovery** for reaction-aware chemistry-plausibility screens and guarded causal direction support.
 - **Active Learning** for recommending which wells to measure next based on topology uncertainty and validation gaps.
+- **Certified Measurement Design** for bounded tracer and conditional hydrochemical models, with explicit ambiguity witnesses, sequential updates, cost accounting, and abstention when declared evidence is inadequate.
 - **MODFLOW/MODPATH Benchmarking** for testing reduced-order graph topology against reference particle-tracking outputs.
 - **History-aware TTD inversion** for stable-water-isotope and atmospheric-tracer response matrices conditioned on dated source histories, with explicit abstention reasons for missing or invalid histories.
 - **Truth-blind topology-v2** for all-pairs candidate generation, soft physical evidence, optional calibration, tri-state `PRESENT`/`ABSENT`/`ABSTAIN` decisions, and bootstrap case metrics.
@@ -49,6 +50,7 @@ The implementation distinguishes software contracts and controlled benchmark evi
 - **Fair Topology Benchmarking**: M4-A/M4-B/M4-C workflows using projected Savage coordinates, public MODFLOW CBC context, and path-aware physical evidence.
 - **Global Consistency Checks**: Sheaf cohomology detects cycles where chemistry constraints cannot be simultaneously satisfied, computing obstruction energy and per-edge leverage scores.
 - **Active Learning**: Recommends which wells to measure next based on variant disagreement, posterior uncertainty, geophysical ambiguity, missing tracer/boron evidence, and validation gaps.
+- **Conditional Hydrochemical Design**: Uses declared reaction stoichiometry, finite extent bounds, concentration intervals, and site-specific measurement responses to select measurements under a robust minimax criterion. Its certificates apply only to that stated linear model.
 - **Reproducibility Contracts**: Deterministic environment setup, SHA-256 manifests, exact tree comparisons, and isolated rerun verification.
 - **Contract-Tested Source**: Public tests and configuration exercise package imports, validation gates, benchmark rules, and abstention behavior.
 - **Evidence-Aware Optional Modules**: Input validation can resolve available topology, hydraulic, geophysical, and tracer modules from the signals actually present instead of silently fabricating missing evidence.
@@ -57,7 +59,7 @@ The implementation distinguishes software contracts and controlled benchmark evi
 
 ### Core Package (CLI)
 
-The current package metadata declares version `0.6.0` and requires Python
+The current package metadata declares version `0.7.0` and requires Python
 `3.10` or newer.
 
 ```bash
@@ -311,6 +313,9 @@ they implement:
 - **[Field data](hydrosheaf/data/field.py)** and **[input validation](hydrosheaf/data/validation.py)**: Dataset manifests, optional-signal resolution, and fail-closed module gating.
 - **[Chemical units and registry](hydrosheaf/data/units.py)**: Explicit species, unit-conversion, and trace-speciation contracts.
 - **[History-aware TTD](hydrosheaf/nuclear/history_ttd.py)**: Conditional source-history inversion and abstention reason codes.
+- **[Active certified design](hydrosheaf/acmd.py)** and **[polyhedral solver](hydrosheaf/acmd_polytope.py)**: Sequential decisions, bounded ambiguity, and auditable certificates.
+- **[Hydrochemical design](hydrosheaf/reactive_transport/chem_acmd.py)**: Conditional reaction and mixing constraints with declared measurement responses.
+- **[Assumption diagnostics](hydrosheaf/validation/assumption_diagnostics.py)**: Evidence-limited checks for selected model assumptions.
 - **[Topology-v2](hydrosheaf/validation/topology_v2.py)**: Truth-blind candidate generation, calibration, thresholds, and metrics.
 - **[M4 fair inputs](hydrosheaf/validation/m4_fair.py)**: Projected Savage-frame and archive-informed observation construction.
 - **[M4 path-aware evidence](hydrosheaf/validation/m4_path_aware.py)**: Truth-blind head-gradient/CBC path features.

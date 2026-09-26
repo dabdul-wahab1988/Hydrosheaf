@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.7.0 (2026-09-26)
+
+### New Features
+
+- **Active Certified Measurement Design (ACMD)**: Added unified active closed-loop sequential learning architecture (`ACMDLoop`, `ACMDAction`, `ACMDCertificate`, and facade `ACMD`) integrating robust worst-case ambiguity reduction ($W(S)$ over polyhedral compatible sets $\mathcal{P}_t$) and Bayesian Expected Information Gain (EIG) over hypothesis ensembles.
+- **Dynamic Mobilization Logistics**: Implemented standalone and incremental cost accounting that automatically discounts travel mobilization fees to zero once a spatial well or spring target has been visited.
+- **Certificate Integrity**: Added SHA-256 hashing of the declared problem and decision trajectory, candidate attainment bounds, cumulative expenditures, and linear-program witness vectors $(x, x')$; the digest does not authenticate the physical model.
+- **Empirical Model Assumption Diagnostics**: Added standardized assumption audit suite (`ASSUMPTION_CATALOGUE`, `AssumptionReport`, `assess_model_assumptions`) with diagnostics for error independence (Durbin-Watson), laboratory analytical bias, missingness at random (Little's MCAR test), tracer conservativeness, and vertical datum reference consistency.
+- **Multi-criteria Decision Modes**: Implemented `ACMDMode` (`ROBUST_MINIMAX`, `PROBABILISTIC_EIG`, `HYBRID`) with definitive terminal states (`CERTIFIED`, `IMPOSSIBILITY_WITNESS`, `ALREADY_RESOLVED`, `BUDGET_EXHAUSTED`, `INCONSISTENT_EVIDENCE`, `ABSTAIN`).
+- **Conditional Hydrochemical Design**: Added `ChemACMD` and a bounded reaction--mixing polytope compiler. Named stoichiometric reactions, explicit extent and concentration intervals, endmember fractions, and site-declared linear isotope-mass responses can be used for robust minimax measurement selection. Certificates apply to the declared linear model; the adapter does not derive quantitative extent bounds from PHREEQC saturation indices or supply universal isotope signatures.
+
+### Validation
+
+- Added full unit and simulation test suite (`tests/test_acmd.py`) exercising multi-step active closed-loop convergence, oracle simulations, travel cost discounting, and probability gate abstentions.
+- Added comprehensive assumption diagnostic regression suite (`tests/test_assumption_diagnostics.py`).
+- Added synthetic reaction-confounding, mixing, bound, inconsistency, and certificate tests (`tests/test_chem_acmd.py`).
+
 ## 0.6.0 (2026-09-16)
 
 ### New Features

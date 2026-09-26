@@ -325,8 +325,30 @@ from .aiken_emulation import (
     time_unit_conversion_to_years,
     write_aiken_emulation_outputs,
 )
+from .assumption_diagnostics import (
+    ASSUMPTION_CATALOGUE,
+    AssumptionAudit,
+    AssumptionReport,
+    AssumptionStatus,
+    assess_model_assumptions,
+    diagnose_error_independence,
+    diagnose_laboratory_bias,
+    diagnose_missingness_at_random,
+    diagnose_tracer_conservativeness,
+    diagnose_vertical_datum,
+)
 
 __all__ = [
+    "ASSUMPTION_CATALOGUE",
+    "AssumptionAudit",
+    "AssumptionReport",
+    "AssumptionStatus",
+    "assess_model_assumptions",
+    "diagnose_error_independence",
+    "diagnose_laboratory_bias",
+    "diagnose_missingness_at_random",
+    "diagnose_tracer_conservativeness",
+    "diagnose_vertical_datum",
     "ClaimRecord",
     "EvidenceLevel",
     "EdgeEvidenceAnnotation",
